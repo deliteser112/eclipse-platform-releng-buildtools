@@ -30,6 +30,7 @@ import static google.registry.model.registry.Registries.getTlds;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
+import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_SPECIFIC_USE;
 import static google.registry.model.registry.label.ReservedList.getAllowedNameservers;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
@@ -93,12 +94,14 @@ import google.registry.model.domain.launch.LaunchExtension;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
 import google.registry.model.domain.launch.LaunchPhase;
+import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.domain.secdns.SecDnsInfoExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension.Add;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension.Remove;
+import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.host.HostResource;
@@ -142,7 +145,7 @@ public class DomainFlowUtils {
           .put(LaunchPhase.OPEN, TldState.GENERAL_AVAILABILITY)
           .build();
 
-  /** Reservation types that are allowed in sunrise by policy. */
+  /** Reservation types that are only allowed in sunrise by policy. */
   public static final ImmutableSet<ReservationType> TYPES_ALLOWED_FOR_CREATE_ONLY_IN_SUNRISE =
       Sets.immutableEnumSet(
           ReservationType.ALLOWED_IN_SUNRISE,
@@ -245,6 +248,37 @@ public class DomainFlowUtils {
       throw new InvalidIdnDomainLabelException();
     }
     return idnTableName.get();
+  }
+
+  /**
+   * Returns whether the information for a given domain create request is for a valid anchor tenant.
+   */
+  public static boolean isAnchorTenant(
+      InternetDomainName domainName,
+      Optional<AllocationToken> token,
+      String authInfoPw,
+      Optional<MetadataExtension> metadataExtension) {
+    // If the domain is reserved for anchor tenants, then check if the allocation token exists and
+    // is for this domain.
+    if (getReservationTypes(domainName).contains(RESERVED_FOR_ANCHOR_TENANT)) {
+      // If there wasn't an allocation token specified, then use the fallback of attempting to load
+      // the token with the specified EPP authcode.
+      // TODO(b/111827374): Remove the authInfoPw fallback and only accept an allocation token.
+      if (!token.isPresent()) {
+        token =
+            Optional.ofNullable(
+                ofy().load().key(Key.create(AllocationToken.class, authInfoPw)).now());
+      }
+      // If the token exists, check if it's valid for this domain.
+      if (token.isPresent()
+          && token.get().getDomainName().isPresent()
+          && token.get().getDomainName().get().equals(domainName.toString())) {
+        return true;
+      }
+    }
+    // Otherwise check whether the metadata extension is being used by a superuser to specify that
+    // it's an anchor tenant creation.
+    return metadataExtension.isPresent() && metadataExtension.get().getIsAnchorTenant();
   }
 
   /** Check if the registrar running the flow has access to the TLD in question. */
@@ -411,10 +445,12 @@ public class DomainFlowUtils {
     }
   }
 
+  private static final ImmutableSet<ReservationType> RESERVED_TYPES =
+      ImmutableSet.of(RESERVED_FOR_SPECIFIC_USE, RESERVED_FOR_ANCHOR_TENANT, FULLY_BLOCKED);
+
   private static boolean isReserved(InternetDomainName domainName, boolean isSunrise) {
     ImmutableSet<ReservationType> types = getReservationTypes(domainName);
-    return types.contains(FULLY_BLOCKED)
-        || types.contains(RESERVED_FOR_ANCHOR_TENANT)
+    return !Sets.intersection(types, RESERVED_TYPES).isEmpty()
         || !(isSunrise || intersection(TYPES_ALLOWED_FOR_CREATE_ONLY_IN_SUNRISE, types).isEmpty());
   }
 

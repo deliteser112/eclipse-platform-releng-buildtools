@@ -723,6 +723,7 @@ enum google.registry.model.registry.label.ReservationType {
   NAMESERVER_RESTRICTED;
   NAME_COLLISION;
   RESERVED_FOR_ANCHOR_TENANT;
+  RESERVED_FOR_SPECIFIC_USE;
 }
 class google.registry.model.registry.label.ReservedList {
   @Id java.lang.String name;
@@ -737,7 +738,6 @@ class google.registry.model.registry.label.ReservedList$ReservedListEntry {
   @Id java.lang.String label;
   google.registry.model.registry.label.ReservationType reservationType;
   java.lang.String allowedNameservers;
-  java.lang.String authCode;
   java.lang.String comment;
 }
 class google.registry.model.reporting.DomainTransactionRecord {

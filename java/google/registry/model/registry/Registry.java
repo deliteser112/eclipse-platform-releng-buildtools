@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -36,8 +35,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Range;
 import com.google.common.net.InternetDomainName;
@@ -61,10 +58,7 @@ import google.registry.model.domain.fee.Fee;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservationType;
 import google.registry.model.registry.label.ReservedList;
-import google.registry.model.registry.label.ReservedList.ReservedListEntry;
 import google.registry.util.Idn;
-import java.util.Collection;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -837,38 +831,12 @@ public class Registry extends ImmutableObject implements Buildable {
 
     public Builder setReservedLists(Set<ReservedList> reservedLists) {
       checkArgumentNotNull(reservedLists, "reservedLists must not be null");
-      checkAuthCodeConflicts(reservedLists);
       ImmutableSet.Builder<Key<ReservedList>> builder = new ImmutableSet.Builder<>();
       for (ReservedList reservedList : reservedLists) {
         builder.add(Key.create(reservedList));
       }
       getInstance().reservedLists = builder.build();
       return this;
-    }
-
-    /**
-     * Checks that domain names don't have conflicting auth codes across different reserved lists.
-     */
-    private static void checkAuthCodeConflicts(Set<ReservedList> reservedLists) {
-      Multimap<String, String> allAuthCodes = LinkedHashMultimap.create();
-      for (ReservedList list : reservedLists) {
-        for (ReservedListEntry entry : list.getReservedListEntries().values()) {
-          if (entry.getAuthCode() != null) {
-            allAuthCodes.put(entry.getLabel(), entry.getAuthCode());
-          }
-        }
-      }
-      ImmutableSet<Entry<String, Collection<String>>> conflicts =
-          allAuthCodes
-              .asMap()
-              .entrySet()
-              .stream()
-              .filter((Entry<String, Collection<String>> entry) -> entry.getValue().size() > 1)
-              .collect(toImmutableSet());
-      checkArgument(
-          conflicts.isEmpty(),
-          "Cannot set reserved lists because of auth code conflicts for labels: %s",
-          conflicts);
     }
 
     public Builder setPremiumList(PremiumList premiumList) {

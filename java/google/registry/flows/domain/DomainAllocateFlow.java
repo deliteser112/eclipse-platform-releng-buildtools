@@ -21,7 +21,6 @@ import static google.registry.flows.domain.DomainFlowUtils.COLLISION_MESSAGE;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
-import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpTokenEntity;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
@@ -31,7 +30,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -200,11 +198,6 @@ public class DomainAllocateFlow implements TransactionalFlow {
         updateApplication(application),
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
         EppResourceIndex.create(Key.create(newDomain)));
-    // Anchor tenant registrations override LRP.
-    String authInfoToken = authInfo.getPw().getValue();
-    if (hasLrpToken(domainName, registry, authInfoToken, now)) {
-      entitiesToSave.add(prepareMarkedLrpTokenEntity(authInfoToken, domainName, historyEntry));
-    }
     ofy().save().entities(entitiesToSave.build());
     enqueueTasks(allocateCreate, newDomain);
     return responseBuilder
@@ -385,12 +378,6 @@ public class DomainAllocateFlow implements TransactionalFlow {
                     .build()))
         .setParent(historyEntry)
         .build();
-  }
-
-  private boolean hasLrpToken(
-      InternetDomainName domainName, Registry registry, String authInfoToken, DateTime now) {
-    return registry.getLrpPeriod().contains(now)
-        && !matchesAnchorTenantReservation(domainName, authInfoToken);
   }
 
   private void enqueueTasks(AllocateCreateExtension allocateCreate, DomainResource newDomain) {

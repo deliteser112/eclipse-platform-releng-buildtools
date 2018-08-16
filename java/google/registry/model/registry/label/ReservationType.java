@@ -22,7 +22,11 @@ import com.google.common.collect.Ordering;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-/** Enum describing reservation on a label in a {@link ReservedList} */
+/**
+ * Enum describing reservation on a label in a {@link ReservedList}.
+ *
+ * <p>Note that superusers can override reservations and register a domain no matter what.
+ */
 public enum ReservationType {
 
   // We explicitly set the severity, even though we have a checkState that makes it equal to the
@@ -30,12 +34,30 @@ public enum ReservationType {
   // label has multiple reservation types, its message is the that of the one with the highest
   // severity.
 
+  /** Nameservers on the domain are restricted to a given set. */
   NAMESERVER_RESTRICTED("Nameserver restricted", 0),
+
+  /** The domain can only be registered during sunrise, and is reserved thereafter. */
   ALLOWED_IN_SUNRISE("Reserved for non-sunrise", 1),
+
+  /** The domain can only be registered during sunrise, and is reserved thereafter. */
+  @Deprecated
   MISTAKEN_PREMIUM("Reserved", 2),
-  RESERVED_FOR_ANCHOR_TENANT("Reserved", 3),
-  NAME_COLLISION("Cannot be delegated", 4),
-  FULLY_BLOCKED("Reserved", 5);
+
+  /** The domain can only be registered by providing a specific token. */
+  RESERVED_FOR_SPECIFIC_USE("Reserved", 3),
+
+  /** The domain is for an anchor tenant and can only be registered using a specific token. */
+  RESERVED_FOR_ANCHOR_TENANT("Reserved", 4),
+
+  /**
+   * The domain can only be registered during sunrise for defensive purposes, and will never
+   * resolve.
+   */
+  NAME_COLLISION("Cannot be delegated", 5),
+
+  /** The domain can never be registered. */
+  FULLY_BLOCKED("Reserved", 6);
 
   @Nullable
   private final String messageForCheck;

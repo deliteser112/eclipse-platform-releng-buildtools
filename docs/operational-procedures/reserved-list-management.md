@@ -23,12 +23,18 @@ a price, it has a reservation type. The valid values for reservation types are:
     period by a registrant with a valid claim but it is reserved thereafter.
 *   **`MISTAKEN_PREMIUM`** - The label is reserved because it was mistakenly put
     on a premium list. It may be registered during sunrise by a registrant with
-    a valid claim but is reserved thereafter.
-*   **`RESERVED_FOR_ANCHOR_TENANT`** - The label is reserved for the use of an
-    anchor tenant, and can only be registered by someone sending along the EPP
-    passcode specified here at time of registration. If a label has different
-    passcodes in different lists that are applied to the same TLD, an error will
-    occur.
+    a valid claim but is reserved thereafter. This is deprecated.
+*   **RESERVED_FOR_SPECIFIC_USE** - The label is reserved for the use of a
+    specific registrant, and can only be registered by someone sending along the
+    allocation token at time of registration. This token is configured on an
+    `AllocationToken` entity with a matching `domainName`, and is sent by the
+    registrar using the [allocation token EPP
+    extension](https://tools.ietf.org/id/draft-ietf-regext-allocation-token-07.html).
+*   **`RESERVED_FOR_ANCHOR_TENANT`** - Like `RESERVED_FOR_SPECIFIC_USE`, except
+    for an anchor tenant (i.e. a registrant participating in a [Qualified Launch
+    Program](https://newgtlds.icann.org/en/announcements-and-media/announcement-10apr14-en)),
+    meaning that registrations can occur during sunrise ahead of GA, and must be
+    for a two year term.
 *   **`NAME_COLLISION`** - The label is reserved because it is on an [ICANN
     collision
     list](https://www.icann.org/resources/pages/name-collision-2013-12-06-en).
@@ -48,17 +54,15 @@ label is reserved due to name collision (with message "Cannot be delegated"). In
 general `FULLY_BLOCKED` is by far the most widely used reservation type for
 typical TLD use cases.
 
-Here's an example of a small reserved list. Note that
-`RESERVED_FOR_ANCHOR_TENANT` has a third entry on the line, being the EPP
-passcode required to register the domain (`hunter2` in this case); and that
-`NAMESERVER_RESERVED` also has a third entry, a colon separated list of
+Here's an example of a small reserved list. Note that the
+`NAMESERVER_RESTRICTED` label has a third entry, a colon separated list of
 nameservers that the label can be delegated to:
 
 ```
 reserveddomain,FULLY_BLOCKED
 availableinga,ALLOWED_IN_SUNRISE
 fourletterword,FULLY_BLOCKED
-acmecorp,RESERVED_FOR_ANCHOR_TENANT,hunter2
+acmecorp,RESERVED_FOR_ANCHOR_TENANT
 internaldomain,NAMESERVER_RESTRICTED,ns1.internal.tld:ns1.internal.tld
 ```
 

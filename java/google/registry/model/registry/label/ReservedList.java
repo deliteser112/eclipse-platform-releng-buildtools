@@ -16,15 +16,12 @@ package google.registry.model.registry.label;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.config.RegistryConfig.getDomainLabelListCacheDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
-import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.time.DateTimeZone.UTC;
@@ -78,12 +75,6 @@ public final class ReservedList
     ReservationType reservationType;
 
     /**
-     * Contains the auth code necessary to register a domain with this label. Note that this field
-     * will only ever be populated for entries with type RESERVED_FOR_ANCHOR_TENANT.
-     */
-    String authCode;
-
-    /**
      * Contains a comma-delimited list of the fully qualified hostnames of the nameservers that can
      * be set on a domain with this label (only applicable to NAMESERVER_RESTRICTED).
      *
@@ -114,34 +105,21 @@ public final class ReservedList
     public static ReservedListEntry create(
         String label,
         ReservationType reservationType,
-        @Nullable String restrictions,
+        @Nullable String allowedNameservers,
         @Nullable String comment) {
-      ReservedListEntry.Builder builder =
+      ReservedListEntry.Builder entry =
           new ReservedListEntry.Builder()
               .setLabel(label)
               .setComment(comment)
               .setReservationType(reservationType);
-      if (restrictions != null) {
-        checkArgument(
-            reservationType == RESERVED_FOR_ANCHOR_TENANT
-                || reservationType == NAMESERVER_RESTRICTED,
-            "Only anchor tenant and nameserver restricted reservations "
-                + "should have restrictions imposed");
-        if (reservationType == RESERVED_FOR_ANCHOR_TENANT) {
-          builder.setAuthCode(restrictions);
-        } else if (reservationType == NAMESERVER_RESTRICTED) {
-          builder.setAllowedNameservers(
-              ImmutableSet.copyOf(Splitter.on(':').trimResults().split(restrictions)));
-        }
-      } else {
-        checkArgument(
-            reservationType != RESERVED_FOR_ANCHOR_TENANT,
-            "Anchor tenant reservations must have an auth code configured");
-        checkArgument(
-            reservationType != NAMESERVER_RESTRICTED,
-            "Nameserver restricted reservations must have at least one nameserver configured");
+      checkArgument(
+          (reservationType == NAMESERVER_RESTRICTED) ^ (allowedNameservers == null),
+          "Allowed nameservers must be specified for NAMESERVER_RESTRICTED reservations only");
+      if (allowedNameservers != null) {
+        entry.setAllowedNameservers(
+            ImmutableSet.copyOf(Splitter.on(':').trimResults().split(allowedNameservers)));
       }
-      return builder.build();
+      return entry.build();
     }
 
     private static void checkNameserversAreValid(Set<String> nameservers) {
@@ -157,10 +135,6 @@ public final class ReservedList
     @Override
     public ReservationType getValue() {
       return reservationType;
-    }
-
-    public String getAuthCode() {
-      return authCode;
     }
 
     public ImmutableSet<String> getAllowedNameservers() {
@@ -185,11 +159,6 @@ public final class ReservedList
       ReservedListEntry.Builder setAllowedNameservers(Set<String> allowedNameservers) {
         checkNameserversAreValid(allowedNameservers);
         getInstance().allowedNameservers = Joiner.on(',').join(allowedNameservers);
-        return this;
-      }
-
-      ReservedListEntry.Builder setAuthCode(String authCode) {
-        getInstance().authCode = authCode;
         return this;
       }
 
@@ -254,27 +223,6 @@ public final class ReservedList
         .stream()
         .map(ReservedListEntry::getValue)
         .collect(toImmutableSet());
-  }
-
-  /**
-   * Returns true if the given label and TLD is reserved for an anchor tenant, and the given auth
-   * code matches the one set on the reservation. If there are multiple anchor tenant entries for
-   * this label, all the auth codes need to be the same and match the given one, otherwise an
-   * exception is thrown.
-   */
-  public static boolean matchesAnchorTenantReservation(
-      InternetDomainName domainName, String authCode) {
-
-    ImmutableSet<String> domainAuthCodes =
-        getReservedListEntries(domainName.parts().get(0), domainName.parent().toString())
-            .stream()
-            .filter((entry) -> entry.reservationType == RESERVED_FOR_ANCHOR_TENANT)
-            .map(ReservedListEntry::getAuthCode)
-            .collect(toImmutableSet());
-    checkState(
-        domainAuthCodes.size() <= 1, "There are conflicting auth codes for domain: %s", domainName);
-
-    return !domainAuthCodes.isEmpty() && getOnlyElement(domainAuthCodes).equals(authCode);
   }
 
   /**

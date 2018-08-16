@@ -181,13 +181,16 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void initCreateTest() {
     createTld("tld");
     persistResource(
+        new AllocationToken.Builder().setToken("abcDEF23456").setDomainName("anchor.tld").build());
+    persistResource(
         Registry.get("tld")
             .asBuilder()
             .setReservedLists(
                 persistReservedList(
                     "tld-reserved",
                     "reserved,FULLY_BLOCKED",
-                    "anchor,RESERVED_FOR_ANCHOR_TENANT,2fooBAR",
+                    "resdom,RESERVED_FOR_SPECIFIC_USE",
+                    "anchor,RESERVED_FOR_ANCHOR_TENANT",
                     "test-and-validate,NAME_COLLISION",
                     "badcrash,NAME_COLLISION"))
             .build());
@@ -404,7 +407,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_invalidAllocationToken() {
-    setEppInput("domain_create_allocationtoken.xml");
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(InvalidAllocationTokenException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -412,7 +415,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_alreadyRedemeedAllocationToken() {
-    setEppInput("domain_create_allocationtoken.xml");
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistContactsAndHosts();
     persistResource(
         new AllocationToken.Builder()
@@ -427,7 +430,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_validAllocationToken_isRedeemed() throws Exception {
-    setEppInput("domain_create_allocationtoken.xml");
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistContactsAndHosts();
     AllocationToken token =
         persistResource(new AllocationToken.Builder().setToken("abc123").build());
@@ -1066,7 +1069,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_anchorTenantViaAuthCode_wrongAuthCode() {
+  public void testFailure_anchorTenant_viaAuthCode_wrongAuthCode() {
     setEppInput("domain_create_anchor_wrong_authcode.xml");
     persistContactsAndHosts();
     EppException thrown = assertThrows(DomainReservedException.class, this::runFlow);
@@ -1074,7 +1077,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_anchorTenantViaAuthCode_notTwoYearPeriod() {
+  public void testFailure_anchorTenant_notTwoYearPeriod() {
     setEppInput("domain_create_anchor_authcode_invalid_years.xml");
     persistContactsAndHosts();
     EppException thrown = assertThrows(AnchorTenantCreatePeriodException.class, this::runFlow);
@@ -1082,7 +1085,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_anchorTenantViaAuthCode_matchingLrpToken() throws Exception {
+  public void testSuccess_anchorTenant_viaAuthCode_matchingLrpToken() throws Exception {
     // This is definitely a corner case, as (without superuser) anchor tenants may only register
     // via auth code during GA. We're running this as superuser to bypass the state checks, though
     // anchor tenant code checks and LRP token redemption still happen regardless.
@@ -1091,7 +1094,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         Registry.get("tld")
             .asBuilder()
             .setReservedLists(
-                persistReservedList("tld-reserved", "anchor,RESERVED_FOR_ANCHOR_TENANT,2fooBAR"))
+                persistReservedList("tld-reserved", "anchor,RESERVED_FOR_ANCHOR_TENANT"))
             .build());
     LrpTokenEntity token =
         persistResource(
@@ -1107,7 +1110,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_anchorTenantViaAuthCode() throws Exception {
+  public void testSuccess_anchorTenant_viaAuthCode() throws Exception {
     setEppInput("domain_create_anchor_authcode.xml");
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
@@ -1116,7 +1119,21 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_anchorTenantViaAuthCode_duringLrp() throws Exception {
+  public void testSuccess_anchorTenant_viaAllocationTokenExtension() throws Exception {
+    setEppInput("domain_create_anchor_allocationtoken.xml");
+    persistContactsAndHosts();
+    runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
+    assertNoLordn();
+    AllocationToken reloadedToken =
+        ofy().load().key(Key.create(AllocationToken.class, "abcDEF23456")).now();
+    assertThat(reloadedToken.isRedeemed()).isTrue();
+    assertThat(reloadedToken.getRedemptionHistoryEntry())
+        .isEqualTo(Key.create(getHistoryEntries(reloadResourceByForeignKey()).get(0)));
+  }
+
+  @Test
+  public void testSuccess_anchorTenant_viaAuthCode_duringLrp() throws Exception {
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -1130,7 +1147,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_anchorTenantViaExtension_duringLrp() throws Exception {
+  public void testSuccess_anchorTenant_viaExtension_duringLrp() throws Exception {
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -1146,13 +1163,15 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_anchorTenantViaAuthCode_withClaims() throws Exception {
+  public void testSuccess_anchorTenant_viaAuthCode_withClaims() throws Exception {
+    persistResource(
+        new AllocationToken.Builder().setDomainName("example-one.tld").setToken("2fooBAR").build());
     persistResource(
         Registry.get("tld")
             .asBuilder()
             .setReservedLists(
                 persistReservedList(
-                    "anchor-with-claims", "example-one,RESERVED_FOR_ANCHOR_TENANT,2fooBAR"))
+                    "anchor-with-claims", "example-one,RESERVED_FOR_ANCHOR_TENANT"))
             .build());
     setEppInput("domain_create_claim_notice.xml");
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));

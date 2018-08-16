@@ -22,6 +22,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
+import static google.registry.flows.domain.DomainFlowUtils.isAnchorTenant;
 import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpTokenEntity;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
@@ -42,7 +43,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -223,7 +223,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
         eppInput.getSingleExtension(LaunchCreateExtension.class).get();
     validateLaunchCreateExtension(launchCreate, registry, domainName, now);
     boolean isAnchorTenant =
-        matchesAnchorTenantReservation(domainName, authInfo.getPw().getValue());
+        isAnchorTenant(domainName, Optional.empty(), authInfo.getPw().getValue(), Optional.empty());
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, and override blocks on registering premium domains.
     if (!isSuperuser) {

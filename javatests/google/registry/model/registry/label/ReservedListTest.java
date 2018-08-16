@@ -23,13 +23,10 @@ import static google.registry.model.registry.label.DomainLabelMetrics.reservedLi
 import static google.registry.model.registry.label.DomainLabelMetrics.reservedListProcessingTime;
 import static google.registry.model.registry.label.ReservationType.ALLOWED_IN_SUNRISE;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
-import static google.registry.model.registry.label.ReservationType.MISTAKEN_PREMIUM;
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
-import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
 import static google.registry.model.registry.label.ReservedList.getAllowedNameservers;
 import static google.registry.model.registry.label.ReservedList.getReservationTypes;
-import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -119,47 +116,6 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testMatchesAnchorTenantReservation() {
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(ImmutableSet.of(
-                persistReservedList(
-                    "reserved1",
-                    "lol,RESERVED_FOR_ANCHOR_TENANT,foobar1",
-                    "lol2,RESERVED_FOR_ANCHOR_TENANT,abcdefg # This is a comment")))
-            .build());
-    assertThat(getReservationTypes("lol", "tld")).containsExactly(RESERVED_FOR_ANCHOR_TENANT);
-    assertThat(getReservationTypes("lol2", "tld")).containsExactly(RESERVED_FOR_ANCHOR_TENANT);
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "foobar1"))
-        .isTrue();
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "foobar"))
-        .isFalse();
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol2.tld"), "abcdefg"))
-        .isTrue();
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol2.tld"), "abcdefg "))
-        .isFalse();
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("random.tld"), "abcdefg"))
-        .isFalse();
-    assertThat(reservedListChecks)
-        .hasValueForLabels(1, "tld", "0", "(none)", "(none)")
-        .and()
-        .hasValueForLabels(6, "tld", "1", "reserved1", RESERVED_FOR_ANCHOR_TENANT.toString())
-        .and()
-        .hasNoOtherValues();
-    assertThat(reservedListProcessingTime)
-        .hasAnyValueForLabels("tld", "0", "(none)", "(none)")
-        .and()
-        .hasAnyValueForLabels("tld", "1", "reserved1", RESERVED_FOR_ANCHOR_TENANT.toString())
-        .and()
-        .hasNoOtherValues();
-    assertThat(reservedListHits)
-        .hasValueForLabels(6, "tld", "reserved1", RESERVED_FOR_ANCHOR_TENANT.toString())
-        .and()
-        .hasNoOtherValues();
-  }
-
-  @Test
   public void testGetAllowedNameservers() {
     ReservedList rl1 =
         persistReservedList(
@@ -189,87 +145,6 @@ public class ReservedListTest {
     assertThat(getAllowedNameservers(InternetDomainName.from("lol3.tld")))
         .containsExactly("ns3.nameserver.com");
     assertThat(getAllowedNameservers(InternetDomainName.from("lol4.tld"))).isEmpty();
-  }
-
-  @Test
-  public void testMatchesAnchorTenantReservation_falseOnOtherReservationTypes() {
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                ImmutableSet.of(
-                    persistReservedList(
-                        "reserved2",
-                        "lol,FULLY_BLOCKED",
-                        "lol2,NAME_COLLISION",
-                        "lol3,MISTAKEN_PREMIUM",
-                        "lol4,ALLOWED_IN_SUNRISE",
-                        "lol5,NAMESERVER_RESTRICTED,na1.domain.tld")))
-            .build());
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "")).isFalse();
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol2.tld"), "")).isFalse();
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol3.tld"), "")).isFalse();
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol4.tld"), "")).isFalse();
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol5.tld"), "")).isFalse();
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol6.tld"), "")).isFalse();
-    assertThat(reservedListChecks)
-        .hasValueForLabels(1, "tld", "1", "reserved2", FULLY_BLOCKED.toString())
-        .and()
-        .hasValueForLabels(1, "tld", "1", "reserved2", NAME_COLLISION.toString())
-        .and()
-        .hasValueForLabels(1, "tld", "1", "reserved2", MISTAKEN_PREMIUM.toString())
-        .and()
-        .hasValueForLabels(1, "tld", "1", "reserved2", ALLOWED_IN_SUNRISE.toString())
-        .and()
-        .hasValueForLabels(1, "tld", "1", "reserved2", NAMESERVER_RESTRICTED.toString())
-        .and()
-        .hasValueForLabels(1, "tld", "0", "(none)", "(none)")
-        .and()
-        .hasNoOtherValues();
-    assertThat(reservedListProcessingTime)
-        .hasAnyValueForLabels("tld", "1", "reserved2", FULLY_BLOCKED.toString())
-        .and()
-        .hasAnyValueForLabels("tld", "1", "reserved2", NAME_COLLISION.toString())
-        .and()
-        .hasAnyValueForLabels("tld", "1", "reserved2", MISTAKEN_PREMIUM.toString())
-        .and()
-        .hasAnyValueForLabels("tld", "1", "reserved2", ALLOWED_IN_SUNRISE.toString())
-        .and()
-        .hasAnyValueForLabels("tld", "1", "reserved2", NAMESERVER_RESTRICTED.toString())
-        .and()
-        .hasAnyValueForLabels("tld", "0", "(none)", "(none)")
-        .and()
-        .hasNoOtherValues();
-    assertThat(reservedListHits)
-        .hasValueForLabels(1, "tld", "reserved2", FULLY_BLOCKED.toString())
-        .and()
-        .hasValueForLabels(1, "tld", "reserved2", NAME_COLLISION.toString())
-        .and()
-        .hasValueForLabels(1, "tld", "reserved2", MISTAKEN_PREMIUM.toString())
-        .and()
-        .hasValueForLabels(1, "tld", "reserved2", ALLOWED_IN_SUNRISE.toString())
-        .and()
-        .hasValueForLabels(1, "tld", "reserved2", NAMESERVER_RESTRICTED.toString())
-        .and()
-        .hasNoOtherValues();
-  }
-
-  @Test
-  public void testMatchesAnchorTenantReservation_duplicatingAuthCodes() {
-    ReservedList rl1 = persistReservedList("reserved1", "lol,RESERVED_FOR_ANCHOR_TENANT,foo");
-    ReservedList rl2 = persistReservedList("reserved2", "lol,RESERVED_FOR_ANCHOR_TENANT,foo");
-    createTld("tld");
-    persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build());
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "foo")).isTrue();
-    assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar")).isFalse();
-    persistReservedList("reserved2", "lol,RESERVED_FOR_ANCHOR_TENANT,bar");
-    IllegalStateException thrown =
-        assertThrows(
-            IllegalStateException.class,
-            () -> matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar"));
-    assertThat(thrown)
-        .hasMessageThat()
-        .contains("There are conflicting auth codes for domain: lol.tld");
   }
 
   @Test
@@ -494,8 +369,7 @@ public class ReservedListTest {
     assertThat(thrown)
         .hasMessageThat()
         .contains(
-            "Only anchor tenant and nameserver restricted reservations "
-                + "should have restrictions imposed");
+            "Allowed nameservers must be specified for NAMESERVER_RESTRICTED reservations only");
   }
 
   @Test
@@ -525,24 +399,6 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave_noPasswordWithAnchorTenantReservation() {
-    IllegalArgumentException thrown =
-        assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                persistResource(
-                    Registry.get("tld")
-                        .asBuilder()
-                        .setReservedLists(
-                            ImmutableSet.of(
-                                persistReservedList("reserved1", "lol,RESERVED_FOR_ANCHOR_TENANT")))
-                        .build()));
-    assertThat(thrown)
-        .hasMessageThat()
-        .contains("Anchor tenant reservations must have an auth code configured");
-  }
-
-  @Test
   public void testSave_noNameserversWithNameserverRestrictedReservation() {
     IllegalArgumentException thrown =
         assertThrows(
@@ -558,7 +414,7 @@ public class ReservedListTest {
     assertThat(thrown)
         .hasMessageThat()
         .contains(
-            "Nameserver restricted reservations must have at least one nameserver configured");
+            "Allowed nameservers must be specified for NAMESERVER_RESTRICTED reservations only");
   }
 
   @Test

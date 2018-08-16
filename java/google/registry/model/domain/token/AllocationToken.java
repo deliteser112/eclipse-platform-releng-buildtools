@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -100,7 +101,8 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
       return this;
     }
 
-    public Builder setCreationTime(DateTime creationTime) {
+    @VisibleForTesting
+    public Builder setCreationTimeForTest(DateTime creationTime) {
       checkState(
           getInstance().creationTime.getTimestamp() == null, "creationTime can only be set once");
       getInstance().creationTime = CreateAutoTimestamp.create(creationTime);

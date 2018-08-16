@@ -181,46 +181,6 @@ public class RegistryTest extends EntityTestCase {
   }
 
   @Test
-  public void testSetReservedLists_succeedsWithDuplicateIdenticalAuthCodes() {
-    ReservedList rl1 = persistReservedList(
-        "tld-reserved007",
-        "lol,RESERVED_FOR_ANCHOR_TENANT,identical",
-        "cat,FULLY_BLOCKED");
-    ReservedList rl2 = persistReservedList(
-        "tld-reserved008",
-        "lol,RESERVED_FOR_ANCHOR_TENANT,identical",
-        "tim,FULLY_BLOCKED");
-    Registry registry = Registry.get("tld").asBuilder().setReservedLists(rl1, rl2).build();
-    assertThat(registry.getReservedLists()).containsExactly(Key.create(rl1), Key.create(rl2));
-  }
-
-  @Test
-  public void testSetReservedLists_failsForConflictingAuthCodes() {
-    ReservedList rl1 = persistReservedList(
-        "tld-reserved055",
-        "lol,RESERVED_FOR_ANCHOR_TENANT,conflict1",
-        "cat,FULLY_BLOCKED");
-    ReservedList rl2 = persistReservedList(
-        "tld-reserved056",
-        "lol,RESERVED_FOR_ANCHOR_TENANT,conflict2",
-        "tim,FULLY_BLOCKED");
-    ReservedList rl3 = persistReservedList(
-        "tld-reserved057",
-        "lol,RESERVED_FOR_ANCHOR_TENANT,another_conflict");
-    IllegalArgumentException thrown =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> {
-              @SuppressWarnings("unused")
-              Registry unused =
-                  Registry.get("tld").asBuilder().setReservedLists(rl1, rl2, rl3).build();
-            });
-    assertThat(thrown)
-        .hasMessageThat()
-        .contains("auth code conflicts for labels: [lol=[conflict1, conflict2, another_conflict]]");
-  }
-
-  @Test
   public void testSetPremiumList() {
     PremiumList pl2 = persistPremiumList("tld2", "lol,USD 50", "cat,USD 700");
     Registry registry = Registry.get("tld").asBuilder().setPremiumList(pl2).build();

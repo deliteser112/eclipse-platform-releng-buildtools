@@ -82,10 +82,12 @@ public class DomainCheckFlowTest
   }
 
   private ReservedList createReservedList() {
+    persistResource(
+        new AllocationToken.Builder().setDomainName("anchor.tld").setToken("2fooBAR").build());
     return persistReservedList(
         "tld-reserved",
         "reserved,FULLY_BLOCKED",
-        "anchor,RESERVED_FOR_ANCHOR_TENANT,foo2BAR",
+        "anchor,RESERVED_FOR_ANCHOR_TENANT",
         "allowedinsunrise,ALLOWED_IN_SUNRISE",
         "collision,NAME_COLLISION",
         "premiumcollision,NAME_COLLISION");

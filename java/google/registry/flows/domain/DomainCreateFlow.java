@@ -22,6 +22,7 @@ import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToT
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
+import static google.registry.flows.domain.DomainFlowUtils.isAnchorTenant;
 import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpTokenEntity;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
@@ -50,7 +51,6 @@ import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRIS
 import static google.registry.model.registry.Registry.TldState.SUNRISE;
 import static google.registry.model.registry.Registry.TldState.SUNRUSH;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
-import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
@@ -251,8 +251,6 @@ public class DomainCreateFlow implements TransactionalFlow {
       validateDomainAllowedOnCreateRestrictedTld(domainName);
     }
     TldState tldState = registry.getTldState(now);
-    boolean isAnchorTenant = isAnchorTenant(domainName);
-    verifyAnchorTenantValidPeriod(isAnchorTenant, years);
     Optional<LaunchCreateExtension> launchCreate =
         eppInput.getSingleExtension(LaunchCreateExtension.class);
     boolean hasSignedMarks =
@@ -263,6 +261,15 @@ public class DomainCreateFlow implements TransactionalFlow {
       validateLaunchCreateNotice(launchCreate.get().getNotice(), domainLabel, isSuperuser, now);
     }
     boolean isSunriseCreate = hasSignedMarks && SUNRISE_STATES.contains(tldState);
+    Optional<AllocationToken> allocationToken =
+        verifyAllocationTokenIfPresent(command, registry, clientId, now);
+    boolean isAnchorTenant =
+        isAnchorTenant(
+            domainName,
+            allocationToken,
+            authInfo.getPw().getValue(),
+            eppInput.getSingleExtension(MetadataExtension.class));
+    verifyAnchorTenantValidPeriod(isAnchorTenant, years);
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, ignore the registry phase, and override blocks on
     // registering premium domains.
@@ -294,8 +301,6 @@ public class DomainCreateFlow implements TransactionalFlow {
               .verifySignedMarks(launchCreate.get().getSignedMarks(), domainLabel, now)
               .getId();
     }
-    Optional<AllocationToken> allocationToken =
-        verifyAllocationTokenIfPresent(command, registry, clientId, now);
     flowCustomLogic.afterValidation(
         DomainCreateFlowCustomLogic.AfterValidationParameters.newBuilder()
             .setDomainName(domainName)
@@ -398,13 +403,6 @@ public class DomainCreateFlow implements TransactionalFlow {
         .setResData(responseData.resData())
         .setExtensions(responseData.responseExtensions())
         .build();
-  }
-
-  private boolean isAnchorTenant(InternetDomainName domainName) {
-    Optional<MetadataExtension> metadataExtension =
-        eppInput.getSingleExtension(MetadataExtension.class);
-    return matchesAnchorTenantReservation(domainName, authInfo.getPw().getValue())
-        || (metadataExtension.isPresent() && metadataExtension.get().getIsAnchorTenant());
   }
 
   /**
