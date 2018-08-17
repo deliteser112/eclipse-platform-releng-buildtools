@@ -545,12 +545,7 @@ public class RdapJsonFormatter {
       }
       entities =
           addRegistrarEntity(
-              entities,
-              domainResource.getCurrentSponsorClientId(),
-              linkBase,
-              whoisServer,
-              now,
-              outputDataType);
+              entities, domainResource.getCurrentSponsorClientId(), linkBase, whoisServer, now);
       if (!entities.isEmpty()) {
         jsonBuilder.put("entities", entities);
       }
@@ -582,22 +577,21 @@ public class RdapJsonFormatter {
   }
 
   /**
-   * Adds a JSON object for the desired registrar to an existing array of JSON objects.
+   * Adds a JSON object for the desired registrar to an existing list of JSON objects.
    *
+   * @param entities list of entities to which the desired registrar should be added
    * @param clientId the registrar client ID
    * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
-   *        port43 field; if null, port43 is not added to the object
+   *     port43 field; if null, port43 is not added to the object
    * @param now the as-date
-   * @param outputDataType whether to generate full or summary data
    */
   ImmutableList<ImmutableMap<String, Object>> addRegistrarEntity(
       ImmutableList<ImmutableMap<String, Object>> entities,
       @Nullable String clientId,
       @Nullable String linkBase,
       @Nullable String whoisServer,
-      DateTime now,
-      OutputDataType outputDataType) {
+      DateTime now) {
     if (clientId == null) {
       return entities;
     }
@@ -609,7 +603,12 @@ public class RdapJsonFormatter {
     builder.addAll(entities);
     builder.add(
         makeRdapJsonForRegistrar(
-            registrar.get(), false /* isTopLevel */, linkBase, whoisServer, now, outputDataType));
+            registrar.get(),
+            false /* isTopLevel */,
+            linkBase,
+            whoisServer,
+            now,
+            OutputDataType.SUMMARY));
     return builder.build();
   }
 
