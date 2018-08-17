@@ -119,7 +119,8 @@ public class EppServiceHandler extends HttpsRelayServiceHandler {
                     channelRead(ctx, Unpooled.wrappedBuffer(helloBytes));
                   } else {
                     logger.atWarning().withCause(promise.cause()).log(
-                        "Cannot finish handshake for channel %s", ctx.channel());
+                        "Cannot finish handshake for channel %s, remote IP %s",
+                        ctx.channel(), ctx.channel().attr(REMOTE_ADDRESS_KEY).get());
                     ChannelFuture unusedFuture = ctx.close();
                   }
                 });
