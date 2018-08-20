@@ -32,7 +32,6 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.model.registry.label.PremiumList;
-import google.registry.tools.params.OptionalIntervalParameter;
 import google.registry.tools.params.OptionalStringParameter;
 import google.registry.tools.params.TransitionListParameter.BillingCostTransitions;
 import google.registry.tools.params.TransitionListParameter.TldStateTransitions;
@@ -46,7 +45,6 @@ import javax.inject.Named;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Interval;
 
 /** Shared base class for commands to create or update a TLD. */
 abstract class CreateOrUpdateTldCommand extends MutatingCommand {
@@ -242,15 +240,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
   )
   Integer numDnsPublishShards;
 
-  @Nullable
-  @Parameter(
-      names = "--lrp_period",
-      description =
-          "LRP period (in ISO-8601 format, e.g. 2004-06-09T12:30:00Z/2004-07-10T13:30:00Z",
-      converter = OptionalIntervalParameter.class,
-      validateWith = OptionalIntervalParameter.class)
-  private Optional<Interval> lrpPeriod;
-
   /** Returns the existing registry (for update) or null (for creates). */
   @Nullable
   abstract Registry getOldRegistry(String tld);
@@ -358,7 +347,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       Optional.ofNullable(claimsPeriodEnd).ifPresent(builder::setClaimsPeriodEnd);
       Optional.ofNullable(domainCreateRestricted).ifPresent(builder::setDomainCreateRestricted);
       Optional.ofNullable(numDnsPublishShards).ifPresent(builder::setNumDnsPublishLocks);
-      Optional.ofNullable(lrpPeriod).ifPresent(p -> builder.setLrpPeriod(p.orElse(null)));
 
       if (premiumListName != null) {
         if (premiumListName.isPresent()) {

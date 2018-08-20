@@ -41,7 +41,6 @@ import java.io.PrintStream;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Interval;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -448,18 +447,6 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         Registry.get("xn--q9jyb4c").asBuilder().setDomainCreateRestricted(true).build());
     runCommandForced("xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getDomainCreateRestricted()).isTrue();
-  }
-
-  @Test
-  public void testSuccess_removeLrpPeriod() throws Exception {
-    persistResource(
-        Registry.get("xn--q9jyb4c").asBuilder()
-            .setLrpPeriod(new Interval(
-                DateTime.parse("2004-06-09T12:30:00Z"), DateTime.parse("2004-07-10T13:30:00Z")))
-            .build());
-    runCommandForced("--lrp_period=null", "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getLrpPeriod())
-        .isEqualTo(new Interval(START_OF_TIME, Duration.ZERO));
   }
 
   @Test
@@ -1007,36 +994,6 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
             IllegalArgumentException.class,
             () -> runCommandForced("--premium_list=phonies", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("The premium list 'phonies' doesn't exist");
-  }
-
-  @Test
-  public void testSuccess_updateLrpPeriod() throws Exception {
-    runCommandForced("--lrp_period=2004-06-09T12:30:00Z/2004-07-10T13:30:00Z", "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getLrpPeriod()).isEqualTo(
-        new Interval(
-            DateTime.parse("2004-06-09T12:30:00Z"), DateTime.parse("2004-07-10T13:30:00Z")));
-  }
-
-  @Test
-  public void testFailure_updateLrpPeriod_backwardsInterval() {
-    ParameterException thrown =
-        assertThrows(
-            ParameterException.class,
-            () ->
-                runCommandForced(
-                    "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z", "xn--q9jyb4c"));
-    assertThat(thrown)
-        .hasMessageThat()
-        .contains(
-            "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z not an ISO-8601 interval");
-  }
-
-  @Test
-  public void testFailure_updateLrpPeriod_badInterval() {
-    ParameterException thrown =
-        assertThrows(
-            ParameterException.class, () -> runCommandForced("--lrp_period=foobar", "xn--q9jyb4c"));
-    assertThat(thrown).hasMessageThat().contains("--lrp_period=foobar not an ISO-8601 interval");
   }
 
   private void runSuccessfulReservedListsTest(String reservedLists) throws Exception {

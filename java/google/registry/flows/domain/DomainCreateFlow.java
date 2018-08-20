@@ -23,7 +23,6 @@ import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReference
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.isAnchorTenant;
-import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpTokenEntity;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
@@ -159,7 +158,6 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.FeesRequiredDuringEarlyAccessProgramException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.InvalidIdnDomainLabelException}
- * @error {@link DomainFlowUtils.InvalidLrpTokenException}
  * @error {@link DomainFlowUtils.InvalidPunycodeException}
  * @error {@link DomainFlowUtils.InvalidTcnIdChecksumException}
  * @error {@link DomainFlowUtils.InvalidTrademarkValidatorException}
@@ -371,15 +369,8 @@ public class DomainCreateFlow implements TransactionalFlow {
         newDomain,
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
         EppResourceIndex.create(Key.create(newDomain)));
-
     allocationToken.ifPresent(
         t -> entitiesToSave.add(allocationTokenFlowUtils.redeemToken(t, Key.create(historyEntry))));
-    // Anchor tenant registrations override LRP, and landrush applications can skip it.
-    // If a token is passed in outside of an LRP phase, it is simply ignored (i.e. never redeemed).
-    if (isLrpCreate(registry, isAnchorTenant, now)) {
-      entitiesToSave.add(
-          prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
-    }
     enqueueTasks(newDomain, hasSignedMarks, hasClaimsNotice);
 
     EntityChanges entityChanges =
@@ -594,10 +585,6 @@ public class DomainCreateFlow implements TransactionalFlow {
                     fullyQualifiedDomainName, true, historyEntry.getTrid(), now)))
         .setParent(historyEntry)
         .build();
-  }
-
-  private boolean isLrpCreate(Registry registry, boolean isAnchorTenant, DateTime now) {
-    return registry.getLrpPeriod().contains(now) && !isAnchorTenant;
   }
 
   private void enqueueTasks(

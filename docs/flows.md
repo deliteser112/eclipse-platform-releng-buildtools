@@ -296,8 +296,6 @@ An EPP flow that creates a new application for a domain resource.
 *   2201
     *   Registrar is not authorized to access this TLD.
     *   Registrar must be active in order to create domains or applications.
-*   2202
-    *   Invalid limited registration period token.
 *   2302
     *   Resource with this id already exists.
     *   This name has already been claimed by a sunrise applicant.
@@ -559,8 +557,6 @@ An EPP flow that creates a new domain resource.
     *   Only a tool can pass a metadata extension.
     *   Registrar is not authorized to access this TLD.
     *   Registrar must be active in order to create domains or applications.
-*   2202
-    *   Invalid limited registration period token.
 *   2302
     *   Resource with this id already exists.
 *   2303

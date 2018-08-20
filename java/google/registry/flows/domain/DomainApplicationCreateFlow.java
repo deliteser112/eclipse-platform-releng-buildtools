@@ -23,7 +23,6 @@ import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToT
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
 import static google.registry.flows.domain.DomainFlowUtils.isAnchorTenant;
-import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpTokenEntity;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
@@ -128,7 +127,6 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.FeesMismatchException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.InvalidIdnDomainLabelException}
- * @error {@link DomainFlowUtils.InvalidLrpTokenException}
  * @error {@link DomainFlowUtils.InvalidPunycodeException}
  * @error {@link DomainFlowUtils.InvalidTcnIdChecksumException}
  * @error {@link DomainFlowUtils.InvalidTrademarkValidatorException}
@@ -277,12 +275,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
         historyEntry,
         DomainApplicationIndex.createUpdatedInstance(newApplication),
         EppResourceIndex.create(Key.create(newApplication)));
-    // Anchor tenant registrations override LRP, and landrush applications can skip it.
-    // If a token is passed in outside of an LRP phase, it is simply ignored (i.e. never redeemed).
-    if (registry.getLrpPeriod().contains(now) && !isAnchorTenant) {
-      entitiesToSave.add(
-          prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
-    }
+
     EntityChanges entityChanges =
         flowCustomLogic.beforeSave(
             DomainApplicationCreateFlowCustomLogic.BeforeSaveParameters.newBuilder()

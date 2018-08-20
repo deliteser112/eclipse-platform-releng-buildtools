@@ -19,6 +19,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Queues.newArrayDeque;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.StringGenerator.DEFAULT_PASSWORD_LENGTH;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.Parameter;
@@ -73,7 +74,7 @@ public class GenerateAllocationTokensCommand implements RemoteApiCommand {
     names = {"-l", "--length"},
     description = "The length of each token, exclusive of the prefix (if specified); defaults to 16"
   )
-  private int tokenLength = 16;
+  private int tokenLength = DEFAULT_PASSWORD_LENGTH;
 
   @Parameter(
       names = {"--dry_run"},

@@ -39,7 +39,6 @@ import java.math.BigDecimal;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Interval;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -285,18 +284,6 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getReservedLists().stream().map(Key::getName))
         .containsExactly("xn--q9jyb4c_abuse", "common_abuse");
-  }
-
-  @Test
-  public void testSuccess_addLrpPeriod() throws Exception {
-    runCommandForced(
-        "--lrp_period=2004-06-09T12:30:00Z/2004-07-10T13:30:00Z",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getLrpPeriod()).isEqualTo(
-        new Interval(
-            DateTime.parse("2004-06-09T12:30:00Z"), DateTime.parse("2004-07-10T13:30:00Z")));
   }
 
   @Test
@@ -609,37 +596,6 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
                     "--dns_writers=VoidDnsWriter",
                     "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("The premium list 'phonies' doesn't exist");
-  }
-
-  @Test
-  public void testFailure_addLrpPeriod_backwardsInterval() {
-    ParameterException thrown =
-        assertThrows(
-            ParameterException.class,
-            () ->
-                runCommandForced(
-                    "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z",
-                    "--roid_suffix=Q9JYB4C",
-                    "--dns_writers=VoidDnsWriter",
-                    "xn--q9jyb4c"));
-    assertThat(thrown)
-        .hasMessageThat()
-        .contains(
-            "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z not an ISO-8601 interval");
-  }
-
-  @Test
-  public void testFailure_addLrpPeriod_badInterval() {
-    ParameterException thrown =
-        assertThrows(
-            ParameterException.class,
-            () ->
-                runCommandForced(
-                    "--lrp_period=foobar",
-                    "--roid_suffix=Q9JYB4C",
-                    "--dns_writers=VoidDnsWriter",
-                    "xn--q9jyb4c"));
-    assertThat(thrown).hasMessageThat().contains("--lrp_period=foobar not an ISO-8601 interval");
   }
 
   @Test

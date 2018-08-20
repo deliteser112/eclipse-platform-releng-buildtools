@@ -80,7 +80,6 @@ interface RegistryToolComponent {
   void inject(CreateCdnsTld command);
   void inject(CreateContactCommand command);
   void inject(CreateDomainCommand command);
-  void inject(CreateLrpTokensCommand command);
   void inject(CreateTldCommand command);
   void inject(DeployInvoicingPipelineCommand command);
   void inject(DeploySpec11PipelineCommand command);

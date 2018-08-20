@@ -22,7 +22,6 @@ import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
-import static google.registry.flows.domain.DomainPricingLogic.getMatchingLrpToken;
 import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
@@ -55,7 +54,6 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.CommandUseErrorException;
-import google.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
@@ -80,7 +78,6 @@ import google.registry.model.domain.DomainCommand.InvalidReferencesException;
 import google.registry.model.domain.DomainCommand.Update;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.ForeignKeyedDesignatedContact;
-import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
@@ -992,17 +989,6 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Create a {@link LrpTokenEntity} object that records this LRP registration. */
-  static LrpTokenEntity prepareMarkedLrpTokenEntity(
-      String lrpTokenString, InternetDomainName domainName, HistoryEntry historyEntry)
-      throws InvalidLrpTokenException {
-    Optional<LrpTokenEntity> lrpToken = getMatchingLrpToken(lrpTokenString, domainName);
-    if (!lrpToken.isPresent()) {
-      throw new InvalidLrpTokenException();
-    }
-    return lrpToken.get().asBuilder().setRedemptionHistoryEntry(Key.create(historyEntry)).build();
-  }
-
   /** Check that there are no code marks, which is a type of mark we don't support. */
   static void verifyNoCodeMarks(LaunchCreateExtension launchCreate)
       throws UnsupportedMarkTypeException {
@@ -1584,13 +1570,6 @@ public class DomainFlowUtils {
   static class UnexpectedClaimsNoticeException extends StatusProhibitsOperationException {
     public UnexpectedClaimsNoticeException(String domainName) {
       super(String.format("%s does not require a claims notice", domainName));
-    }
-  }
-
-  /** Invalid limited registration period token. */
-  static class InvalidLrpTokenException extends InvalidAuthorizationInformationErrorException {
-    public InvalidLrpTokenException() {
-      super("Invalid limited registration period token");
     }
   }
 

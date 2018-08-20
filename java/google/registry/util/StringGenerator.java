@@ -23,6 +23,8 @@ import java.util.Collection;
 /** String generator. */
 public abstract class StringGenerator {
 
+  public static final int DEFAULT_PASSWORD_LENGTH = 16;
+
   /** A class containing different alphabets used to generate strings. */
   public static class Alphabets {
 

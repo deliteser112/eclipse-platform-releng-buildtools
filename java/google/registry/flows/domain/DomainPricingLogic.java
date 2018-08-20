@@ -14,13 +14,11 @@
 
 package google.registry.flows.domain;
 
-import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.pricing.PricingEngineProxy.getDomainFeeClass;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 
 import com.google.common.net.InternetDomainName;
-import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowScope;
 import google.registry.flows.custom.DomainPricingCustomLogic;
@@ -31,7 +29,6 @@ import google.registry.flows.custom.DomainPricingCustomLogic.RestorePriceParamet
 import google.registry.flows.custom.DomainPricingCustomLogic.TransferPriceParameters;
 import google.registry.flows.custom.DomainPricingCustomLogic.UpdatePriceParameters;
 import google.registry.model.domain.DomainApplication;
-import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
@@ -185,29 +182,5 @@ public final class DomainPricingLogic {
   /** Returns the fee class for a given domain and date. */
   public Optional<String> getFeeClass(String domainName, DateTime date) {
     return getDomainFeeClass(domainName, date);
-  }
-
-  /**
-   * Checks whether an LRP token String maps to a valid {@link LrpTokenEntity} for the domain name's
-   * TLD, and return that entity (wrapped in an {@link Optional}) if one exists.
-   *
-   * <p>This method has no knowledge of whether or not an auth code (interpreted here as an LRP
-   * token) has already been checked against the reserved list for QLP (anchor tenant), as auth
-   * codes are used for both types of registrations.
-   */
-  public static Optional<LrpTokenEntity> getMatchingLrpToken(
-      String lrpToken, InternetDomainName domainName) {
-    // Note that until the actual per-TLD logic is built out, what's being done here is a basic
-    // domain-name-to-assignee match.
-    if (!lrpToken.isEmpty()) {
-      LrpTokenEntity token = ofy().load().key(Key.create(LrpTokenEntity.class, lrpToken)).now();
-      if (token != null
-          && token.getAssignee().equalsIgnoreCase(domainName.toString())
-          && token.getRedemptionHistoryEntry() == null
-          && token.getValidTlds().contains(domainName.parent().toString())) {
-        return Optional.of(token);
-      }
-    }
-    return Optional.empty();
   }
 }

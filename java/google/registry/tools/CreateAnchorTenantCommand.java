@@ -18,8 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static google.registry.model.registry.Registries.findTldForNameOrThrow;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
-import static google.registry.util.TokenUtils.TokenType.ANCHOR_TENANT;
-import static google.registry.util.TokenUtils.createToken;
+import static google.registry.util.StringGenerator.DEFAULT_PASSWORD_LENGTH;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
@@ -80,7 +79,7 @@ final class CreateAnchorTenantCommand extends MutatingEppToolCommand {
     checkArgument(superuser, "This command must be run as a superuser.");
     findTldForNameOrThrow(InternetDomainName.from(domainName)); // Check that the tld exists.
     if (isNullOrEmpty(password)) {
-      password = createToken(ANCHOR_TENANT, passwordGenerator);
+      password = passwordGenerator.createString(DEFAULT_PASSWORD_LENGTH);
     }
 
     Money cost = null;

@@ -13,7 +13,6 @@ HistoryEntry
 HostResource
 KmsSecret
 KmsSecretRevision
-LrpTokenEntity
 Modification
 OneTime
 PollMessage
