@@ -14,8 +14,12 @@
 
 package google.registry.beam.spec11;
 
+import static google.registry.beam.BeamUtils.getQueryFromFile;
+
 import google.registry.beam.spec11.SafeBrowsingTransforms.EvaluateSafeBrowsingFn;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.util.Retrier;
+import google.registry.util.SqlTemplate;
 import java.io.Serializable;
 import javax.inject.Inject;
 import org.apache.beam.runners.dataflow.DataflowRunner;
@@ -27,10 +31,17 @@ import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
+import org.apache.beam.sdk.options.ValueProvider.NestedValueProvider;
+import org.apache.beam.sdk.transforms.GroupByKey;
+import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.Sample;
-import org.apache.beam.sdk.transforms.ToString;
+import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.TypeDescriptor;
+import org.apache.beam.sdk.values.TypeDescriptors;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Definition of a Dataflow pipeline template, which generates a given month's spec11 report.
@@ -59,6 +70,9 @@ public class Spec11Pipeline implements Serializable {
   @Inject
   @Config("spec11BucketUrl")
   String spec11BucketUrl;
+
+  @Inject
+  Retrier retrier;
 
   @Inject
   Spec11Pipeline() {}
@@ -106,13 +120,21 @@ public class Spec11Pipeline implements Serializable {
             "Read active domains from BigQuery",
             BigQueryIO.read(Subdomain::parseFromRecord)
                 .fromQuery(
-                    // This query must be customized for your own use.
-                    "SELECT * FROM YOUR_TABLE_HERE")
+                    SqlTemplate.create(getQueryFromFile(Spec11Pipeline.class, "subdomains.sql"))
+                        .put("PROJECT_ID", projectId)
+                        .put("DATASTORE_EXPORT_DATASET", "latest_datastore_export")
+                        .put("REGISTRAR_TABLE", "Registrar")
+                        .put("DOMAIN_BASE_TABLE", "DomainBase")
+                        .build())
                 .withCoder(SerializableCoder.of(Subdomain.class))
                 .usingStandardSql()
                 .withoutValidation()
                 .withTemplateCompatibility());
-    evaluateUrlHealth(domains, new EvaluateSafeBrowsingFn(options.getSafeBrowsingApiKey()));
+
+    evaluateUrlHealth(
+        domains,
+        new EvaluateSafeBrowsingFn(options.getSafeBrowsingApiKey(), retrier),
+        options.getYearMonth());
     p.run();
   }
 
@@ -122,21 +144,51 @@ public class Spec11Pipeline implements Serializable {
    * <p>This is factored out to facilitate testing.
    */
   void evaluateUrlHealth(
-      PCollection<Subdomain> domains, EvaluateSafeBrowsingFn evaluateSafeBrowsingFn) {
+      PCollection<Subdomain> domains,
+      EvaluateSafeBrowsingFn evaluateSafeBrowsingFn,
+      ValueProvider<String> yearMonthProvider) {
     domains
-        // TODO(b/111545355): Remove this limiter once we're confident we won't go over quota.
-        .apply(
-            "Get just a few representative samples for now, don't want to overwhelm our quota",
-            Sample.any(1000))
         .apply("Run through SafeBrowsingAPI", ParDo.of(evaluateSafeBrowsingFn))
-        .apply("Convert results to string", ToString.elements())
+        .apply(
+            "Map registrar e-mail to ThreatMatch",
+            MapElements.into(
+                    TypeDescriptors.kvs(
+                        TypeDescriptors.strings(), TypeDescriptor.of(ThreatMatch.class)))
+                .via(
+                    (KV<Subdomain, ThreatMatch> kv) ->
+                        KV.of(kv.getKey().registrarEmailAddress(), kv.getValue())))
+        .apply("Group by registrar email address", GroupByKey.create())
+        .apply(
+            "Convert results to JSON format",
+            MapElements.into(TypeDescriptors.strings())
+                .via(
+                    (KV<String, Iterable<ThreatMatch>> kv) -> {
+                      JSONObject output = new JSONObject();
+                      try {
+                        output.put("registrarEmailAddress", kv.getKey());
+                        JSONArray threatMatches = new JSONArray();
+                        for (ThreatMatch match : kv.getValue()) {
+                          threatMatches.put(match.toJSON());
+                        }
+                        output.put("threatMatches", threatMatches);
+                        return output.toString();
+                      } catch (JSONException e) {
+                        throw new RuntimeException(
+                            String.format(
+                                "Encountered an error constructing the JSON for %s", kv.toString()),
+                            e);
+                      }
+                    }))
         .apply(
             "Output to text file",
             TextIO.write()
-                // TODO(b/111545355): Replace this with a templated directory based on yearMonth
-                .to(spec11BucketUrl)
+                .to(
+                    NestedValueProvider.of(
+                        yearMonthProvider,
+                        yearMonth ->
+                            String.format(
+                                "%s/%s/%s-monthly-report", spec11BucketUrl, yearMonth, yearMonth)))
                 .withoutSharding()
-                .withHeader("HELLO WORLD"));
+                .withHeader("Map from registrar email to detected subdomain threats:"));
   }
-
 }

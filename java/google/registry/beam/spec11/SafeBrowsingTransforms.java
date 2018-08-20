@@ -19,9 +19,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.http.HttpStatus.SC_OK;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.io.CharStreams;
+import google.registry.util.Retrier;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
@@ -62,7 +63,7 @@ public class SafeBrowsingTransforms {
    *
    * @see <a href=https://developers.google.com/safe-browsing/v4/lookup-api>Lookup API</a>
    */
-  static class EvaluateSafeBrowsingFn extends DoFn<Subdomain, KV<Subdomain, String>> {
+  static class EvaluateSafeBrowsingFn extends DoFn<Subdomain, KV<Subdomain, ThreatMatch>> {
 
     /**
      * Max number of urls we can check in a single query.
@@ -75,8 +76,8 @@ public class SafeBrowsingTransforms {
     private final ValueProvider<String> apiKeyProvider;
 
     /**
-     * Maps a subdomain's HTTP URL to its corresponding {@link Subdomain} to facilitate batching
-     * SafeBrowsing API requests.
+     * Maps a subdomain's {@code fullyQualifiedDomainName} to its corresponding {@link Subdomain} to
+     * facilitate batching SafeBrowsing API requests.
      */
     private final Map<String, Subdomain> subdomainBuffer = new LinkedHashMap<>(BATCH_SIZE);
 
@@ -87,6 +88,9 @@ public class SafeBrowsingTransforms {
      * serializable field.
      */
     private final Supplier<CloseableHttpClient> closeableHttpClientSupplier;
+
+    /** Retries on receiving transient failures such as {@link IOException}. */
+    private final Retrier retrier;
 
     /**
      * Constructs a {@link EvaluateSafeBrowsingFn} that gets its API key from the given provider.
@@ -99,8 +103,9 @@ public class SafeBrowsingTransforms {
      * @param apiKeyProvider provides the SafeBrowsing API key from {@code KMS} at runtime
      */
     @SuppressWarnings("unchecked")
-    EvaluateSafeBrowsingFn(ValueProvider<String> apiKeyProvider) {
+    EvaluateSafeBrowsingFn(ValueProvider<String> apiKeyProvider, Retrier retrier) {
       this.apiKeyProvider = apiKeyProvider;
+      this.retrier = retrier;
       this.closeableHttpClientSupplier = (Supplier & Serializable) HttpClients::createDefault;
     }
 
@@ -113,8 +118,11 @@ public class SafeBrowsingTransforms {
     @VisibleForTesting
     @SuppressWarnings("unchecked")
     EvaluateSafeBrowsingFn(
-        ValueProvider<String> apiKeyProvider, Supplier<CloseableHttpClient> clientSupplier) {
+        ValueProvider<String> apiKeyProvider,
+        Retrier retrier,
+        Supplier<CloseableHttpClient> clientSupplier) {
       this.apiKeyProvider = apiKeyProvider;
+      this.retrier = retrier;
       this.closeableHttpClientSupplier = clientSupplier;
     }
 
@@ -122,7 +130,7 @@ public class SafeBrowsingTransforms {
     @FinishBundle
     public void finishBundle(FinishBundleContext context) {
       if (!subdomainBuffer.isEmpty()) {
-        ImmutableList<KV<Subdomain, String>> results = evaluateAndFlush();
+        ImmutableSet<KV<Subdomain, ThreatMatch>> results = evaluateAndFlush();
         results.forEach((kv) -> context.output(kv, Instant.now(), GlobalWindow.INSTANCE));
       }
     }
@@ -134,11 +142,9 @@ public class SafeBrowsingTransforms {
     @ProcessElement
     public void processElement(ProcessContext context) {
       Subdomain subdomain = context.element();
-      // We put HTTP URLs into the buffer because the API requires specifying the protocol.
-      subdomainBuffer.put(
-          String.format("http://%s", subdomain.fullyQualifiedDomainName()), subdomain);
+      subdomainBuffer.put(subdomain.fullyQualifiedDomainName(), subdomain);
       if (subdomainBuffer.size() >= BATCH_SIZE) {
-        ImmutableList<KV<Subdomain, String>> results = evaluateAndFlush();
+        ImmutableSet<KV<Subdomain, ThreatMatch>> results = evaluateAndFlush();
         results.forEach(context::output);
       }
     }
@@ -149,8 +155,8 @@ public class SafeBrowsingTransforms {
      *
      * <p>If a {@link Subdomain} is safe according to the API, it will not emit a report.
      */
-    private ImmutableList<KV<Subdomain, String>> evaluateAndFlush() {
-      ImmutableList.Builder<KV<Subdomain, String>> resultBuilder = new ImmutableList.Builder<>();
+    private ImmutableSet<KV<Subdomain, ThreatMatch>> evaluateAndFlush() {
+      ImmutableSet.Builder<KV<Subdomain, ThreatMatch>> resultBuilder = new ImmutableSet.Builder<>();
       try {
         URIBuilder uriBuilder = new URIBuilder(SAFE_BROWSING_URL);
         // Add the API key param
@@ -161,17 +167,18 @@ public class SafeBrowsingTransforms {
 
         JSONObject requestBody = createRequestBody();
         httpPost.setEntity(new ByteArrayEntity(requestBody.toString().getBytes(UTF_8)));
-
-        try (CloseableHttpClient client = closeableHttpClientSupplier.get();
-            CloseableHttpResponse response = client.execute(httpPost)) {
-          processResponse(response, resultBuilder);
-        }
-      } catch (URISyntaxException | JSONException e) {
-        // TODO(b/112354588): also send an alert e-mail to indicate the pipeline failed
-        logger.atSevere().withCause(e).log(
-            "Caught parsing error during execution, skipping batch.");
-      } catch (IOException e) {
-        logger.atSevere().withCause(e).log("Caught IOException during processing, skipping batch.");
+        // Retry transient exceptions such as IOException
+        retrier.callWithRetry(
+            () -> {
+              try (CloseableHttpClient client = closeableHttpClientSupplier.get();
+                  CloseableHttpResponse response = client.execute(httpPost)) {
+                processResponse(response, resultBuilder);
+              }
+            },
+            IOException.class);
+      } catch (URISyntaxException | JSONException  e) {
+        // Fail the pipeline on a parsing exception- this indicates the API likely changed.
+        throw new RuntimeException("Caught parsing exception, failing pipeline.", e);
       } finally {
         // Flush the buffer
         subdomainBuffer.clear();
@@ -206,12 +213,13 @@ public class SafeBrowsingTransforms {
     }
 
     /**
-     * Iterates through all threat matches in the API response and adds them to the resultBuilder.
+     * Iterates through all threat matches in the API response and adds them to the {@code
+     * resultBuilder}.
      */
     private void processResponse(
-        CloseableHttpResponse response, ImmutableList.Builder<KV<Subdomain, String>> resultBuilder)
+        CloseableHttpResponse response,
+        ImmutableSet.Builder<KV<Subdomain, ThreatMatch>> resultBuilder)
         throws JSONException, IOException {
-
       int statusCode = response.getStatusLine().getStatusCode();
       if (statusCode != SC_OK) {
         logger.atWarning().log("Got unexpected status code %s from response", statusCode);
@@ -230,7 +238,9 @@ public class SafeBrowsingTransforms {
           for (int i = 0; i < threatMatches.length(); i++) {
             JSONObject match = threatMatches.getJSONObject(i);
             String url = match.getJSONObject("threat").getString("url");
-            resultBuilder.add(KV.of(subdomainBuffer.get(url), match.toString()));
+            Subdomain subdomain = subdomainBuffer.get(url);
+            resultBuilder.add(
+                KV.of(subdomain, ThreatMatch.create(match, subdomain.fullyQualifiedDomainName())));
           }
         }
       }

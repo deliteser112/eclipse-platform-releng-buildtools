@@ -22,9 +22,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import java.io.Serializable;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.beam.sdk.io.gcp.bigquery.SchemaAndRecord;
 
@@ -42,14 +39,14 @@ public abstract class Subdomain implements Serializable {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final ImmutableList<String> FIELD_NAMES =
-      ImmutableList.of("fullyQualifiedDomainName", "statuses", "creationTime");
+      ImmutableList.of("fullyQualifiedDomainName", "registrarName", "registrarEmailAddress");
 
   /** Returns the fully qualified domain name. */
   abstract String fullyQualifiedDomainName();
-  /** Returns the UTC DateTime this domain was created. */
-  abstract ZonedDateTime creationTime();
-  /** Returns the space-delimited list of statuses on this domain. */
-  abstract String statuses();
+  /** Returns the name of the associated registrar for this domain. */
+  abstract String registrarName();
+  /** Returns the email address of the registrar associated with this domain. */
+  abstract String registrarEmailAddress();
 
   /**
    * Constructs a {@link Subdomain} from an Apache Avro {@code SchemaAndRecord}.
@@ -63,10 +60,8 @@ public abstract class Subdomain implements Serializable {
     GenericRecord record = schemaAndRecord.getRecord();
     return create(
         extractField(record, "fullyQualifiedDomainName"),
-        // Bigquery provides UNIX timestamps with microsecond precision.
-        Instant.ofEpochMilli(Long.parseLong(extractField(record, "creationTime")) / 1000)
-            .atZone(ZoneId.of("UTC")),
-        extractField(record, "statuses"));
+        extractField(record, "registrarName"),
+        extractField(record, "registrarEmailAddress"));
   }
 
   /**
@@ -77,8 +72,8 @@ public abstract class Subdomain implements Serializable {
    */
   @VisibleForTesting
   static Subdomain create(
-      String fullyQualifiedDomainName, ZonedDateTime creationTime, String statuses) {
-    return new AutoValue_Subdomain(fullyQualifiedDomainName, creationTime, statuses);
+      String fullyQualifiedDomainName, String registrarName, String registrarEmailAddress) {
+    return new AutoValue_Subdomain(fullyQualifiedDomainName, registrarName, registrarEmailAddress);
   }
 }
 

@@ -26,6 +26,7 @@ java_library(
         "@org_apache_beam_sdks_java_io_google_cloud_platform",
         "@org_apache_httpcomponents_httpclient",
         "@org_apache_httpcomponents_httpcore",
+        "@org_json",
         "@org_mockito_all",
     ],
 )

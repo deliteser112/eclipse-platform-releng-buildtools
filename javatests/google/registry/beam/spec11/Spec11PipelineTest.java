@@ -24,7 +24,10 @@ import static org.mockito.Mockito.withSettings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharStreams;
 import google.registry.beam.spec11.SafeBrowsingTransforms.EvaluateSafeBrowsingFn;
+import google.registry.testing.FakeClock;
+import google.registry.testing.FakeSleeper;
 import google.registry.util.ResourceUtils;
+import google.registry.util.Retrier;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +35,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.util.Comparator;
 import java.util.function.Supplier;
 import org.apache.beam.runners.direct.DirectRunner;
 import org.apache.beam.sdk.options.PipelineOptions;
@@ -48,6 +50,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -55,6 +60,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 /** Unit tests for {@link Spec11Pipeline}. */
@@ -78,21 +84,26 @@ public class Spec11PipelineTest {
   public void initializePipeline() throws IOException {
     spec11Pipeline = new Spec11Pipeline();
     spec11Pipeline.projectId = "test-project";
-    spec11Pipeline.spec11BucketUrl = tempFolder.getRoot().getAbsolutePath() + "/results";
+    spec11Pipeline.spec11BucketUrl = tempFolder.getRoot().getAbsolutePath();
     File beamTempFolder = tempFolder.newFolder();
     spec11Pipeline.beamStagingUrl = beamTempFolder.getAbsolutePath() + "/staging";
     spec11Pipeline.spec11TemplateUrl = beamTempFolder.getAbsolutePath() + "/templates/invoicing";
   }
 
+  private static final ImmutableList<String> BAD_DOMAINS =
+      ImmutableList.of("111.com", "222.com", "444.com");
+
   private ImmutableList<Subdomain> getInputDomains() {
     ImmutableList.Builder<Subdomain> subdomainsBuilder = new ImmutableList.Builder<>();
-    // Put in 2 batches worth (490 < max < 490*2) to get one positive and one negative example.
-    for (int i = 0; i < 510; i++) {
+    // Put in at least 2 batches worth (x > 490) to guarantee multiple executions.
+    // Put in half for theRegistrar and half for someRegistrar
+    for (int i = 0; i < 255; i++) {
       subdomainsBuilder.add(
-          Subdomain.create(
-              String.format("%s.com", i),
-              ZonedDateTime.of(2017, 9, 29, 0, 0, 0, 0, ZoneId.of("UTC")),
-              "OK"));
+          Subdomain.create(String.format("%s.com", i), "theRegistrar", "fake@theRegistrar.com"));
+    }
+    for (int i = 255; i < 510; i++) {
+      subdomainsBuilder.add(
+          Subdomain.create(String.format("%s.com", i), "someRegistrar", "fake@someRegistrar.com"));
     }
     return subdomainsBuilder.build();
   }
@@ -109,75 +120,124 @@ public class Spec11PipelineTest {
     // Establish mocks for testing
     ImmutableList<Subdomain> inputRows = getInputDomains();
     CloseableHttpClient httpClient = mock(CloseableHttpClient.class, withSettings().serializable());
-    CloseableHttpResponse negativeResponse =
-        mock(CloseableHttpResponse.class, withSettings().serializable());
-    CloseableHttpResponse positiveResponse =
-        mock(CloseableHttpResponse.class, withSettings().serializable());
 
-    // Tailor the fake API's response based on whether or not it contains the "bad url" 111.com
-    when(httpClient.execute(any(HttpPost.class)))
-        .thenAnswer(
-            (Answer & Serializable)
-                (i) -> {
-                  String request =
-                      CharStreams.toString(
-                          new InputStreamReader(
-                              ((HttpPost) i.getArguments()[0]).getEntity().getContent(), UTF_8));
-                  if (request.contains("http://111.com")) {
-                    return positiveResponse;
-                  } else {
-                    return negativeResponse;
-                  }
-                });
-    when(negativeResponse.getStatusLine())
-        .thenReturn(new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 200, "Done"));
-    when(negativeResponse.getEntity()).thenReturn(new FakeHttpEntity("{}"));
-    when(positiveResponse.getStatusLine())
-        .thenReturn(new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 200, "Done"));
-    when(positiveResponse.getEntity())
-        .thenReturn(new FakeHttpEntity(getBadUrlMatch("http://111.com")));
+    // Return a mock HttpResponse that returns a JSON response based on the request.
+    when(httpClient.execute(any(HttpPost.class))).thenAnswer(new HttpResponder());
+
     EvaluateSafeBrowsingFn evalFn =
         new EvaluateSafeBrowsingFn(
-           StaticValueProvider.of("apikey"), (Serializable & Supplier) () -> httpClient);
+            StaticValueProvider.of("apikey"),
+            new Retrier(new FakeSleeper(new FakeClock()), 3),
+            (Serializable & Supplier) () -> httpClient);
 
     // Apply input and evaluation transforms
     PCollection<Subdomain> input = p.apply(Create.of(inputRows));
-    spec11Pipeline.evaluateUrlHealth(input, evalFn);
+    spec11Pipeline.evaluateUrlHealth(input, evalFn, StaticValueProvider.of("2018-06"));
     p.run();
 
-    // Verify output of text file
+    // Verify header and 3 threat matches for 2 registrars are found
     ImmutableList<String> generatedReport = resultFileContents();
-    // TODO(b/80524726): Rigorously test this output once the pipeline output is finalized.
-    assertThat(generatedReport).hasSize(2);
-    assertThat(generatedReport.get(1)).contains("http://111.com");
+    assertThat(generatedReport).hasSize(3);
+    assertThat(generatedReport.get(0))
+        .isEqualTo("Map from registrar email to detected subdomain threats:");
 
+    // The output file can put the registrar emails and bad URLs in any order.
+    // So we sort by length (sorry) to put the shorter JSON first.
+    ImmutableList<String> sortedLines =
+        generatedReport
+            .subList(1, 3)
+            .stream()
+            .sorted(Comparator.comparingInt(String::length))
+            .collect(ImmutableList.toImmutableList());
+
+    JSONObject someRegistrarJSON = new JSONObject(sortedLines.get(0));
+    assertThat(someRegistrarJSON.get("registrarEmailAddress")).isEqualTo("fake@someRegistrar.com");
+    assertThat(someRegistrarJSON.has("threatMatches")).isTrue();
+    JSONArray someThreatMatch = someRegistrarJSON.getJSONArray("threatMatches");
+    assertThat(someThreatMatch.length()).isEqualTo(1);
+    assertThat(someThreatMatch.getJSONObject(0).get("fullyQualifiedDomainName"))
+        .isEqualTo("444.com");
+    assertThat(someThreatMatch.getJSONObject(0).get("threatType"))
+        .isEqualTo("MALWARE");
+
+    // theRegistrar has two ThreatMatches, we have to parse it explicitly
+    JSONObject theRegistrarJSON = new JSONObject(sortedLines.get(1));
+    assertThat(theRegistrarJSON.get("registrarEmailAddress")).isEqualTo("fake@theRegistrar.com");
+    assertThat(theRegistrarJSON.has("threatMatches")).isTrue();
+    JSONArray theThreatMatches = theRegistrarJSON.getJSONArray("threatMatches");
+    assertThat(theThreatMatches.length()).isEqualTo(2);
+    ImmutableList<String> threatMatchStrings =
+        ImmutableList.of(
+            theThreatMatches.getJSONObject(0).toString(),
+            theThreatMatches.getJSONObject(1).toString());
+    assertThat(threatMatchStrings)
+        .containsExactly(
+            new JSONObject()
+                .put("fullyQualifiedDomainName", "111.com")
+                .put("threatType", "MALWARE")
+                .toString(),
+            new JSONObject()
+                .put("fullyQualifiedDomainName", "222.com")
+                .put("threatType", "MALWARE")
+                .toString());
   }
 
-  /** Returns the text contents of a file under the beamBucket/results directory. */
-  private ImmutableList<String> resultFileContents() throws Exception {
-    File resultFile = new File(String.format("%s/results", tempFolder.getRoot().getAbsolutePath()));
-    return ImmutableList.copyOf(
-        ResourceUtils.readResourceUtf8(resultFile.toURI().toURL()).split("\n"));
+  /**
+   * A serializable {@link Answer} that returns a mock HTTP response based on the HTTP request's
+   * content.
+   */
+  private static class HttpResponder implements Answer<CloseableHttpResponse>, Serializable {
+    @Override
+    public CloseableHttpResponse answer(InvocationOnMock invocation) throws Throwable {
+      return getMockResponse(
+          CharStreams.toString(
+              new InputStreamReader(
+                  ((HttpPost) invocation.getArguments()[0]).getEntity().getContent(), UTF_8)));
+    }
   }
 
-  /** Returns a filled-in template for threat detected at a given url. */
-  private static String getBadUrlMatch(String url) {
-    return "{\n"
-        + "  \"matches\": [{\n"
-        + "    \"threatType\":      \"MALWARE\",\n"
-        + "    \"platformType\":    \"WINDOWS\",\n"
-        + "    \"threatEntryType\": \"URL\",\n"
-        + String.format("    \"threat\":          {\"url\": \"%s\"},\n", url)
-        + "    \"threatEntryMetadata\": {\n"
-        + "      \"entries\": [{\n"
-        + "        \"key\": \"malware_threat_type\",\n"
-        + "        \"value\": \"landing\"\n"
-        + "     }]\n"
-        + "    },\n"
-        + "    \"cacheDuration\": \"300.000s\"\n"
-        + "  },"
-        + "]\n"
-        + "}";
+  /**
+   * Returns a {@link CloseableHttpResponse} containing either positive (threat found) or negative
+   * (no threat) API examples based on the request data.
+   */
+  private static CloseableHttpResponse getMockResponse(String request) throws JSONException {
+    // Determine which bad URLs are in the request (if any)
+    ImmutableList<String> badUrls =
+        BAD_DOMAINS.stream().filter(request::contains).collect(ImmutableList.toImmutableList());
+
+    CloseableHttpResponse httpResponse =
+        mock(CloseableHttpResponse.class, withSettings().serializable());
+    when(httpResponse.getStatusLine())
+        .thenReturn(
+            new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 200, "Done"));
+    when(httpResponse.getEntity())
+        .thenReturn(new FakeHttpEntity(getAPIResponse(badUrls)));
+    return httpResponse;
+  }
+
+  /**
+   * Returns the expected API response for a list of bad URLs.
+   *
+   * <p>If there are no badUrls in the list, this returns the empty JSON string "{}".
+   */
+  private static String getAPIResponse(ImmutableList<String> badUrls) throws JSONException {
+    JSONObject response = new JSONObject();
+    if (badUrls.isEmpty()) {
+      return response.toString();
+    }
+    // Create a threatMatch for each badUrl
+    JSONArray matches = new JSONArray();
+    for (String badUrl : badUrls) {
+      matches.put(
+          new JSONObject()
+              .put("threatType", "MALWARE")
+              .put("platformType", "WINDOWS")
+              .put("threatEntryType", "URL")
+              .put("threat", new JSONObject().put("url", badUrl))
+              .put("cacheDuration", "300.000s"));
+    }
+    response.put("matches", matches);
+    return response.toString();
   }
 
   /** A serializable HttpEntity fake that returns {@link String} content. */
@@ -191,6 +251,12 @@ public class Spec11PipelineTest {
       oos.defaultWriteObject();
     }
 
+    /**
+     * Sets the {@link FakeHttpEntity} content upon deserialization.
+     *
+     * <p>This allows us to use {@link #getContent()} as-is, fully emulating the behavior of {@link
+     * BasicHttpEntity} regardless of serialization.
+     */
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
       ois.defaultReadObject();
       super.setContent(new ByteArrayInputStream(this.content.getBytes(UTF_8)));
@@ -198,6 +264,18 @@ public class Spec11PipelineTest {
 
     FakeHttpEntity(String content) {
       this.content = content;
+      super.setContent(new ByteArrayInputStream(this.content.getBytes(UTF_8)));
     }
   }
+
+  /** Returns the text contents of a file under the beamBucket/results directory. */
+  private ImmutableList<String> resultFileContents() throws Exception {
+    File resultFile =
+        new File(
+            String.format(
+                "%s/2018-06/2018-06-monthly-report", tempFolder.getRoot().getAbsolutePath()));
+    return ImmutableList.copyOf(
+        ResourceUtils.readResourceUtf8(resultFile.toURI().toURL()).split("\n"));
+  }
+
 }

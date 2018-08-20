@@ -17,6 +17,8 @@ package google.registry.beam;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
+import com.google.common.io.Resources;
+import google.registry.util.ResourceUtils;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.beam.sdk.io.gcp.bigquery.SchemaAndRecord;
 
@@ -53,5 +55,13 @@ public class BeamUtils {
               "Read unexpected null value for field(s) %s for record %s",
               missingFieldList, record));
     }
+  }
+
+  /**
+   * Returns the {@link String} contents for a file in the {@code sql/} directory relative to a
+   * class.
+   */
+  public static String getQueryFromFile(Class<?> clazz, String filename) {
+    return ResourceUtils.readResourceUtf8(Resources.getResource(clazz, "sql/" + filename));
   }
 }

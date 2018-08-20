@@ -8,6 +8,7 @@ java_library(
     name = "beam",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/google/registry/util",
         "@com_google_flogger",
         "@com_google_flogger_system_backend",
         "@com_google_guava",

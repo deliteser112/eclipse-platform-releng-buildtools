@@ -14,8 +14,8 @@
 
 package google.registry.beam.invoicing;
 
-import com.google.common.io.Resources;
-import google.registry.util.ResourceUtils;
+import static google.registry.beam.BeamUtils.getQueryFromFile;
+
 import google.registry.util.SqlTemplate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -91,7 +91,7 @@ public class InvoicingUtils {
           LocalDateTime firstMoment = reportingMonth.atDay(1).atTime(LocalTime.MIDNIGHT);
           LocalDateTime lastMoment = reportingMonth.atEndOfMonth().atTime(LocalTime.MAX);
           // Construct the month's query by filling in the billing_events.sql template
-          return SqlTemplate.create(getQueryFromFile("billing_events.sql"))
+          return SqlTemplate.create(getQueryFromFile(InvoicingPipeline.class, "billing_events.sql"))
               .put("FIRST_TIMESTAMP_OF_MONTH", firstMoment.format(TIMESTAMP_FORMATTER))
               .put("LAST_TIMESTAMP_OF_MONTH", lastMoment.format(TIMESTAMP_FORMATTER))
               .put("PROJECT_ID", projectId)
@@ -102,11 +102,5 @@ public class InvoicingUtils {
               .put("CANCELLATION_TABLE", "Cancellation")
               .build();
         });
-  }
-
-  /** Returns the {@link String} contents for a file in the {@code beam/sql/} directory. */
-  private static String getQueryFromFile(String filename) {
-    return ResourceUtils.readResourceUtf8(
-        Resources.getResource(InvoicingUtils.class, "sql/" + filename));
   }
 }
