@@ -63,6 +63,14 @@ class CreateCdnsTld extends ConfirmingCommand {
 
   @Override
   protected void init() {
+    // Sandbox talks to production Cloud DNS.  As a result, we can't configure any domains with a
+    // suffix that might be used by customers on the same nameserver set.  Limit the user to setting
+    // up *.test TLDs.
+    if (RegistryToolEnvironment.get() == RegistryToolEnvironment.SANDBOX
+        && !dnsName.endsWith(".test.")) {
+      throw new IllegalArgumentException("Sandbox TLDs must be of the form \"*.test.\"");
+    }
+
     managedZone =
         new ManagedZone()
             .setDescription(description)

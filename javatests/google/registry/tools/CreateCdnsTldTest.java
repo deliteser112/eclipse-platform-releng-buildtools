@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -76,5 +77,14 @@ public class CreateCdnsTldTest extends CommandTestCase<CreateCdnsTld> {
     runCommand("--dns_name=tld.", "--description=test run", "--force");
     ManagedZone zone = requestBody.getValue();
     assertThat(zone).isEqualTo(createZone("cloud-dns-registry-test", "test run", "tld.", "tld."));
+  }
+
+  @Test
+  public void testSandboxTldRestrictions() throws Exception {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> runCommandInEnvironment(RegistryToolEnvironment.SANDBOX, "--dns_name=foobar."));
+    assertThat(thrown).hasMessageThat().contains("Sandbox TLDs must be of the form \"*.test.\"");
   }
 }
