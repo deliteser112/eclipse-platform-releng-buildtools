@@ -46,5 +46,5 @@ spec:
     apiVersion: extensions/v1beta1
     kind: Deployment
     name: proxy-deployment
-  maxReplicas: 5
+  maxReplicas: 10
   minReplicas: 1
