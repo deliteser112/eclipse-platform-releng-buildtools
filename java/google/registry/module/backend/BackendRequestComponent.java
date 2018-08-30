@@ -76,6 +76,8 @@ import google.registry.reporting.icann.IcannReportingModule;
 import google.registry.reporting.icann.IcannReportingStagingAction;
 import google.registry.reporting.icann.IcannReportingUploadAction;
 import google.registry.reporting.spec11.GenerateSpec11ReportAction;
+import google.registry.reporting.spec11.PublishSpec11ReportAction;
+import google.registry.reporting.spec11.Spec11Module;
 import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
@@ -108,6 +110,7 @@ import google.registry.tmch.TmchSmdrlAction;
         ReportingModule.class,
         RequestModule.class,
         SheetModule.class,
+        Spec11Module.class,
         TmchModule.class,
         VoidDnsWriterModule.class,
         WhiteboxModule.class,
@@ -138,6 +141,7 @@ interface BackendRequestComponent {
   NordnUploadAction nordnUploadAction();
   NordnVerifyAction nordnVerifyAction();
   PublishDnsUpdatesAction publishDnsUpdatesAction();
+  PublishSpec11ReportAction publishSpec11ReportAction();
   ReadDnsQueueAction readDnsQueueAction();
   RdeContactImportAction rdeContactImportAction();
   RdeDomainImportAction rdeDomainImportAction();

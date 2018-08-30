@@ -109,7 +109,7 @@ public class GenerateInvoicesActionTest {
             .method("POST")
             .param("jobId", "12345")
             .param("yearMonth", "2017-10");
-    assertTasksEnqueued("billing", matcher);
+    assertTasksEnqueued("beam-reporting", matcher);
   }
 
   @Test

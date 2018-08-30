@@ -15,6 +15,7 @@
 package google.registry.reporting.spec11;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -30,9 +31,13 @@ import com.google.api.services.dataflow.model.LaunchTemplateResponse;
 import com.google.api.services.dataflow.model.RuntimeEnvironment;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
+import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.io.IOException;
+import org.joda.time.YearMonth;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -40,6 +45,9 @@ import org.junit.runners.JUnit4;
 /** Unit tests for {@link google.registry.reporting.spec11.GenerateSpec11ReportAction}. */
 @RunWith(JUnit4.class)
 public class GenerateSpec11ReportActionTest {
+
+  @Rule
+  public final AppEngineRule appEngine = AppEngineRule.builder().withTaskQueue().build();
 
   private FakeResponse response;
   private Dataflow dataflow;
@@ -61,7 +69,7 @@ public class GenerateSpec11ReportActionTest {
     dataflowLaunch = mock(Launch.class);
     LaunchTemplateResponse launchTemplateResponse = new LaunchTemplateResponse();
     // Ultimately we get back this job response with a given id.
-    launchTemplateResponse.setJob(new Job().setReplaceJobId("jobid"));
+    launchTemplateResponse.setJob(new Job().setId("jobid"));
     when(dataflow.projects()).thenReturn(dataflowProjects);
     when(dataflowProjects.templates()).thenReturn(dataflowTemplates);
     when(dataflowTemplates.launch(any(String.class), any(LaunchTemplateParameters.class)))
@@ -79,22 +87,32 @@ public class GenerateSpec11ReportActionTest {
             "gs://template",
             "us-east1-c",
             "api_key/a",
+            YearMonth.parse("2018-06"),
             response,
             dataflow);
     action.run();
 
     LaunchTemplateParameters expectedLaunchTemplateParameters =
         new LaunchTemplateParameters()
-            .setJobName("spec11_action")
+            .setJobName("spec11_2018-06")
             .setEnvironment(
                 new RuntimeEnvironment()
                     .setZone("us-east1-c")
                     .setTempLocation("gs://my-bucket-beam/temporary"))
-            .setParameters(ImmutableMap.of("safeBrowsingApiKey", "api_key/a"));
+            .setParameters(
+                ImmutableMap.of("safeBrowsingApiKey", "api_key/a", "yearMonth", "2018-06"));
     verify(dataflowTemplates).launch("test", expectedLaunchTemplateParameters);
     verify(dataflowLaunch).setGcsPath("gs://template");
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("Launched Spec11 dataflow template.");
+
+    TaskMatcher matcher =
+        new TaskMatcher()
+            .url("/_dr/task/publishSpec11")
+            .method("POST")
+            .param("jobId", "jobid")
+            .param("yearMonth", "2018-06");
+    assertTasksEnqueued("beam-reporting", matcher);
   }
 }

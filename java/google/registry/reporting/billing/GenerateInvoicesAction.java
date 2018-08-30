@@ -14,7 +14,7 @@
 
 package google.registry.reporting.billing;
 
-import static google.registry.reporting.ReportingModule.PARAM_YEAR_MONTH;
+import static google.registry.reporting.ReportingUtils.enqueueBeamReportingTask;
 import static google.registry.reporting.billing.BillingModule.PARAM_SHOULD_PUBLISH;
 import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -24,8 +24,6 @@ import com.google.api.services.dataflow.Dataflow;
 import com.google.api.services.dataflow.model.LaunchTemplateParameters;
 import com.google.api.services.dataflow.model.LaunchTemplateResponse;
 import com.google.api.services.dataflow.model.RuntimeEnvironment;
-import com.google.appengine.api.taskqueue.QueueFactory;
-import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
@@ -36,7 +34,6 @@ import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
 import javax.inject.Inject;
-import org.joda.time.Duration;
 import org.joda.time.YearMonth;
 
 /**
@@ -108,7 +105,7 @@ public class GenerateInvoicesAction implements Runnable {
       logger.atInfo().log("Got response: %s", launchResponse.getJob().toPrettyString());
       String jobId = launchResponse.getJob().getId();
       if (shouldPublish) {
-        enqueuePublishTask(jobId);
+        enqueueBeamReportingTask(PublishInvoicesAction.PATH, jobId, yearMonth);
       }
     } catch (IOException e) {
       logger.atWarning().withCause(e).log("Template Launch failed");
@@ -121,17 +118,5 @@ public class GenerateInvoicesAction implements Runnable {
     response.setStatus(SC_OK);
     response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
     response.setPayload("Launched dataflow template.");
-  }
-
-  private void enqueuePublishTask(String jobId) {
-    TaskOptions publishTask =
-        TaskOptions.Builder.withUrl(PublishInvoicesAction.PATH)
-            .method(TaskOptions.Method.POST)
-            // Dataflow jobs tend to take about 10 minutes to complete.
-            .countdownMillis(Duration.standardMinutes(10).getMillis())
-            .param(BillingModule.PARAM_JOB_ID, jobId)
-            // Need to pass this through to ensure transitive yearMonth dependencies are satisfied.
-            .param(PARAM_YEAR_MONTH, yearMonth.toString());
-    QueueFactory.getQueue(BillingModule.BILLING_QUEUE).add(publishTask);
   }
 }

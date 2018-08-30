@@ -8,10 +8,14 @@ java_library(
     name = "spec11",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/google/registry/beam/spec11",
         "//java/google/registry/config",
+        "//java/google/registry/gcs",
         "//java/google/registry/keyring/api",
+        "//java/google/registry/reporting",
         "//java/google/registry/request",
         "//java/google/registry/request/auth",
+        "//java/google/registry/util",
         "@com_google_api_client_appengine",
         "@com_google_apis_google_api_services_dataflow",
         "@com_google_appengine_api_1_0_sdk",
@@ -28,5 +32,6 @@ java_library(
         "@org_apache_beam_runners_google_cloud_dataflow_java",
         "@org_apache_beam_sdks_java_core",
         "@org_apache_beam_sdks_java_io_google_cloud_platform",
+        "@org_json",
     ],
 )

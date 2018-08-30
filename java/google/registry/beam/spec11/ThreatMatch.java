@@ -26,9 +26,10 @@ public abstract class ThreatMatch implements Serializable {
   private static final String THREAT_TYPE_FIELD = "threatType";
   private static final String PLATFORM_TYPE_FIELD = "platformType";
   private static final String METADATA_FIELD = "threatEntryMetadata";
+  private static final String DOMAIN_NAME_FIELD = "fullyQualifiedDomainName";
 
   /** Returns what kind of threat it is (malware, phishing etc.) */
-  abstract String threatType();
+  public abstract String threatType();
   /** Returns what platforms it affects (Windows, Linux etc.) */
   abstract String platformType();
   /**
@@ -40,7 +41,7 @@ public abstract class ThreatMatch implements Serializable {
    */
   abstract String metadata();
   /** Returns the fully qualified domain name [SLD].[TLD] of the matched threat. */
-  abstract String fullyQualifiedDomainName();
+  public abstract String fullyQualifiedDomainName();
 
   /**
    * Constructs a {@link ThreatMatch} by parsing a {@code SafeBrowsing API} response {@link
@@ -59,14 +60,21 @@ public abstract class ThreatMatch implements Serializable {
         fullyQualifiedDomainName);
   }
 
-  /** Returns a {@link String} containing the simplest details about this threat. */
-  String getSimpleDetails() {
-    return String.format("%s;%s", this.fullyQualifiedDomainName(), this.threatType());
-  }
   /** Returns a {@link JSONObject} representing a subset of this object's data. */
   JSONObject toJSON() throws JSONException {
     return new JSONObject()
-        .put("fullyQualifiedDomainName", fullyQualifiedDomainName())
-        .put("threatType", threatType());
+        .put(THREAT_TYPE_FIELD, threatType())
+        .put(PLATFORM_TYPE_FIELD, platformType())
+        .put(METADATA_FIELD, metadata())
+        .put(DOMAIN_NAME_FIELD, fullyQualifiedDomainName());
+  }
+
+  /** Parses a {@link JSONObject} and returns an equivalent {@link ThreatMatch}. */
+  public static ThreatMatch fromJSON(JSONObject threatMatch) throws JSONException {
+    return new AutoValue_ThreatMatch(
+        threatMatch.getString(THREAT_TYPE_FIELD),
+        threatMatch.getString(PLATFORM_TYPE_FIELD),
+        threatMatch.getString(METADATA_FIELD),
+        threatMatch.getString(DOMAIN_NAME_FIELD));
   }
 }

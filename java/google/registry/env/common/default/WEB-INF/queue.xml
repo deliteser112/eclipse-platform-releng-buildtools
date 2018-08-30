@@ -126,9 +126,9 @@
     </retry-parameters>
   </queue>
 
-  <!-- Queue for tasks to generate or upload monthly invoices. -->
+  <!-- Queue for tasks that wait for a Beam pipeline to complete (i.e. Spec11 and invoicing). -->
   <queue>
-    <name>billing</name>
+    <name>beam-reporting</name>
     <rate>1/m</rate>
     <max-concurrent-requests>1</max-concurrent-requests>
     <retry-parameters>

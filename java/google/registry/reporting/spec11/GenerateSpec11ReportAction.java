@@ -14,6 +14,7 @@
 
 package google.registry.reporting.spec11;
 
+import static google.registry.reporting.ReportingUtils.enqueueBeamReportingTask;
 import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -32,6 +33,7 @@ import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
 import javax.inject.Inject;
+import org.joda.time.YearMonth;
 
 /**
  * Invokes the {@code Spec11Pipeline} Beam template via the REST api.
@@ -51,6 +53,7 @@ public class GenerateSpec11ReportAction implements Runnable {
   private final String spec11TemplateUrl;
   private final String jobZone;
   private final String apiKey;
+  private final YearMonth yearMonth;
   private final Response response;
   private final Dataflow dataflow;
 
@@ -61,6 +64,7 @@ public class GenerateSpec11ReportAction implements Runnable {
       @Config("spec11TemplateUrl") String spec11TemplateUrl,
       @Config("defaultJobZone") String jobZone,
       @Key("safeBrowsingAPIKey") String apiKey,
+      YearMonth yearMonth,
       Response response,
       Dataflow dataflow) {
     this.projectId = projectId;
@@ -68,6 +72,7 @@ public class GenerateSpec11ReportAction implements Runnable {
     this.spec11TemplateUrl = spec11TemplateUrl;
     this.jobZone = jobZone;
     this.apiKey = apiKey;
+    this.yearMonth = yearMonth;
     this.response = response;
     this.dataflow = dataflow;
   }
@@ -77,12 +82,14 @@ public class GenerateSpec11ReportAction implements Runnable {
     try {
       LaunchTemplateParameters params =
           new LaunchTemplateParameters()
-              .setJobName("spec11_action")
+              .setJobName(String.format("spec11_%s", yearMonth.toString()))
               .setEnvironment(
                   new RuntimeEnvironment()
                       .setZone(jobZone)
                       .setTempLocation(beamBucketUrl + "/temporary"))
-              .setParameters(ImmutableMap.of("safeBrowsingApiKey", apiKey));
+              .setParameters(
+                  ImmutableMap.of(
+                      "safeBrowsingApiKey", apiKey, "yearMonth", yearMonth.toString("yyyy-MM")));
       LaunchTemplateResponse launchResponse =
           dataflow
               .projects()
@@ -90,7 +97,8 @@ public class GenerateSpec11ReportAction implements Runnable {
               .launch(projectId, params)
               .setGcsPath(spec11TemplateUrl)
               .execute();
-      // TODO(b/111545355): Send an e-mail alert interpreting the results.
+      enqueueBeamReportingTask(
+          PublishSpec11ReportAction.PATH, launchResponse.getJob().getId(), yearMonth);
       logger.atInfo().log("Got response: %s", launchResponse.getJob().toPrettyString());
     } catch (IOException e) {
       logger.atWarning().withCause(e).log("Template Launch failed");

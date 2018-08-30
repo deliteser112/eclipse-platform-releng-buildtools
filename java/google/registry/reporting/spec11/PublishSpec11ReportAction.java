@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.reporting.billing;
+package google.registry.reporting.spec11;
 
-import static google.registry.reporting.ReportingModule.PARAM_YEAR_MONTH;
 import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
@@ -23,8 +22,6 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.services.dataflow.Dataflow;
 import com.google.api.services.dataflow.model.Job;
-import com.google.appengine.api.taskqueue.QueueFactory;
-import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
@@ -38,16 +35,16 @@ import javax.inject.Inject;
 import org.joda.time.YearMonth;
 
 /**
- * Uploads the results of the {@link google.registry.beam.invoicing.InvoicingPipeline}.
+ * Retries until a {@code Dataflow} job with a given {@code jobId} completes, continuing the Spec11
+ * pipeline accordingly.
  *
- * <p>This relies on the retry semantics in {@code queue.xml} to ensure proper upload, in spite of
- * fluctuations in generation timing.
- *
- * @see <a href=https://cloud.google.com/dataflow/docs/reference/rest/v1b3/projects.jobs#Job.JobState>
- *   Job States</a>
+ * <p>This calls {@link Spec11EmailUtils#emailSpec11Reports()} on success or {@link
+ * Spec11EmailUtils#sendFailureAlertEmail(String)} on failure.
  */
-@Action(path = PublishInvoicesAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
-public class PublishInvoicesAction implements Runnable {
+@Action(path = PublishSpec11ReportAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
+public class PublishSpec11ReportAction implements Runnable {
+
+  static final String PATH = "/_dr/task/publishSpec11";
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final String JOB_DONE = "JOB_STATE_DONE";
@@ -55,16 +52,16 @@ public class PublishInvoicesAction implements Runnable {
 
   private final String projectId;
   private final String jobId;
-  private final BillingEmailUtils emailUtils;
+  private final Spec11EmailUtils emailUtils;
   private final Dataflow dataflow;
   private final Response response;
   private final YearMonth yearMonth;
 
   @Inject
-  PublishInvoicesAction(
+  PublishSpec11ReportAction(
       @Config("projectId") String projectId,
       @Parameter(ReportingModule.PARAM_JOB_ID) String jobId,
-      BillingEmailUtils emailUtils,
+      Spec11EmailUtils emailUtils,
       Dataflow dataflow,
       Response response,
       YearMonth yearMonth) {
@@ -76,8 +73,6 @@ public class PublishInvoicesAction implements Runnable {
     this.yearMonth = yearMonth;
   }
 
-  static final String PATH = "/_dr/task/publishInvoices";
-
   @Override
   public void run() {
     try {
@@ -88,14 +83,14 @@ public class PublishInvoicesAction implements Runnable {
         case JOB_DONE:
           logger.atInfo().log("Dataflow job %s finished successfully, publishing results.", jobId);
           response.setStatus(SC_OK);
-          enqueueCopyDetailReportsTask();
-          emailUtils.emailOverallInvoice();
+          emailUtils.emailSpec11Reports();
           break;
         case JOB_FAILED:
           logger.atSevere().log("Dataflow job %s finished unsuccessfully.", jobId);
           response.setStatus(SC_NO_CONTENT);
-          emailUtils.sendAlertEmail(
-              String.format("Dataflow job %s ended in status failure.", jobId));
+          emailUtils.sendFailureAlertEmail(
+              String.format(
+                  "Spec11 %s job %s ended in status failure.", yearMonth.toString(), jobId));
           break;
         default:
           logger.atInfo().log("Job in non-terminal state %s, retrying:", state);
@@ -103,18 +98,13 @@ public class PublishInvoicesAction implements Runnable {
           break;
       }
     } catch (IOException e) {
-      emailUtils.sendAlertEmail(String.format("Publish action failed due to %s", e.getMessage()));
+      logger.atSevere().withCause(e).log("Failed to publish Spec11 reports.");
+      emailUtils.sendFailureAlertEmail(
+          String.format(
+              "Spec11 %s publish action failed due to %s", yearMonth.toString(), e.getMessage()));
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
       response.setPayload(String.format("Template launch failed: %s", e.getMessage()));
     }
-  }
-
-  private void enqueueCopyDetailReportsTask() {
-    TaskOptions copyDetailTask =
-        TaskOptions.Builder.withUrl(CopyDetailReportsAction.PATH)
-            .method(TaskOptions.Method.POST)
-            .param(PARAM_YEAR_MONTH, yearMonth.toString());
-    QueueFactory.getQueue(BillingModule.CRON_QUEUE).add(copyDetailTask);
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.reporting.billing;
+package google.registry.reporting.spec11;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.api.services.dataflow.Dataflow;
@@ -30,33 +30,27 @@ import com.google.api.services.dataflow.Dataflow.Projects.Jobs;
 import com.google.api.services.dataflow.Dataflow.Projects.Jobs.Get;
 import com.google.api.services.dataflow.model.Job;
 import com.google.common.net.MediaType;
-import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
-import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.io.IOException;
 import org.joda.time.YearMonth;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Unit tests for {@link PublishInvoicesAction}. */
+/** Unit tests for {@link PublishSpec11ReportAction}. */
 @RunWith(JUnit4.class)
-public class PublishInvoicesActionTest {
+public class PublishSpec11ReportActionTest {
 
   private Dataflow dataflow;
   private Projects projects;
   private Jobs jobs;
   private Get get;
-  private BillingEmailUtils emailUtils;
+  private Spec11EmailUtils emailUtils;
 
   private Job expectedJob;
   private FakeResponse response;
-  private PublishInvoicesAction uploadAction;
-
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder().withTaskQueue().build();
+  private PublishSpec11ReportAction publishAction;
 
   @Before
   public void setUp() throws IOException {
@@ -69,49 +63,45 @@ public class PublishInvoicesActionTest {
     when(jobs.get("test-project", "12345")).thenReturn(get);
     expectedJob = new Job();
     when(get.execute()).thenReturn(expectedJob);
-    emailUtils = mock(BillingEmailUtils.class);
+    emailUtils = mock(Spec11EmailUtils.class);
     response = new FakeResponse();
-    uploadAction =
-        new PublishInvoicesAction(
-            "test-project", "12345", emailUtils, dataflow, response, new YearMonth(2017, 10));
+    publishAction =
+        new PublishSpec11ReportAction(
+            "test-project", "12345", emailUtils, dataflow, response, new YearMonth(2018, 6));
   }
 
   @Test
-  public void testJobDone_enqueuesCopyAction_emailsResults() {
+  public void testJobDone_emailsResults() {
     expectedJob.setCurrentState("JOB_STATE_DONE");
-    uploadAction.run();
+    publishAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    verify(emailUtils).emailOverallInvoice();
-    TaskMatcher matcher =
-        new TaskMatcher()
-            .url("/_dr/task/copyDetailReports")
-            .method("POST")
-            .param("yearMonth", "2017-10");
-    assertTasksEnqueued("retryable-cron-tasks", matcher);
+    verify(emailUtils).emailSpec11Reports();
   }
 
   @Test
   public void testJobFailed_returnsNonRetriableResponse() {
     expectedJob.setCurrentState("JOB_STATE_FAILED");
-    uploadAction.run();
+    publishAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_NO_CONTENT);
-    verify(emailUtils).sendAlertEmail("Dataflow job 12345 ended in status failure.");
+    verify(emailUtils).sendFailureAlertEmail("Spec11 2018-06 job 12345 ended in status failure.");
   }
 
   @Test
   public void testJobIndeterminate_returnsRetriableResponse() {
     expectedJob.setCurrentState("JOB_STATE_RUNNING");
-    uploadAction.run();
+    publishAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_NOT_MODIFIED);
+    verifyNoMoreInteractions(emailUtils);
   }
 
   @Test
   public void testIOException_returnsFailureMessage() throws IOException {
     when(get.execute()).thenThrow(new IOException("expected"));
-    uploadAction.run();
+    publishAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_INTERNAL_SERVER_ERROR);
     assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("Template launch failed: expected");
-    verify(emailUtils).sendAlertEmail("Publish action failed due to expected");
+    verify(emailUtils)
+        .sendFailureAlertEmail("Spec11 2018-06 publish action failed due to expected");
   }
 }

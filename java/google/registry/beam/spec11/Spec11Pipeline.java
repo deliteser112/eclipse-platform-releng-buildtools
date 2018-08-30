@@ -55,6 +55,21 @@ import org.json.JSONObject;
  */
 public class Spec11Pipeline implements Serializable {
 
+  /**
+   * Returns the subdirectory spec11 reports reside in for a given yearMonth in yyyy-MM format.
+   *
+   * @see google.registry.beam.spec11.Spec11Pipeline
+   * @see google.registry.reporting.spec11.Spec11EmailUtils
+   */
+  public static String getSpec11Subdirectory(String yearMonth) {
+    return String.format("icann/spec11/%s/SPEC11_MONTHLY_REPORT", yearMonth);
+  }
+
+  /** The JSON object field we put the registrar's e-mail address for Spec11 reports. */
+  public static final String REGISTRAR_EMAIL_FIELD = "registrarEmailAddress";
+  /** The JSON object field we put the threat match array for Spec11 reports. */
+  public static final String THREAT_MATCHES_FIELD = "threatMatches";
+
   @Inject
   @Config("projectId")
   String projectId;
@@ -68,8 +83,8 @@ public class Spec11Pipeline implements Serializable {
   String spec11TemplateUrl;
 
   @Inject
-  @Config("spec11BucketUrl")
-  String spec11BucketUrl;
+  @Config("reportingBucketUrl")
+  String reportingBucketUrl;
 
   @Inject
   Retrier retrier;
@@ -165,12 +180,12 @@ public class Spec11Pipeline implements Serializable {
                     (KV<String, Iterable<ThreatMatch>> kv) -> {
                       JSONObject output = new JSONObject();
                       try {
-                        output.put("registrarEmailAddress", kv.getKey());
+                        output.put(REGISTRAR_EMAIL_FIELD, kv.getKey());
                         JSONArray threatMatches = new JSONArray();
                         for (ThreatMatch match : kv.getValue()) {
                           threatMatches.put(match.toJSON());
                         }
-                        output.put("threatMatches", threatMatches);
+                        output.put(THREAT_MATCHES_FIELD, threatMatches);
                         return output.toString();
                       } catch (JSONException e) {
                         throw new RuntimeException(
@@ -187,8 +202,10 @@ public class Spec11Pipeline implements Serializable {
                         yearMonthProvider,
                         yearMonth ->
                             String.format(
-                                "%s/%s/%s-monthly-report", spec11BucketUrl, yearMonth, yearMonth)))
+                                "%s/%s",
+                                reportingBucketUrl, getSpec11Subdirectory(yearMonth))))
                 .withoutSharding()
                 .withHeader("Map from registrar email to detected subdomain threats:"));
   }
+
 }

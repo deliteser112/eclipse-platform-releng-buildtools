@@ -115,6 +115,15 @@
     <url-pattern>/_dr/task/generateSpec11</url-pattern>
   </servlet-mapping>
 
+  <!--
+    Publishes the Spec11 report for the month, emailing registrars about their
+    registrations which were flagged by the SafeBrowsing API.
+  -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/publishSpec11</url-pattern>
+  </servlet-mapping>
+
   <!-- Trademark Clearinghouse -->
 
   <!-- Downloads TMCH DNL data from MarksDB. -->

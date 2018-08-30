@@ -10,8 +10,11 @@ load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 java_library(
     name = "spec11",
     srcs = glob(["*.java"]),
+    resources = glob(["testdata/*"]),
     deps = [
+        "//java/google/registry/gcs",
         "//java/google/registry/reporting/spec11",
+        "//java/google/registry/util",
         "//javatests/google/registry/testing",
         "@com_google_apis_google_api_services_dataflow",
         "@com_google_appengine_api_1_0_sdk",
@@ -27,6 +30,7 @@ java_library(
         "@org_apache_beam_runners_google_cloud_dataflow_java",
         "@org_apache_beam_sdks_java_core",
         "@org_apache_beam_sdks_java_io_google_cloud_platform",
+        "@org_json",
         "@org_mockito_all",
     ],
 )

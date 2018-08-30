@@ -84,7 +84,7 @@ public class Spec11PipelineTest {
   public void initializePipeline() throws IOException {
     spec11Pipeline = new Spec11Pipeline();
     spec11Pipeline.projectId = "test-project";
-    spec11Pipeline.spec11BucketUrl = tempFolder.getRoot().getAbsolutePath();
+    spec11Pipeline.reportingBucketUrl = tempFolder.getRoot().getAbsolutePath();
     File beamTempFolder = tempFolder.newFolder();
     spec11Pipeline.beamStagingUrl = beamTempFolder.getAbsolutePath() + "/staging";
     spec11Pipeline.spec11TemplateUrl = beamTempFolder.getAbsolutePath() + "/templates/invoicing";
@@ -175,10 +175,14 @@ public class Spec11PipelineTest {
             new JSONObject()
                 .put("fullyQualifiedDomainName", "111.com")
                 .put("threatType", "MALWARE")
+                .put("threatEntryMetadata", "NONE")
+                .put("platformType", "WINDOWS")
                 .toString(),
             new JSONObject()
                 .put("fullyQualifiedDomainName", "222.com")
                 .put("threatType", "MALWARE")
+                .put("threatEntryMetadata", "NONE")
+                .put("platformType", "WINDOWS")
                 .toString());
   }
 
@@ -273,7 +277,8 @@ public class Spec11PipelineTest {
     File resultFile =
         new File(
             String.format(
-                "%s/2018-06/2018-06-monthly-report", tempFolder.getRoot().getAbsolutePath()));
+                "%s/icann/spec11/2018-06/SPEC11_MONTHLY_REPORT",
+                tempFolder.getRoot().getAbsolutePath()));
     return ImmutableList.copyOf(
         ResourceUtils.readResourceUtf8(resultFile.toURI().toURL()).split("\n"));
   }

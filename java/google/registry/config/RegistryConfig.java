@@ -564,8 +564,22 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("reportingBucket")
-    public static String provideIcannReportingBucket(@Config("projectId") String projectId) {
+    public static String provideReportingBucket(@Config("projectId") String projectId) {
       return projectId + "-reporting";
+    }
+
+    /**
+     * Returns the Google Cloud Storage bucket URL for Spec11 and ICANN transaction and activity
+     * reports to be uploaded.
+     *
+     * @see google.registry.reporting.icann.IcannReportingUploadAction
+     * @see google.registry.reporting.spec11.PublishSpec11ReportAction
+     */
+    @Provides
+    @Config("reportingBucketUrl")
+    public static String provideReportingBucketUrl(
+        @Config("reportingBucket") String reportingBucket) {
+      return "gs://" + reportingBucket;
     }
 
     /**
@@ -611,17 +625,6 @@ public final class RegistryConfig {
     @Config("billingBucketUrl")
     public static String provideBillingBucketUrl(@Config("billingBucket") String billingBucket) {
       return "gs://" + billingBucket;
-    }
-
-    /**
-     * Returns the URL of the GCS subdirectory we store Spec11 reports in.
-     *
-     * @see google.registry.beam.spec11.Spec11Pipeline
-     */
-    @Provides
-    @Config("spec11BucketUrl")
-    public static String provideSpec11BucketUrl(@Config("reportingBucket") String reportingBucket) {
-      return "gs://" + reportingBucket + "/icann/spec11";
     }
 
     /**
