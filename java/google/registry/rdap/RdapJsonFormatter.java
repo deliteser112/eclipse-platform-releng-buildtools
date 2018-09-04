@@ -696,6 +696,16 @@ public class RdapJsonFormatter {
         jsonBuilder.put("ipAddresses", ipAddressesBuilder.build());
       }
     }
+    ImmutableList<ImmutableMap<String, Object>> entities =
+        addRegistrarEntity(
+            ImmutableList.of(),
+            hostResource.getPersistedCurrentSponsorClientId(),
+            linkBase,
+            whoisServer,
+            now);
+    if (!entities.isEmpty()) {
+      jsonBuilder.put("entities", entities);
+    }
     if (whoisServer != null) {
       jsonBuilder.put("port43", whoisServer);
     }

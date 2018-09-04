@@ -68,7 +68,61 @@
           "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
-      "objectClassName": "nameserver"
+      "objectClassName": "nameserver",
+      "entities": [
+        {
+          "objectClassName": "entity",
+          "status": [ "active" ],
+          "handle": "1",
+          "roles": [ "registrar" ],
+          "links": [
+            {
+              "href": "https://example.com/rdap/entity/1",
+              "type": "application/rdap+json",
+              "rel": "self",
+              "value": "https://example.com/rdap/entity/1"
+            }
+          ],
+          "vcardArray" : [
+            "vcard",
+            [
+              ["version", {}, "text", "4.0"],
+              ["fn", {}, "text", "The Registrar"],
+              [
+                "adr",
+                {},
+                "text",
+                [
+                  "",
+                  "",
+                  "123 Example Boulevard",
+                  "Williamsburg",
+                  "NY",
+                  "11211",
+                  "United States"
+                ]
+              ],
+              ["tel", {"type":["voice"]}, "uri", "tel:+1.2223334444"],
+              ["email", {}, "text", "new.registrar@example.com"]
+            ]
+          ],
+          "publicIds" : [
+            {
+              "type": "IANA Registrar ID",
+              "identifier":"1"
+            }
+          ],
+          "remarks": [
+            {
+              "title": "Incomplete Data",
+              "description": [
+                "Summary data only. For complete data, send a specific query for the object."
+              ],
+              "type": "object truncated due to unexplainable reasons"
+            }
+          ]
+        }
+      ]
     },
     {
       "status": [
@@ -103,7 +157,61 @@
           "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
-      "objectClassName": "nameserver"
+      "objectClassName": "nameserver",
+      "entities": [
+        {
+          "objectClassName": "entity",
+          "status": [ "active" ],
+          "handle": "1",
+          "roles": [ "registrar" ],
+          "links": [
+            {
+              "href": "https://example.com/rdap/entity/1",
+              "type": "application/rdap+json",
+              "rel": "self",
+              "value": "https://example.com/rdap/entity/1"
+            }
+          ],
+          "vcardArray" : [
+            "vcard",
+            [
+              ["version", {}, "text", "4.0"],
+              ["fn", {}, "text", "The Registrar"],
+              [
+                "adr",
+                {},
+                "text",
+                [
+                  "",
+                  "",
+                  "123 Example Boulevard",
+                  "Williamsburg",
+                  "NY",
+                  "11211",
+                  "United States"
+                ]
+              ],
+              ["tel", {"type":["voice"]}, "uri", "tel:+1.2223334444"],
+              ["email", {}, "text", "new.registrar@example.com"]
+            ]
+          ],
+          "publicIds" : [
+            {
+              "type": "IANA Registrar ID",
+              "identifier":"1"
+            }
+          ],
+          "remarks": [
+            {
+              "title": "Incomplete Data",
+              "description": [
+                "Summary data only. For complete data, send a specific query for the object."
+              ],
+              "type": "object truncated due to unexplainable reasons"
+            }
+          ]
+        }
+      ]
     }
   ],
   "ldhName": "%PUNYCODENAME%",

@@ -133,42 +133,60 @@ public class RdapJsonFormatterTest {
         ImmutableList.of("Somewhere", "Over the Rainbow"),
         clock.nowUtc().minusYears(4),
         registrar);
-    hostResourceIpv4 = makeAndPersistHostResource(
-        "ns1.cat.みんな", "1.2.3.4", clock.nowUtc().minusYears(1));
-    hostResourceIpv6 = makeAndPersistHostResource(
-        "ns2.cat.みんな", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(2));
-    hostResourceBoth = makeAndPersistHostResource(
-        "ns3.cat.みんな", "1.2.3.4", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(3));
-    hostResourceNoAddresses = makeAndPersistHostResource(
-        "ns4.cat.みんな", null, clock.nowUtc().minusYears(4));
-    hostResourceNotLinked = makeAndPersistHostResource(
-        "ns5.cat.みんな", null, clock.nowUtc().minusYears(5));
-    hostResourceSuperordinatePendingTransfer = persistResource(
-        makeAndPersistHostResource("ns1.dog.みんな",  null, clock.nowUtc().minusYears(6))
-            .asBuilder()
-            .setSuperordinateDomain(Key.create(
-                persistResource(
-                    makeDomainResource(
-                        "dog.みんな",
-                        contactResourceRegistrant,
-                        contactResourceAdmin,
-                        contactResourceTech,
-                        null,
-                        null,
-                        registrar)
-                           .asBuilder()
-                           .addStatusValue(StatusValue.PENDING_TRANSFER)
-                           .setTransferData(new TransferData.Builder()
-                               .setTransferStatus(TransferStatus.PENDING)
-                               .setGainingClientId("NewRegistrar")
-                               .setTransferRequestTime(clock.nowUtc().minusDays(1))
-                               .setLosingClientId("TheRegistrar")
-                               .setPendingTransferExpirationTime(clock.nowUtc().plusYears(100))
-                               .setTransferredRegistrationExpirationTime(
-                                   DateTime.parse("2111-10-08T00:44:59Z"))
-                               .build())
-                           .build())))
-            .build());
+    hostResourceIpv4 =
+        makeAndPersistHostResource(
+            "ns1.cat.みんな", "1.2.3.4", null, clock.nowUtc().minusYears(1), "unicoderegistrar");
+    hostResourceIpv6 =
+        makeAndPersistHostResource(
+            "ns2.cat.みんな",
+            "bad:f00d:cafe:0:0:0:15:beef",
+            null,
+            clock.nowUtc().minusYears(2),
+            "unicoderegistrar");
+    hostResourceBoth =
+        makeAndPersistHostResource(
+            "ns3.cat.みんな",
+            "1.2.3.4",
+            "bad:f00d:cafe:0:0:0:15:beef",
+            clock.nowUtc().minusYears(3),
+            "unicoderegistrar");
+    hostResourceNoAddresses =
+        makeAndPersistHostResource(
+            "ns4.cat.みんな", null, null, clock.nowUtc().minusYears(4), "unicoderegistrar");
+    hostResourceNotLinked =
+        makeAndPersistHostResource(
+            "ns5.cat.みんな", null, null, clock.nowUtc().minusYears(5), "unicoderegistrar");
+    hostResourceSuperordinatePendingTransfer =
+        persistResource(
+            makeAndPersistHostResource(
+                    "ns1.dog.みんな", null, null, clock.nowUtc().minusYears(6), "unicoderegistrar")
+                .asBuilder()
+                .setSuperordinateDomain(
+                    Key.create(
+                        persistResource(
+                            makeDomainResource(
+                                    "dog.みんな",
+                                    contactResourceRegistrant,
+                                    contactResourceAdmin,
+                                    contactResourceTech,
+                                    null,
+                                    null,
+                                    registrar)
+                                .asBuilder()
+                                .addStatusValue(StatusValue.PENDING_TRANSFER)
+                                .setTransferData(
+                                    new TransferData.Builder()
+                                        .setTransferStatus(TransferStatus.PENDING)
+                                        .setGainingClientId("NewRegistrar")
+                                        .setTransferRequestTime(clock.nowUtc().minusDays(1))
+                                        .setLosingClientId("TheRegistrar")
+                                        .setPendingTransferExpirationTime(
+                                            clock.nowUtc().plusYears(100))
+                                        .setTransferredRegistrationExpirationTime(
+                                            DateTime.parse("2111-10-08T00:44:59Z"))
+                                        .build())
+                                .build())))
+                .build());
     domainResourceFull = persistResource(
         makeDomainResource(
             "cat.みんな",

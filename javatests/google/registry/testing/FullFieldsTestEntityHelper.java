@@ -126,11 +126,17 @@ public final class FullFieldsTestEntityHelper {
 
   public static HostResource makeHostResource(
       String fqhn, @Nullable String ip1, @Nullable String ip2) {
-    HostResource.Builder builder = new HostResource.Builder()
-        .setRepoId(generateNewContactHostRoid())
-        .setFullyQualifiedHostName(Idn.toASCII(fqhn))
-        .setCreationTimeForTest(DateTime.parse("2000-10-08T00:45:00Z"))
-        .setPersistedCurrentSponsorClientId("TheRegistrar");
+    return makeHostResource(fqhn, ip1, ip2, "TheRegistrar");
+  }
+
+  public static HostResource makeHostResource(
+      String fqhn, @Nullable String ip1, @Nullable String ip2, String registrarClientId) {
+    HostResource.Builder builder =
+        new HostResource.Builder()
+            .setRepoId(generateNewContactHostRoid())
+            .setFullyQualifiedHostName(Idn.toASCII(fqhn))
+            .setCreationTimeForTest(DateTime.parse("2000-10-08T00:45:00Z"))
+            .setPersistedCurrentSponsorClientId(registrarClientId);
     if ((ip1 != null) || (ip2 != null)) {
       ImmutableSet.Builder<InetAddress> ipBuilder = new ImmutableSet.Builder<>();
       if (ip1 != null) {
@@ -151,7 +157,17 @@ public final class FullFieldsTestEntityHelper {
 
   public static HostResource makeAndPersistHostResource(
       String fqhn, @Nullable String ip1, @Nullable String ip2, @Nullable DateTime creationTime) {
-    HostResource hostResource = persistResource(makeHostResource(fqhn, ip1, ip2));
+    return makeAndPersistHostResource(fqhn, ip1, ip2, creationTime, "TheRegistrar");
+  }
+
+  public static HostResource makeAndPersistHostResource(
+      String fqhn,
+      @Nullable String ip1,
+      @Nullable String ip2,
+      @Nullable DateTime creationTime,
+      String registrarClientId) {
+    HostResource hostResource =
+        persistResource(makeHostResource(fqhn, ip1, ip2, registrarClientId));
     if (creationTime != null) {
       persistResource(makeHistoryEntry(
           hostResource, HistoryEntry.Type.HOST_CREATE, null, "created", creationTime));
