@@ -21,7 +21,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
-import google.registry.tools.Command.RemoteApiCommand;
 import java.util.List;
 
 /**

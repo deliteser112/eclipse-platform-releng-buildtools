@@ -28,7 +28,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.tools.ServerSideCommand.Connection;
+import google.registry.tools.CommandWithConnection.Connection;
 import google.registry.tools.server.ToolsTestData;
 import java.net.URLDecoder;
 import java.util.Map;

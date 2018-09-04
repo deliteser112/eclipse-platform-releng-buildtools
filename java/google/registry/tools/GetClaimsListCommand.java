@@ -22,7 +22,6 @@ import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import google.registry.model.tmch.ClaimsListShard;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.nio.file.Path;
 import java.nio.file.Paths;

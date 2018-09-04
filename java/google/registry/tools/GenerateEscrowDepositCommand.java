@@ -30,7 +30,6 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import google.registry.model.rde.RdeMode;
 import google.registry.rde.RdeStagingAction;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.DateTimeParameter;
 import google.registry.util.AppEngineServiceUtils;
 import java.util.List;

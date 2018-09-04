@@ -21,7 +21,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Iterators;
 import google.registry.model.domain.DomainResource;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.util.Clock;
 import java.util.List;
 import javax.inject.Inject;

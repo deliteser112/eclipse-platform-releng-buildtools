@@ -28,7 +28,7 @@ import com.beust.jcommander.ParameterException;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.tools.ServerSideCommand.Connection;
+import google.registry.tools.CommandWithConnection.Connection;
 import google.registry.tools.server.CreatePremiumListAction;
 import org.junit.Before;
 import org.junit.Test;

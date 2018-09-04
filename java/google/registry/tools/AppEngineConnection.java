@@ -19,7 +19,6 @@ import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.net.HttpHeaders.X_REQUESTED_WITH;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static google.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
-import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.api.client.http.ByteArrayContent;
@@ -37,7 +36,7 @@ import com.google.common.net.MediaType;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import google.registry.security.XsrfTokenManager;
-import google.registry.tools.ServerSideCommand.Connection;
+import google.registry.tools.CommandWithConnection.Connection;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
@@ -95,7 +94,6 @@ class AppEngineConnection implements Connection {
             : requestFactory.buildGetRequest(url);
     HttpHeaders headers = request.getHeaders();
     headers.setCacheControl("no-cache");
-    headers.put(X_CSRF_TOKEN, ImmutableList.of(xsrfToken.get()));
     headers.put(X_REQUESTED_WITH, ImmutableList.of("RegistryTool"));
     request.setHeaders(headers);
     request.setFollowRedirects(false);

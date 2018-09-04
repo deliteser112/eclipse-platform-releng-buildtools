@@ -18,7 +18,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import google.registry.keyring.api.KeySerializer;
 import google.registry.keyring.api.Keyring;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.KeyringKeyName;
 import google.registry.tools.params.PathParameter;
 import java.io.FileOutputStream;

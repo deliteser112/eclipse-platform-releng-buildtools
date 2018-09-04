@@ -23,7 +23,6 @@ import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import google.registry.model.domain.DomainResource;
 import google.registry.tmch.LordnTask;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.io.IOException;
 import java.nio.file.Files;

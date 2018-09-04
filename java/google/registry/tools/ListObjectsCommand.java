@@ -23,7 +23,6 @@ import com.beust.jcommander.Parameter;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.tools.Command.RemoteApiCommand;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;

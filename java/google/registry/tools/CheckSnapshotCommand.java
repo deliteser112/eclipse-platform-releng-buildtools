@@ -20,7 +20,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import google.registry.export.DatastoreBackupInfo;
 import google.registry.export.DatastoreBackupService;
-import google.registry.tools.Command.RemoteApiCommand;
 import javax.inject.Inject;
 
 /**

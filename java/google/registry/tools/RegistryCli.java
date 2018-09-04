@@ -29,7 +29,6 @@ import com.beust.jcommander.ParametersDelegate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import google.registry.model.ofy.ObjectifyService;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.ParameterFactory;
 import java.security.Security;
 import java.util.Map;
@@ -59,6 +58,8 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
   @ParametersDelegate
   private LoggingParameters loggingParams = new LoggingParameters();
 
+  RegistryToolComponent component;
+
   // These are created lazily on first use.
   private AppEngineConnection connection;
   private RemoteApiInstaller installer;
@@ -76,6 +77,10 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     this.commands = commands;
 
     Security.addProvider(new BouncyCastleProvider());
+
+    component = DaggerRegistryToolComponent.builder()
+        .flagsModule(new AppEngineConnectionFlags.FlagsModule(appEngineConnectionFlags))
+        .build();
   }
 
   // The <? extends Class<? extends Command>> wildcard looks a little funny, but is needed so that
@@ -165,48 +170,43 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     }
   }
 
-  private void runCommand(Command command) throws Exception {
-    // Create the main component and use it to inject the command class.
-    RegistryToolComponent component = DaggerRegistryToolComponent.builder()
-        .flagsModule(new AppEngineConnectionFlags.FlagsModule(appEngineConnectionFlags))
-        .build();
-    injectReflectively(RegistryToolComponent.class, component, command);
-
-    if (!(command instanceof RemoteApiCommand)) {
-      // TODO(mmuller): this should be in the try/catch LoginRequiredException in case future
-      // commands use our credential.
-      command.run();
-      return;
-    }
-
+  private AppEngineConnection getConnection() {
     // Get the App Engine connection, advise the user if they are not currently logged in..
     if (connection == null) {
       connection = component.appEngineConnection();
     }
+    return connection;
+  }
 
-    if (command instanceof ServerSideCommand) {
-      ((ServerSideCommand) command).setConnection(connection);
+  private void runCommand(Command command) throws Exception {
+    injectReflectively(RegistryToolComponent.class, component, command);
+
+    if (command instanceof CommandWithConnection) {
+      ((CommandWithConnection) command).setConnection(getConnection());
     }
 
     // RemoteApiCommands need to have the remote api installed to work.
-    if (installer == null) {
-      installer = new RemoteApiInstaller();
-      RemoteApiOptions options = new RemoteApiOptions();
-      options.server(connection.getServer().getHost(), connection.getServer().getPort());
-      if (connection.isLocalhost()) {
-        // Use dev credentials for localhost.
-        options.useDevelopmentServerCredential();
-      } else {
-        options.useApplicationDefaultCredential();
+    if (command instanceof RemoteApiCommand) {
+      if (installer == null) {
+        installer = new RemoteApiInstaller();
+        RemoteApiOptions options = new RemoteApiOptions();
+        options.server(
+            getConnection().getServer().getHost(), getConnection().getServer().getPort());
+        if (getConnection().isLocalhost()) {
+          // Use dev credentials for localhost.
+          options.useDevelopmentServerCredential();
+        } else {
+          options.useApplicationDefaultCredential();
+        }
+        installer.install(options);
       }
-      installer.install(options);
-    }
 
-    // Ensure that all entity classes are loaded before command code runs.
-    ObjectifyService.initOfy();
-    // Make sure we start the command with a clean cache, so that any previous command won't
-    // interfere with this one.
-    ofy().clearSessionCache();
+      // Ensure that all entity classes are loaded before command code runs.
+      ObjectifyService.initOfy();
+      // Make sure we start the command with a clean cache, so that any previous command won't
+      // interfere with this one.
+      ofy().clearSessionCache();
+    }
 
     command.run();
   }

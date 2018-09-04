@@ -30,7 +30,6 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.nio.file.Files;
 import java.nio.file.Path;

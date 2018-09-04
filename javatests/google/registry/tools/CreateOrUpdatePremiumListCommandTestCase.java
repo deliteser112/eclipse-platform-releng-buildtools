@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.net.MediaType;
 import google.registry.testing.UriParameters;
-import google.registry.tools.ServerSideCommand.Connection;
+import google.registry.tools.CommandWithConnection.Connection;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import org.mockito.ArgumentCaptor;

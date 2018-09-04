@@ -23,7 +23,6 @@ import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.tmch.ClaimsListParser;
-import google.registry.tools.Command.RemoteApiCommand;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

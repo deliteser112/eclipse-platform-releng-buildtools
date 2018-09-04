@@ -26,7 +26,6 @@ import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Ascii;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationStatus;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.Idn;
 import java.nio.file.Files;

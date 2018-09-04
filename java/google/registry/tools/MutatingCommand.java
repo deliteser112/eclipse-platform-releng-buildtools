@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.ImmutableObject;
-import google.registry.tools.Command.RemoteApiCommand;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;

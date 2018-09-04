@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.ServerSideCommand.Connection;
+import google.registry.tools.CommandWithConnection.Connection;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

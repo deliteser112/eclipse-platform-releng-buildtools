@@ -26,7 +26,6 @@ import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.CommandUtilities.ResourceType;
 import google.registry.xml.XmlTransformer;
 import org.joda.time.DateTime;

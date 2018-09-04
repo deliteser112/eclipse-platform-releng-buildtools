@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.token.AllocationToken;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.Retrier;
 import google.registry.util.StringGenerator;

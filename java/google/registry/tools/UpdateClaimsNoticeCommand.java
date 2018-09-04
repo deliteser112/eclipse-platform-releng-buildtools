@@ -25,7 +25,6 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.tools.Command.RemoteApiCommand;
 import org.joda.time.DateTime;
 
 /** Command to update the claims notice on a domain application. */

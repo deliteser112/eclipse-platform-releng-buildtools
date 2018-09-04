@@ -25,7 +25,7 @@ import com.google.common.net.MediaType;
 import java.util.List;
 
 @Parameters(separators = " =", commandDescription = "Send an HTTP command to the nomulus server.")
-class CurlCommand implements ServerSideCommand {
+class CurlCommand implements CommandWithConnection {
   private Connection connection;
 
   // HTTP Methods that are acceptable for use as values for --method.

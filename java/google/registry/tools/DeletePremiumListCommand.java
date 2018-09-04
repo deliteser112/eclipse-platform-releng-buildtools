@@ -23,7 +23,6 @@ import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.registry.label.PremiumList;
-import google.registry.tools.Command.RemoteApiCommand;
 import javax.annotation.Nullable;
 
 /**

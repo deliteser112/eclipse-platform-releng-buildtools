@@ -19,12 +19,4 @@ public interface Command {
 
   /** Performs the command. */
   void run() throws Exception;
-
-  /**
-   * Marker interface for commands that use the remote api.
-   *
-   * <p>Just implementing this is sufficient to use the remote api; {@link RegistryTool} will
-   * install it as needed.
-   */
-  interface RemoteApiCommand extends Command {}
 }

@@ -26,7 +26,6 @@ import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
-import google.registry.tools.Command.RemoteApiCommand;
 import java.util.Map;
 import java.util.Optional;
 

@@ -36,7 +36,6 @@ import google.registry.model.smd.SignedMark;
 import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.tmch.TmchXmlSignature;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.Clock;
 import google.registry.util.Idn;

@@ -21,7 +21,6 @@ import static google.registry.keyring.api.KeySerializer.deserializeString;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import google.registry.keyring.kms.KmsUpdater;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.KeyringKeyName;
 import google.registry.tools.params.PathParameter;
 import java.nio.file.Files;

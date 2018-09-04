@@ -17,7 +17,6 @@ package google.registry.tools;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.whois.Whois;
 import java.util.List;
 import javax.inject.Inject;

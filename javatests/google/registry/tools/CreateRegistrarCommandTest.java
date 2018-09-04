@@ -34,7 +34,7 @@ import com.google.common.collect.Range;
 import com.google.common.net.MediaType;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.CertificateSamples;
-import google.registry.tools.ServerSideCommand.Connection;
+import google.registry.tools.CommandWithConnection.Connection;
 import java.io.IOException;
 import java.util.Optional;
 import org.joda.money.CurrencyUnit;

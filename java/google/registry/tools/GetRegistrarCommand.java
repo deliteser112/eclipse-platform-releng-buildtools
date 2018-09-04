@@ -19,7 +19,6 @@ import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.Command.RemoteApiCommand;
 import java.util.List;
 
 /** Command to show a registrar record. */

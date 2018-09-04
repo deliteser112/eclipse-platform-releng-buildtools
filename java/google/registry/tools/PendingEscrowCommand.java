@@ -21,7 +21,6 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import google.registry.rde.PendingDeposit;
 import google.registry.rde.PendingDepositChecker;
-import google.registry.tools.Command.RemoteApiCommand;
 import javax.inject.Inject;
 
 /** Command to show what escrow deposits are pending generation on the server. */

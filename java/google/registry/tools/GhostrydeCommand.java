@@ -22,7 +22,6 @@ import com.beust.jcommander.Parameters;
 import com.google.common.io.ByteStreams;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.rde.Ghostryde;
-import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.io.IOException;
 import java.io.InputStream;

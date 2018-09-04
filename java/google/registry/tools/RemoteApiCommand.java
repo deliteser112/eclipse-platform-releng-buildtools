@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * Marker interface for commands that use the remote api.
+ *
+ * <p>Just implementing this is sufficient to use the remote api; {@link RegistryTool} will
+ * install it as needed.
+ */
 package google.registry.tools;
 
-/** A command that executes on the server. */
-interface ServerSideCommand extends CommandWithConnection, RemoteApiCommand {
-}
+interface RemoteApiCommand extends Command {}

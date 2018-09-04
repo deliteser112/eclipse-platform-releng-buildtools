@@ -24,7 +24,6 @@ import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 import google.registry.model.domain.DomainApplication;
-import google.registry.tools.Command.RemoteApiCommand;
 import java.util.List;
 import org.joda.time.DateTime;
 

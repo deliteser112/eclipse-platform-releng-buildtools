@@ -23,7 +23,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
-import google.registry.tools.Command.RemoteApiCommand;
 
 /**
  * Command to delete the {@link Registry} associated with the specified TLD in Datastore.
