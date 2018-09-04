@@ -43,7 +43,7 @@ import org.joda.time.DateTime;
  * be stored in the specified manual subdirectory of the GCS RDE bucket.
  */
 @Parameters(separators = " =", commandDescription = "Generate an XML escrow deposit.")
-final class GenerateEscrowDepositCommand implements RemoteApiCommand {
+final class GenerateEscrowDepositCommand implements CommandWithRemoteApi {
 
   @Parameter(
       names = {"-t", "--tld"},

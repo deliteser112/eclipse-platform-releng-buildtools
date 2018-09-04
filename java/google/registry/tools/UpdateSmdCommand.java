@@ -38,7 +38,7 @@ import org.joda.time.DateTime;
 
 /** Command to update the SMD on a domain application. */
 @Parameters(separators = " =", commandDescription = "Update the SMD on an application.")
-final class UpdateSmdCommand implements RemoteApiCommand {
+final class UpdateSmdCommand implements CommandWithRemoteApi {
 
   @Inject DomainFlowTmchUtils tmchUtils;
   @Inject UpdateSmdCommand() {}

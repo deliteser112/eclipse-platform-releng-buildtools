@@ -23,7 +23,7 @@ import java.util.List;
 
 /** Command to show a TLD record. */
 @Parameters(separators = " =", commandDescription = "Show TLD record(s)")
-final class GetTldCommand implements RemoteApiCommand {
+final class GetTldCommand implements CommandWithRemoteApi {
 
   @Parameter(
       description = "TLD(s) to show",

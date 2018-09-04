@@ -49,7 +49,7 @@ import javax.inject.Named;
   commandDescription =
       "Generates and persists the given number of AllocationTokens, printing each token to stdout."
 )
-public class GenerateAllocationTokensCommand implements RemoteApiCommand {
+public class GenerateAllocationTokensCommand implements CommandWithRemoteApi {
 
   @Parameter(
     names = {"-p", "--prefix"},

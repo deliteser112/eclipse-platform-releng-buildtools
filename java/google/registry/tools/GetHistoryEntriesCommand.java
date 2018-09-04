@@ -33,7 +33,7 @@ import org.joda.time.DateTime;
 /** Command to show history entries. */
 @Parameters(separators = " =",
   commandDescription = "Show history entries that occurred in a given time range")
-final class GetHistoryEntriesCommand implements RemoteApiCommand {
+final class GetHistoryEntriesCommand implements CommandWithRemoteApi {
 
   @Parameter(
       names = {"-a", "--after"},

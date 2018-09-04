@@ -30,7 +30,7 @@ import org.joda.time.DateTime;
 /** Command to generate a list of all applications for a given domain name(s). */
 @Parameters(separators = " =",
     commandDescription = "Generate list of application IDs and sponsors for given domain name(s)")
-final class GetApplicationIdsCommand implements RemoteApiCommand {
+final class GetApplicationIdsCommand implements CommandWithRemoteApi {
 
   @Parameter(
       description = "Fully qualified domain name(s)",

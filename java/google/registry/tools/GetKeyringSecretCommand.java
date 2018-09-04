@@ -33,7 +33,7 @@ import org.bouncycastle.openpgp.PGPKeyPair;
   separators = " =",
   commandDescription = "Retrieves the value of a secret from the keyring."
 )
-final class GetKeyringSecretCommand implements RemoteApiCommand {
+final class GetKeyringSecretCommand implements CommandWithRemoteApi {
 
   @Inject Keyring keyring;
 

@@ -20,4 +20,4 @@
  */
 package google.registry.tools;
 
-interface RemoteApiCommand extends Command {}
+interface CommandWithRemoteApi extends Command {}

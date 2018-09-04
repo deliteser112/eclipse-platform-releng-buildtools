@@ -31,7 +31,7 @@ import org.joda.time.DateTime;
 
 /** Command to generate a LORDN CSV file for an entire TLD. */
 @Parameters(separators = " =", commandDescription = "Generate LORDN CSV file")
-final class GenerateLordnCommand implements RemoteApiCommand {
+final class GenerateLordnCommand implements CommandWithRemoteApi {
 
   @Parameter(
       names = {"-t", "--tld"},

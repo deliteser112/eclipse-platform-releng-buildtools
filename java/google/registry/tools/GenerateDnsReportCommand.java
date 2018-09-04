@@ -40,7 +40,7 @@ import org.json.simple.JSONValue;
 
 /** Command to generate a report of all DNS data. */
 @Parameters(separators = " =", commandDescription = "Generate report of all DNS data in a TLD.")
-final class GenerateDnsReportCommand implements RemoteApiCommand {
+final class GenerateDnsReportCommand implements CommandWithRemoteApi {
 
   @Parameter(
       names = {"-t", "--tld"},

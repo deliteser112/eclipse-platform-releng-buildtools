@@ -34,7 +34,7 @@ import javax.annotation.Nullable;
 
 /** A command to test registrar login credentials. */
 @Parameters(separators = " =", commandDescription = "Test registrar login credentials")
-final class ValidateLoginCredentialsCommand implements RemoteApiCommand {
+final class ValidateLoginCredentialsCommand implements CommandWithRemoteApi {
 
   @Parameter(
       names = {"-c", "--client"},

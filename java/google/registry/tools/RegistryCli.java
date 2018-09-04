@@ -185,8 +185,8 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
       ((CommandWithConnection) command).setConnection(getConnection());
     }
 
-    // RemoteApiCommands need to have the remote api installed to work.
-    if (command instanceof RemoteApiCommand) {
+    // CommandWithRemoteApis need to have the remote api installed to work.
+    if (command instanceof CommandWithRemoteApi) {
       if (installer == null) {
         installer = new RemoteApiInstaller();
         RemoteApiOptions options = new RemoteApiOptions();

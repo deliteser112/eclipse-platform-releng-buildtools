@@ -26,7 +26,7 @@ import javax.inject.Inject;
  * Command to check the status of a Datastore backup, or "snapshot".
  */
 @Parameters(separators = " =", commandDescription = "Check the status of a Datastore snapshot")
-public class CheckSnapshotCommand implements RemoteApiCommand {
+public class CheckSnapshotCommand implements CommandWithRemoteApi {
 
   @Parameter(
       names = {"-s", "--snapshot"},

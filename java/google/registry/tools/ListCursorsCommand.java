@@ -31,7 +31,7 @@ import java.util.Optional;
 
 /** Lists {@link Cursor} timestamps used by locking rolling cursor tasks, like in RDE. */
 @Parameters(separators = " =", commandDescription = "Lists cursor timestamps used by LRC tasks")
-final class ListCursorsCommand implements RemoteApiCommand {
+final class ListCursorsCommand implements CommandWithRemoteApi {
 
   @Parameter(names = "--type", description = "Which cursor to list.", required = true)
   private CursorType cursorType;

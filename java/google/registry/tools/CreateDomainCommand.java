@@ -32,7 +32,8 @@ import org.joda.time.DateTime;
 
 /** A command to create a new domain via EPP. */
 @Parameters(separators = " =", commandDescription = "Create a new domain via EPP.")
-final class CreateDomainCommand extends CreateOrUpdateDomainCommand implements RemoteApiCommand {
+final class CreateDomainCommand extends CreateOrUpdateDomainCommand
+    implements CommandWithRemoteApi {
 
   @Parameter(
       names = "--period",

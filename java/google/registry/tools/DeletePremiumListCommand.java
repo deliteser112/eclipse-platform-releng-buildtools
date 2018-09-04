@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
  * list is currently in use on a tld.
  */
 @Parameters(separators = " =", commandDescription = "Delete a PremiumList from Datastore.")
-final class DeletePremiumListCommand extends ConfirmingCommand implements RemoteApiCommand {
+final class DeletePremiumListCommand extends ConfirmingCommand implements CommandWithRemoteApi {
 
   @Nullable
   PremiumList premiumList;

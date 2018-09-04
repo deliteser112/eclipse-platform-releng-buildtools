@@ -29,7 +29,7 @@ import org.joda.time.DateTime;
 
 /** Command to update the claims notice on a domain application. */
 @Parameters(separators = " =", commandDescription = "Update the claims notice on an application.")
-final class UpdateClaimsNoticeCommand implements RemoteApiCommand {
+final class UpdateClaimsNoticeCommand implements CommandWithRemoteApi {
 
   @Parameter(
       names = "--id",

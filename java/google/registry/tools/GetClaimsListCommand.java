@@ -33,7 +33,7 @@ import java.nio.file.Paths;
  * are currently storing in Datastore.
  */
 @Parameters(separators = " =", commandDescription = "Download the current claims list")
-final class GetClaimsListCommand implements RemoteApiCommand {
+final class GetClaimsListCommand implements CommandWithRemoteApi {
 
   @Parameter(
       names = {"-o", "--output"},

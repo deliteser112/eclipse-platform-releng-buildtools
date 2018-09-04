@@ -42,7 +42,7 @@ import org.joda.time.Duration;
 
 /** Composite command to set up OT&E TLDs and accounts. */
 @Parameters(separators = " =", commandDescription = "Set up OT&E TLDs and registrars")
-final class SetupOteCommand extends ConfirmingCommand implements RemoteApiCommand {
+final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemoteApi {
 
   // Regex: 3-14 alphanumeric characters or hyphens, the first of which must be a letter.
   private static final Pattern REGISTRAR_PATTERN = Pattern.compile("^[a-z][-a-z0-9]{2,13}$");

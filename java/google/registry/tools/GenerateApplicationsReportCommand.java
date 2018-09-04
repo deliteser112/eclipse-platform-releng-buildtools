@@ -51,7 +51,7 @@ import org.joda.time.DateTime;
 
 /** Command to generate a report of all domain applications. */
 @Parameters(separators = " =", commandDescription = "Generate report of all domain applications.")
-final class GenerateApplicationsReportCommand implements RemoteApiCommand {
+final class GenerateApplicationsReportCommand implements CommandWithRemoteApi {
 
   @Parameter(
       names = {"-t", "--tld"},

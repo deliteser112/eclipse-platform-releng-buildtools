@@ -32,7 +32,7 @@ import javax.inject.Inject;
   separators = " =",
   commandDescription = "Update values of secrets in KmsKeyring."
 )
-final class UpdateKmsKeyringCommand implements RemoteApiCommand {
+final class UpdateKmsKeyringCommand implements CommandWithRemoteApi {
 
   @Inject KmsUpdater kmsUpdater;
 

@@ -23,7 +23,7 @@ import java.util.List;
 
 /** Command to show a registrar record. */
 @Parameters(separators = " =", commandDescription = "Show registrar record(s)")
-final class GetRegistrarCommand implements RemoteApiCommand {
+final class GetRegistrarCommand implements CommandWithRemoteApi {
 
   @Parameter(
       description = "Client identifier of the registrar account(s)",

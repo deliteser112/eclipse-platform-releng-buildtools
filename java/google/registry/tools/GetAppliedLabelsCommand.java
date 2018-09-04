@@ -38,7 +38,7 @@ import org.joda.time.DateTime;
 
 /** Command to generate a list of all slds in a tld that have open applications. */
 @Parameters(separators = " =", commandDescription = "Generate applied-for domains list")
-final class GetAppliedLabelsCommand implements RemoteApiCommand {
+final class GetAppliedLabelsCommand implements CommandWithRemoteApi {
 
   @Parameter(
       names = {"-t", "--tld"},

@@ -25,7 +25,7 @@ import javax.inject.Inject;
 
 /** Command to show what escrow deposits are pending generation on the server. */
 @Parameters(separators = " =", commandDescription = "List pending RDE/BRDA deposits.")
-final class PendingEscrowCommand implements RemoteApiCommand {
+final class PendingEscrowCommand implements CommandWithRemoteApi {
 
   private static final Ordering<PendingDeposit> SORTER =
       new Ordering<PendingDeposit>() {

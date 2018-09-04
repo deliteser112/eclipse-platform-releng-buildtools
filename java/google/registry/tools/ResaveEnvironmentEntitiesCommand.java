@@ -31,7 +31,7 @@ import google.registry.model.registry.Registry;
  * {@link RegistrarContact}.
  */
 @Parameters(commandDescription = "Re-save all environment entities.")
-final class ResaveEnvironmentEntitiesCommand implements RemoteApiCommand {
+final class ResaveEnvironmentEntitiesCommand implements CommandWithRemoteApi {
 
   private static final int BATCH_SIZE = 10;
 

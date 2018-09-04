@@ -66,7 +66,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 /** Command to generate the auction data for a TLD. */
 @Parameters(separators = " =", commandDescription = "Generate auction data")
-final class GenerateAuctionDataCommand implements RemoteApiCommand {
+final class GenerateAuctionDataCommand implements CommandWithRemoteApi {
 
   @Parameter(
       description = "TLD(s) to generate auction data for",

@@ -15,5 +15,5 @@
 package google.registry.tools;
 
 /** A command that executes on the server. */
-interface ServerSideCommand extends CommandWithConnection, RemoteApiCommand {
+interface ServerSideCommand extends CommandWithConnection, CommandWithRemoteApi {
 }

@@ -30,7 +30,7 @@ import java.util.List;
 
 /** A command to upload a {@link ClaimsListShard}. */
 @Parameters(separators = " =", commandDescription = "Manually upload a new claims list file")
-final class UploadClaimsListCommand extends ConfirmingCommand implements RemoteApiCommand {
+final class UploadClaimsListCommand extends ConfirmingCommand implements CommandWithRemoteApi {
 
   @Parameter(description = "Claims list filename")
   private List<String> mainParameters = new ArrayList<>();
