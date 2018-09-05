@@ -24,7 +24,8 @@ import google.registry.model.registry.Registries;
 
 /** Command to initiate a load-test. */
 @Parameters(separators = " =", commandDescription = "Run a load test.")
-class LoadTestCommand extends ConfirmingCommand implements ServerSideCommand {
+class LoadTestCommand extends ConfirmingCommand
+    implements CommandWithConnection, CommandWithRemoteApi {
 
   // This is a mostly arbitrary value, roughly an hour and a quarter.  It served as a generous
   // timespan for initial backup/restore testing, but has no other special significance.

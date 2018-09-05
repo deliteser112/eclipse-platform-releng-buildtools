@@ -32,7 +32,7 @@ import java.util.List;
  */
 @Parameters(separators = " =", commandDescription = "Create groups for a registrar.")
 public class CreateRegistrarGroupsCommand extends ConfirmingCommand
-    implements ServerSideCommand {
+    implements CommandWithConnection, CommandWithRemoteApi {
 
   @Parameter(
       description = "Client identifier(s) of the registrar(s) to create groups for",

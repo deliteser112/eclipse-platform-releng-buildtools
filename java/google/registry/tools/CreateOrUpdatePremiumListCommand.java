@@ -41,7 +41,7 @@ import org.json.simple.JSONValue;
  * lists.
  */
 abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
-    implements ServerSideCommand {
+    implements CommandWithConnection, CommandWithRemoteApi {
 
   @Nullable
   @Parameter(

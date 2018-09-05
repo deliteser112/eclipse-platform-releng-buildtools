@@ -46,7 +46,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /** A command to execute an epp command. */
-abstract class EppToolCommand extends ConfirmingCommand implements ServerSideCommand {
+abstract class EppToolCommand extends ConfirmingCommand
+    implements CommandWithConnection, CommandWithRemoteApi {
 
   @Parameter(
       names = {"-u", "--superuser"},
