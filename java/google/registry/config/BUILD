@@ -9,6 +9,7 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["files/*.yaml"]),
     deps = [
+        "//java/google/registry/keyring/api",
         "//java/google/registry/util",
         "@com_google_api_client",
         "@com_google_appengine_api_1_0_sdk",
@@ -18,6 +19,7 @@ java_library(
         "@com_google_flogger",
         "@com_google_flogger_system_backend",
         "@com_google_guava",
+        "@com_google_http_client",
         "@javax_inject",
         "@joda_time",
         "@org_joda_money",

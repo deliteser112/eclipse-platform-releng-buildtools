@@ -14,12 +14,19 @@
 
 package google.registry.config;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.util.Utils;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.keyring.api.KeyModule.Key;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
 
@@ -44,6 +51,30 @@ public abstract class CredentialModule {
     }
     if (credential.createScopedRequired()) {
       return credential.createScoped(requiredScopes);
+    }
+    return credential;
+  }
+
+  /** Provides a {@link GoogleCredential} from the service account's JSON key file. */
+  @JsonCredential
+  @Provides
+  @Singleton
+  public static GoogleCredential provideJsonCredential(
+      @Config("credentialOauthScopes") ImmutableList<String> requiredScopes,
+      @Key("jsonCredential") String jsonCredential) {
+    GoogleCredential credential;
+    try {
+      credential =
+          GoogleCredential.fromStream(
+              new ByteArrayInputStream(jsonCredential.getBytes(UTF_8)),
+              // We cannot use UrlFetchTransport as that uses App Engine API.
+              GoogleNetHttpTransport.newTrustedTransport(),
+              Utils.getDefaultJsonFactory());
+    } catch (IOException | GeneralSecurityException e) {
+      throw new RuntimeException(e);
+    }
+    if (credential.createScopedRequired()) {
+      credential = credential.createScoped(requiredScopes);
     }
     return credential;
   }
