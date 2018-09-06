@@ -18,9 +18,11 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Multimap;
 import com.google.template.soy.data.SoyMapData;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.tools.soy.DomainCheckClaimsSoyInfo;
 import java.util.Collection;
 import java.util.List;
+import javax.inject.Inject;
 
 /** A command to execute a domain check claims epp command. */
 @Parameters(separators = " =", commandDescription = "Check claims on domain(s)")
@@ -28,8 +30,8 @@ final class CheckDomainClaimsCommand extends NonMutatingEppToolCommand {
 
   @Parameter(
       names = {"-c", "--client"},
-      description = "Client identifier of the registrar to execute the command as",
-      required = true)
+      description =
+          "Client ID of the registrar to execute the command as, otherwise the registry registrar")
   String clientId;
 
   @Parameter(
@@ -37,8 +39,17 @@ final class CheckDomainClaimsCommand extends NonMutatingEppToolCommand {
       required = true)
   private List<String> mainParameters;
 
+  @Inject
+  @Config("registryAdminClientId")
+  String registryAdminClientId;
+
   @Override
   void initEppToolCommand() {
+    // Default clientId to the registry registrar account if otherwise unspecified.
+    if (clientId == null) {
+      clientId = registryAdminClientId;
+    }
+
     Multimap<String, String> domainNameMap = validateAndGroupDomainNamesByTld(mainParameters);
     for (Collection<String> values : domainNameMap.asMap().values()) {
       setSoyTemplate(

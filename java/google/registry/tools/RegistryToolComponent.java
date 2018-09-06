@@ -76,6 +76,8 @@ import javax.inject.Singleton;
       WhoisModule.class,
     })
 interface RegistryToolComponent {
+  void inject(CheckDomainClaimsCommand command);
+  void inject(CheckDomainCommand command);
   void inject(CheckSnapshotCommand command);
   void inject(CountDomainsCommand command);
   void inject(CreateAnchorTenantCommand command);

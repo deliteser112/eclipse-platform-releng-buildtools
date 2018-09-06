@@ -14,13 +14,22 @@
 
 package google.registry.tools;
 
+import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.beust.jcommander.ParameterException;
+import google.registry.model.registrar.Registrar.Type;
+import org.junit.Before;
 import org.junit.Test;
 
 /** Unit tests for {@link CheckDomainClaimsCommand}. */
 public class CheckDomainClaimsCommandTest extends EppToolCommandTestCase<CheckDomainClaimsCommand> {
+
+  @Before
+  public void before() {
+    persistNewRegistrar("adminreg", "Admin Registrar", Type.REAL, 693L);
+    command.registryAdminClientId = "adminreg";
+  }
 
   @Test
   public void testSuccess() throws Exception {
@@ -62,8 +71,9 @@ public class CheckDomainClaimsCommandTest extends EppToolCommandTestCase<CheckDo
   }
 
   @Test
-  public void testFailure_missingClientId() {
-    assertThrows(ParameterException.class, () -> runCommand("example.tld"));
+  public void testSuccess_unspecifiedClientId_defaultsToRegistryRegistrar() throws Exception {
+    runCommand("example.tld");
+    eppVerifier.expectDryRun().expectClientId("adminreg").verifySent("domain_check_claims.xml");
   }
 
   @Test
