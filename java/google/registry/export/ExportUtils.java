@@ -37,7 +37,7 @@ public final class ExportUtils {
 
   /** Returns the file contents of the auto-export reserved terms document for the given TLD. */
   public String exportReservedTerms(Registry registry) {
-    StringBuilder termsBuilder = new StringBuilder(reservedTermsExportDisclaimer);
+    StringBuilder termsBuilder = new StringBuilder(reservedTermsExportDisclaimer).append("\n");
     Set<String> reservedTerms = new TreeSet<>();
     for (Key<ReservedList> key : registry.getReservedLists()) {
       ReservedList reservedList = ReservedList.load(key).get();

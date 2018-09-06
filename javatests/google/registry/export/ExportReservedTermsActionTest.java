@@ -60,7 +60,7 @@ public class ExportReservedTermsActionTest {
     ExportReservedTermsAction action = new ExportReservedTermsAction();
     action.response = response;
     action.driveConnection = driveConnection;
-    action.exportUtils = new ExportUtils("This is a disclaimer.\n");
+    action.exportUtils = new ExportUtils("# This is a disclaimer.");
     action.tld = tld;
     action.run();
   }
@@ -85,9 +85,7 @@ public class ExportReservedTermsActionTest {
   @Test
   public void test_uploadFileToDrive_succeeds() throws Exception {
     runAction("tld");
-    byte[] expected =
-        ("This is a disclaimer.\ncat\nlol\n")
-        .getBytes(UTF_8);
+    byte[] expected = "# This is a disclaimer.\ncat\nlol\n".getBytes(UTF_8);
     verify(driveConnection)
         .createOrUpdateFile(RESERVED_TERMS_FILENAME, EXPORT_MIME_TYPE, "brouhaha", expected);
     verify(response).setStatus(SC_OK);

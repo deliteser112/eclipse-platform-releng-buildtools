@@ -6,6 +6,9 @@ registryPolicy:
     - notification@test.example
     - notification2@test.example
   defaultRegistrarWhoisServer: whois.nic.fakewhois.example
+  reservedTermsExportDisclaimer: |
+    Disclaimer line 1.
+    Line 2 is this 1.
 
 datastore:
   commitLogBucketsNum: 3

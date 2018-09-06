@@ -19,6 +19,7 @@ import static google.registry.config.ConfigUtils.makeUrl;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -33,6 +34,7 @@ import java.lang.annotation.Retention;
 import java.net.URI;
 import java.net.URL;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.inject.Qualifier;
@@ -1063,7 +1065,13 @@ public final class RegistryConfig {
     @Provides
     @Config("reservedTermsExportDisclaimer")
     public static String provideReservedTermsExportDisclaimer(RegistryConfigSettings config) {
-      return config.registryPolicy.reservedTermsExportDisclaimer;
+      return Splitter.on('\n')
+          .omitEmptyStrings()
+          .trimResults()
+          .splitToList(config.registryPolicy.reservedTermsExportDisclaimer)
+          .stream()
+          .map(s -> "# " + s)
+          .collect(Collectors.joining("\n"));
     }
 
     /** Returns the clientId of the registrar used by the {@code CheckApiServlet}. */
@@ -1390,7 +1398,8 @@ public final class RegistryConfig {
    * <p>Memoizing without cache expiration is used because the app must be re-deployed in order to
    * change the contents of the YAML config files.
    */
-  private static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
+  @VisibleForTesting
+  static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
       memoize(YamlUtils::getConfigSettings);
 
   private RegistryConfig() {}

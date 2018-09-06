@@ -15,6 +15,8 @@
 package google.registry.config;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.config.RegistryConfig.CONFIG_SETTINGS;
+import static google.registry.config.RegistryConfig.ConfigModule.provideReservedTermsExportDisclaimer;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,13 +25,16 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RegistryConfigTest {
 
-  public RegistryConfigTest() {}
-
   @Test
   public void test_clientSecretFilename() {
     // Verify that we're pulling this from the default.
     assertThat(RegistryConfig.getClientSecretFilename()).isEqualTo(
         "/google/registry/tools/resources/client_secret.json");
   }
-}
 
+  @Test
+  public void test_reservedTermsExportDisclaimer_isPrependedWithOctothorpes() {
+    assertThat(provideReservedTermsExportDisclaimer(CONFIG_SETTINGS.get()))
+        .isEqualTo("# Disclaimer line 1.\n" + "# Line 2 is this 1.");
+  }
+}
