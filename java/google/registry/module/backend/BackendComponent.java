@@ -18,6 +18,7 @@ import com.google.monitoring.metrics.MetricReporter;
 import dagger.Component;
 import dagger.Lazy;
 import google.registry.bigquery.BigqueryModule;
+import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.export.DriveModule;
 import google.registry.export.sheet.SheetsServiceModule;
@@ -55,6 +56,7 @@ import javax.inject.Singleton;
       BackendRequestComponentModule.class,
       BigqueryModule.class,
       ConfigModule.class,
+      CredentialModule.class,
       DatastoreServiceModule.class,
       DirectoryModule.class,
       google.registry.keyring.api.DummyKeyringModule.class,

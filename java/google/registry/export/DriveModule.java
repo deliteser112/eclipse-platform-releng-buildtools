@@ -14,23 +14,16 @@
 
 package google.registry.export;
 
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.DriveScopes;
 import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.CredentialModule;
+import google.registry.config.CredentialModule.DefaultCredential;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryConfig.ConfigModule;
-import google.registry.request.Modules.AppIdentityCredentialModule;
-import google.registry.request.Modules.Jackson2Module;
-import google.registry.request.Modules.UrlFetchTransportModule;
-import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.storage.drive.DriveConnection;
-import java.util.Set;
-import java.util.function.Function;
 import javax.inject.Singleton;
 
 /** Dagger module for Google {@link Drive} service connection objects. */
@@ -39,25 +32,14 @@ public final class DriveModule {
 
   @Provides
   static Drive provideDrive(
-      HttpTransport transport,
-      JsonFactory jsonFactory,
-      Function<Set<String>, ? extends HttpRequestInitializer> credential,
-      @Config("projectId") String projectId) {
-    return new Drive.Builder(transport, jsonFactory, credential.apply(DriveScopes.all()))
+      @DefaultCredential GoogleCredential credential, @Config("projectId") String projectId) {
+    return new Drive.Builder(credential.getTransport(), credential.getJsonFactory(), credential)
         .setApplicationName(projectId)
         .build();
   }
 
   @Singleton
-  @Component(
-      modules = {
-        DriveModule.class,
-        UrlFetchTransportModule.class,
-        Jackson2Module.class,
-        AppIdentityCredentialModule.class,
-        UseAppIdentityCredentialForGoogleApisModule.class,
-        ConfigModule.class
-      })
+  @Component(modules = {DriveModule.class, ConfigModule.class, CredentialModule.class})
   interface DriveComponent {
     DriveConnection driveConnection();
   }

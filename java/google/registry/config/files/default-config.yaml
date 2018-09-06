@@ -176,6 +176,21 @@ oAuth:
   # numbers-alphanumerics.apps.googleusercontent.com
   allowedOauthClientIds: []
 
+credentialOAuth:
+  # OAuth scopes required for accessing Google APIs.
+  credentialOauthScopes:
+    # View and manage data in all Google Cloud APIs.
+    - https://www.googleapis.com/auth/cloud-platform
+    # View and manage files in Google Drive.
+    - https://www.googleapis.com/auth/drive
+    # View and manage groups on your domain in Directory API.
+    - https://www.googleapis.com/auth/admin.directory.group
+    # Inherited from current code.
+    # TODO(weiminyu): verify if the scope above is sufficient by itself.
+    - https://www.googleapis.com/auth/admin.directory.group.member
+    # View and manage the settings of a Google Apps Group.
+    - https://www.googleapis.com/auth/apps.groups.settings
+
 icannReporting:
   # URL we PUT monthly ICANN transactions reports to.
   icannTransactionsReportingUploadUrl: https://ry-api.icann.org/report/registrar-transactions

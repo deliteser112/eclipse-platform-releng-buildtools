@@ -15,6 +15,7 @@
 package google.registry.export;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
+import static com.google.common.base.Verify.verifyNotNull;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.registry.Registries.getTldsOfType;
@@ -28,7 +29,9 @@ import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
@@ -45,9 +48,11 @@ import google.registry.request.auth.Auth;
 import google.registry.storage.drive.DriveConnection;
 import google.registry.util.NonFinalForTesting;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.function.Supplier;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -108,9 +113,10 @@ public class ExportDomainListsAction implements Runnable {
 
     private static final long serialVersionUID = 7035260977259119087L;
 
+    /** Allows overriding the default {@link DriveConnection} in tests. */
     @NonFinalForTesting
-    private static DriveConnection driveConnection =
-        DaggerDriveModule_DriveComponent.create().driveConnection();
+    private static Supplier<DriveConnection> driveConnectionSupplier =
+        Suppliers.memoize(() -> DaggerDriveModule_DriveComponent.create().driveConnection());
 
     static final String REGISTERED_DOMAINS_FILENAME = "registered_domains.txt";
     static final MediaType EXPORT_MIME_TYPE = MediaType.PLAIN_TEXT_UTF_8;
@@ -118,16 +124,27 @@ public class ExportDomainListsAction implements Runnable {
     private final String gcsBucket;
     private final int gcsBufferSize;
 
-    static void setDriveConnectionForTesting(DriveConnection driveConnection) {
-      ExportDomainListsReducer.driveConnection = driveConnection;
-    }
+    /**
+     * Non-serializable {@link DriveConnection} that will be created when an instance of {@link
+     * ExportDomainListsReducer} is deserialized in a MR pipeline worker.
+     *
+     * <p>See {@link #readObject(ObjectInputStream)}.
+     */
+    private transient DriveConnection driveConnection;
 
     public ExportDomainListsReducer(String gcsBucket, int gcsBufferSize) {
       this.gcsBucket = gcsBucket;
       this.gcsBufferSize = gcsBufferSize;
     }
 
+    @SuppressWarnings("unused")
+    private void readObject(ObjectInputStream is) throws IOException, ClassNotFoundException {
+      is.defaultReadObject();
+      driveConnection = driveConnectionSupplier.get();
+    }
+
     private void exportToDrive(String tld, String domains) {
+      verifyNotNull(driveConnection, "expecting non-null driveConnection");
       try {
         Registry registry = Registry.get(tld);
         if (registry.getDriveFolderId() == null) {
@@ -173,6 +190,12 @@ public class ExportDomainListsAction implements Runnable {
       logger.atInfo().log("Exporting %d domains for TLD %s to GCS and Drive.", domains.size(), tld);
       exportToGcs(tld, domainsList);
       exportToDrive(tld, domainsList);
+    }
+
+    @VisibleForTesting
+    static void setDriveConnectionForTesting(
+        Supplier<DriveConnection> testDriveConnectionSupplier) {
+      driveConnectionSupplier = testDriveConnectionSupplier;
     }
   }
 }

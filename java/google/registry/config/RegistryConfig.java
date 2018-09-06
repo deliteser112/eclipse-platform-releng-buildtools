@@ -1135,6 +1135,14 @@ public final class RegistryConfig {
       return ImmutableSet.copyOf(config.oAuth.allowedOauthClientIds);
     }
 
+    /** Provides the OAuth scopes required for accessing Google APIs. */
+    @Provides
+    @Config("credentialOauthScopes")
+    public static ImmutableList<String> provideCredentialOauthScopes(
+        RegistryConfigSettings config) {
+      return ImmutableList.copyOf(config.credentialOAuth.credentialOauthScopes);
+    }
+
     /**
      * Returns the help path for the RDAP terms of service.
      *

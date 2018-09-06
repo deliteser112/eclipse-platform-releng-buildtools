@@ -64,7 +64,7 @@ public class ExportDomainListsActionTest extends MapreduceTestCase<ExportDomainL
     persistResource(Registry.get("tld").asBuilder().setDriveFolderId("brouhaha").build());
     persistResource(Registry.get("testtld").asBuilder().setTldType(TldType.TEST).build());
 
-    ExportDomainListsReducer.setDriveConnectionForTesting(driveConnection);
+    ExportDomainListsReducer.setDriveConnectionForTesting(() -> driveConnection);
 
     action = new ExportDomainListsAction();
     action.mrRunner = makeDefaultRunner();

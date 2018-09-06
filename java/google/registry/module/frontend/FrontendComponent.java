@@ -17,6 +17,7 @@ package google.registry.module.frontend;
 import com.google.monitoring.metrics.MetricReporter;
 import dagger.Component;
 import dagger.Lazy;
+import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.flows.ServerTridProviderModule;
 import google.registry.flows.custom.CustomLogicFactoryModule;
@@ -47,6 +48,7 @@ import javax.inject.Singleton;
       AuthModule.class,
       ConfigModule.class,
       ConsoleConfigModule.class,
+      CredentialModule.class,
       CustomLogicFactoryModule.class,
       google.registry.keyring.api.DummyKeyringModule.class,
       FrontendRequestComponentModule.class,

@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import dagger.Component;
+import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
@@ -51,6 +52,7 @@ import javax.inject.Singleton;
       AppIdentityCredentialModule.class,
       AuthModule.class,
       ConfigModule.class,
+      CredentialModule.class,
       DatastoreServiceModule.class,
       google.registry.keyring.api.DummyKeyringModule.class,
       CloudDnsWriterModule.class,

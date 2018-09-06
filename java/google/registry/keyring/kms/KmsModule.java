@@ -14,17 +14,13 @@
 
 package google.registry.keyring.kms;
 
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.cloudkms.v1.CloudKMS;
-import com.google.api.services.cloudkms.v1.CloudKMSScopes;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.CredentialModule.DefaultCredential;
 import google.registry.config.RegistryConfig.Config;
-import java.util.Set;
-import java.util.function.Function;
 
 /** Dagger module for Cloud KMS connection objects. */
 @Module
@@ -32,11 +28,9 @@ public abstract class KmsModule {
 
   @Provides
   static CloudKMS provideKms(
-      HttpTransport transport,
-      JsonFactory jsonFactory,
-      Function<Set<String>, ? extends HttpRequestInitializer> credential,
+      @DefaultCredential GoogleCredential credential,
       @Config("cloudKmsProjectId") String projectId) {
-    return new CloudKMS.Builder(transport, jsonFactory, credential.apply(CloudKMSScopes.all()))
+    return new CloudKMS.Builder(credential.getTransport(), credential.getJsonFactory(), credential)
         .setApplicationName(projectId)
         .build();
   }

@@ -15,6 +15,7 @@
 package google.registry.module.tools;
 
 import dagger.Component;
+import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.export.DriveModule;
 import google.registry.flows.ServerTridProviderModule;
@@ -48,6 +49,7 @@ import javax.inject.Singleton;
       AppIdentityCredentialModule.class,
       AuthModule.class,
       ConfigModule.class,
+      CredentialModule.class,
       CustomLogicFactoryModule.class,
       DatastoreServiceModule.class,
       DirectoryModule.class,
