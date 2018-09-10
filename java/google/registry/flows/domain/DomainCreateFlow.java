@@ -23,6 +23,7 @@ import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReference
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.isAnchorTenant;
+import static google.registry.flows.domain.DomainFlowUtils.isValidReservedCreate;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
@@ -276,7 +277,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       if (launchCreate.isPresent()) {
         verifyLaunchPhaseMatchesRegistryPhase(registry, launchCreate.get(), now);
       }
-      if (!isAnchorTenant) {
+      if (!isAnchorTenant && !isValidReservedCreate(domainName, allocationToken)) {
         verifyNotReserved(domainName, isSunriseCreate);
       }
       if (hasClaimsNotice) {

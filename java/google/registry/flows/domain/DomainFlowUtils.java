@@ -247,9 +247,7 @@ public class DomainFlowUtils {
     return idnTableName.get();
   }
 
-  /**
-   * Returns whether the information for a given domain create request is for a valid anchor tenant.
-   */
+  /** Returns whether a given domain create request is for a valid anchor tenant. */
   public static boolean isAnchorTenant(
       InternetDomainName domainName,
       Optional<AllocationToken> token,
@@ -276,6 +274,17 @@ public class DomainFlowUtils {
     // Otherwise check whether the metadata extension is being used by a superuser to specify that
     // it's an anchor tenant creation.
     return metadataExtension.isPresent() && metadataExtension.get().getIsAnchorTenant();
+  }
+
+  /** Returns whether a given domain create request is for a valid reserved domain. */
+  public static boolean isValidReservedCreate(
+      InternetDomainName domainName, Optional<AllocationToken> token) {
+    // If the domain is reserved for specific use, then check if the allocation token exists and
+    // is for this domain.
+    return getReservationTypes(domainName).contains(RESERVED_FOR_SPECIFIC_USE)
+        && token.isPresent()
+        && token.get().getDomainName().isPresent()
+        && token.get().getDomainName().get().equals(domainName.toString());
   }
 
   /** Check if the registrar running the flow has access to the TLD in question. */

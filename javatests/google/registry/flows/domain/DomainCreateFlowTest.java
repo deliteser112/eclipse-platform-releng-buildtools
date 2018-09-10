@@ -189,7 +189,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     "resdom,RESERVED_FOR_SPECIFIC_USE",
                     "anchor,RESERVED_FOR_ANCHOR_TENANT",
                     "test-and-validate,NAME_COLLISION",
-                    "badcrash,NAME_COLLISION"))
+                    "badcrash,NAME_COLLISION"),
+                persistReservedList("global-list", "resdom,FULLY_BLOCKED"))
             .build());
     persistClaimsList(ImmutableMap.of("example-one", CLAIMS_KEY));
   }
@@ -1029,6 +1030,25 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertDnsTasksEnqueued("example-one.tld");
     assertClaimsLordn();
+  }
+
+  @Test
+  public void testSuccess_reservedDomain_viaAllocationTokenExtension() throws Exception {
+    AllocationToken token =
+        persistResource(
+            new AllocationToken.Builder().setToken("abc123").setDomainName("resdom.tld").build());
+    // Despite the domain being FULLY_BLOCKED, the non-superuser create succeeds the domain is also
+    // RESERVED_FOR_SPECIFIC_USE and the correct allocation token is passed.
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "resdom.tld"));
+    persistContactsAndHosts();
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "resdom.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of());
+    assertNoLordn();
+    AllocationToken reloadedToken = ofy().load().entity(token).now();
+    assertThat(reloadedToken.isRedeemed()).isTrue();
+    assertThat(reloadedToken.getRedemptionHistoryEntry())
+        .isEqualTo(Key.create(getHistoryEntries(reloadResourceByForeignKey()).get(0)));
   }
 
   @Test
