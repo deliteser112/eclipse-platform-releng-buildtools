@@ -16,12 +16,10 @@ package google.registry.groups;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.admin.directory.Directory;
-import com.google.api.services.admin.directory.DirectoryScopes;
-import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.CredentialModule.DelegatedCredential;
 import google.registry.config.RegistryConfig.Config;
-import javax.inject.Named;
 
 /** Dagger module for the Google {@link Directory} service. */
 @Module
@@ -29,15 +27,8 @@ public final class DirectoryModule {
 
   @Provides
   static Directory provideDirectory(
-      @Named("delegatedAdmin") GoogleCredential credential,
-      @Config("projectId") String projectId) {
-    return new Directory.Builder(
-            credential.getTransport(),
-            credential.getJsonFactory(),
-            credential.createScoped(
-                ImmutableSet.of(
-                    DirectoryScopes.ADMIN_DIRECTORY_GROUP_MEMBER,
-                    DirectoryScopes.ADMIN_DIRECTORY_GROUP)))
+      @DelegatedCredential GoogleCredential credential, @Config("projectId") String projectId) {
+    return new Directory.Builder(credential.getTransport(), credential.getJsonFactory(), credential)
         .setApplicationName(projectId)
         .build();
   }

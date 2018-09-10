@@ -16,12 +16,10 @@ package google.registry.groups;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.groupssettings.Groupssettings;
-import com.google.api.services.groupssettings.GroupssettingsScopes;
-import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.CredentialModule.DelegatedCredential;
 import google.registry.config.RegistryConfig.Config;
-import javax.inject.Named;
 
 /** Dagger module for the Google {@link Groupssettings} service. */
 @Module
@@ -29,12 +27,9 @@ public final class GroupssettingsModule {
 
   @Provides
   static Groupssettings provideDirectory(
-      @Named("delegatedAdmin") GoogleCredential credential,
-      @Config("projectId") String projectId) {
+      @DelegatedCredential GoogleCredential credential, @Config("projectId") String projectId) {
     return new Groupssettings.Builder(
-            credential.getTransport(),
-            credential.getJsonFactory(),
-            credential.createScoped(ImmutableSet.of(GroupssettingsScopes.APPS_GROUPS_SETTINGS)))
+            credential.getTransport(), credential.getJsonFactory(), credential)
         .setApplicationName(projectId)
         .build();
   }

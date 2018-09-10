@@ -79,6 +79,29 @@ public abstract class CredentialModule {
     return credential;
   }
 
+  /**
+   * Provides a {@link GoogleCredential} with delegated admin access for a G Suite domain.
+   *
+   * <p>The G Suite domain must grant delegated admin access to the registry service account with
+   * all scopes in {@code requiredScopes}, including ones not related to G Suite.
+   */
+  @DelegatedCredential
+  @Provides
+  @Singleton
+  public static GoogleCredential provideDelegatedCredential(
+      @Config("credentialOauthScopes") ImmutableList<String> requiredScopes,
+      @JsonCredential GoogleCredential googleCredential,
+      @Config("gSuiteAdminAccountEmailAddress") String gSuiteAdminAccountEmailAddress) {
+    return new GoogleCredential.Builder()
+        .setTransport(Utils.getDefaultTransport())
+        .setJsonFactory(Utils.getDefaultJsonFactory())
+        .setServiceAccountId(googleCredential.getServiceAccountId())
+        .setServiceAccountPrivateKey(googleCredential.getServiceAccountPrivateKey())
+        .setServiceAccountScopes(requiredScopes)
+        .setServiceAccountUser(gSuiteAdminAccountEmailAddress)
+        .build();
+  }
+
   /** Dagger qualifier for the Application Default Credential. */
   @Qualifier
   public @interface DefaultCredential {}
