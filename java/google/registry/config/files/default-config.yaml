@@ -66,7 +66,7 @@ registryPolicy:
   tmchCrlUrl: http://crl.icann.org/tmch_pilot.crl
 
   # URL for the MarksDB registry interface.
-  tmchMarksDbUrl: https://test.ry.marksdb.org
+  tmchMarksDbUrl: https://test-ry.marksdb.org
 
   # Registry’s operations registrar, used for front-end availability/premium
   # domain checks.
