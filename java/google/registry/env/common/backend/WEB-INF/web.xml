@@ -280,6 +280,12 @@
     <url-pattern>/_dr/task/syncRegistrarsSheet</url-pattern>
   </servlet-mapping>
 
+  <!-- Exports TLD premium terms. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/exportPremiumTerms</url-pattern>
+  </servlet-mapping>
+
   <!-- Exports TLD reserved terms. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>

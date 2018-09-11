@@ -1057,6 +1057,13 @@ public final class RegistryConfig {
       return config.registryPolicy.allocationTokenCustomLogicClass;
     }
 
+    /** Returns the disclaimer text for the exported premium terms. */
+    @Provides
+    @Config("premiumTermsExportDisclaimer")
+    public static String providePremiumTermsExportDisclaimer(RegistryConfigSettings config) {
+      return formatComments(config.registryPolicy.reservedTermsExportDisclaimer);
+    }
+
     /**
      * Returns the header text at the top of the reserved terms exported list.
      *
@@ -1065,13 +1072,7 @@ public final class RegistryConfig {
     @Provides
     @Config("reservedTermsExportDisclaimer")
     public static String provideReservedTermsExportDisclaimer(RegistryConfigSettings config) {
-      return Splitter.on('\n')
-          .omitEmptyStrings()
-          .trimResults()
-          .splitToList(config.registryPolicy.reservedTermsExportDisclaimer)
-          .stream()
-          .map(s -> "# " + s)
-          .collect(Collectors.joining("\n"));
+      return formatComments(config.registryPolicy.reservedTermsExportDisclaimer);
     }
 
     /** Returns the clientId of the registrar used by the {@code CheckApiServlet}. */
@@ -1411,6 +1412,12 @@ public final class RegistryConfig {
   @VisibleForTesting
   static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
       memoize(YamlUtils::getConfigSettings);
+
+  private static String formatComments(String text) {
+    return Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text).stream()
+        .map(s -> "# " + s)
+        .collect(Collectors.joining("\n"));
+  }
 
   private RegistryConfig() {}
 }

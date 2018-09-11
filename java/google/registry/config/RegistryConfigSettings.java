@@ -87,6 +87,7 @@ public class RegistryConfigSettings {
     public String tmchMarksDbUrl;
     public String checkApiServletClientId;
     public String registryAdminClientId;
+    public String premiumTermsExportDisclaimer;
     public String reservedTermsExportDisclaimer;
     public String whoisDisclaimer;
   }

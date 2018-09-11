@@ -44,6 +44,7 @@ import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
 import google.registry.export.BigqueryPollJobAction;
 import google.registry.export.CheckSnapshotAction;
 import google.registry.export.ExportDomainListsAction;
+import google.registry.export.ExportPremiumTermsAction;
 import google.registry.export.ExportRequestModule;
 import google.registry.export.ExportReservedTermsAction;
 import google.registry.export.ExportSnapshotAction;
@@ -129,6 +130,7 @@ interface BackendRequestComponent {
   ExpandRecurringBillingEventsAction expandRecurringBillingEventsAction();
   ExportCommitLogDiffAction exportCommitLogDiffAction();
   ExportDomainListsAction exportDomainListsAction();
+  ExportPremiumTermsAction exportPremiumTermsAction();
   ExportReservedTermsAction exportReservedTermsAction();
   ExportSnapshotAction exportSnapshotAction();
   GenerateInvoicesAction generateInvoicesAction();

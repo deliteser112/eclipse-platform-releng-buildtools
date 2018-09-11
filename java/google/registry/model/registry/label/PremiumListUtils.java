@@ -213,6 +213,15 @@ public final class PremiumListUtils {
     ofy().transactNew(() -> ofy().delete().key(premiumList.getRevisionKey()));
   }
 
+  /**
+   * Returns all {@link PremiumListEntry PremiumListEntries} in the given {@code premiumList}.
+   *
+   * <p>This is an expensive operation and should only be used when the entire list is required.
+   */
+  public static Iterable<PremiumListEntry> loadPremiumListEntries(PremiumList premiumList) {
+    return ofy().load().type(PremiumListEntry.class).ancestor(premiumList.revisionKey).iterable();
+  }
+
   /** Returns whether a PremiumList of the given name exists, bypassing the cache. */
   public static boolean doesPremiumListExist(String name) {
     return ofy().load().key(Key.create(getCrossTldKey(), PremiumList.class, name)).now() != null;

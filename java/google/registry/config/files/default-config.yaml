@@ -77,6 +77,12 @@ registryPolicy:
   # registrar
   registryAdminClientId: TheRegistrar
 
+  # Disclaimer at the top of the exported premium terms list.
+  premiumTermsExportDisclaimer: |
+    This list contains domains for the TLD offered at a premium price. This
+    list is subject to change. The most up-to-date source is always the
+    registry itself, by sending domain check EPP commands.
+
   # Disclaimer at the top of the exported reserved terms list.
   reservedTermsExportDisclaimer: |
     This list contains reserved terms for the TLD. Other terms may be reserved
