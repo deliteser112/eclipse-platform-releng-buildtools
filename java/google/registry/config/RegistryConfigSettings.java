@@ -58,7 +58,8 @@ public class RegistryConfigSettings {
 
   /** Configuration options for accessing Google APIs. */
   public static class CredentialOAuth {
-    public List<String> credentialOauthScopes;
+    public List<String> defaultCredentialOauthScopes;
+    public List<String> delegatedCredentialOauthScopes;
   }
 
   /** Configuration options for the G Suite account used by Nomulus. */

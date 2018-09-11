@@ -177,16 +177,26 @@ oAuth:
   allowedOauthClientIds: []
 
 credentialOAuth:
-  # OAuth scopes required for accessing Google APIs.
-  credentialOauthScopes:
+  # OAuth scopes required for accessing Google APIs using the default
+  # credential.
+  defaultCredentialOauthScopes:
     # View and manage data in all Google Cloud APIs.
     - https://www.googleapis.com/auth/cloud-platform
     # View and manage files in Google Drive.
     - https://www.googleapis.com/auth/drive
+  # OAuth scopes required for delegated admin access to G Suite domain.
+  # Deployment of changes to this list must be coordinated with G Suite admin
+  # configuration, which can be managed in the admin console:
+  # - New scopes must be added to the G Suite domain configuration before the
+  #   release is deployed.
+  # - Removed scopes must remain on G Suite domain configuration until the
+  #   release is deployed.
+  delegatedCredentialOauthScopes:
     # View and manage groups on your domain in Directory API.
     - https://www.googleapis.com/auth/admin.directory.group
     # View and manage group settings in Group Settings API.
     - https://www.googleapis.com/auth/apps.groups.settings
+
 
 icannReporting:
   # URL we PUT monthly ICANN transactions reports to.

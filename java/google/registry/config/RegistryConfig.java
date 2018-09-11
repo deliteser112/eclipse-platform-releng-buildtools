@@ -1143,12 +1143,22 @@ public final class RegistryConfig {
       return ImmutableSet.copyOf(config.oAuth.allowedOauthClientIds);
     }
 
-    /** Provides the OAuth scopes required for accessing Google APIs. */
+    /**
+     * Provides the OAuth scopes required for accessing Google APIs using the default credential.
+     */
     @Provides
-    @Config("credentialOauthScopes")
-    public static ImmutableList<String> provideCredentialOauthScopes(
+    @Config("defaultCredentialOauthScopes")
+    public static ImmutableList<String> provideServiceAccountCredentialOauthScopes(
         RegistryConfigSettings config) {
-      return ImmutableList.copyOf(config.credentialOAuth.credentialOauthScopes);
+      return ImmutableList.copyOf(config.credentialOAuth.defaultCredentialOauthScopes);
+    }
+
+    /** Provides the OAuth scopes required for delegated admin access to G Suite domain. */
+    @Provides
+    @Config("delegatedCredentialOauthScopes")
+    public static ImmutableList<String> provideDelegatedCredentialOauthScopes(
+        RegistryConfigSettings config) {
+      return ImmutableList.copyOf(config.credentialOAuth.delegatedCredentialOauthScopes);
     }
 
     /**

@@ -42,7 +42,7 @@ public abstract class CredentialModule {
   @Provides
   @Singleton
   public static GoogleCredential provideDefaultCredential(
-      @Config("credentialOauthScopes") ImmutableList<String> requiredScopes) {
+      @Config("defaultCredentialOauthScopes") ImmutableList<String> requiredScopes) {
     GoogleCredential credential;
     try {
       credential = GoogleCredential.getApplicationDefault();
@@ -60,7 +60,7 @@ public abstract class CredentialModule {
   @Provides
   @Singleton
   public static GoogleCredential provideJsonCredential(
-      @Config("credentialOauthScopes") ImmutableList<String> requiredScopes,
+      @Config("defaultCredentialOauthScopes") ImmutableList<String> requiredScopes,
       @Key("jsonCredential") String jsonCredential) {
     GoogleCredential credential;
     try {
@@ -89,7 +89,7 @@ public abstract class CredentialModule {
   @Provides
   @Singleton
   public static GoogleCredential provideDelegatedCredential(
-      @Config("credentialOauthScopes") ImmutableList<String> requiredScopes,
+      @Config("delegatedCredentialOauthScopes") ImmutableList<String> requiredScopes,
       @JsonCredential GoogleCredential googleCredential,
       @Config("gSuiteAdminAccountEmailAddress") String gSuiteAdminAccountEmailAddress) {
     return new GoogleCredential.Builder()
