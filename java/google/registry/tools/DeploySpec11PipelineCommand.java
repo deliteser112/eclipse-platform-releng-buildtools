@@ -19,7 +19,7 @@ import google.registry.beam.spec11.Spec11Pipeline;
 import javax.inject.Inject;
 
 /** Nomulus command that deploys the {@link Spec11Pipeline} template. */
-@Parameters(commandDescription = "Deploy the invoicing pipeline to GCS.")
+@Parameters(commandDescription = "Deploy the Spec11 pipeline to GCS.")
 public class DeploySpec11PipelineCommand implements Command {
 
   @Inject Spec11Pipeline spec11Pipeline;
