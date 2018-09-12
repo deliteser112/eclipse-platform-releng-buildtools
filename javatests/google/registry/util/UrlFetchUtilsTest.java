@@ -79,13 +79,13 @@ public class UrlFetchUtilsTest {
             "multipart/form-data; "
                 + "boundary=\"------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"");
     assertThat(addedHeaders.get(1).getName()).isEqualTo(CONTENT_LENGTH);
-    assertThat(addedHeaders.get(1).getValue()).isEqualTo("292");
+    assertThat(addedHeaders.get(1).getValue()).isEqualTo("294");
     String payload = "--------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\r\n"
         + "Content-Disposition: form-data; name=\"lol\"; filename=\"cat\"\r\n"
         + "Content-Type: text/csv; charset=utf-8\r\n"
         + "\r\n"
         + "The nice people at the store say hello. ヘ(◕。◕ヘ)\r\n"
-        + "--------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA--";
+        + "--------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA--\r\n";
     verify(request).setPayload(payload.getBytes(UTF_8));
     verifyNoMoreInteractions(request);
   }

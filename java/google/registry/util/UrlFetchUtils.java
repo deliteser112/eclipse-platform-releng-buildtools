@@ -79,7 +79,7 @@ public final class UrlFetchUtils {
     multipart.append("\r\n");
     multipart.append(data);
     multipart.append("\r\n");
-    multipart.append(format("--%s--", boundary));
+    multipart.append(format("--%s--\r\n", boundary));
     byte[] payload = multipart.toString().getBytes(UTF_8);
     request.addHeader(
         new HTTPHeader(CONTENT_TYPE, format("multipart/form-data; boundary=\"%s\"", boundary)));
