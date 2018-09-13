@@ -15,9 +15,7 @@
 package google.registry.proxy;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Suppliers.memoizeWithExpiration;
 import static google.registry.proxy.ProxyConfig.getProxyConfig;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -229,17 +227,19 @@ public class ProxyModule {
   @Named("accessToken")
   static Supplier<String> provideAccessTokenSupplier(
       GoogleCredential credential, ProxyConfig config) {
-    return memoizeWithExpiration(
-        () -> {
-          try {
-            credential.refreshToken();
-          } catch (IOException e) {
-            throw new RuntimeException("Cannot refresh access token.", e);
-          }
-          return credential.getAccessToken();
-        },
-        config.accessTokenValidPeriodSeconds,
-        SECONDS);
+    return () -> {
+      // If we never obtained an access token, the expiration time is null.
+      if (credential.getExpiresInSeconds() == null
+          // If we have an access token, make sure to refresh it ahead of time.
+          || credential.getExpiresInSeconds() < config.accessTokenRefreshBeforeExpirationSeconds) {
+        try {
+          credential.refreshToken();
+        } catch (IOException e) {
+          throw new RuntimeException("Cannot refresh access token.", e);
+        }
+      }
+      return credential.getAccessToken();
+    };
   }
 
   @Singleton

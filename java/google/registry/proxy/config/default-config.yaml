@@ -20,7 +20,7 @@ gcpScopes:
   # to authenticate.
   - https://www.googleapis.com/auth/userinfo.email
 
-# Access token is cached for 15 minutes.
+# Refresh the access token 5 minutes before it expires.
 #
 # Depending on how the credential is obtained, its renewal behavior is
 # different. A credential backed by a private key (like the ADC obtained
@@ -30,12 +30,14 @@ gcpScopes:
 # this, I got this number by logging in a GCE VM, calling curl on the metatdata
 # server every minute, and check the expiration time of the response). Calling
 # refreshToken() does *not* get a new token. The token is only refreshed by
-# metadata server itself (every 3599 - 1699 = 1900 seconds). We cache the token
-# for 900 seconds, which should be good for both cases. The private key
-# generated token is in theory valid for 1h, and the token obtained from the
-# metadata token is at least valid for 1699 seconds, so we can know for sure
-# that during the period that it is cached, the token will not expire.
-accessTokenValidPeriodSeconds: 900
+# metadata server itself (every 3599 - 1699 = 1900 seconds).
+#
+# We refresh the token 5 minutes before it expires, which should work in both
+# cases. This is better than caching the token for a pre-defined period, because
+# even right after #refreshToken() is called on the client side, tokens obtained
+# from GCE metadata server may not be valid for the entirety of 3599 seconds.
+
+accessTokenRefreshBeforeExpirationSeconds: 300
 
 # Server certificate is cached for 30 minutes.
 #
