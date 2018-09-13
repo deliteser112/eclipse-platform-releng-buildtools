@@ -170,6 +170,15 @@
   </cron>
 
   <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/exportPremiumTerms&forEachRealTld]]></url>
+    <description>
+      Exports premium price lists to the Google Drive folders for each TLD once per day.
+    </description>
+    <schedule>every day 05:00</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
     <url><![CDATA[/_dr/cron/readDnsQueue?jitterSeconds=45]]></url>
     <description>
       Lease all tasks from the dns-pull queue, group by TLD, and invoke PublishDnsUpdates for each
