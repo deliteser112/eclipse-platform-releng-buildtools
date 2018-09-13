@@ -26,10 +26,19 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.monitoring.metrics.IncrementableMetric;
+import com.google.monitoring.metrics.LabelDescriptor;
+import com.google.monitoring.metrics.Metric;
+import com.google.monitoring.metrics.MetricPoint;
+import com.google.monitoring.metrics.MetricRegistryImpl;
+import com.google.monitoring.metrics.MetricWriter;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.tools.params.ParameterFactory;
+import java.io.IOException;
 import java.security.Security;
 import java.util.Map;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -38,6 +47,11 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 @Parameters(separators = " =", commandDescription = "Command-line interface to the registry")
 final class RegistryCli implements AutoCloseable, CommandRunner {
 
+  // The environment parameter is parsed twice: once here, and once with {@link
+  // RegistryToolEnvironment#parseFromArgs} in the {@link RegistryTool#main} or {@link
+  // GtechTool#main} functions.
+  //
+  // The flag names must be in sync between the two, and also - this is ugly and we should feel bad.
   @Parameter(
       names = {"-e", "--environment"},
       description = "Sets the default environment to run the command.")
@@ -47,6 +61,9 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
       names = {"-c", "--commands"},
       description = "Returns all command names.")
   private boolean showAllCommands;
+
+  @VisibleForTesting
+  boolean uploadMetrics = true;
 
   // Do not make this final - compile-time constant inlining may interfere with JCommander.
   @ParametersDelegate
@@ -67,6 +84,24 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
   // The "shell" command should only exist on first use - so that we can't run "shell" inside
   // "shell".
   private boolean isFirstUse = true;
+
+  private static final ImmutableSet<LabelDescriptor> LABEL_DESCRIPTORS_FOR_COMMANDS =
+      ImmutableSet.of(
+          LabelDescriptor.create("program", "The program used - e.g. nomulus or gtech_tool"),
+          LabelDescriptor.create("environment", "The environment used - e.g. sandbox"),
+          LabelDescriptor.create("command", "The command used"),
+          LabelDescriptor.create("success", "Whether the command succeeded"),
+          LabelDescriptor.create("shell", "Whether the command was called from the nomulus shell"));
+
+  private static final IncrementableMetric commandsCalledCount =
+      MetricRegistryImpl.getDefault()
+          .newIncrementableMetric(
+              "/tools/commands_called",
+              "Count of tool commands called",
+              "count",
+              LABEL_DESCRIPTORS_FOR_COMMANDS);
+
+  private MetricWriter metricWriter = null;
 
   Map<String, ? extends Class<? extends Command>> commands;
   String programName;
@@ -89,9 +124,13 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
   //   http://www.angelikalanger.com/GenericsFAQ/FAQSections/TypeArguments.html#FAQ104
   @Override
   public void run(String[] args) throws Exception {
+    boolean inShell = !isFirstUse;
+    isFirstUse = false;
 
     // Create the JCommander instance.
-    JCommander jcommander = new JCommander(this);
+    // If we're in the shell, we don't want to update the RegistryCli's parameters (so we give a
+    // dummy object to update)
+    JCommander jcommander = new JCommander(inShell ? new Object() : this);
     jcommander.addConverterFactory(new ParameterFactory());
     jcommander.setProgramName(programName);
 
@@ -110,8 +149,8 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     // Create the "help" and "shell" commands (these are special in that they don't have a default
     // constructor).
     jcommander.addCommand("help", new HelpCommand(jcommander));
-    if (isFirstUse) {
-      isFirstUse = false;
+    if (!inShell) {
+      // If we aren't inside a shell, then we want to add the shell command.
       ShellCommand shellCommand = new ShellCommand(this);
       // We have to build the completions based on the jcommander *before* we add the "shell"
       // command - to avoid completion for the "shell" command itself.
@@ -153,17 +192,31 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
                 jcommander.getCommands().get(jcommander.getParsedCommand()).getObjects());
     loggingParams.configureLogging();  // Must be called after parameters are parsed.
 
+    boolean success = false;
     try {
       runCommand(command);
+      success = true;
     } catch (AuthModule.LoginRequiredException ex) {
       System.err.println("===================================================================");
       System.err.println("You must login using 'nomulus login' prior to running this command.");
       System.err.println("===================================================================");
+    } finally {
+      commandsCalledCount.increment(
+          programName,
+          environment.toString(),
+          command.getClass().getSimpleName(),
+          String.valueOf(success),
+          String.valueOf(inShell));
+      exportMetrics();
     }
   }
 
   @Override
   public void close() {
+    exportMetrics();
+    if (metricWriter != null) {
+      metricWriter = null;
+    }
     if (installer != null) {
       installer.uninstall();
       installer = null;
@@ -180,6 +233,9 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
 
   private void runCommand(Command command) throws Exception {
     injectReflectively(RegistryToolComponent.class, component, command);
+    if (metricWriter == null && uploadMetrics) {
+      metricWriter = component.metricWriter();
+    }
 
     if (command instanceof CommandWithConnection) {
       ((CommandWithConnection) command).setConnection(getConnection());
@@ -211,6 +267,25 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     command.run();
   }
 
+  private void exportMetrics() {
+    if (metricWriter == null) {
+      return;
+    }
+    try {
+      for (Metric<?> metric : MetricRegistryImpl.getDefault().getRegisteredMetrics()) {
+        for (MetricPoint<?> point : metric.getTimestampedValues()) {
+          metricWriter.write(point);
+        }
+      }
+      metricWriter.flush();
+    } catch (IOException e) {
+      System.err.format("Failed to export metrics. Got error:\n%s\n\n", e);
+      System.err.println("Maybe you need to login? Try calling:");
+      System.err.println("  gcloud auth application-default login");
+    }
+  }
+
+  @VisibleForTesting
   void setEnvironment(RegistryToolEnvironment environment) {
     this.environment = environment;
   }

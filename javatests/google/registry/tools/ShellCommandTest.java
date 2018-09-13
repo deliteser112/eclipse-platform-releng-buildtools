@@ -152,6 +152,7 @@ public class ShellCommandTest {
   public void testMultipleCommandInvocations() throws Exception {
     try (RegistryCli cli =
         new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class))) {
+      cli.uploadMetrics = false;
       RegistryToolEnvironment.UNITTEST.setup();
       cli.setEnvironment(RegistryToolEnvironment.UNITTEST);
       cli.run(new String[] {"test_command", "-x", "xval", "arg1", "arg2"});
@@ -169,7 +170,7 @@ public class ShellCommandTest {
   public void testNonExistentCommand() {
     try (RegistryCli cli =
         new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class))) {
-
+      cli.uploadMetrics = false;
       cli.setEnvironment(RegistryToolEnvironment.UNITTEST);
       assertThrows(MissingCommandException.class, () -> cli.run(new String[] {"bad_command"}));
     }
