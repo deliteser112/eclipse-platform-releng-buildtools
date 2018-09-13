@@ -17,20 +17,16 @@ package google.registry.reporting;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
-import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.dataflow.Dataflow;
-import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.CredentialModule.DefaultCredential;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.YearMonth;
 import org.joda.time.format.DateTimeFormat;
@@ -39,9 +35,6 @@ import org.joda.time.format.DateTimeFormatter;
 /** Dagger module for injecting common settings for all reporting tasks. */
 @Module
 public class ReportingModule {
-
-  private static final String CLOUD_PLATFORM_SCOPE =
-      "https://www.googleapis.com/auth/cloud-platform";
 
   public static final String BEAM_QUEUE = "beam-reporting";
   /**
@@ -88,15 +81,9 @@ public class ReportingModule {
   /** Constructs a {@link Dataflow} API client with default settings. */
   @Provides
   static Dataflow provideDataflow(
-      @Config("projectId") String projectId,
-      HttpTransport transport,
-      JsonFactory jsonFactory,
-      Function<Set<String>, AppIdentityCredential> appIdentityCredentialFunc) {
+      @DefaultCredential GoogleCredential credential, @Config("projectId") String projectId) {
 
-    return new Dataflow.Builder(
-        transport,
-        jsonFactory,
-        appIdentityCredentialFunc.apply(ImmutableSet.of(CLOUD_PLATFORM_SCOPE)))
+    return new Dataflow.Builder(credential.getTransport(), credential.getJsonFactory(), credential)
         .setApplicationName(String.format("%s billing", projectId))
         .build();
   }

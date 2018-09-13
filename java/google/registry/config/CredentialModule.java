@@ -55,7 +55,12 @@ public abstract class CredentialModule {
     return credential;
   }
 
-  /** Provides a {@link GoogleCredential} from the service account's JSON key file. */
+  /**
+   * Provides a {@link GoogleCredential} from the service account's JSON key file.
+   *
+   * <p>On App Engine, a thread created using Java's built-in API needs this credential when it
+   * calls App Engine API. The Google Sheets API also needs this credential.
+   */
   @JsonCredential
   @Provides
   @Singleton

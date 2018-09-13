@@ -188,7 +188,7 @@ credentialOAuth:
   defaultCredentialOauthScopes:
     # View and manage data in all Google Cloud APIs.
     - https://www.googleapis.com/auth/cloud-platform
-    # View and manage files in Google Drive.
+    # View and manage files in Google Drive, e.g., Docs and Sheets.
     - https://www.googleapis.com/auth/drive
   # OAuth scopes required for delegated admin access to G Suite domain.
   # Deployment of changes to this list must be coordinated with G Suite admin

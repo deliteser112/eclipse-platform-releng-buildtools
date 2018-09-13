@@ -11,6 +11,7 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/request",
         "//java/google/registry/util",
+        "@com_google_api_client",
         "@com_google_api_client_appengine",
         "@com_google_apis_google_api_services_dataflow",
         "@com_google_appengine_api_1_0_sdk",

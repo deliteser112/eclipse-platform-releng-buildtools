@@ -14,11 +14,8 @@
 
 package google.registry.dns.writer.clouddns;
 
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.dns.Dns;
-import com.google.api.services.dns.DnsScopes;
 import com.google.common.util.concurrent.RateLimiter;
 import dagger.Binds;
 import dagger.Module;
@@ -26,11 +23,10 @@ import dagger.Provides;
 import dagger.multibindings.IntoMap;
 import dagger.multibindings.IntoSet;
 import dagger.multibindings.StringKey;
+import google.registry.config.CredentialModule.DefaultCredential;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.writer.DnsWriter;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
 import javax.inject.Named;
 
 /** Dagger module for Google Cloud DNS service connection objects. */
@@ -39,14 +35,12 @@ public abstract class CloudDnsWriterModule {
 
   @Provides
   static Dns provideDns(
-      HttpTransport transport,
-      JsonFactory jsonFactory,
-      Function<Set<String>, ? extends HttpRequestInitializer> credential,
+      @DefaultCredential GoogleCredential credential,
       @Config("projectId") String projectId,
       @Config("cloudDnsRootUrl") Optional<String> rootUrl,
       @Config("cloudDnsServicePath") Optional<String> servicePath) {
     Dns.Builder builder =
-        new Dns.Builder(transport, jsonFactory, credential.apply(DnsScopes.all()))
+        new Dns.Builder(credential.getTransport(), credential.getJsonFactory(), credential)
             .setApplicationName(projectId);
 
     rootUrl.ifPresent(builder::setRootUrl);

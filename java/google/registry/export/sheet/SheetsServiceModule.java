@@ -15,27 +15,20 @@
 package google.registry.export.sheet;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.services.sheets.v4.Sheets;
-import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.CredentialModule.JsonCredential;
 import google.registry.config.RegistryConfig.Config;
 
 /** Dagger module for {@link Sheets}. */
 @Module
 public final class SheetsServiceModule {
 
-  private static final ImmutableList<String> SCOPES = ImmutableList.of(
-      "https://www.googleapis.com/auth/spreadsheets");
   @Provides
   static Sheets provideSheets(
-      HttpTransport transport,
-      JsonFactory jsonFactory,
-      @Config("projectId") String projectId,
-      GoogleCredential credential) {
-    return new Sheets.Builder(transport, jsonFactory, credential.createScoped(SCOPES))
+      @JsonCredential GoogleCredential credential, @Config("projectId") String projectId) {
+    return new Sheets.Builder(credential.getTransport(), credential.getJsonFactory(), credential)
         .setApplicationName(projectId)
         .build();
   }
