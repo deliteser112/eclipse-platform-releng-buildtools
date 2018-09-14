@@ -21,10 +21,7 @@ a price, it has a reservation type. The valid values for reservation types are:
     reserved with this type can be registered.
 *   **`ALLOWED_IN_SUNRISE`** - The label can be registered during the sunrise
     period by a registrant with a valid claim but it is reserved thereafter.
-*   **`MISTAKEN_PREMIUM`** - The label is reserved because it was mistakenly put
-    on a premium list. It may be registered during sunrise by a registrant with
-    a valid claim but is reserved thereafter. This is deprecated.
-*   **RESERVED_FOR_SPECIFIC_USE** - The label is reserved for the use of a
+*   **`RESERVED_FOR_SPECIFIC_USE`** - The label is reserved for the use of a
     specific registrant, and can only be registered by someone sending along the
     allocation token at time of registration. This token is configured on an
     `AllocationToken` entity with a matching `domainName`, and is sent by the

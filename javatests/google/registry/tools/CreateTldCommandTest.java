@@ -51,7 +51,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   public void init() {
     persistReservedList("common_abuse", "baa,FULLY_BLOCKED");
     persistReservedList("xn--q9jyb4c_abuse", "lamb,FULLY_BLOCKED");
-    persistReservedList("tld_banned", "kilo,FULLY_BLOCKED", "lima,MISTAKEN_PREMIUM");
+    persistReservedList("tld_banned", "kilo,FULLY_BLOCKED", "lima,FULLY_BLOCKED");
     persistReservedList("soy_expurgated", "fireflies,FULLY_BLOCKED");
     persistPremiumList("xn--q9jyb4c", "minecraft,USD 1000");
     command.validDnsWriterNames = ImmutableSet.of("VoidDnsWriter", "FooDnsWriter");

@@ -282,23 +282,23 @@ public class ReservedListTest {
     ReservedList reservedList = persistReservedList(
         "reserved",
         "trombone,FULLY_BLOCKED  # yup",
-        "oysters,MISTAKEN_PREMIUM #  this is a loooong comment",
+        "oysters,FULLY_BLOCKED #  this is a loooong comment",
         "nullcomment,ALLOWED_IN_SUNRISE  #");
     assertThat(reservedList.getReservedListEntries()).hasSize(3);
 
     ReservedListEntry trombone = reservedList.getReservedListEntries().get("trombone");
     assertThat(trombone.label).isEqualTo("trombone");
-    assertThat(trombone.reservationType).isEqualTo(ReservationType.FULLY_BLOCKED);
+    assertThat(trombone.reservationType).isEqualTo(FULLY_BLOCKED);
     assertThat(trombone.comment).isEqualTo("yup");
 
     ReservedListEntry oysters = reservedList.getReservedListEntries().get("oysters");
     assertThat(oysters.label).isEqualTo("oysters");
-    assertThat(oysters.reservationType).isEqualTo(ReservationType.MISTAKEN_PREMIUM);
+    assertThat(oysters.reservationType).isEqualTo(FULLY_BLOCKED);
     assertThat(oysters.comment).isEqualTo("this is a loooong comment");
 
     ReservedListEntry nullComment = reservedList.getReservedListEntries().get("nullcomment");
     assertThat(nullComment.label).isEqualTo("nullcomment");
-    assertThat(nullComment.reservationType).isEqualTo(ReservationType.ALLOWED_IN_SUNRISE);
+    assertThat(nullComment.reservationType).isEqualTo(ALLOWED_IN_SUNRISE);
     assertThat(nullComment.comment).isEmpty();
   }
 

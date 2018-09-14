@@ -146,8 +146,7 @@ public class DomainFlowUtils {
   public static final ImmutableSet<ReservationType> TYPES_ALLOWED_FOR_CREATE_ONLY_IN_SUNRISE =
       Sets.immutableEnumSet(
           ReservationType.ALLOWED_IN_SUNRISE,
-          ReservationType.NAME_COLLISION,
-          ReservationType.MISTAKEN_PREMIUM);
+          ReservationType.NAME_COLLISION);
 
   /** Warning message for allocation of collision domains in sunrise. */
   public static final String COLLISION_MESSAGE =

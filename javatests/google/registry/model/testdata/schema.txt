@@ -709,7 +709,6 @@ class google.registry.model.registry.label.PremiumList$PremiumListRevision {
 enum google.registry.model.registry.label.ReservationType {
   ALLOWED_IN_SUNRISE;
   FULLY_BLOCKED;
-  MISTAKEN_PREMIUM;
   NAMESERVER_RESTRICTED;
   NAME_COLLISION;
   RESERVED_FOR_ANCHOR_TENANT;
