@@ -1,6 +1,5 @@
 package(
     default_visibility = ["//visibility:public"],
-    features = ["-jpl_strict_deps"],
 )
 
 licenses(["notice"])  # Apache 2.0
