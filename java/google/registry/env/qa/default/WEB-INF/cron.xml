@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cronentries>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/readDnsQueue?jitterSeconds=45]]></url>
+    <description>
+      Lease all tasks from the dns-pull queue, group by TLD, and invoke PublishDnsUpdates for each
+      group.
+    </description>
+    <schedule>every 1 minutes synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=sheet&endpoint=/_dr/task/syncRegistrarsSheet&runInEmpty]]></url>
+    <description>
+      Synchronize Registrar entities to Google Spreadsheets.
+    </description>
+    <schedule>every 1 hours synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/task/resaveAllEppResources]]></url>
+    <description>
+      This job resaves all our resources, projected in time to "now".
+      It is needed for "deleteOldCommitLogs" to work correctly.
+    </description>
+    <schedule>1st monday of month 09:00</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/task/deleteOldCommitLogs]]></url>
+    <description>
+      This job deletes unreferenced commit logs from Datastore that are older than thirty days.
+      Since references are only updated on save, if we want to delete "unneeded" commit logs, we
+      also need "resaveAllEppResources" to run periodically.
+    </description>
+    <schedule>3rd monday of month 09:00</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/task/deleteContactsAndHosts]]></url>
+    <description>
+      This job runs a mapreduce that processes batch asynchronous deletions of
+      contact and host resources by mapping over all EppResources and checking
+      for any references to the contacts/hosts in pending deletion.
+    </description>
+    <schedule>every 5 minutes synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/task/refreshDnsOnHostRename]]></url>
+    <description>
+      This job runs a mapreduce that asynchronously handles DNS refreshes for
+      host renames by mapping over all domains and creating DNS refresh tasks
+      for any domains that reference a renamed host.
+    </description>
+    <schedule>every 5 minutes synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/syncGroupMembers&runInEmpty]]></url>
+    <description>
+      Syncs RegistrarContact changes in the past hour to Google Groups.
+    </description>
+    <schedule>every 1 hours synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+</cronentries>

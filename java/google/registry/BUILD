@@ -158,6 +158,75 @@ zip_file(
 )
 
 ################################################################################
+# DOMAIN REGISTRY :: QUALITY ASSURANCE ENVIRONMENT
+#
+# QA is an environment for automated integration testing and manual acceptance testing.
+
+registry_ear_file(
+    name = "registry_qa_ear",
+    out = "registry_qa.ear",
+    configs = {
+        "env/common/META-INF/appengine-application.xml": "META-INF/appengine-application.xml",
+        "env/common/META-INF/application.xml": "META-INF/application.xml",
+    },
+    wars = {
+        "registry_default_qa.war": "default",
+        "registry_pubapi_qa.war": "pubapi",
+        "registry_backend_qa.war": "backend",
+        "registry_tools_qa.war": "tools",
+    },
+)
+
+zip_file(
+    name = "registry_default_qa_war",
+    srcs = [
+        "env/qa/default/WEB-INF/appengine-web.xml",
+        "env/qa/default/WEB-INF/cron.xml",
+    ],
+    out = "registry_default_qa.war",
+    mappings = {
+        "domain_registry/java/google/registry/env/qa/default": "",
+    },
+    deps = [":registry_default_war"],
+)
+
+zip_file(
+    name = "registry_pubapi_qa_war",
+    srcs = [
+        "env/qa/pubapi/WEB-INF/appengine-web.xml",
+    ],
+    out = "registry_pubapi_qa.war",
+    mappings = {
+        "domain_registry/java/google/registry/env/qa/pubapi": "",
+    },
+    deps = [":registry_pubapi_war"],
+)
+
+zip_file(
+    name = "registry_backend_qa_war",
+    srcs = [
+        "env/qa/backend/WEB-INF/appengine-web.xml",
+    ],
+    out = "registry_backend_qa.war",
+    mappings = {
+        "domain_registry/java/google/registry/env/qa/backend": "",
+    },
+    deps = [":registry_backend_war"],
+)
+
+zip_file(
+    name = "registry_tools_qa_war",
+    srcs = [
+        "env/qa/tools/WEB-INF/appengine-web.xml",
+    ],
+    out = "registry_tools_qa.war",
+    mappings = {
+        "domain_registry/java/google/registry/env/qa/tools": "",
+    },
+    deps = [":registry_tools_war"],
+)
+
+################################################################################
 # DOMAIN REGISTRY :: SANDBOX ENVIRONMENT
 #
 # Sandbox is a production environment that registrar customers use to conduct
