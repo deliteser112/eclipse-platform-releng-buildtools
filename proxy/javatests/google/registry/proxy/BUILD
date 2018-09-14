@@ -18,9 +18,9 @@ java_library(
         "@io_netty_tcnative_boringssl_static",
     ],
     deps = [
-        "//java/google/registry/proxy",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
+        "//proxy/java/google/registry/proxy",
         "@com_beust_jcommander",
         "@com_google_dagger",
         "@com_google_guava",
