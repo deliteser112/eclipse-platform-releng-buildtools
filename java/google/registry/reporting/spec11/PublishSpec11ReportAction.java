@@ -39,7 +39,7 @@ import org.joda.time.YearMonth;
  * pipeline accordingly.
  *
  * <p>This calls {@link Spec11EmailUtils#emailSpec11Reports()} on success or {@link
- * Spec11EmailUtils#sendFailureAlertEmail(String)} on failure.
+ * Spec11EmailUtils#sendAlertEmail(String, String)} on failure.
  */
 @Action(path = PublishSpec11ReportAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class PublishSpec11ReportAction implements Runnable {
@@ -88,7 +88,8 @@ public class PublishSpec11ReportAction implements Runnable {
         case JOB_FAILED:
           logger.atSevere().log("Dataflow job %s finished unsuccessfully.", jobId);
           response.setStatus(SC_NO_CONTENT);
-          emailUtils.sendFailureAlertEmail(
+          emailUtils.sendAlertEmail(
+              String.format("Spec11 Dataflow Pipeline Failure %s", yearMonth.toString()),
               String.format(
                   "Spec11 %s job %s ended in status failure.", yearMonth.toString(), jobId));
           break;
@@ -99,7 +100,8 @@ public class PublishSpec11ReportAction implements Runnable {
       }
     } catch (IOException e) {
       logger.atSevere().withCause(e).log("Failed to publish Spec11 reports.");
-      emailUtils.sendFailureAlertEmail(
+      emailUtils.sendAlertEmail(
+          String.format("Spec11 Publish Failure %s", yearMonth.toString()),
           String.format(
               "Spec11 %s publish action failed due to %s", yearMonth.toString(), e.getMessage()));
       response.setStatus(SC_INTERNAL_SERVER_ERROR);

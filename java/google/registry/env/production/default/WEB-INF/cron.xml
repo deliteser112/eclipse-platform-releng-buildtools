@@ -271,7 +271,7 @@
   <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/generateInvoices&runInEmpty]]></url>
     <description>
-      Starts the beam/InvoicingPipeline Dataflow template, which creates the overall invoice and
+      Starts the beam/invoicing/InvoicingPipeline Dataflow template, which creates the overall invoice and
       detail report CSVs for last month, storing them in gs://[PROJECT-ID]-billing/invoices/yyyy-MM.
       Upon success, sends an e-mail copy of the invoice to billing personnel, and copies detail
       reports to the associated registrars' drive folders.
@@ -283,6 +283,19 @@
     icannReportingStaging), but the invoicing team prefers receiving the e-mail on the first of
     each month. -->
     <schedule>1 of month 17:00</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/generateSpec11&runInEmpty]]></url>
+    <description>
+      Starts the beam/spec11/Spec11Pipeline Dataflow template, which creates last month's Spec11
+      report. This report is stored in gs://[PROJECT-ID]-reporting/icann/spec11/yyyy-MM.
+      Upon Dataflow job completion, sends an e-mail to all registrars with domain registrations
+      flagged by the SafeBrowsing API.
+      See GenerateSpec11ReportAction for more details.
+    </description>
+    <schedule>2 of month 15:00</schedule>
     <target>backend</target>
   </cron>
 </cronentries>

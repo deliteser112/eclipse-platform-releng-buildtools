@@ -93,15 +93,15 @@ public class Spec11EmailUtilsTest {
   public void testSuccess_emailSpec11Reports() throws MessagingException, IOException {
     emailUtils.emailSpec11Reports();
     // We inspect individual parameters because Message doesn't implement equals().
-    verify(emailService, times(2)).sendMessage(gotMessage.capture());
+    verify(emailService, times(3)).sendMessage(gotMessage.capture());
     List<Message> capturedMessages = gotMessage.getAllValues();
     validateMessage(
         capturedMessages.get(0),
         "my-sender@test.com",
         "a@fake.com",
-        "Spec11 Monthly Threat Detector [2018-06]",
+        "Google Registry Monthly Threat Detector [2018-06]",
         "Hello registrar partner,\n"
-            + "The SafeBrowsing API has detected problems with the following domains:\n"
+            + "We have detected problems with the following domains:\n"
             + "a.com - MALWARE\n"
             + "At the moment, no action is required. This is purely informatory."
             + "Regards,\nGoogle Registry\n");
@@ -109,13 +109,19 @@ public class Spec11EmailUtilsTest {
         capturedMessages.get(1),
         "my-sender@test.com",
         "b@fake.com",
-        "Spec11 Monthly Threat Detector [2018-06]",
+        "Google Registry Monthly Threat Detector [2018-06]",
         "Hello registrar partner,\n"
-            + "The SafeBrowsing API has detected problems with the following domains:\n"
+            + "We have detected problems with the following domains:\n"
             + "b.com - MALWARE\n"
             + "c.com - MALWARE\n"
             + "At the moment, no action is required. This is purely informatory."
             + "Regards,\nGoogle Registry\n");
+    validateMessage(
+        capturedMessages.get(2),
+        "my-sender@test.com",
+        "my-receiver@test.com",
+        "Spec11 Pipeline Success 2018-06",
+        "Spec11 reporting completed successfully.");
   }
 
   @Test
@@ -157,13 +163,13 @@ public class Spec11EmailUtilsTest {
         gotMessage.getValue(),
         "my-sender@test.com",
         "my-receiver@test.com",
-        "Spec11 Pipeline Alert: 2018-06",
+        "Spec11 Emailing Failure 2018-06",
         "Emailing spec11 reports failed due to expected");
   }
 
   @Test
   public void testSuccess_sendAlertEmail() throws MessagingException, IOException {
-    emailUtils.sendFailureAlertEmail("Alert!");
+    emailUtils.sendAlertEmail("Spec11 Pipeline Alert: 2018-06", "Alert!");
     verify(emailService).sendMessage(gotMessage.capture());
     validateMessage(
         gotMessage.getValue(),

@@ -97,12 +97,16 @@ public class Spec11EmailUtils {
           MessagingException.class);
     } catch (Throwable e) {
       // Send an alert with the root cause, unwrapping the retrier's RuntimeException
-      sendFailureAlertEmail(
+      sendAlertEmail(
+          String.format("Spec11 Emailing Failure %s", yearMonth.toString()),
           String.format(
               "Emailing spec11 reports failed due to %s",
               getRootCause(e).getMessage()));
       throw new RuntimeException("Emailing spec11 report failed", e);
     }
+    sendAlertEmail(
+        String.format("Spec11 Pipeline Success %s", yearMonth.toString()),
+        "Spec11 reporting completed successfully.");
   }
 
   private void emailRegistrar(String line) throws MessagingException, JSONException {
@@ -110,10 +114,9 @@ public class Spec11EmailUtils {
     JSONObject reportJSON = new JSONObject(line);
     String registrarEmail = reportJSON.getString(Spec11Pipeline.REGISTRAR_EMAIL_FIELD);
     JSONArray threatMatches = reportJSON.getJSONArray(Spec11Pipeline.THREAT_MATCHES_FIELD);
-    // TODO(b/112354588): Reword this e-mail according to business team's opinions.
     StringBuilder body =
         new StringBuilder("Hello registrar partner,\n")
-            .append("The SafeBrowsing API has detected problems with the following domains:\n");
+            .append("We have detected problems with the following domains:\n");
     for (int i = 0; i < threatMatches.length(); i++) {
       ThreatMatch threatMatch = ThreatMatch.fromJSON(threatMatches.getJSONObject(i));
       body.append(
@@ -124,23 +127,22 @@ public class Spec11EmailUtils {
         .append("Regards,\nGoogle Registry\n");
     Message msg = emailService.createMessage();
     msg.setSubject(
-        String.format("Spec11 Monthly Threat Detector [%s]", yearMonth.toString()));
+        String.format("Google Registry Monthly Threat Detector [%s]", yearMonth.toString()));
     msg.setText(body.toString());
     msg.setFrom(new InternetAddress(alertSenderAddress));
     msg.setRecipient(RecipientType.TO, new InternetAddress(registrarEmail));
     emailService.sendMessage(msg);
-
   }
 
-  /** Sends an e-mail to the provided alert e-mail address indicating a spec11 failure. */
-  void sendFailureAlertEmail(String body) {
+  /** Sends an e-mail indicating the state of the spec11 pipeline, with a given subject and body. */
+  void sendAlertEmail(String subject, String body) {
     try {
       retrier.callWithRetry(
           () -> {
             Message msg = emailService.createMessage();
             msg.setFrom(new InternetAddress(alertSenderAddress));
             msg.addRecipient(RecipientType.TO, new InternetAddress(alertRecipientAddress));
-            msg.setSubject(String.format("Spec11 Pipeline Alert: %s", yearMonth.toString()));
+            msg.setSubject(subject);
             msg.setText(body);
             emailService.sendMessage(msg);
             return null;

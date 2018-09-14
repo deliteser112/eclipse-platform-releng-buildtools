@@ -83,7 +83,10 @@ public class PublishSpec11ReportActionTest {
     expectedJob.setCurrentState("JOB_STATE_FAILED");
     publishAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_NO_CONTENT);
-    verify(emailUtils).sendFailureAlertEmail("Spec11 2018-06 job 12345 ended in status failure.");
+    verify(emailUtils)
+        .sendAlertEmail(
+            "Spec11 Dataflow Pipeline Failure 2018-06",
+            "Spec11 2018-06 job 12345 ended in status failure.");
   }
 
   @Test
@@ -102,6 +105,8 @@ public class PublishSpec11ReportActionTest {
     assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("Template launch failed: expected");
     verify(emailUtils)
-        .sendFailureAlertEmail("Spec11 2018-06 publish action failed due to expected");
+        .sendAlertEmail(
+            "Spec11 Publish Failure 2018-06",
+            "Spec11 2018-06 publish action failed due to expected");
   }
 }
