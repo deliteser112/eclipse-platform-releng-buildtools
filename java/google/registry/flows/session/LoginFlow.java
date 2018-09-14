@@ -56,7 +56,6 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.TlsCredentials.BadRegistrarCertificateException}
  * @error {@link google.registry.flows.TlsCredentials.BadRegistrarIpAddressException}
  * @error {@link google.registry.flows.TlsCredentials.MissingRegistrarCertificateException}
- * @error {@link google.registry.flows.TlsCredentials.NoSniException}
  * @error {@link google.registry.flows.TransportCredentials.BadRegistrarPasswordException}
  * @error {@link LoginFlow.AlreadyLoggedInException}
  * @error {@link LoginFlow.BadRegistrarClientIdException}

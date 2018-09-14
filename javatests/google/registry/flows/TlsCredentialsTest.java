@@ -46,21 +46,8 @@ public final class TlsCredentialsTest {
   }
 
   @Test
-  public void testProvideRequestedServername() {
-    HttpServletRequest req = mock(HttpServletRequest.class);
-    when(req.getHeader("X-Requested-Servername-SNI")).thenReturn("data");
-    assertThat(TlsCredentials.EppTlsModule.provideRequestedServername(req))
-        .isEqualTo("data");
-  }
+  public void testNothing1() {}
 
   @Test
-  public void testProvideRequestedServername_missing() {
-    HttpServletRequest req = mock(HttpServletRequest.class);
-    BadRequestException thrown =
-        assertThrows(
-            BadRequestException.class,
-            () -> TlsCredentials.EppTlsModule.provideRequestedServername(req));
-    assertThat(thrown).hasMessageThat().contains("Missing header: X-Requested-Servername-SNI");
-  }
-
+  public void testNothing2() {}
 }

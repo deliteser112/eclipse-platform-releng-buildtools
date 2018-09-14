@@ -43,11 +43,6 @@ public class EppTlsAction implements Runnable {
 
   @Override
   public void run() {
-    // Check that SNI header is present. This is a signal that we're receiving traffic proxied by a
-    // GFE, which is the expectation of this servlet. The value is unused.
-    if (!tlsCredentials.hasSni()) {
-      logger.atWarning().log("Request did not include required SNI header.");
-    }
     eppRequestHandler.executeEpp(
         new HttpSessionMetadata(session),
         tlsCredentials,

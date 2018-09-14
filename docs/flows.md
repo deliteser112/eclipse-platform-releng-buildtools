@@ -1174,7 +1174,6 @@ An EPP flow for login.
     *   Registrar certificate does not match stored certificate.
     *   Registrar IP address is not in stored whitelist.
     *   Registrar certificate not present.
-    *   SNI header is required.
     *   Registrar password is incorrect.
     *   Registrar with this client ID could not be found.
 *   2201

@@ -48,9 +48,6 @@ import javax.servlet.http.HttpServletRequest;
  *   <dt>X-Forwarded-For
  *   <dd>This field should contain the host and port of the connecting client. It is validated
  *       during an EPP login command against an IP whitelist that is transmitted out of band.
- *   <dt>X-GFE-Requested-Servername-SNI
- *   <dd>This field should contain the servername that the client requested during the TLS
- *       handshake. It is unused, but expected to be present in the GFE-proxied configuration.
  * </dl>
  */
 public class TlsCredentials implements TransportCredentials {
@@ -58,18 +55,15 @@ public class TlsCredentials implements TransportCredentials {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final String clientCertificateHash;
-  private final String sni;
   private final InetAddress clientInetAddr;
 
   @Inject
   @VisibleForTesting
   public TlsCredentials(
       @Header("X-SSL-Certificate") String clientCertificateHash,
-      @Header("X-Forwarded-For") Optional<String> clientAddress,
-      @Header("X-Requested-Servername-SNI") String sni) {
+      @Header("X-Forwarded-For") Optional<String> clientAddress) {
     this.clientCertificateHash = clientCertificateHash;
     this.clientInetAddr = clientAddress.isPresent() ? parseInetAddress(clientAddress.get()) : null;
-    this.sni = sni;
   }
 
   static InetAddress parseInetAddress(String asciiAddr) {
@@ -78,11 +72,6 @@ public class TlsCredentials implements TransportCredentials {
     } catch (IllegalArgumentException e) {
       return null;
     }
-  }
-
-  /** Returns {@code true} if frontend passed us the requested server name. */
-  boolean hasSni() {
-    return !isNullOrEmpty(sni);
   }
 
   @Override
@@ -120,7 +109,6 @@ public class TlsCredentials implements TransportCredentials {
   /**
    * Verifies client SSL certificate is permitted to issue commands as {@code registrar}.
    *
-   * @throws NoSniException if frontend didn't send host or certificate hash headers
    * @throws MissingRegistrarCertificateException if frontend didn't send certificate hash header
    * @throws BadRegistrarCertificateException if registrar requires certificate and it didn't match
    */
@@ -133,11 +121,6 @@ public class TlsCredentials implements TransportCredentials {
       return;
     }
     if (isNullOrEmpty(clientCertificateHash)) {
-      // If there's no SNI header that's probably why we don't have a cert, so send a specific
-      // message. Otherwise, send a missing certificate message.
-      if (!hasSni()) {
-        throw new NoSniException();
-      }
       logger.atInfo().log("Request did not include X-SSL-Certificate");
       throw new MissingRegistrarCertificateException();
     }
@@ -165,7 +148,6 @@ public class TlsCredentials implements TransportCredentials {
     return toStringHelper(getClass())
         .add("clientCertificateHash", clientCertificateHash)
         .add("clientAddress", clientInetAddr)
-        .add("sni", sni)
         .toString();
   }
 
@@ -180,13 +162,6 @@ public class TlsCredentials implements TransportCredentials {
   public static class MissingRegistrarCertificateException extends AuthenticationErrorException {
     public MissingRegistrarCertificateException() {
       super("Registrar certificate not present");
-    }
-  }
-
-  /** SNI header is required. */
-  public static class NoSniException extends AuthenticationErrorException {
-    public NoSniException() {
-      super("SNI header is required");
     }
   }
 
@@ -210,12 +185,6 @@ public class TlsCredentials implements TransportCredentials {
     @Header("X-Forwarded-For")
     static Optional<String> provideForwardedFor(HttpServletRequest req) {
       return extractOptionalHeader(req, "X-Forwarded-For");
-    }
-
-    @Provides
-    @Header("X-Requested-Servername-SNI")
-    static String provideRequestedServername(HttpServletRequest req) {
-      return extractRequiredHeader(req, "X-Requested-Servername-SNI");
     }
   }
 }

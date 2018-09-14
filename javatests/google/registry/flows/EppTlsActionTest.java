@@ -21,7 +21,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import google.registry.testing.FakeHttpSession;
 import google.registry.testing.ShardableTestCase;
@@ -41,7 +40,6 @@ public class EppTlsActionTest extends ShardableTestCase {
     EppTlsAction action = new EppTlsAction();
     action.inputXmlBytes = INPUT_XML_BYTES;
     action.tlsCredentials = mock(TlsCredentials.class);
-    when(action.tlsCredentials.hasSni()).thenReturn(true);
     action.session = new FakeHttpSession();
     action.session.setAttribute("CLIENT_ID", "ClientIdentifier");
     action.eppRequestHandler = mock(EppRequestHandler.class);
