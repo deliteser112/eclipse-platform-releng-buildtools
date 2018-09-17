@@ -20,6 +20,7 @@ import dagger.Lazy;
 import google.registry.bigquery.BigqueryModule;
 import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
+import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.export.DriveModule;
 import google.registry.export.sheet.SheetsServiceModule;
 import google.registry.gcs.GcsServiceModule;
@@ -78,7 +79,7 @@ import javax.inject.Singleton;
       UrlFetchTransportModule.class,
       UseAppIdentityCredentialForGoogleApisModule.class,
       UserServiceModule.class,
-      google.registry.dns.writer.VoidDnsWriterModule.class,
+      VoidDnsWriterModule.class,
     })
 interface BackendComponent {
   BackendRequestHandler requestHandler();
