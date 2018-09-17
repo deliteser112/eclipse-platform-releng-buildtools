@@ -96,10 +96,6 @@ epp:
   # request.
   readTimeoutSeconds: 3600
 
-  # Hostname of the EPP server.
-  # TODO(b/64510444) Remove this after nomulus no longer check sni header.
-  serverHostname: epp.yourdomain.tld
-
   # Quota configuration for EPP
   quota:
 

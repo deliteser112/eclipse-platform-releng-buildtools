@@ -85,7 +85,6 @@ public class TestUtils {
       String path,
       String accessToken,
       String sslClientCertificateHash,
-      String serverHostname,
       String clientAddress,
       Cookie... cookies) {
     FullHttpRequest request = makeHttpPostRequest(content, host, path);
@@ -95,7 +94,6 @@ public class TestUtils {
         .set("content-type", "application/epp+xml")
         .set("accept", "application/epp+xml")
         .set("X-SSL-Certificate", sslClientCertificateHash)
-        .set("X-Requested-Servername-SNI", serverHostname)
         .set("X-Forwarded-For", clientAddress);
     if (cookies.length != 0) {
       request.headers().set("cookie", ClientCookieEncoder.STRICT.encode(cookies));

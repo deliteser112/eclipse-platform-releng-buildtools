@@ -69,7 +69,6 @@ public class ProxyConfig {
     public int maxMessageLengthBytes;
     public int headerLengthBytes;
     public int readTimeoutSeconds;
-    public String serverHostname;
     public Quota quota;
   }
 

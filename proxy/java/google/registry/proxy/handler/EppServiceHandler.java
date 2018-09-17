@@ -52,10 +52,6 @@ public class EppServiceHandler extends HttpsRelayServiceHandler {
   /** Name of the HTTP header that stores the client certificate hash. */
   public static final String SSL_CLIENT_CERTIFICATE_HASH_FIELD = "X-SSL-Certificate";
 
-  /** Name of the HTTP header that stores the epp server name requested by the client using SNI. */
-  // TODO(b/64510444): remove this header entirely when borg proxy is retired.
-  public static final String REQUESTED_SERVERNAME_VIA_SNI_FIELD = "X-Requested-Servername-SNI";
-
   /** Name of the HTTP header that stores the client IP address. */
   public static final String FORWARDED_FOR_FIELD = "X-Forwarded-For";
 
@@ -64,7 +60,6 @@ public class EppServiceHandler extends HttpsRelayServiceHandler {
 
   public static final String EPP_CONTENT_TYPE = "application/epp+xml";
 
-  private final String serverHostname;
   private final byte[] helloBytes;
 
   private String sslClientCertificateHash;
@@ -74,11 +69,9 @@ public class EppServiceHandler extends HttpsRelayServiceHandler {
       String relayHost,
       String relayPath,
       Supplier<String> accessTokenSupplier,
-      String serverHostname,
       byte[] helloBytes,
       FrontendMetrics metrics) {
     super(relayHost, relayPath, accessTokenSupplier, metrics);
-    this.serverHostname = serverHostname;
     this.helloBytes = helloBytes;
   }
 
@@ -135,7 +128,6 @@ public class EppServiceHandler extends HttpsRelayServiceHandler {
     request
         .headers()
         .set(SSL_CLIENT_CERTIFICATE_HASH_FIELD, sslClientCertificateHash)
-        .set(REQUESTED_SERVERNAME_VIA_SNI_FIELD, serverHostname)
         .set(FORWARDED_FOR_FIELD, clientAddress)
         .set(HttpHeaderNames.CONTENT_TYPE, EPP_CONTENT_TYPE)
         .set(HttpHeaderNames.ACCEPT, EPP_CONTENT_TYPE);

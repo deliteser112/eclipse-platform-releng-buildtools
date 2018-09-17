@@ -150,7 +150,6 @@ public class EppProtocolModule {
         config.epp.relayHost,
         config.epp.relayPath,
         accessTokenSupplier,
-        config.epp.serverHostname,
         helloBytes,
         metrics);
   }

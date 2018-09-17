@@ -106,7 +106,6 @@ public class EppProtocolModuleTest extends ProtocolModuleTest {
         PROXY_CONFIG.epp.relayPath,
         TestModule.provideFakeAccessToken().get(),
         getCertificateHash(certificate),
-        PROXY_CONFIG.epp.serverHostname,
         CLIENT_ADDRESS,
         cookies);
   }

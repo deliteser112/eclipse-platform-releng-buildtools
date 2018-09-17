@@ -62,7 +62,6 @@ public class EppServiceHandlerTest {
   private static final String RELAY_HOST = "registry.example.tld";
   private static final String RELAY_PATH = "/epp";
   private static final String ACCESS_TOKEN = "this.access.token";
-  private static final String SERVER_HOSTNAME = "epp.example.tld";
   private static final String CLIENT_ADDRESS = "epp.client.tld";
   private static final String PROTOCOL = "epp";
 
@@ -75,7 +74,6 @@ public class EppServiceHandlerTest {
           RELAY_HOST,
           RELAY_PATH,
           () -> ACCESS_TOKEN,
-          SERVER_HOSTNAME,
           HELLO.getBytes(UTF_8),
           metrics);
 
@@ -110,7 +108,6 @@ public class EppServiceHandlerTest {
         RELAY_PATH,
         ACCESS_TOKEN,
         getCertificateHash(clientCertificate),
-        SERVER_HOSTNAME,
         CLIENT_ADDRESS,
         cookies);
   }
@@ -155,7 +152,6 @@ public class EppServiceHandlerTest {
             RELAY_HOST,
             RELAY_PATH,
             () -> ACCESS_TOKEN,
-            SERVER_HOSTNAME,
             HELLO.getBytes(UTF_8),
             metrics);
     EmbeddedChannel channel2 = setUpNewChannel(eppServiceHandler2);
@@ -180,7 +176,6 @@ public class EppServiceHandlerTest {
             RELAY_HOST,
             RELAY_PATH,
             () -> ACCESS_TOKEN,
-            SERVER_HOSTNAME,
             HELLO.getBytes(UTF_8),
             metrics);
     EmbeddedChannel channel2 = setUpNewChannel(eppServiceHandler2);
