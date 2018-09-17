@@ -34,7 +34,6 @@ import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.RequestAuthenticator;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.Providers;
 import google.registry.testing.UserInfo;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -211,16 +210,18 @@ public final class RequestHandlerTest {
   @Before
   public void before() throws Exception {
     // Initialize here, not inline, so that we pick up the mocked UserService.
-    handler = RequestHandler.createForTest(
-        Component.class,
-        Providers.<Builder>of(new Builder() {
-          @Override
-          public Component build() {
-            // Use a fake Builder that returns the single component instance that uses the mocks.
-            return component;
-          }
-        }),
-        requestAuthenticator);
+    handler =
+        RequestHandler.createForTest(
+            Component.class,
+            () ->
+                new Builder() {
+                  @Override
+                  public Component build() {
+                    // Use a fake Builder that returns the single component instance using the mocks
+                    return component;
+                  }
+                },
+            requestAuthenticator);
     when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
   }
 
