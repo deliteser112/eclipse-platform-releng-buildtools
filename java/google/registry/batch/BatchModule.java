@@ -24,14 +24,10 @@ import static google.registry.request.RequestParameters.extractRequiredDatetimeP
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static google.registry.request.RequestParameters.extractSetOfDatetimeParameters;
 
-import com.google.api.services.bigquery.model.TableFieldSchema;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import dagger.Module;
 import dagger.Provides;
-import dagger.multibindings.IntoMap;
-import dagger.multibindings.StringKey;
 import google.registry.model.ImmutableObject;
 import google.registry.request.Parameter;
 import java.util.Optional;
@@ -43,13 +39,6 @@ import org.joda.time.DateTime;
  */
 @Module
 public class BatchModule {
-
-  @Provides
-  @IntoMap
-  @StringKey(EntityIntegrityAlertsSchema.TABLE_ID)
-  static ImmutableList<TableFieldSchema> provideEntityIntegrityAlertsSchema() {
-    return EntityIntegrityAlertsSchema.SCHEMA_FIELDS;
-  }
 
   @Provides
   @Parameter("jobName")

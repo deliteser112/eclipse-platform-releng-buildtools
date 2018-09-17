@@ -210,17 +210,4 @@
     <target>backend</target>
   </cron>
 
-  <!--
-    TODO(b/71607184): Consider re-enabling once load-testing-related entities are cleared out.
-  <cron>
-    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/verifyEntityIntegrity&runInEmpty]]></url>
-    <description>
-      This job verifies entity integrity and runs once daily.
-    </description>
-    <schedule>every day 06:30</schedule>
-    <timezone>UTC</timezone>
-    <target>backend</target>
-  </cron>
-  -->
-
 </cronentries>

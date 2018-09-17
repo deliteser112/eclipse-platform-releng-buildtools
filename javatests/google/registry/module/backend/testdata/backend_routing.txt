@@ -45,4 +45,3 @@ PATH                                   CLASS                              METHOD
 /_dr/task/tmchDnl                      TmchDnlAction                      POST     y  INTERNAL     APP IGNORED
 /_dr/task/tmchSmdrl                    TmchSmdrlAction                    POST     y  INTERNAL     APP IGNORED
 /_dr/task/updateSnapshotView           UpdateSnapshotViewAction           POST     n  INTERNAL     APP IGNORED
-/_dr/task/verifyEntityIntegrity        VerifyEntityIntegrityAction        POST     n  INTERNAL     APP IGNORED
