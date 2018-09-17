@@ -120,7 +120,6 @@ public final class AppEngineRule extends ExternalResource {
       return this;
     }
 
-
     /** Turn on the task queue service. */
     public Builder withTaskQueue() {
       return withTaskQueue(QUEUE_XML);
