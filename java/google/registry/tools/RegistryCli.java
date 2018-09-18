@@ -234,7 +234,12 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
   private void runCommand(Command command) throws Exception {
     injectReflectively(RegistryToolComponent.class, component, command);
     if (metricWriter == null && uploadMetrics) {
-      metricWriter = component.metricWriter();
+      try {
+        metricWriter = component.metricWriter();
+      } catch (Exception e) {
+        System.err.format("Failed to get metricWriter. Got error:\n%s\n\n", e);
+        uploadMetrics = false;
+      }
     }
 
     if (command instanceof CommandWithConnection) {
