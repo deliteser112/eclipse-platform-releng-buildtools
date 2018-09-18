@@ -16,13 +16,7 @@ package google.registry.tools;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import google.registry.bigquery.BigqueryConnection;
-import java.io.IOException;
 import java.util.concurrent.Executors;
 import org.joda.time.Duration;
 
@@ -57,31 +51,15 @@ final class BigqueryParameters {
       description = "Number of threads for running simultaneous BigQuery operations.")
   private int bigqueryNumThreads = DEFAULT_NUM_THREADS;
 
-  private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
-  private static final JsonFactory JSON_FACTORY = new JacksonFactory();
-
   /** Returns a new BigqueryConnection constructed according to the delegate's flag settings. */
-  BigqueryConnection newConnection() throws Exception {
-    BigqueryConnection connection = new BigqueryConnection.Builder()
-        .setExecutorService(Executors.newFixedThreadPool(bigqueryNumThreads))
-        .setCredential(newCredential())
-        .setDatasetId(bigqueryDataset)
-        .setOverwrite(bigqueryOverwrite)
-        .setPollInterval(bigqueryPollInterval)
-        .build();
-    connection.initialize();
+  BigqueryConnection newConnection(BigqueryConnection.Builder connectionBuilder) throws Exception {
+    BigqueryConnection connection =
+        connectionBuilder
+            .setExecutorService(Executors.newFixedThreadPool(bigqueryNumThreads))
+            .setDatasetId(bigqueryDataset)
+            .setOverwrite(bigqueryOverwrite)
+            .setPollInterval(bigqueryPollInterval)
+            .build();
     return connection;
-  }
-
-  /** Creates a credential object for the Bigquery client using application default credentials. */
-  private GoogleCredential newCredential() {
-    try {
-      return GoogleCredential.getApplicationDefault(HTTP_TRANSPORT, JSON_FACTORY);
-    } catch (IOException e) {
-      throw new RuntimeException(
-          "Could not obtain application default credentials - "
-              + "did you remember to run 'gcloud auth application-default login'?",
-          e);
-    }
   }
 }

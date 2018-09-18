@@ -14,27 +14,21 @@
 
 package google.registry.tools;
 
+import static com.google.common.base.Verify.verify;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.ManagedZone;
 import com.google.api.services.dns.model.ManagedZoneDnsSecConfig;
-import com.google.common.annotations.VisibleForTesting;
 import google.registry.config.RegistryConfig.Config;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.Arrays;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 @Parameters(separators = " =", commandDescription = "Create a Managed Zone for a TLD in Cloud DNS.")
-class CreateCdnsTld extends ConfirmingCommand {
+final class CreateCdnsTld extends ConfirmingCommand {
 
   @Parameter(names = "--description", description = "Description of the new TLD.")
   String description;
@@ -56,6 +50,8 @@ class CreateCdnsTld extends ConfirmingCommand {
   @Inject
   @Config("projectId")
   String projectId;
+
+  @Inject Dns dnsService;
 
   private static final String KEY_VALUE_FORMAT = "  %s = %s";
 
@@ -96,41 +92,19 @@ class CreateCdnsTld extends ConfirmingCommand {
   }
 
   @Override
-  public String execute() throws IOException, GeneralSecurityException {
-    Dns dnsService = createDnsService();
+  public String execute() throws IOException {
+    validateDnsService();
     Dns.ManagedZones.Create request = dnsService.managedZones().create(projectId, managedZone);
     ManagedZone response = request.execute();
     return String.format("Created managed zone: %s", response);
   }
 
-  @VisibleForTesting
-  Dns createDnsService() throws IOException, GeneralSecurityException {
-    // TODO(b/67367533): We should be obtaining the Dns instance from CloudDnsWriter module.  But
-    // to do this cleanly we need to refactor everything down to the credential object.  Having
-    // done that, this method will go away and this class will become final.
-    HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-
-    GoogleCredential credential = GoogleCredential.getApplicationDefault();
-    if (credential.createScopedRequired()) {
-      credential =
-          credential.createScoped(
-              Arrays.asList(
-                  "https://www.googleapis.com/auth/cloud-platform",
-                  "https://www.googleapis.com/auth/cloud-platform.read-only",
-                  "https://www.googleapis.com/auth/ndev.clouddns.readonly",
-                  "https://www.googleapis.com/auth/ndev.clouddns.readwrite"));
-    }
-
-    Dns.Builder builder =
-        new Dns.Builder(httpTransport, jsonFactory, credential).setApplicationName(projectId);
+  private void validateDnsService() {
+    // Sanity check to ensure only Production and Sandbox points to the CloudDns prod site.
     if (RegistryToolEnvironment.get() != RegistryToolEnvironment.PRODUCTION
         && RegistryToolEnvironment.get() != RegistryToolEnvironment.SANDBOX) {
-      builder
-          .setRootUrl("https://staging-www.sandbox.googleapis.com")
-          .setServicePath("dns/v2beta1_staging/projects/");
+      verify(!Dns.DEFAULT_ROOT_URL.equals(dnsService.getRootUrl()));
+      verify(!Dns.DEFAULT_SERVICE_PATH.equals(dnsService.getServicePath()));
     }
-
-    return builder.build();
   }
 }

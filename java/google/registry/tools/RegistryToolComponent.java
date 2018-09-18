@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import com.google.monitoring.metrics.MetricWriter;
 import dagger.Component;
+import google.registry.bigquery.BigqueryModule;
 import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
@@ -53,6 +54,7 @@ import javax.inject.Singleton;
       // TODO(b/36866706): Find a way to replace this with a command-line friendly version
       AppIdentityCredentialModule.class,
       AuthModule.class,
+      BigqueryModule.class,
       ConfigModule.class,
       CredentialModule.class,
       DatastoreServiceModule.class,
@@ -99,6 +101,7 @@ interface RegistryToolComponent {
   void inject(GetKeyringSecretCommand command);
   void inject(GhostrydeCommand command);
   void inject(ListCursorsCommand command);
+  void inject(LoadSnapshotCommand command);
   void inject(LockDomainCommand command);
   void inject(LoginCommand command);
   void inject(LogoutCommand command);

@@ -57,5 +57,9 @@ registrarConsole:
 misc:
   sheetExportId: placeholder
 
+cloudDns:
+  rootUrl: null
+  servicePath: null
+
 kms:
   projectId: placeholder

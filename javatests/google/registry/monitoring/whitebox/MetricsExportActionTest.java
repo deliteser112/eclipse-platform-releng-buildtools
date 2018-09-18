@@ -20,9 +20,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.Bigquery.Tabledata;
 import com.google.api.services.bigquery.Bigquery.Tabledata.InsertAll;
@@ -31,7 +28,7 @@ import com.google.api.services.bigquery.model.TableDataInsertAllResponse;
 import com.google.api.services.bigquery.model.TableDataInsertAllResponse.InsertErrors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import google.registry.bigquery.BigqueryFactory;
+import google.registry.bigquery.CheckedBigquery;
 import google.registry.testing.AppEngineRule;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,7 +45,7 @@ public class MetricsExportActionTest {
   public final AppEngineRule appEngine =
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
-  private final BigqueryFactory bigqueryFactory = mock(BigqueryFactory.class);
+  private final CheckedBigquery checkedBigquery = mock(CheckedBigquery.class);
   private final Bigquery bigquery = mock(Bigquery.class);
   private final Tabledata tabledata = mock(Tabledata.class);
   private final InsertAll insertAll = mock(InsertAll.class);
@@ -69,13 +66,8 @@ public class MetricsExportActionTest {
 
   @Before
   public void setup() throws Exception {
-    when(bigqueryFactory.create(anyString(), anyString(), anyString())).thenReturn(bigquery);
-    when(bigqueryFactory.create(
-        anyString(),
-        Matchers.any(HttpTransport.class),
-        Matchers.any(JsonFactory.class),
-        Matchers.any(HttpRequestInitializer.class)))
-            .thenReturn(bigquery);
+    when(checkedBigquery.ensureDataSetAndTableExist(anyString(), anyString(), anyString()))
+        .thenReturn(bigquery);
 
     when(bigquery.tabledata()).thenReturn(tabledata);
     when(tabledata.insertAll(
@@ -84,7 +76,7 @@ public class MetricsExportActionTest {
         anyString(),
         Matchers.any(TableDataInsertAllRequest.class))).thenReturn(insertAll);
     action = new MetricsExportAction();
-    action.bigqueryFactory = bigqueryFactory;
+    action.checkedBigquery = checkedBigquery;
     action.insertId = "insert id";
     action.parameters = parameters;
     action.projectId = "project id";

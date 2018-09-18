@@ -24,7 +24,7 @@ import com.google.api.services.bigquery.model.ViewDefinition;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.flogger.FluentLogger;
-import google.registry.bigquery.BigqueryFactory;
+import google.registry.bigquery.CheckedBigquery;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.HttpException.InternalServerErrorException;
@@ -69,7 +69,7 @@ public class UpdateSnapshotViewAction implements Runnable {
   @Config("projectId")
   String projectId;
 
-  @Inject BigqueryFactory bigqueryFactory;
+  @Inject CheckedBigquery checkedBigquery;
 
   @Inject
   UpdateSnapshotViewAction() {}
@@ -106,7 +106,7 @@ public class UpdateSnapshotViewAction implements Runnable {
       SqlTemplate viewQueryTemplate)
       throws IOException {
 
-    Bigquery bigquery = bigqueryFactory.create(projectId, viewDataset);
+    Bigquery bigquery = checkedBigquery.ensureDataSetExists(projectId, viewDataset);
     updateTable(
         bigquery,
         new Table()

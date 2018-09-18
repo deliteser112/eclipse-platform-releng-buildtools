@@ -14,20 +14,16 @@
 
 package google.registry.bigquery;
 
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.services.bigquery.Bigquery;
-import com.google.api.services.bigquery.BigqueryScopes;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.Multibinds;
+import google.registry.config.CredentialModule.DefaultCredential;
 import google.registry.config.RegistryConfig.Config;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
 
 /** Dagger module for Google {@link Bigquery} connection objects. */
 @Module
@@ -39,11 +35,8 @@ public abstract class BigqueryModule {
 
   @Provides
   static Bigquery provideBigquery(
-      HttpTransport transport,
-      JsonFactory jsonFactory,
-      Function<Set<String>, ? extends HttpRequestInitializer> credential,
-      @Config("projectId") String projectId) {
-    return new Bigquery.Builder(transport, jsonFactory, credential.apply(BigqueryScopes.all()))
+      @DefaultCredential GoogleCredential credential, @Config("projectId") String projectId) {
+    return new Bigquery.Builder(credential.getTransport(), credential.getJsonFactory(), credential)
         .setApplicationName(projectId)
         .build();
   }

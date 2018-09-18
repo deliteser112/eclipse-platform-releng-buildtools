@@ -18,9 +18,6 @@ import static google.registry.request.RequestParameters.extractOptionalEnumParam
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
 import dagger.Module;
@@ -54,7 +51,6 @@ public final class IcannReportingModule {
   static final String DATASTORE_EXPORT_DATA_SET = "latest_datastore_export";
   static final String MANIFEST_FILE_NAME = "MANIFEST.txt";
   private static final String DEFAULT_SUBDIR = "icann/monthly";
-  private static final String BIGQUERY_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 
   /** Provides an optional subdirectory to store/upload reports to, extracted from the request. */
   @Provides
@@ -103,19 +99,16 @@ public final class IcannReportingModule {
    * @see google.registry.tools.BigqueryParameters for justifications of defaults.
    */
   @Provides
-  static BigqueryConnection provideBigqueryConnection(HttpTransport transport) {
+  static BigqueryConnection provideBigqueryConnection(
+      BigqueryConnection.Builder bigQueryConnectionBuilder) {
     try {
-      GoogleCredential credential = GoogleCredential
-          .getApplicationDefault(transport, new JacksonFactory());
       BigqueryConnection connection =
-          new BigqueryConnection.Builder()
+          bigQueryConnectionBuilder
               .setExecutorService(MoreExecutors.newDirectExecutorService())
-              .setCredential(credential.createScoped(ImmutableList.of(BIGQUERY_SCOPE)))
               .setDatasetId(ICANN_REPORTING_DATA_SET)
               .setOverwrite(true)
               .setPollInterval(Duration.standardSeconds(1))
               .build();
-      connection.initialize();
       return connection;
     } catch (Throwable e) {
       throw new RuntimeException("Could not initialize BigqueryConnection!", e);

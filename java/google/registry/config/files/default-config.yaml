@@ -274,6 +274,11 @@ misc:
   # hosts from being used on domains.
   asyncDeleteDelaySeconds: 90
 
+cloudDns:
+  # CloudDns testing config. Set both properties to null in Production.
+  rootUrl: https://staging-www.sandbox.googleapis.com
+  servicePath: dns/v2beta1_staging/projects/
+
 beam:
   # The default zone to run Apache Beam (Cloud Dataflow) jobs in.
   defaultJobZone: us-east1-c

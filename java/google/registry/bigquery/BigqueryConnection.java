@@ -26,12 +26,8 @@ import static google.registry.bigquery.BigqueryUtils.toJobReferenceString;
 import static google.registry.config.RegistryConfig.getProjectId;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.AbstractInputStreamContent;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Dataset;
 import com.google.api.services.bigquery.model.DatasetReference;
@@ -51,6 +47,7 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.ViewDefinition;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.flogger.FluentLogger;
@@ -73,6 +70,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
@@ -96,19 +94,10 @@ public class BigqueryConnection implements AutoCloseable {
   private static final Duration TEMP_TABLE_TTL = Duration.standardHours(24);
 
   /** Bigquery client instance wrapped by this class. */
-  private Bigquery bigquery;
+  private final Bigquery bigquery;
 
   /** Executor service for bigquery jobs. */
   private ListeningExecutorService service;
-
-  /** Credential object to use for initializing HTTP requests to the bigquery API. */
-  private HttpRequestInitializer credential;
-
-  /** HTTP transport object to use for accessing bigquery API. */
-  private HttpTransport httpTransport;
-
-  /** JSON factory object to use for accessing bigquery API. */
-  private JsonFactory jsonFactory;
 
   /** Pseudo-randomness source to use for creating random table names. */
   private Random random = new Random();
@@ -122,12 +111,17 @@ public class BigqueryConnection implements AutoCloseable {
   /** Duration to wait between polls for job status. */
   private Duration pollInterval = Duration.millis(1000);
 
+  BigqueryConnection(Bigquery bigquery) {
+    this.bigquery = bigquery;
+  }
+
   /** Builder for a {@link BigqueryConnection}, since the latter is immutable once created. */
   public static class Builder {
     private BigqueryConnection instance;
 
-    public Builder() {
-      instance = new BigqueryConnection();
+    @Inject
+    Builder(Bigquery bigquery) {
+      instance = new BigqueryConnection(bigquery);
     }
 
     /**
@@ -136,13 +130,6 @@ public class BigqueryConnection implements AutoCloseable {
      */
     public Builder setExecutorService(ExecutorService executorService) {
       instance.service = MoreExecutors.listeningDecorator(executorService);
-      return this;
-    }
-
-    public Builder setCredential(GoogleCredential credential) {
-      instance.credential = checkNotNull(credential);
-      instance.httpTransport = credential.getTransport();
-      instance.jsonFactory = credential.getJsonFactory();
       return this;
     }
 
@@ -167,7 +154,11 @@ public class BigqueryConnection implements AutoCloseable {
     public BigqueryConnection build() {
       try {
         checkNotNull(instance.service, "Must provide executor service");
+        instance.initialize();
         return instance;
+      } catch (Throwable e) {
+        Throwables.throwIfUnchecked(e);
+        throw new RuntimeException("Cannot initialize BigqueryConnection", e);
       } finally {
         // Clear the internal instance so you can't accidentally mutate it through this builder.
         instance = null;
@@ -306,13 +297,10 @@ public class BigqueryConnection implements AutoCloseable {
   }
 
   /**
-   * Initializes the BigqueryConnection object by setting up the API client and creating the
-   * default dataset if it doesn't exist.
+   * Initializes the BigqueryConnection object by setting up the API client and creating the default
+   * dataset if it doesn't exist.
    */
-  public BigqueryConnection initialize() throws Exception {
-    bigquery = new Bigquery.Builder(httpTransport, jsonFactory, credential)
-        .setApplicationName(getClass().getSimpleName())
-        .build();
+  private BigqueryConnection initialize() throws Exception {
     createDatasetIfNeeded(datasetId);
     createDatasetIfNeeded(TEMP_DATASET_NAME);
     return this;

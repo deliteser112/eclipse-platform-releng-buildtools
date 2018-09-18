@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
-import google.registry.bigquery.BigqueryFactory;
+import google.registry.bigquery.CheckedBigquery;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
@@ -54,7 +54,8 @@ public class MetricsExportAction implements Runnable {
   @Inject @Parameter("tableId") String tableId;
   @Inject @Parameter("insertId") String insertId;
   @Inject @Config("projectId") String projectId;
-  @Inject BigqueryFactory bigqueryFactory;
+
+  @Inject CheckedBigquery checkedBigquery;
   @Inject @ParameterMap ImmutableListMultimap<String, String> parameters;
   @Inject MetricsExportAction() {}
 
@@ -62,7 +63,8 @@ public class MetricsExportAction implements Runnable {
   @Override
   public void run() {
     try {
-      Bigquery bigquery = bigqueryFactory.create(projectId, DATASET_ID, tableId);
+      Bigquery bigquery =
+          checkedBigquery.ensureDataSetAndTableExist(projectId, DATASET_ID, tableId);
       // Filter out the special parameters that the Action is called with.  Everything that's left
       // is returned in a Map that is suitable to pass to Bigquery as row data.
       Map<String, Object> jsonRows =

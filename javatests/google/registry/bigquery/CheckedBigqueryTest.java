@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,15 +17,11 @@ package google.registry.bigquery;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.bigquery.BigqueryUtils.FieldType.STRING;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Dataset;
 import com.google.api.services.bigquery.model.Table;
@@ -39,11 +35,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 
-/** Unit tests for {@link BigqueryFactory}. */
+/** Unit tests for {@link CheckedBigquery}. */
 @RunWith(JUnit4.class)
-public class BigqueryFactoryTest {
+public class CheckedBigqueryTest {
 
-  private final BigqueryFactory.Subfactory subfactory = mock(BigqueryFactory.Subfactory.class);
   private final Bigquery bigquery = mock(Bigquery.class);
   private final Bigquery.Datasets bigqueryDatasets = mock(Bigquery.Datasets.class);
   private final Bigquery.Datasets.Insert bigqueryDatasetsInsert =
@@ -51,25 +46,19 @@ public class BigqueryFactoryTest {
   private final Bigquery.Tables bigqueryTables = mock(Bigquery.Tables.class);
   private final Bigquery.Tables.Insert bigqueryTablesInsert = mock(Bigquery.Tables.Insert.class);
 
-  private BigqueryFactory factory;
+  private CheckedBigquery checkedBigquery;
 
   @Before
   public void before() throws Exception {
-    when(subfactory.create(
-        anyString(),
-        any(HttpTransport.class),
-        any(JsonFactory.class),
-        any(HttpRequestInitializer.class)))
-            .thenReturn(bigquery);
     when(bigquery.datasets()).thenReturn(bigqueryDatasets);
     when(bigqueryDatasets.insert(eq("Project-Id"), any(Dataset.class)))
         .thenReturn(bigqueryDatasetsInsert);
     when(bigquery.tables()).thenReturn(bigqueryTables);
     when(bigqueryTables.insert(eq("Project-Id"), any(String.class), any(Table.class)))
         .thenReturn(bigqueryTablesInsert);
-    factory = new BigqueryFactory();
-    factory.subfactory = subfactory;
-    factory.bigquerySchemas =
+    checkedBigquery = new CheckedBigquery();
+    checkedBigquery.bigquery = bigquery;
+    checkedBigquery.bigquerySchemas =
         new ImmutableMap.Builder<String, ImmutableList<TableFieldSchema>>()
             .put(
                 "Table-Id",
@@ -82,7 +71,7 @@ public class BigqueryFactoryTest {
 
   @Test
   public void testSuccess_datastoreCreation() throws Exception {
-    factory.create("Project-Id", "Dataset-Id");
+    checkedBigquery.ensureDataSetExists("Project-Id", "Dataset-Id");
 
     ArgumentCaptor<Dataset> datasetArg = ArgumentCaptor.forClass(Dataset.class);
     verify(bigqueryDatasets).insert(eq("Project-Id"), datasetArg.capture());
@@ -95,7 +84,7 @@ public class BigqueryFactoryTest {
 
   @Test
   public void testSuccess_datastoreAndTableCreation() throws Exception {
-    factory.create("Project-Id", "Dataset2", "Table2");
+    checkedBigquery.ensureDataSetAndTableExist("Project-Id", "Dataset2", "Table2");
 
     ArgumentCaptor<Dataset> datasetArg = ArgumentCaptor.forClass(Dataset.class);
     verify(bigqueryDatasets).insert(eq("Project-Id"), datasetArg.capture());

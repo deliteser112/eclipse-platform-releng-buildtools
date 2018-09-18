@@ -34,9 +34,9 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
-import google.registry.bigquery.BigqueryFactory;
 import google.registry.bigquery.BigqueryUtils.SourceFormat;
 import google.registry.bigquery.BigqueryUtils.WriteDisposition;
+import google.registry.bigquery.CheckedBigquery;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
 import google.registry.request.Action;
@@ -70,7 +70,7 @@ public class LoadSnapshotAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  @Inject BigqueryFactory bigqueryFactory;
+  @Inject CheckedBigquery checkedBigquery;
   @Inject BigqueryPollJobEnqueuer bigqueryPollEnqueuer;
   @Inject Clock clock;
   @Inject @Config("projectId") String projectId;
@@ -109,7 +109,7 @@ public class LoadSnapshotAction implements Runnable {
 
   private String loadSnapshot(String snapshotId, String gcsFilename, Iterable<String> kinds)
       throws IOException {
-    Bigquery bigquery = bigqueryFactory.create(projectId, SNAPSHOTS_DATASET);
+    Bigquery bigquery = checkedBigquery.ensureDataSetExists(projectId, SNAPSHOTS_DATASET);
     DateTime now = clock.nowUtc();
     String loadMessage =
         String.format("Loading Datastore snapshot %s from %s...", snapshotId, gcsFilename);

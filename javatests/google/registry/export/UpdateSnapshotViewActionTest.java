@@ -34,7 +34,7 @@ import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Dataset;
 import com.google.api.services.bigquery.model.Table;
 import com.google.common.collect.Iterables;
-import google.registry.bigquery.BigqueryFactory;
+import google.registry.bigquery.CheckedBigquery;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
@@ -55,7 +55,7 @@ public class UpdateSnapshotViewActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withTaskQueue()
       .build();
-  private final BigqueryFactory bigqueryFactory = mock(BigqueryFactory.class);
+  private final CheckedBigquery checkedBigquery = mock(CheckedBigquery.class);
   private final Bigquery bigquery = mock(Bigquery.class);
   private final Bigquery.Datasets bigqueryDatasets = mock(Bigquery.Datasets.class);
   private final Bigquery.Datasets.Insert bigqueryDatasetsInsert =
@@ -67,7 +67,7 @@ public class UpdateSnapshotViewActionTest {
 
   @Before
   public void before() throws Exception {
-    when(bigqueryFactory.create(anyString(), anyString())).thenReturn(bigquery);
+    when(checkedBigquery.ensureDataSetExists(anyString(), anyString())).thenReturn(bigquery);
     when(bigquery.datasets()).thenReturn(bigqueryDatasets);
     when(bigqueryDatasets.insert(anyString(), any(Dataset.class)))
         .thenReturn(bigqueryDatasetsInsert);
@@ -76,7 +76,7 @@ public class UpdateSnapshotViewActionTest {
         .thenReturn(bigqueryTablesUpdate);
 
     action = new UpdateSnapshotViewAction();
-    action.bigqueryFactory = bigqueryFactory;
+    action.checkedBigquery = checkedBigquery;
     action.datasetId = "some_dataset";
     action.kindName = "fookind";
     action.projectId = "myproject";
@@ -99,10 +99,12 @@ public class UpdateSnapshotViewActionTest {
   public void testSuccess_doPost() throws Exception {
     action.run();
 
-    InOrder factoryOrder = inOrder(bigqueryFactory);
+    InOrder factoryOrder = inOrder(checkedBigquery);
     // Check that the BigQuery factory was called in such a way that the dataset would be created
     // if it didn't already exist.
-    factoryOrder.verify(bigqueryFactory).create("myproject", "latest_datastore_export");
+    factoryOrder
+        .verify(checkedBigquery)
+        .ensureDataSetExists("myproject", "latest_datastore_export");
 
     // Check that we updated both views
     InOrder tableOrder = inOrder(bigqueryTables);

@@ -16,6 +16,8 @@ package google.registry.tools;
 
 import com.beust.jcommander.ParametersDelegate;
 import google.registry.bigquery.BigqueryConnection;
+import javax.inject.Inject;
+import javax.inject.Provider;
 
 /** A {@link Command} that uses the bigquery client API. */
 abstract class BigqueryCommand implements Command {
@@ -28,9 +30,12 @@ abstract class BigqueryCommand implements Command {
   /** Connection object for interacting with the Bigquery API. */
   private BigqueryConnection bigquery;
 
+  @Inject Provider<BigqueryConnection.Builder> bigQueryConnectionBuilderProvider;
+
   @Override
   public void run() throws Exception {
-    try (BigqueryConnection autoClosingBigquery = bigqueryParameters.newConnection()) {
+    try (BigqueryConnection autoClosingBigquery =
+        bigqueryParameters.newConnection(bigQueryConnectionBuilderProvider.get())) {
       bigquery = autoClosingBigquery;
       runWithBigquery();
     }

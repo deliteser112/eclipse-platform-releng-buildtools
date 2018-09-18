@@ -41,16 +41,9 @@ public class CreateCdnsTldTest extends CommandTestCase<CreateCdnsTld> {
   public void setUp() throws Exception {
     when(dnsService.managedZones()).thenReturn(managedZones);
     when(managedZones.create(projectId.capture(), requestBody.capture())).thenReturn(request);
-    command = new CreateCdnsTldForTest();
+    command = new CreateCdnsTld();
     command.projectId = "test-project";
-  }
-
-  /** Fake the command class so we can override createDnsService() */
-  class CreateCdnsTldForTest extends CreateCdnsTld {
-    @Override
-    Dns createDnsService() {
-      return dnsService;
-    }
+    command.dnsService = dnsService;
   }
 
   private ManagedZone createZone(

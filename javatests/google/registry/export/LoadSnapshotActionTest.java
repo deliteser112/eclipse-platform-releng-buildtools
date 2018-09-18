@@ -40,7 +40,7 @@ import com.google.api.services.bigquery.model.JobReference;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import google.registry.bigquery.BigqueryFactory;
+import google.registry.bigquery.CheckedBigquery;
 import google.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.InternalServerErrorException;
@@ -65,7 +65,7 @@ public class LoadSnapshotActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withTaskQueue()
       .build();
-  private final BigqueryFactory bigqueryFactory = mock(BigqueryFactory.class);
+  private final CheckedBigquery checkedBigquery = mock(CheckedBigquery.class);
   private final Bigquery bigquery = mock(Bigquery.class);
   private final Bigquery.Jobs bigqueryJobs = mock(Bigquery.Jobs.class);
   private final Bigquery.Jobs.Insert bigqueryJobsInsert = mock(Bigquery.Jobs.Insert.class);
@@ -79,14 +79,14 @@ public class LoadSnapshotActionTest {
 
   @Before
   public void before() throws Exception {
-    when(bigqueryFactory.create("Project-Id", "snapshots")).thenReturn(bigquery);
+    when(checkedBigquery.ensureDataSetExists("Project-Id", "snapshots")).thenReturn(bigquery);
     when(bigquery.jobs()).thenReturn(bigqueryJobs);
     when(bigqueryJobs.insert(eq("Project-Id"), any(Job.class))).thenReturn(bigqueryJobsInsert);
     when(bigquery.datasets()).thenReturn(bigqueryDatasets);
     when(bigqueryDatasets.insert(eq("Project-Id"), any(Dataset.class)))
         .thenReturn(bigqueryDatasetsInsert);
     action = new LoadSnapshotAction();
-    action.bigqueryFactory = bigqueryFactory;
+    action.checkedBigquery = checkedBigquery;
     action.bigqueryPollEnqueuer = bigqueryPollEnqueuer;
     action.clock = clock;
     action.projectId = "Project-Id";
@@ -113,9 +113,9 @@ public class LoadSnapshotActionTest {
   public void testSuccess_doPost() throws Exception {
     action.run();
 
-    // Verify that bigqueryFactory was called in a way that would create the dataset if it didn't
+    // Verify that checkedBigquery was called in a way that would create the dataset if it didn't
     // already exist.
-    verify(bigqueryFactory).create("Project-Id", "snapshots");
+    verify(checkedBigquery).ensureDataSetExists("Project-Id", "snapshots");
 
     // Capture the load jobs we inserted to do additional checking on them.
     ArgumentCaptor<Job> jobArgument = ArgumentCaptor.forClass(Job.class);
