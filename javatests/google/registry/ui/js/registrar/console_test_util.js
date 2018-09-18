@@ -34,10 +34,8 @@ registry.registrar.ConsoleTestUtil.setup = function(test) {
   test.historyMock = test.mockControl.createLooseMock(goog.History, true);
   test.sessionMock = test.mockControl.createLooseMock(
       registry.registrar.EppSession, true);
-  /** @suppress {missingRequire} */
   test.mockControl.createConstructorMock(goog, 'History')()
       .$returns(test.historyMock);
-  /** @suppress {missingRequire} */
   test.mockControl
       .createConstructorMock(registry.registrar, 'EppSession')(
           goog.testing.mockmatchers.isObject)

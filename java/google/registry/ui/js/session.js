@@ -16,7 +16,6 @@ goog.provide('registry.Session');
 
 goog.require('goog.json');
 goog.require('goog.net.XhrIo');
-goog.require('goog.structs.Map');
 goog.require('registry.util');
 
 goog.forwardDeclare('goog.Uri');
@@ -30,7 +29,6 @@ goog.forwardDeclare('goog.Uri');
  * @param {!registry.Session.ContentType} contentType Payload mode.
  * @constructor
  * @template REQUEST, RESPONSE
- * @suppress {deprecated}
  */
 registry.Session = function(defaultUri, xsrfToken, contentType) {
 
@@ -50,13 +48,13 @@ registry.Session = function(defaultUri, xsrfToken, contentType) {
 
   /**
    * XHR request headers.
-   * @private {!goog.structs.Map.<string, string>}
+   * @private {!Map.<string, string>}
    * @const
    */
-  this.headers_ = new goog.structs.Map(
-      'Content-Type', contentType,
-      'X-CSRF-Token', xsrfToken,
-      'X-Requested-With', 'XMLHttpRequest');
+  this.headers_ = new Map([
+      ['Content-Type', contentType],
+      ['X-CSRF-Token', xsrfToken],
+      ['X-Requested-With', 'XMLHttpRequest']]);
 };
 
 
