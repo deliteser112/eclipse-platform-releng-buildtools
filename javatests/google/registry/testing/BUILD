@@ -9,10 +9,6 @@ java_library(
     name = "testing",
     srcs = glob(
         ["*.java"],
-        exclude = [
-            "FakeProxyConnectionMetadataProvider.java",
-            "FakeQuotaServerClient.java",
-        ],
     ),
     resources = [
         "logging.properties",

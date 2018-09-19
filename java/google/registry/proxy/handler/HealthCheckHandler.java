@@ -16,6 +16,7 @@ package google.registry.proxy.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +36,7 @@ public class HealthCheckHandler extends ChannelInboundHandlerAdapter {
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     ByteBuf buf = (ByteBuf) msg;
     if (buf.equals(checkRequest)) {
-      ctx.writeAndFlush(checkResponse);
+      ChannelFuture unusedFuture = ctx.writeAndFlush(checkResponse);
     }
     buf.release();
   }

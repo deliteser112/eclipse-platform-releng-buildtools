@@ -3,8 +3,8 @@ locals {
 }
 
 resource "google_container_cluster" "proxy_cluster" {
-  name               = "proxy-cluster-${var.proxy_cluster_region}"
-  zone               = "${local.proxy_cluster_zone}"
+  name = "proxy-cluster-${var.proxy_cluster_region}"
+  zone = "${local.proxy_cluster_zone}"
 
   timeouts {
     update = "30m"

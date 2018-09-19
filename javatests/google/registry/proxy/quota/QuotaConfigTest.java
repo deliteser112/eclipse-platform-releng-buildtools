@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class QuotaConfigTest {
   @Test
   public void testSuccess_regularConfig() {
     quotaConfig = loadQuotaConfig("quota_config_regular.yaml");
-    assertThat(quotaConfig.getRefreshPeriod()).isEqualTo(Duration.standardSeconds(3600));
+    assertThat(quotaConfig.getRefreshPeriod()).isEqualTo(Duration.standardHours(1));
     validateQuota("abc", 10, 60);
     validateQuota("987lol", 500, 10);
     validateQuota("no_match", 100, 60);
@@ -58,7 +58,7 @@ public class QuotaConfigTest {
   @Test
   public void testSuccess_onlyDefault() {
     quotaConfig = loadQuotaConfig("quota_config_default.yaml");
-    assertThat(quotaConfig.getRefreshPeriod()).isEqualTo(Duration.standardSeconds(3600));
+    assertThat(quotaConfig.getRefreshPeriod()).isEqualTo(Duration.standardHours(1));
     validateQuota("abc", 100, 60);
     validateQuota("987lol", 100, 60);
     validateQuota("no_match", 100, 60);
