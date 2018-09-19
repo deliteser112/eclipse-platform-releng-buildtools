@@ -91,6 +91,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     assertThat(registrar.getLastUpdateTime()).isEqualTo(registrar.getCreationTime());
     assertThat(registrar.getBlockPremiumNames()).isFalse();
     assertThat(registrar.getPremiumPriceAckRequired()).isFalse();
+    assertThat(registrar.getPoNumber()).isEmpty();
 
     verify(connection).send(
         eq("/_dr/admin/createGroups"),
@@ -414,6 +415,28 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     Optional<Registrar> registrar = Registrar.loadByClientId("clientz");
     assertThat(registrar).isPresent();
     assertThat(registrar.get().getBillingIdentifier()).isEqualTo(12345);
+  }
+
+  @Test
+  public void testSuccess_poNumber() throws Exception {
+    runCommandForced(
+        "--name=blobio",
+        "--password=some_password",
+        "--registrar_type=REAL",
+        "--iana_id=8",
+        "--po_number=AA55G",
+        "--passcode=01234",
+        "--icann_referral_email=foo@bar.test",
+        "--street=\"123 Fake St\"",
+        "--city Fakington",
+        "--state MA",
+        "--zip 00351",
+        "--cc US",
+        "clientz");
+
+    Optional<Registrar> registrar = Registrar.loadByClientId("clientz");
+    assertThat(registrar).isPresent();
+    assertThat(registrar.get().getPoNumber()).hasValue("AA55G");
   }
 
   @Test

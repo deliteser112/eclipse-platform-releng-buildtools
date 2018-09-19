@@ -76,6 +76,7 @@ public class InvoicingPipelineTest {
             ZonedDateTime.of(2017, 10, 4, 0, 0, 0, 0, ZoneId.of("UTC")),
             "theRegistrar",
             "234",
+            "",
             "test",
             "RENEW",
             "mydomain.test",
@@ -90,6 +91,7 @@ public class InvoicingPipelineTest {
             ZonedDateTime.of(2017, 10, 4, 0, 0, 0, 0, ZoneId.of("UTC")),
             "theRegistrar",
             "234",
+            "",
             "test",
             "RENEW",
             "mydomain2.test",
@@ -104,6 +106,7 @@ public class InvoicingPipelineTest {
             ZonedDateTime.of(2017, 9, 29, 0, 0, 0, 0, ZoneId.of("UTC")),
             "theRegistrar",
             "234",
+            "",
             "hello",
             "CREATE",
             "mydomain3.hello",
@@ -116,8 +119,9 @@ public class InvoicingPipelineTest {
             1,
             ZonedDateTime.of(2017, 10, 4, 0, 0, 0, 0, ZoneId.of("UTC")),
             ZonedDateTime.of(2017, 10, 4, 0, 0, 0, 0, ZoneId.of("UTC")),
-            "googledomains",
+            "bestdomains",
             "456",
+            "116688",
             "test",
             "RENEW",
             "mydomain4.test",
@@ -132,6 +136,7 @@ public class InvoicingPipelineTest {
             ZonedDateTime.of(2017, 10, 4, 0, 0, 0, 0, ZoneId.of("UTC")),
             "anotherRegistrar",
             "789",
+            "",
             "test",
             "CREATE",
             "mydomain5.test",
@@ -155,9 +160,9 @@ public class InvoicingPipelineTest {
         ImmutableList.of(
             "1,2017-10-02 00:00:00 UTC,2017-09-29 00:00:00 UTC,theRegistrar,234,"
                 + "hello,CREATE,mydomain3.hello,REPO-ID,5,JPY,70.75,"),
-        "invoice_details_2017-10_googledomains_test.csv",
+        "invoice_details_2017-10_bestdomains_test.csv",
         ImmutableList.of(
-            "1,2017-10-04 00:00:00 UTC,2017-10-04 00:00:00 UTC,googledomains,456,"
+            "1,2017-10-04 00:00:00 UTC,2017-10-04 00:00:00 UTC,bestdomains,456,"
                 + "test,RENEW,mydomain4.test,REPO-ID,1,USD,20.50,"),
         "invoice_details_2017-10_anotherRegistrar_test.csv",
         ImmutableList.of(
@@ -171,8 +176,8 @@ public class InvoicingPipelineTest {
             + "RENEW | TLD: test | TERM: 3-year,20.50,USD,",
         "2017-10-01,2022-09-30,234,70.75,JPY,10125,1,PURCHASE,theRegistrar - hello,1,"
             + "CREATE | TLD: hello | TERM: 5-year,70.75,JPY,",
-        "2017-10-01,2018-09-30,456,20.50,USD,10125,1,PURCHASE,googledomains - test,1,"
-            + "RENEW | TLD: test | TERM: 1-year,20.50,USD,",
+        "2017-10-01,2018-09-30,456,20.50,USD,10125,1,PURCHASE,bestdomains - test,1,"
+            + "RENEW | TLD: test | TERM: 1-year,20.50,USD,116688",
         "2017-10-01,2018-09-30,789,0.00,USD,10125,1,PURCHASE,anotherRegistrar - test,1,"
             + "CREATE | TLD: test | TERM: 1-year,0.00,USD,");
   }
@@ -187,7 +192,7 @@ public class InvoicingPipelineTest {
     for (Entry<String, ImmutableList<String>> entry : getExpectedDetailReportMap().entrySet()) {
       ImmutableList<String> detailReport = resultFileContents(entry.getKey());
       assertThat(detailReport.get(0))
-          .isEqualTo("id,billingTime,eventTime,registrarId,billingId,tld,action,"
+          .isEqualTo("id,billingTime,eventTime,registrarId,billingId,poNumber,tld,action,"
               + "domain,repositoryId,years,currency,amount,flags");
       assertThat(detailReport.subList(1, detailReport.size()))
           .containsExactlyElementsIn(entry.getValue());

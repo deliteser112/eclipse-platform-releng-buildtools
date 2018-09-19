@@ -175,6 +175,14 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
 
   @Nullable
   @Parameter(
+      names = "--po_number",
+      description = "Purchase Order number used for billing invoices",
+      converter = OptionalStringParameter.class,
+      validateWith = OptionalStringParameter.class)
+  private Optional<String> poNumber;
+
+  @Nullable
+  @Parameter(
     names = "--billing_account_map",
     description =
         "Registrar Billing Account key-value pairs (formatted as key=value[,key=value...]), "
@@ -352,6 +360,7 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       if (billingId != null) {
         builder.setBillingIdentifier(billingId.orElse(null));
       }
+      Optional.ofNullable(poNumber).ifPresent(builder::setPoNumber);
       if (billingAccountMap != null) {
         LinkedHashMap<CurrencyUnit, String> newBillingAccountMap = new LinkedHashMap<>();
         if (oldRegistrar != null && oldRegistrar.getBillingAccountMap() != null) {

@@ -310,6 +310,10 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   @Nullable
   Long billingIdentifier;
 
+  /** Purchase Order number used for invoices in external billing system, if applicable. */
+  @Nullable
+  String poNumber;
+
   /**
    * Map of currency-to-billing account for the registrar.
    *
@@ -420,6 +424,10 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   @Nullable
   public Long getBillingIdentifier() {
     return billingIdentifier;
+  }
+
+  public Optional<String> getPoNumber() {
+    return Optional.ofNullable(poNumber);
   }
 
   public ImmutableMap<CurrencyUnit, String> getBillingAccountMap() {
@@ -644,17 +652,22 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
       return this;
     }
 
-    public Builder setIanaIdentifier(Long ianaIdentifier) {
+    public Builder setIanaIdentifier(@Nullable Long ianaIdentifier) {
       checkArgument(ianaIdentifier == null || ianaIdentifier > 0,
           "IANA ID must be a positive number");
       getInstance().ianaIdentifier = ianaIdentifier;
       return this;
     }
 
-    public Builder setBillingIdentifier(Long billingIdentifier) {
+    public Builder setBillingIdentifier(@Nullable Long billingIdentifier) {
       checkArgument(billingIdentifier == null || billingIdentifier > 0,
           "Billing ID must be a positive number");
       getInstance().billingIdentifier = billingIdentifier;
+      return this;
+    }
+
+    public Builder setPoNumber(Optional<String> poNumber) {
+      getInstance().poNumber = poNumber.orElse(null);
       return this;
     }
 

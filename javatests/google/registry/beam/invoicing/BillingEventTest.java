@@ -47,6 +47,7 @@ public class BillingEventTest {
           + "{\"name\": \"eventTime\", \"type\": \"string\"},"
           + "{\"name\": \"registrarId\", \"type\": \"string\"},"
           + "{\"name\": \"billingId\", \"type\": \"long\"},"
+          + "{\"name\": \"poNumber\", \"type\": \"string\"},"
           + "{\"name\": \"tld\", \"type\": \"string\"},"
           + "{\"name\": \"action\", \"type\": \"string\"},"
           + "{\"name\": \"domain\", \"type\": \"string\"},"
@@ -62,12 +63,17 @@ public class BillingEventTest {
   @Before
   public void initializeRecord() {
     // Create a record with a given JSON schema.
+    schemaAndRecord = new SchemaAndRecord(createRecord(), null);
+  }
+
+  private GenericRecord createRecord() {
     GenericRecord record = new GenericData.Record(new Schema.Parser().parse(BILLING_EVENT_SCHEMA));
     record.put("id", "1");
     record.put("billingTime", 1508835963000000L);
     record.put("eventTime", 1484870383000000L);
     record.put("registrarId", "myRegistrar");
     record.put("billingId", "12345-CRRHELLO");
+    record.put("poNumber", "");
     record.put("tld", "test");
     record.put("action", "RENEW");
     record.put("domain", "example.test");
@@ -76,7 +82,7 @@ public class BillingEventTest {
     record.put("currency", "USD");
     record.put("amount", 20.5);
     record.put("flags", "AUTO_RENEW SYNTHETIC");
-    schemaAndRecord = new SchemaAndRecord(record, null);
+    return record;
   }
 
   @Test
@@ -89,6 +95,7 @@ public class BillingEventTest {
         .isEqualTo(ZonedDateTime.of(2017, 1, 19, 23, 59, 43, 0, ZoneId.of("UTC")));
     assertThat(event.registrarId()).isEqualTo("myRegistrar");
     assertThat(event.billingId()).isEqualTo("12345-CRRHELLO");
+    assertThat(event.poNumber()).isEmpty();
     assertThat(event.tld()).isEqualTo("test");
     assertThat(event.action()).isEqualTo("RENEW");
     assertThat(event.domain()).isEqualTo("example.test");
@@ -150,6 +157,16 @@ public class BillingEventTest {
   }
 
   @Test
+  public void test_nonNullPoNumber() {
+    GenericRecord record = createRecord();
+    record.put("poNumber", "905610");
+    BillingEvent event = BillingEvent.parseFromRecord(new SchemaAndRecord(record, null));
+    assertThat(event.poNumber()).isEqualTo("905610");
+    InvoiceGroupingKey invoiceKey = event.getInvoiceGroupingKey();
+    assertThat(invoiceKey.poNumber()).isEqualTo("905610");
+  }
+
+  @Test
   public void testConvertInvoiceGroupingKey_toCsv() {
     BillingEvent event = BillingEvent.parseFromRecord(schemaAndRecord);
     InvoiceGroupingKey invoiceKey = event.getInvoiceGroupingKey();
@@ -174,7 +191,7 @@ public class BillingEventTest {
   public void testGetDetailReportHeader() {
     assertThat(BillingEvent.getHeader())
         .isEqualTo(
-            "id,billingTime,eventTime,registrarId,billingId,tld,action,"
+            "id,billingTime,eventTime,registrarId,billingId,poNumber,tld,action,"
                 + "domain,repositoryId,years,currency,amount,flags");
   }
 

@@ -22,6 +22,7 @@ SELECT
   eventTime,
   BillingEvent.clientId AS registrarId,
   RegistrarData.accountId AS billingId,
+  RegistrarData.poNumber AS poNumber,
   tld,
   reason as action,
   targetId as domain,
@@ -63,6 +64,7 @@ JOIN (
   SELECT
     __key__.name AS clientId,
     billingIdentifier,
+    IFNULL(poNumber, '') AS poNumber,
     r.billingAccountMap.currency[SAFE_OFFSET(index)] AS currency,
     r.billingAccountMap.accountId[SAFE_OFFSET(index)] AS accountId
   FROM

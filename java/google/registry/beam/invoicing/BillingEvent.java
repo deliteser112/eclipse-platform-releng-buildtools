@@ -56,7 +56,6 @@ public abstract class BillingEvent implements Serializable {
   private static final DateTimeFormatter DATE_TIME_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss zzz");
 
-
   /** The amount we multiply the price for sunrise creates. This is currently a 15% discount. */
   private static final double SUNRISE_DISCOUNT_PRICE_MODIFIER = 0.85;
 
@@ -67,6 +66,7 @@ public abstract class BillingEvent implements Serializable {
           "eventTime",
           "registrarId",
           "billingId",
+          "poNumber",
           "tld",
           "action",
           "domain",
@@ -78,28 +78,43 @@ public abstract class BillingEvent implements Serializable {
 
   /** Returns the unique Objectify ID for the {@code OneTime} associated with this event. */
   abstract long id();
+
   /** Returns the UTC DateTime this event becomes billable. */
   abstract ZonedDateTime billingTime();
+
   /** Returns the UTC DateTime this event was generated. */
   abstract ZonedDateTime eventTime();
+
   /** Returns the billed registrar's name. */
   abstract String registrarId();
+
   /** Returns the billed registrar's billing account key. */
   abstract String billingId();
+
+  /** Returns the Purchase Order number. */
+  abstract String poNumber();
+
   /** Returns the tld this event was generated for. */
   abstract String tld();
+
   /** Returns the billable action this event was generated for (i.e. RENEW, CREATE, TRANSFER...) */
   abstract String action();
+
   /** Returns the fully qualified domain name this event was generated for. */
   abstract String domain();
+
   /** Returns the unique RepoID associated with the billed domain. */
   abstract String repositoryId();
+
   /** Returns the number of years this billing event is made out for. */
   abstract int years();
+
   /** Returns the 3-letter currency code for the billing event (i.e. USD or JPY.) */
   abstract String currency();
+
   /** Returns the cost associated with this billing event. */
   abstract double amount();
+
   /** Returns a list of space-delimited flags associated with the event. */
   abstract String flags();
 
@@ -126,6 +141,7 @@ public abstract class BillingEvent implements Serializable {
             .atZone(ZoneId.of("UTC")),
         extractField(record, "registrarId"),
         extractField(record, "billingId"),
+        extractField(record, "poNumber"),
         extractField(record, "tld"),
         extractField(record, "action"),
         extractField(record, "domain"),
@@ -171,6 +187,7 @@ public abstract class BillingEvent implements Serializable {
       ZonedDateTime eventTime,
       String registrarId,
       String billingId,
+      String poNumber,
       String tld,
       String action,
       String domain,
@@ -185,6 +202,7 @@ public abstract class BillingEvent implements Serializable {
         eventTime,
         registrarId,
         billingId,
+        poNumber,
         tld,
         action,
         domain,
@@ -241,7 +259,7 @@ public abstract class BillingEvent implements Serializable {
         String.format("%s | TLD: %s | TERM: %d-year", action(), tld(), years()),
         amount(),
         currency(),
-        "");
+        poNumber());
   }
 
   /** Key for each {@code BillingEvent}, when aggregating for the overall invoice. */
@@ -267,18 +285,25 @@ public abstract class BillingEvent implements Serializable {
 
     /** Returns the first day this invoice is valid, in yyyy-MM-dd format. */
     abstract String startDate();
+
     /** Returns the last day this invoice is valid, in yyyy-MM-dd format. */
     abstract String endDate();
+
     /** Returns the billing account id, which is the {@code BillingEvent.billingId}. */
     abstract String productAccountKey();
+
     /** Returns the invoice grouping key, which is in the format "registrarId - tld". */
     abstract String usageGroupingKey();
+
     /** Returns a description of the item, formatted as "action | TLD: tld | TERM: n-year." */
     abstract String description();
+
     /** Returns the cost per invoice item. */
     abstract Double unitPrice();
+
     /** Returns the 3-digit currency code the unit price uses. */
     abstract String unitPriceCurrency();
+
     /** Returns the purchase order number for the item, blank for most registrars. */
     abstract String poNumber();
 

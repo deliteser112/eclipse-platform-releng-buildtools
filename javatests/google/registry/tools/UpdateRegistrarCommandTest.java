@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
 import static google.registry.testing.DatastoreHelper.createTlds;
@@ -32,6 +33,7 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.util.CidrAddressBlock;
+import java.util.Optional;
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -203,6 +205,13 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     assertThat(loadRegistrar("NewRegistrar").getBillingIdentifier()).isNull();
     runCommand("--billing_id=12345", "--force", "NewRegistrar");
     assertThat(loadRegistrar("NewRegistrar").getBillingIdentifier()).isEqualTo(12345);
+  }
+
+  @Test
+  public void testSuccess_poNumber() throws Exception {
+    assertThat(loadRegistrar("NewRegistrar").getPoNumber()).isEmpty();
+    runCommand("--po_number=52345", "--force", "NewRegistrar");
+    assertThat(loadRegistrar("NewRegistrar").getPoNumber()).hasValue("52345");
   }
 
   @Test
@@ -697,5 +706,25 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--name tHeRe GiStRaR", "--force", "NewRegistrar"));
+  }
+
+  @Test
+  public void testSuccess_poNumberNotSpecified_doesntWipeOutExisting() throws Exception {
+    Registrar registrar =
+        persistResource(
+            loadRegistrar("NewRegistrar").asBuilder().setPoNumber(Optional.of("1664")).build());
+    assertThat(registrar.testPassword("some_password")).isFalse();
+    runCommand("--password=some_password", "--force", "NewRegistrar");
+    Registrar reloadedRegistrar = loadRegistrar("NewRegistrar");
+    assertThat(reloadedRegistrar.testPassword("some_password")).isTrue();
+    assertThat(reloadedRegistrar.getPoNumber()).hasValue("1664");
+  }
+
+  @Test
+  public void testSuccess_poNumber_canBeBlanked() throws Exception {
+    persistResource(
+        loadRegistrar("NewRegistrar").asBuilder().setPoNumber(Optional.of("1664")).build());
+    runCommand("--po_number=null", "--force", "NewRegistrar");
+    assertThat(loadRegistrar("NewRegistrar").getPoNumber()).isEmpty();
   }
 }
