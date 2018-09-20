@@ -117,7 +117,7 @@ function handleLogin() {
   var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue(xhr.isActive());
   assertEquals('/registrar-xhr', xhr.getLastUri());
-  assertEquals('☢', xhr.getLastRequestHeaders().get('X-CSRF-Token'));
+  assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);
 }
@@ -183,7 +183,7 @@ function testView() {
   var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
   assertEquals('/registrar-xhr', xhr.getLastUri());
-  assertEquals('☢', xhr.getLastRequestHeaders().get('X-CSRF-Token'));
+  assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);
   assertEquals('We require more vespene gas.',
@@ -252,7 +252,7 @@ function testEdit() {
   var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
   assertEquals('/registrar-xhr', xhr.getLastUri());
-  assertEquals('☢', xhr.getLastRequestHeaders().get('X-CSRF-Token'));
+  assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);
 
@@ -307,7 +307,7 @@ function testEdit() {
   xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
   assertEquals('/registrar-xhr', xhr.getLastUri());
-  assertEquals('☢', xhr.getLastRequestHeaders().get('X-CSRF-Token'));
+  assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);
   assertEquals('We require more vespene gas.',
@@ -414,7 +414,7 @@ function testCreate() {
   var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
   assertEquals('/registrar-xhr', xhr.getLastUri());
-  assertEquals('☢', xhr.getLastRequestHeaders().get('X-CSRF-Token'));
+  assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);
 
@@ -469,7 +469,7 @@ function testCreate() {
   xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
   assertEquals('/registrar-xhr', xhr.getLastUri());
-  assertEquals('☢', xhr.getLastRequestHeaders().get('X-CSRF-Token'));
+  assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);
   assertEquals('We require more vespene gas.',

@@ -135,7 +135,7 @@ function testNavToResources() {
   assertTrue(xhr.isActive());
   assertEquals('/registrar-settings', xhr.getLastUri());
   assertEquals(test.testXsrfToken,
-               xhr.getLastRequestHeaders().get('X-CSRF-Token'));
+               xhr.getLastRequestHeaders()['X-CSRF-Token']);
   xhr.simulateResponse(200, goog.json.serialize({
     status: 'SUCCESS',
     message: 'OK',
@@ -161,7 +161,7 @@ function testNavToContactUs() {
   assertTrue(xhr.isActive());
   assertEquals('/registrar-settings', xhr.getLastUri());
   assertEquals(test.testXsrfToken,
-               xhr.getLastRequestHeaders().get('X-CSRF-Token'));
+               xhr.getLastRequestHeaders()['X-CSRF-Token']);
   var passcode = '5-5-5-5-5';
   xhr.simulateResponse(200, goog.json.serialize({
     status: 'SUCCESS',

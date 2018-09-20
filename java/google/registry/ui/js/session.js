@@ -48,13 +48,14 @@ registry.Session = function(defaultUri, xsrfToken, contentType) {
 
   /**
    * XHR request headers.
-   * @private {!Map.<string, string>}
+   * @private {!Object<string, string>}
    * @const
    */
-  this.headers_ = new Map([
-      ['Content-Type', contentType],
-      ['X-CSRF-Token', xsrfToken],
-      ['X-Requested-With', 'XMLHttpRequest']]);
+  this.headers_ = {
+    'Content-Type': contentType,
+    'X-CSRF-Token': xsrfToken,
+    'X-Requested-With': 'XMLHttpRequest'
+  };
 };
 
 
