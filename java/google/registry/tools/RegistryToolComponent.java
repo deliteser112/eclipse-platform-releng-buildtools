@@ -14,7 +14,6 @@
 
 package google.registry.tools;
 
-import com.google.monitoring.metrics.MetricWriter;
 import dagger.Component;
 import google.registry.bigquery.BigqueryModule;
 import google.registry.config.CredentialModule;
@@ -29,7 +28,6 @@ import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
-import google.registry.request.Modules.NetHttpTransportModule;
 import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
@@ -67,7 +65,6 @@ import javax.inject.Singleton;
       Jackson2Module.class,
       KeyModule.class,
       KmsModule.class,
-      NetHttpTransportModule.class,
       RdeModule.class,
       RegistryToolModule.class,
       SystemClockModule.class,
@@ -79,7 +76,6 @@ import javax.inject.Singleton;
       UserServiceModule.class,
       VoidDnsWriterModule.class,
       WhoisModule.class,
-      MetricToolModule.class,
     })
 interface RegistryToolComponent {
   void inject(CheckDomainClaimsCommand command);
@@ -118,6 +114,4 @@ interface RegistryToolComponent {
   void inject(WhoisQueryCommand command);
 
   AppEngineConnection appEngineConnection();
-
-  MetricWriter metricWriter();
 }
