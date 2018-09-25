@@ -1,5 +1,6 @@
 {
   "op": "update",
+  "id": "TheRegistrar",
   "args": {
     "clientIdentifier": "theregistrar",
     "driveFolderId": null,

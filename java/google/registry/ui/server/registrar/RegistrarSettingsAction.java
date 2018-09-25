@@ -74,6 +74,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   static final String OP_PARAM = "op";
   static final String ARGS_PARAM = "args";
+  static final String ID_PARAM = "id";
 
   @Inject HttpServletRequest request;
   @Inject JsonActionRunner jsonActionRunner;
@@ -100,6 +101,20 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     }
 
     Registrar initialRegistrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
+    // Check that the clientId requested is the same as the one we get in the
+    // getRegistrarForAuthResult.
+    // TODO(b/113925293): remove this check, and instead use the requested clientId to select the
+    // registrar (in a secure way making sure authResult has access to that registrar!)
+    String clientId = (String) input.get(ID_PARAM);
+    if (Strings.isNullOrEmpty(clientId)) {
+      throw new BadRequestException(String.format("Missing key for resource ID: %s", ID_PARAM));
+    }
+    if (!clientId.equals(initialRegistrar.getClientId())) {
+      throw new BadRequestException(
+          String.format(
+              "User's clientId changed from %s to %s. Please reload page",
+              clientId, initialRegistrar.getClientId()));
+    }
     // Process the operation.  Though originally derived from a CRUD
     // handler, registrar-settings really only supports read and update.
     String op = Optional.ofNullable((String) input.get(OP_PARAM)).orElse("read");

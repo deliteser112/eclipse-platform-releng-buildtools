@@ -25,13 +25,16 @@ goog.forwardDeclare('goog.Uri');
  * Provide a CRUD view of a server resource.
  *
  * @param {!goog.Uri} baseUri Target RESTful resource.
+ * @param {string} id the ID of the target resource
  * @param {string} xsrfToken Security token to pass back to the server.
  * @extends {registry.Session}
  * @constructor
  */
-registry.Resource = function(baseUri, xsrfToken) {
+registry.Resource = function(baseUri, id, xsrfToken) {
   registry.Resource.base(this, 'constructor', baseUri, xsrfToken,
                          registry.Session.ContentType.JSON);
+  /** @const @private {string} the ID of the target resource. */
+  this.id_ = id;
 };
 goog.inherits(registry.Resource, registry.Session);
 
@@ -73,5 +76,6 @@ registry.Resource.prototype.send_ =
   var req = {};
   req['op'] = opCode;
   req['args'] = argsObj;
+  req['id'] = this.id_;
   this.sendXhrIo(goog.json.serialize(req), callback);
 };

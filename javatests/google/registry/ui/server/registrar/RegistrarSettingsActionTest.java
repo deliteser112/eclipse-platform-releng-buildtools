@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
+import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthResult;
 import google.registry.testing.CertificateSamples;
@@ -94,18 +95,33 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
    * This is the default read test for the registrar settings actions.
    */
   @Test
-  public void testRead_authorized_returnsRegistrarJson() {
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of());
+  public void testSuccess_readRegistrarInfo_authorized() {
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of("id", CLIENT_ID));
     assertThat(response).containsExactly(
         "status", "SUCCESS",
         "message", "Success",
         "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
   }
 
+  /**
+   * We got a different CLIENT_ID from the JS than the one we find ourself.
+   *
+   * <p>This might happen if the user's "guessed" registrar changes after the initial page load. For
+   * example, if the user was added as contact to a different registrar, or removed as contact from
+   * the current registrar (but is still a contact of a different one, so the "guessing" works).
+   */
+  @Test
+  public void testFailure_readRegistrarInfo_differentClientId() {
+    assertThrows(
+        BadRequestException.class,
+        () -> action.handleJsonRequest(ImmutableMap.of("id", "different")));
+  }
+
   @Test
   public void testUpdate_emptyJsonObject_errorLastUpdateTimeFieldRequired() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", ImmutableMap.of()));
     assertThat(response).containsExactly(
         "status", "ERROR",
@@ -119,6 +135,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   public void testUpdate_noEmail_errorEmailFieldRequired() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
     assertThat(response).containsExactly(
         "status", "ERROR",
@@ -134,6 +151,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
     assertThat(response).containsExactly(
         "status", "SUCCESS",
@@ -145,6 +163,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   public void testUpdate_badEmail_errorEmailField() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", ImmutableMap.of(
             "lastUpdateTime", getLastUpdateTime(),
             "emailAddress", "lolcat")));
@@ -160,6 +179,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   public void testPost_nonParsableTime_getsAngry() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", ImmutableMap.of("lastUpdateTime", "cookies")));
     assertThat(response).containsExactly(
         "status", "ERROR",
@@ -173,6 +193,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   public void testPost_nonAsciiCharacters_getsAngry() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", ImmutableMap.of(
             "lastUpdateTime", getLastUpdateTime(),
             "emailAddress", "ヘ(◕。◕ヘ)@example.com")));
@@ -195,6 +216,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         action.handleJsonRequest(
             ImmutableMap.of(
                 "op", "update",
+                "id", CLIENT_ID,
                 "args", setter.apply(registrar.asBuilder(), newValue).build().toJsonMap()));
 
     registrar = loadRegistrar(CLIENT_ID);

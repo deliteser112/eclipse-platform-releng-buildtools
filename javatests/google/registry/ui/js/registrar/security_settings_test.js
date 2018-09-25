@@ -80,12 +80,12 @@ function testView() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'security-settings',
     xsrfToken: test.testXsrfToken,
-    testClientId: test.testClientId
+    clientId: test.testClientId
   });
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'read', args: {}},
+      {op: 'read', id: 'testClientId', args: {}},
       {
         status: 'SUCCESS',
         message: 'OK',
@@ -116,7 +116,7 @@ function testEdit() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'update', args: {
+      {op: 'update', id: 'testClientId', args: {
         clientCertificate: exampleCert,
         clientCertificateHash: null,
         failoverClientCertificate: 'bourgeois blues',
@@ -137,7 +137,7 @@ function testEdit() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'read', args: {}},
+      {op: 'read', id: 'testClientId', args: {}},
       {status: 'SUCCESS',
         message: 'OK',
         results: [expectedRegistrar]});

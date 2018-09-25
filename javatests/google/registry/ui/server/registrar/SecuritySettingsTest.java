@@ -51,6 +51,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
             .build();
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", modified.toJsonMap()));
     // Empty whoisServer field should be set to default by server.
     modified =
@@ -69,6 +70,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     reqJson.put("clientCertificate", "BLAH");
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", reqJson));
     assertThat(response).containsEntry("status", "ERROR");
     assertThat(response).containsEntry("message", "Invalid X.509 PEM certificate");
@@ -80,7 +82,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     jsonMap.put("clientCertificate", SAMPLE_CERT);
     jsonMap.put("failoverClientCertificate", null);
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update", "args", jsonMap));
+        "op", "update", "id", CLIENT_ID, "args", jsonMap));
     assertThat(response).containsEntry("status", "SUCCESS");
     Registrar registrar = loadRegistrar(CLIENT_ID);
     assertThat(registrar.getClientCertificate()).isEqualTo(SAMPLE_CERT);
@@ -94,7 +96,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     Map<String, Object> jsonMap = loadRegistrar(CLIENT_ID).toJsonMap();
     jsonMap.put("failoverClientCertificate", SAMPLE_CERT2);
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update", "args", jsonMap));
+        "op", "update", "id", CLIENT_ID, "args", jsonMap));
     assertThat(response).containsEntry("status", "SUCCESS");
     Registrar registrar = loadRegistrar(CLIENT_ID);
     assertThat(registrar.getFailoverClientCertificate()).isEqualTo(SAMPLE_CERT2);
@@ -116,7 +118,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     jsonMap.put("clientCertificate", null);
     jsonMap.put("failoverClientCertificate", "");
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update", "args", jsonMap));
+        "op", "update", "id", CLIENT_ID, "args", jsonMap));
     assertThat(response).containsEntry("status", "SUCCESS");
     Registrar registrar = loadRegistrar(CLIENT_ID);
     assertThat(registrar.getClientCertificate()).isEqualTo(SAMPLE_CERT);

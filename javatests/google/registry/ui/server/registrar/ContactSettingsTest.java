@@ -45,6 +45,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   public void testPost_readContacts_success() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "read",
+        "id", CLIENT_ID,
         "args", ImmutableMap.of()));
     @SuppressWarnings("unchecked")
     List<Map<String, ?>> results = (List<Map<String, ?>>) response.get("results");
@@ -56,6 +57,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   public void testPost_loadSaveRegistrar_success() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", loadRegistrar(CLIENT_ID).toJsonMap()));
     assertThat(response).containsEntry("status", "SUCCESS");
   }
@@ -75,7 +77,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     Map<String, Object> regMap = registrar.toJsonMap();
     regMap.put("contacts", ImmutableList.of(adminContact1));
     Map<String, Object> response =
-        action.handleJsonRequest(ImmutableMap.of("op", "update", "args", regMap));
+        action.handleJsonRequest(ImmutableMap.of("op", "update", "id", CLIENT_ID, "args", regMap));
     assertThat(response).containsEntry("status", "SUCCESS");
 
     RegistrarContact newContact = new RegistrarContact.Builder()
@@ -98,6 +100,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
             .build().toJsonMap()));
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", reqJson));
     assertThat(response).containsEntry("status", "ERROR");
     assertThat(response).containsEntry("message", "Must have at least one "
@@ -123,6 +126,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     reqJson.put("contacts", ImmutableList.of(rc.toJsonMap()));
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", reqJson));
     assertThat(response).containsEntry("status", "ERROR");
     assertThat(response).containsEntry("message", "Please provide a phone number for at least one "
@@ -148,7 +152,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     Map<String, Object> reqJson = registrar.toJsonMap();
     reqJson.put("contacts", ImmutableList.of(rc.toJsonMap()));
     Map<String, Object> response =
-        action.handleJsonRequest(ImmutableMap.of("op", "update", "args", reqJson));
+        action.handleJsonRequest(ImmutableMap.of("op", "update", "id", CLIENT_ID, "args", reqJson));
     assertThat(response).containsEntry("status", "ERROR");
     assertThat(response)
         .containsEntry(
@@ -174,7 +178,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     Map<String, Object> reqJson = registrar.toJsonMap();
     reqJson.put("contacts", ImmutableList.of(rc.toJsonMap()));
     Map<String, Object> response =
-        action.handleJsonRequest(ImmutableMap.of("op", "update", "args", reqJson));
+        action.handleJsonRequest(ImmutableMap.of("op", "update", "id", CLIENT_ID, "args", reqJson));
     assertThat(response).containsEntry("status", "ERROR");
     assertThat(response)
         .containsEntry(

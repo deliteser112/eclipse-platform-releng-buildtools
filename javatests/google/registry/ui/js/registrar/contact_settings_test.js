@@ -82,7 +82,7 @@ function testCollectionView() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'read', args: {}},
+      {op: 'read', id: 'testClientId', args: {}},
       {
         status: 'SUCCESS',
         message: 'OK',
@@ -106,7 +106,7 @@ function testItemView() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'read', args: {}},
+      {op: 'read', id: 'testClientId', args: {}},
       {
         status: 'SUCCESS',
         message: 'OK',
@@ -149,6 +149,7 @@ function testItemEdit() {
       '/registrar-settings',
       {
         op: 'update',
+        id: 'testClientId',
         args: {
           contacts: [testContact],
           readonly: false
@@ -181,6 +182,7 @@ function testChangeContactTypes() {
       '/registrar-settings',
       {
         op: 'update',
+        id: 'testClientId',
         args: {
           contacts: [testContact],
           readonly: false
@@ -204,7 +206,7 @@ function testOneOfManyUpdate() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'contact-settings/test@example.com',
     xsrfToken: test.testXsrfToken,
-    testClientId: test.testClientId
+    clientId: test.testClientId
   });
   var testContacts = [
     createTestContact('new1@asdf.com'),
@@ -214,7 +216,7 @@ function testOneOfManyUpdate() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'read', args: {}},
+      {op: 'read', id: 'testClientId', args: {}},
       {
         status: 'SUCCESS',
         message: 'OK',
@@ -235,7 +237,14 @@ function testOneOfManyUpdate() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'update', args: {contacts: testContacts, readonly: false}},
+      {
+        op: 'update',
+        id: 'testClientId',
+        args: {
+          contacts: testContacts,
+          readonly: false,
+        },
+      },
       {
         status: 'SUCCESS',
         message: 'OK',
@@ -251,13 +260,15 @@ function testDomainWhoisAbuseContactOverride() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'contact-settings/test@example.com',
     xsrfToken: test.testXsrfToken,
-    testClientId: test.testClientId
+    clientId: test.testClientId
   });
   var oldDomainWhoisAbuseContact = createTestContact('old@asdf.com');
   oldDomainWhoisAbuseContact.visibleInDomainWhoisAsAbuse = true;
   var testContacts = [oldDomainWhoisAbuseContact, testContact];
   registry.testing.assertReqMockRsp(
-      test.testXsrfToken, '/registrar-settings', {op: 'read', args: {}},
+      test.testXsrfToken,
+      '/registrar-settings',
+      {op: 'read', id: 'testClientId', args: {}},
       {status: 'SUCCESS', message: 'OK', results: [{contacts: testContacts}]});
   // Edit testContact.
   registry.testing.click($('reg-app-btn-edit'));
@@ -271,8 +282,13 @@ function testDomainWhoisAbuseContactOverride() {
   testContact.visibleInDomainWhoisAsAbuse = true;
   oldDomainWhoisAbuseContact.visibleInDomainWhoisAsAbuse = false;
   registry.testing.assertReqMockRsp(
-      test.testXsrfToken, '/registrar-settings',
-      {op: 'update', args: {contacts: testContacts, readonly: false}},
+      test.testXsrfToken,
+      '/registrar-settings',
+      {
+        op: 'update',
+        id: 'testClientId',
+        args: {contacts: testContacts, readonly: false},
+      },
       {status: 'SUCCESS', message: 'OK', results: [{contacts: testContacts}]});
 }
 
@@ -281,7 +297,7 @@ function testDelete() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'contact-settings/test@example.com',
     xsrfToken: test.testXsrfToken,
-    testClientId: test.testClientId
+    clientId: test.testClientId
   });
   var testContacts = [
     createTestContact('new1@asdf.com'),
@@ -291,7 +307,7 @@ function testDelete() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'read', args: {}},
+      {op: 'read', id: 'testClientId', args: {}},
       {
         status: 'SUCCESS',
         message: 'OK',
@@ -309,7 +325,11 @@ function testDelete() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'update', args: {contacts: testContacts, readonly: false}},
+      {
+        op: 'update',
+        id: 'testClientId',
+        args: {contacts: testContacts, readonly: false},
+      },
       {
         status: 'SUCCESS',
         message: 'OK',

@@ -98,13 +98,13 @@ function testView() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'whois-settings',
     xsrfToken: test.testXsrfToken,
-    testClientId: test.testClientId
+    clientId: test.testClientId
   });
   var testRegistrar = createTestRegistrar();
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'read', args: {}},
+      {op: 'read', id: 'testClientId', args: {}},
       {
         status: 'SUCCESS',
         message: 'OK',
@@ -129,7 +129,7 @@ function testEdit() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'update', args: parsed},
+      {op: 'update', id: 'testClientId', args: parsed},
       {
         status: 'SUCCESS',
         message: 'OK',
@@ -149,7 +149,7 @@ function testEditFieldError_insertsError() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'update', args: parsed},
+      {op: 'update', id: 'testClientId', args: parsed},
       {
         status: 'ERROR',
         field: 'phoneNumber',
@@ -173,7 +173,7 @@ function testEditNonFieldError_showsButterBar() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'update', args: parsed},
+      {op: 'update', id: 'testClientId', args: parsed},
       {
         status: 'ERROR',
         message: errMsg

@@ -139,7 +139,8 @@ registry.registrar.Console.prototype.handleHashChange = function() {
   }
   var oldComponent = this.component_;
   const resource = new registry.Resource(
-      new goog.Uri('/registrar-settings'), this.params.xsrfToken);
+      new goog.Uri('/registrar-settings'), this.params.clientId,
+      this.params.xsrfToken);
   this.component_ = new componentCtor(this, resource);
   this.registerDisposable(this.component_);
   this.component_.basePath = type;
