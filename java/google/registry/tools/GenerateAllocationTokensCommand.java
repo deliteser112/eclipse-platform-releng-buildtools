@@ -43,13 +43,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 /** Command to generate and persist {@link AllocationToken}s. */
-@NonFinalForTesting
 @Parameters(
   separators = " =",
   commandDescription =
       "Generates and persists the given number of AllocationTokens, printing each token to stdout."
 )
-public class GenerateAllocationTokensCommand implements CommandWithRemoteApi {
+@NonFinalForTesting
+class GenerateAllocationTokensCommand implements CommandWithRemoteApi {
 
   @Parameter(
     names = {"-p", "--prefix"},
