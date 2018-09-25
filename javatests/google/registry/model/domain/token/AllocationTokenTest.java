@@ -48,10 +48,12 @@ public class AllocationTokenTest extends EntityTestCase {
         persistResource(
             new AllocationToken.Builder()
                 .setToken("abc123")
+                .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, 1L))
                 .setDomainName("blahdomain.fake")
                 .setCreationTimeForTest(DateTime.parse("2010-11-12T05:00:00Z"))
                 .build()),
         "token",
+        "redemptionHistoryEntry",
         "domainName");
   }
 
