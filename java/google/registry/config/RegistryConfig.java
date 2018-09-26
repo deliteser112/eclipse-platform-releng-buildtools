@@ -1186,6 +1186,12 @@ public final class RegistryConfig {
       return config.registryTool.clientSecretFilename;
     }
 
+    @Provides
+    @Config("rdapTos")
+    public static ImmutableList<String> provideRdapTos(RegistryConfigSettings config) {
+      return ImmutableList.copyOf(Splitter.on('\n').split(config.registryPolicy.rdapTos));
+    }
+
     /**
      * Returns the help text to be used by RDAP.
      *
@@ -1195,7 +1201,8 @@ public final class RegistryConfig {
     @Singleton
     @Provides
     @Config("rdapHelpMap")
-    public static ImmutableMap<String, RdapNoticeDescriptor> provideRdapHelpMap() {
+    public static ImmutableMap<String, RdapNoticeDescriptor> provideRdapHelpMap(
+        @Config("rdapTos") ImmutableList<String> rdapTos) {
       return new ImmutableMap.Builder<String, RdapNoticeDescriptor>()
           .put("/", RdapNoticeDescriptor.builder()
               .setTitle("RDAP Help")
@@ -1216,33 +1223,7 @@ public final class RegistryConfig {
               .build())
           .put("/tos", RdapNoticeDescriptor.builder()
               .setTitle("RDAP Terms of Service")
-              .setDescription(ImmutableList.of(
-                  "By querying our Domain Database as part of the RDAP pilot program (RDAP Domain"
-                      + "Database), you are agreeing to comply with these terms, so please read"
-                      + " them carefully.",
-                  "Any information provided is 'as is' without any guarantee of accuracy.",
-                  "Please do not misuse the RDAP Domain Database. It is intended solely for"
-                      + " query-based access on an experimental basis and should not be used for or"
-                      + " relied upon for any other purpose.",
-                  "Don't use the RDAP Domain Database to allow, enable, or otherwise support the"
-                      + " transmission of mass unsolicited, commercial advertising or"
-                      + " solicitations.",
-                  "Don't access our RDAP Domain Database through the use of high volume, automated"
-                      + " electronic processes that send queries or data to the systems of any"
-                      + " ICANN-accredited registrar.",
-                  "You may only use the information contained in the RDAP Domain Database for"
-                      + " lawful purposes.",
-                  "Do not compile, repackage, disseminate, or otherwise use the information"
-                      + " contained in the RDAP Domain Database in its entirety, or in any"
-                      + " substantial portion, without our prior written permission.",
-                  "We may retain certain details about queries to our RDAP Domain Database for the"
-                      + " purposes of detecting and preventing misuse.",
-                  "We reserve the right to restrict or deny your access to the RDAP Domain Database"
-                      + " if we suspect that you have failed to comply with these terms.",
-                  "We reserve the right to modify or discontinue our participation in the RDAP"
-                      + " pilot program and suspend or terminate access to the RDAP Domain Database"
-                      + " at any time and for any reason in our sole discretion.",
-                  "We reserve the right to modify this agreement at any time."))
+              .setDescription(rdapTos)
               .setLinkValueSuffix("help/tos")
               .build())
           .build();

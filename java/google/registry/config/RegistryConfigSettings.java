@@ -90,6 +90,7 @@ public class RegistryConfigSettings {
     public String premiumTermsExportDisclaimer;
     public String reservedTermsExportDisclaimer;
     public String whoisDisclaimer;
+    public String rdapTos;
   }
 
   /** Configuration for Cloud Datastore. */
