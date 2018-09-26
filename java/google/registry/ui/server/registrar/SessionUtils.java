@@ -14,15 +14,11 @@
 
 package google.registry.ui.server.registrar;
 
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Verify.verify;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Strings;
 import com.google.common.flogger.FluentLogger;
-import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
@@ -30,19 +26,15 @@ import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
 import java.util.Optional;
-import javax.annotation.CheckReturnValue;
+import java.util.function.Function;
 import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
-/** HTTP session management helper class. */
+/** Authenticated Registrar access helper class. */
 @Immutable
 public class SessionUtils {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
-  private static final String CLIENT_ID_ATTRIBUTE = "clientId";
 
   @Inject
   @Config("registryAdminClientId")
@@ -52,145 +44,118 @@ public class SessionUtils {
   public SessionUtils() {}
 
   /**
-   * Checks that the authentication result indicates a user that has access to the registrar
-   * console, then gets the associated registrar.
+   * Loads Registrar on behalf of an authorised user.
    *
-   * <p>Throws a {@link ForbiddenException} if the user is not logged in, or not authorized to use
-   * the registrar console.
+   * <p>Throws a {@link ForbiddenException} if the user is not logged in, or not authorized to
+   * access the requested registrar.
+   *
+   * @param clientId ID of the registrar we request
+   * @param authResult AuthResult of the user on behalf of which we want to access the data
    */
-  @CheckReturnValue
-  Registrar getRegistrarForAuthResult(HttpServletRequest request, AuthResult authResult) {
-    if (!authResult.userAuthInfo().isPresent()) {
-      throw new ForbiddenException("Not logged in");
-    }
-    if (!checkRegistrarConsoleLogin(request, authResult.userAuthInfo().get())) {
-      throw new ForbiddenException("Not authorized to access Registrar Console");
-    }
-    String clientId = getRegistrarClientId(request);
-    return checkArgumentPresent(
-        Registrar.loadByClientId(clientId),
-        "Registrar %s not found",
-        clientId);
+  public Registrar getRegistrarForUser(String clientId, AuthResult authResult) {
+    return getAndAuthorize(Registrar::loadByClientId, clientId, authResult);
   }
 
   /**
-   * Checks that the specified user has access to the Registrar Console.
+   * Loads a Registrar from the cache on behalf of an authorised user.
    *
-   * <p>This routine will first check the HTTP session (creating one if it doesn't exist) for the
-   * {@code clientId} attribute:
+   * <p>Throws a {@link ForbiddenException} if the user is not logged in, or not authorized to
+   * access the requested registrar.
    *
-   * <ul>
-   *   <li>If it does not exist, then we will attempt to guess the {@link Registrar} with which the
-   *       user is associated. The {@code clientId} of the first matching {@code Registrar} will
-   *       then be stored to the HTTP session.
-   *   <li>If it does exist, then we'll fetch the Registrar from Datastore to make sure access
-   *       wasn't revoked.
-   * </ul>
-   *
-   * <p><b>Note:</b> You must ensure the user has logged in before calling this method.
-   *
-   * @return {@code false} if user does not have access, in which case the caller should write an
-   *     error response and abort the request.
+   * @param clientId ID of the registrar we request
+   * @param authResult AuthResult of the user on behalf of which we want to access the data
    */
-  @CheckReturnValue
-  public boolean checkRegistrarConsoleLogin(HttpServletRequest req, UserAuthInfo userAuthInfo) {
-    checkState(userAuthInfo != null, "No logged in user found");
+  public Registrar getRegistrarForUserCached(String clientId, AuthResult authResult) {
+    return getAndAuthorize(Registrar::loadByClientIdCached, clientId, authResult);
+  }
+
+  Registrar getAndAuthorize(
+      Function<String, Optional<Registrar>> registrarLoader,
+      String clientId,
+      AuthResult authResult) {
+    UserAuthInfo userAuthInfo =
+        authResult.userAuthInfo().orElseThrow(() -> new ForbiddenException("Not logged in"));
+    boolean isAdmin = userAuthInfo.isUserAdmin();
     User user = userAuthInfo.user();
-    HttpSession session = req.getSession();
-    String clientId = (String) session.getAttribute(CLIENT_ID_ATTRIBUTE);
+    String gaeUserId = user.getUserId();
 
-    // Use the clientId if it exists
-    if (clientId != null) {
-      if (!hasAccessToRegistrar(clientId, user.getUserId(), userAuthInfo.isUserAdmin())) {
-        logger.atInfo().log("Registrar Console access revoked: %s", clientId);
-        session.invalidate();
-        return false;
-      }
-      logger.atInfo().log(
-          "Associating user %s with given registrar %s.", user.getUserId(), clientId);
-      return true;
+    Registrar registrar =
+        registrarLoader
+            .apply(clientId)
+            .orElseThrow(
+                () -> new ForbiddenException(String.format("Registrar %s not found", clientId)));
+
+    if (isInAllowedContacts(registrar, gaeUserId)) {
+      logger.atInfo().log("User %s has access to registrar %s.", gaeUserId, clientId);
+      return registrar;
     }
 
-    // The clientId was null, so let's try and find a registrar this user is associated with
-    Optional<Registrar> registrar = findRegistrarForUser(user.getUserId());
-    if (registrar.isPresent()) {
-      verify(isInAllowedContacts(registrar.get(), user.getUserId()));
-      logger.atInfo().log(
-          "Associating user %s with found registrar %s.",
-          user.getUserId(), registrar.get().getClientId());
-      session.setAttribute(CLIENT_ID_ATTRIBUTE, registrar.get().getClientId());
-      return true;
+    if (isAdmin && clientId.equals(registryAdminClientId)) {
+      // Admins have access to the registryAdminClientId even if they aren't explicitly in the
+      // allowed contacts
+      logger.atInfo().log("Allowing admin %s access to registrar %s.", gaeUserId, clientId);
+      return registrar;
     }
 
-    // We couldn't guess the registrar, but maybe the user is an admin and we can use the
+    throw new ForbiddenException(
+        String.format("User %s doesn't have access to registrar %s", gaeUserId, clientId));
+  }
+
+  /**
+   * Tries to guess the {@link Registrar} with which the user is associated.
+   *
+   * <p>Returns the {@code clientId} of a {@link Registrar} the user has access to (is on the
+   * contact list). If the user has access to multiple {@link Registrar}s, an arbitrary one is
+   * selected. If the user is an admin without access to any {@link Registrar}s, {@link
+   * #registryAdminClientId} is returned if it is defined.
+   *
+   * <p>If no {@code clientId} is found, throws a {@link ForbiddenException}.
+   *
+   * <p>If you want to load the {@link Registrar} object from this (or any other) {@code clientId},
+   * in order to perform actions on behalf of a user, you must use {@link #getRegistrarForUser}
+   * which makes sure the user has permissions.
+   *
+   * <p>Note that this is an OPTIONAL step in the authentication - only used if we don't have any
+   * other clue as to the requested {@code clientId}. It is perfectly OK to get a {@code clientId}
+   * from any other source, as long as the registrar is then loaded using {@link
+   * #getRegistrarForUser}.
+   */
+  public String guessClientIdForUser(AuthResult authResult) {
+
+    UserAuthInfo userAuthInfo =
+        authResult.userAuthInfo().orElseThrow(() -> new ForbiddenException("No logged in"));
+    boolean isAdmin = userAuthInfo.isUserAdmin();
+    User user = userAuthInfo.user();
+    String gaeUserId = user.getUserId();
+
+    RegistrarContact contact =
+        ofy().load().type(RegistrarContact.class).filter("gaeUserId", gaeUserId).first().now();
+    if (contact != null) {
+      String registrarClientId = contact.getParent().getName();
+      logger.atInfo().log(
+          "Associating user %s with found registrar %s.", gaeUserId, registrarClientId);
+      return registrarClientId;
+    }
+
+    // We couldn't find the registrar, but maybe the user is an admin and we can use the
     // registryAdminClientId
-    if (userAuthInfo.isUserAdmin()) {
-      if (Strings.isNullOrEmpty(registryAdminClientId)) {
+    if (isAdmin) {
+      if (!Strings.isNullOrEmpty(registryAdminClientId)) {
         logger.atInfo().log(
-            "Cannot associate admin user %s with configured client Id."
-                + " ClientId is null or empty.",
-            user.getUserId());
-        return false;
-      }
-      if (!Registrar.loadByClientIdCached(registryAdminClientId).isPresent()) {
-        logger.atInfo().log(
-            "Cannot associate admin user %s with configured client Id %s."
-                + " Registrar does not exist.",
-            user.getUserId(), registryAdminClientId);
-        return false;
+            "User %s is an admin with no associated registrar."
+                + " Automatically associating the user with configured client Id %s.",
+            gaeUserId, registryAdminClientId);
+        return registryAdminClientId;
       }
       logger.atInfo().log(
-          "User %s is an admin with no associated registrar."
-              + " Automatically associating the user with configured client Id %s.",
-          user.getUserId(), registryAdminClientId);
-      session.setAttribute(CLIENT_ID_ATTRIBUTE, registryAdminClientId);
-      return true;
+          "Cannot associate admin user %s with configured client Id."
+              + " ClientId is null or empty.",
+          gaeUserId);
     }
 
     // We couldn't find any relevant clientId
-    logger.atInfo().log("User not associated with any Registrar: %s", user.getUserId());
-    return false;
-  }
-
-  /**
-   * Returns {@link Registrar} clientId associated with HTTP session.
-   *
-   * @throws IllegalStateException if you forgot to call {@link #checkRegistrarConsoleLogin}.
-   */
-  @CheckReturnValue
-  public String getRegistrarClientId(HttpServletRequest req) {
-    String clientId = (String) req.getSession().getAttribute(CLIENT_ID_ATTRIBUTE);
-    checkState(clientId != null, "You forgot to call checkRegistrarConsoleLogin()");
-    return clientId;
-  }
-
-  /** Returns first {@link Registrar} that {@code gaeUserId} is authorized to administer. */
-  private static Optional<Registrar> findRegistrarForUser(String gaeUserId) {
-    RegistrarContact contact =
-        ofy().load().type(RegistrarContact.class).filter("gaeUserId", gaeUserId).first().now();
-    if (contact == null) {
-      return Optional.empty();
-    }
-    String registrarClientId = contact.getParent().getName();
-    Optional<Registrar> result = Registrar.loadByClientIdCached(registrarClientId);
-    if (!result.isPresent()) {
-      logger.atSevere().log(
-          "A contact record exists for non-existent registrar: %s.", Key.create(contact));
-    }
-    return result;
-  }
-
-  /** @see #isInAllowedContacts(Registrar, String) */
-  boolean hasAccessToRegistrar(String clientId, String gaeUserId, boolean isAdmin) {
-    Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
-    if (!registrar.isPresent()) {
-      logger.atWarning().log("Registrar '%s' disappeared from Datastore!", clientId);
-      return false;
-    }
-    if (isAdmin && clientId.equals(registryAdminClientId)) {
-      return true;
-    }
-    return isInAllowedContacts(registrar.get(), gaeUserId);
+    throw new ForbiddenException(
+        String.format("User %s isn't associated with any registrar", gaeUserId));
   }
 
   /**

@@ -54,7 +54,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 
 /**
@@ -76,7 +75,6 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
   static final String ARGS_PARAM = "args";
   static final String ID_PARAM = "id";
 
-  @Inject HttpServletRequest request;
   @Inject JsonActionRunner jsonActionRunner;
   @Inject AppEngineServiceUtils appEngineServiceUtils;
   @Inject AuthResult authResult;
@@ -100,60 +98,51 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       throw new BadRequestException("Malformed JSON");
     }
 
-    Registrar initialRegistrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
-    // Check that the clientId requested is the same as the one we get in the
-    // getRegistrarForAuthResult.
-    // TODO(b/113925293): remove this check, and instead use the requested clientId to select the
-    // registrar (in a secure way making sure authResult has access to that registrar!)
     String clientId = (String) input.get(ID_PARAM);
     if (Strings.isNullOrEmpty(clientId)) {
       throw new BadRequestException(String.format("Missing key for resource ID: %s", ID_PARAM));
     }
-    if (!clientId.equals(initialRegistrar.getClientId())) {
-      throw new BadRequestException(
-          String.format(
-              "User's clientId changed from %s to %s. Please reload page",
-              clientId, initialRegistrar.getClientId()));
-    }
+
     // Process the operation.  Though originally derived from a CRUD
     // handler, registrar-settings really only supports read and update.
     String op = Optional.ofNullable((String) input.get(OP_PARAM)).orElse("read");
     @SuppressWarnings("unchecked")
     Map<String, ?> args = (Map<String, Object>)
         Optional.<Object>ofNullable(input.get(ARGS_PARAM)).orElse(ImmutableMap.of());
-    logger.atInfo().log(
-        "Received request '%s' on registrar '%s' with args %s",
-        op, initialRegistrar.getClientId(), args);
+    logger.atInfo().log("Received request '%s' on registrar '%s' with args %s", op, clientId, args);
     try {
       switch (op) {
         case "update":
-          return update(args, initialRegistrar.getClientId());
+          return update(args, clientId);
         case "read":
-          return JsonResponseHelper.create(SUCCESS, "Success", initialRegistrar.toJsonMap());
+          return read(clientId);
         default:
           return JsonResponseHelper.create(ERROR, "Unknown or unsupported operation: " + op);
       }
     } catch (FormFieldException e) {
       logger.atWarning().withCause(e).log(
-          "Failed to perform operation '%s' on registrar '%s' for args %s",
-          op, initialRegistrar.getClientId(), args);
+          "Failed to perform operation '%s' on registrar '%s' for args %s", op, clientId, args);
       return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
     } catch (FormException e) {
       logger.atWarning().withCause(e).log(
-          "Failed to perform operation '%s' on registrar '%s' for args %s",
-          op, initialRegistrar.getClientId(), args);
+          "Failed to perform operation '%s' on registrar '%s' for args %s", op, clientId, args);
       return JsonResponseHelper.create(ERROR, e.getMessage());
     }
+  }
+
+  Map<String, Object> read(String clientId) {
+    return JsonResponseHelper.create(
+        SUCCESS, "Success", sessionUtils.getRegistrarForUser(clientId, authResult).toJsonMap());
   }
 
   Map<String, Object> update(final Map<String, ?> args, String clientId) {
     return ofy()
         .transact(
             () -> {
-              // We load the registrar here rather than use the initialRegistrar above - to make
+              // We load the registrar here rather than outside of the transaction - to make
               // sure we have the latest version. This one is loaded inside the transaction, so it's
               // guaranteed to not change before we update it.
-              Registrar registrar = Registrar.loadByClientId(clientId).get();
+              Registrar registrar = sessionUtils.getRegistrarForUser(clientId, authResult);
               // Verify that the registrar hasn't been changed.
               // To do that - we find the latest update time (or null if the registrar has been
               // deleted) and compare to the update time from the args. The update time in the args

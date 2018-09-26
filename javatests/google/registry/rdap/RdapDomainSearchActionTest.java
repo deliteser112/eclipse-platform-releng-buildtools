@@ -71,7 +71,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -91,13 +90,20 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
 
   @Rule public final InjectRule inject = new InjectRule();
 
-  private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
-  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
-  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
-  private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
   private final RdapDomainSearchAction action = new RdapDomainSearchAction();
+
+  private static final AuthResult AUTH_RESULT =
+      AuthResult.create(
+          AuthLevel.USER,
+          UserAuthInfo.create(new User("rdap.user@user.com", "gmail.com", "12345"), false));
+
+  private static final AuthResult AUTH_RESULT_ADMIN =
+      AuthResult.create(
+          AuthLevel.USER,
+          UserAuthInfo.create(new User("rdap.user@google.com", "gmail.com", "12345"), true));
+
 
   private FakeResponse response = new FakeResponse();
 
@@ -388,7 +394,6 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
             clock.nowUtc()));
 
     action.clock = clock;
-    action.request = request;
     action.requestMethod = Action.Method.GET;
     action.fullServletPath = "https://example.com/rdap";
     action.requestUrl = "https://example.com/rdap/domains";
@@ -401,22 +406,20 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
-    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    action.authResult = AUTH_RESULT;
     action.rdapMetrics = rdapMetrics;
     action.cursorTokenParam = Optional.empty();
     action.rdapResultSetMaxSize = 4;
   }
 
   private void login(String clientId) {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn(clientId);
+    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn(clientId);
     metricRole = REGISTRAR;
   }
 
   private void loginAsAdmin() {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
-    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
+    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn("irrelevant");
+    action.authResult = AUTH_RESULT_ADMIN;
     metricRole = ADMINISTRATOR;
   }
 

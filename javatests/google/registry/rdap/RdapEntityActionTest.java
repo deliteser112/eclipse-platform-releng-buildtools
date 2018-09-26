@@ -53,7 +53,6 @@ import google.registry.ui.server.registrar.SessionUtils;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -74,13 +73,9 @@ public class RdapEntityActionTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
-  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
-  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
-  private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
   private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   private RdapEntityAction action;
@@ -91,6 +86,16 @@ public class RdapEntityActionTest {
   private ContactResource techContact;
   private ContactResource disconnectedContact;
   private ContactResource deletedContact;
+
+  private static final AuthResult AUTH_RESULT =
+      AuthResult.create(
+          AuthLevel.USER,
+          UserAuthInfo.create(new User("rdap.user@user.com", "gmail.com", "12345"), false));
+
+  private static final AuthResult AUTH_RESULT_ADMIN =
+      AuthResult.create(
+          AuthLevel.USER,
+          UserAuthInfo.create(new User("rdap.user@google.com", "gmail.com", "12345"), true));
 
   @Before
   public void setUp() {
@@ -163,7 +168,6 @@ public class RdapEntityActionTest {
             clock.nowUtc().minusMonths(6));
     action = new RdapEntityAction();
     action.clock = clock;
-    action.request = request;
     action.requestMethod = Action.Method.GET;
     action.fullServletPath = "https://example.com/rdap";
     action.response = response;
@@ -173,19 +177,17 @@ public class RdapEntityActionTest {
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
-    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    action.authResult = AUTH_RESULT;
     action.rdapMetrics = rdapMetrics;
   }
 
   private void login(String registrar) {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn(registrar);
+    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn(registrar);
   }
 
   private void loginAsAdmin() {
-    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
+    action.authResult = AUTH_RESULT_ADMIN;
+    when(sessionUtils.guessClientIdForUser(AUTH_RESULT_ADMIN)).thenReturn("irrelevant");
   }
 
   private Object generateActualJson(String name) {

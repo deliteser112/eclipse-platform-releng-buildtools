@@ -36,6 +36,12 @@ public abstract class AuthResult {
     return authLevel() != AuthLevel.NONE;
   }
 
+  public String userIdForLogging() {
+    return userAuthInfo()
+        .map(userAuthInfo -> userAuthInfo.user().getUserId())
+        .orElse("<logged-out user>");
+  }
+
   public static AuthResult create(AuthLevel authLevel) {
     return new AutoValue_AuthResult(authLevel, Optional.empty());
   }

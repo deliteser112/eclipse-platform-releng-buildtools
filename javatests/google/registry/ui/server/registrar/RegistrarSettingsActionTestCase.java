@@ -24,6 +24,7 @@ import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.ofy.Ofy;
+import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonResponse;
 import google.registry.request.ResponseImpl;
@@ -57,6 +58,13 @@ public class RegistrarSettingsActionTestCase {
 
   static final String CLIENT_ID = "TheRegistrar";
 
+  static final AuthResult USER_AUTHORIZED =
+      AuthResult.create(AuthLevel.USER, UserAuthInfo.create(new User("user", "gmail.com"), false));
+
+  static final AuthResult USER_UNAUTHORIZED =
+      AuthResult.create(
+          AuthLevel.USER, UserAuthInfo.create(new User("unauthorized", "gmail.com"), false));
+
   @Rule
   public final AppEngineRule appEngine =
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
@@ -79,11 +87,10 @@ public class RegistrarSettingsActionTestCase {
 
   @Before
   public void setUp() throws Exception {
-    action.request = req;
     action.sessionUtils = sessionUtils;
     action.appEngineServiceUtils = appEngineServiceUtils;
     when(appEngineServiceUtils.getCurrentVersionHostname("backend")).thenReturn("backend.hostname");
-    action.authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
+    action.authResult = USER_AUTHORIZED;
     action.jsonActionRunner = new JsonActionRunner(
         ImmutableMap.of(), new JsonResponse(new ResponseImpl(rsp)));
     action.registrarChangesNotificationEmailAddresses = ImmutableList.of(
@@ -102,7 +109,9 @@ public class RegistrarSettingsActionTestCase {
     // the result is out of date after mutations.
     // (for example, if someone wants to change the registrar to prepare for a test, the function
     // would still return the old value)
-    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
+    when(sessionUtils.getRegistrarForUser(CLIENT_ID, USER_AUTHORIZED))
         .thenAnswer(x -> loadRegistrar(CLIENT_ID));
+    when(sessionUtils.getRegistrarForUser(CLIENT_ID, USER_UNAUTHORIZED))
+        .thenThrow(new ForbiddenException("forbidden"));
   }
 }

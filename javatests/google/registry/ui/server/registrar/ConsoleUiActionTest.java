@@ -16,6 +16,7 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.net.MediaType;
+import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
@@ -70,10 +72,11 @@ public class ConsoleUiActionTest {
     action.sessionUtils = sessionUtils;
     action.userService = UserServiceFactory.getUserService();
     action.xsrfTokenManager = new XsrfTokenManager(new FakeClock(), action.userService);
-    UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
-    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    AuthResult authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
+    action.authResult = authResult;
+    when(sessionUtils.guessClientIdForUser(authResult)).thenReturn("TheRegistrar");
+    when(sessionUtils.getRegistrarForUser("TheRegistrar", authResult))
+        .thenReturn(loadRegistrar("TheRegistrar"));
   }
 
   @Test
@@ -110,9 +113,8 @@ public class ConsoleUiActionTest {
 
   @Test
   public void testUserDoesntHaveAccessToAnyRegistrar_showsWhoAreYouPage() {
-    when(sessionUtils.checkRegistrarConsoleLogin(
-            any(HttpServletRequest.class), any(UserAuthInfo.class)))
-        .thenReturn(false);
+    when(sessionUtils.guessClientIdForUser(any(AuthResult.class)))
+        .thenThrow(new ForbiddenException("forbidden"));
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
   }

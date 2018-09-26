@@ -59,7 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -82,12 +81,8 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
     HANDLE
   }
 
-  private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
-  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
-  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
-  private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
   private final RdapEntitySearchAction action = new RdapEntitySearchAction();
 
   private FakeResponse response = new FakeResponse();
@@ -131,6 +126,16 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
     action.run();
     return JSONValue.parse(response.getPayload());
   }
+
+  private static final AuthResult AUTH_RESULT =
+      AuthResult.create(
+          AuthLevel.USER,
+          UserAuthInfo.create(new User("rdap.user@user.com", "gmail.com", "12345"), false));
+
+  private static final AuthResult AUTH_RESULT_ADMIN =
+      AuthResult.create(
+          AuthLevel.USER,
+          UserAuthInfo.create(new User("rdap.user@google.com", "gmail.com", "12345"), true));
 
   @Before
   public void setUp() {
@@ -182,7 +187,6 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
         clock.nowUtc().minusMonths(6));
 
     action.clock = clock;
-    action.request = request;
     action.requestMethod = Action.Method.GET;
     action.fullServletPath = "https://example.com/rdap";
     action.requestUrl = "https://example.com/rdap/entities";
@@ -199,21 +203,19 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
     action.includeDeletedParam = Optional.empty();
     action.formatOutputParam = Optional.empty();
     action.sessionUtils = sessionUtils;
-    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    action.authResult = AUTH_RESULT;
     action.rdapMetrics = rdapMetrics;
     action.cursorTokenParam = Optional.empty();
   }
 
   private void login(String registrar) {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn(registrar);
+    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn(registrar);
     metricRole = REGISTRAR;
   }
 
   private void loginAsAdmin() {
-    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("noregistrar");
+    action.authResult = AUTH_RESULT_ADMIN;
+    when(sessionUtils.guessClientIdForUser(AUTH_RESULT_ADMIN)).thenReturn("irrelevant");
     metricRole = ADMINISTRATOR;
   }
 

@@ -22,19 +22,15 @@ import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.testing.TestDataHelper.loadFile;
 import static java.util.Arrays.asList;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
-import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.ForbiddenException;
-import google.registry.request.auth.AuthResult;
 import google.registry.testing.CertificateSamples;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.CidrAddressBlock;
@@ -42,7 +38,6 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.mail.internet.InternetAddress;
-import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
@@ -82,39 +77,27 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     assertNoTasksEnqueued("sheet");
   }
 
+  /**
+   * Make sure that if someone spoofs a different registrar (they don't have access to), we fail.
+   * Also relevant if the person's privilege were revoked after the page load.
+   */
   @Test
-  public void testRead_notAuthorized_failure() {
-    when(sessionUtils.getRegistrarForAuthResult(
-            any(HttpServletRequest.class), any(AuthResult.class)))
-        .thenThrow(new ForbiddenException("Not authorized to access Registrar Console"));
-    assertThrows(ForbiddenException.class, () -> action.handleJsonRequest(ImmutableMap.of()));
+  public void testFailure_readRegistrarInfo_notAuthorized() {
+    action.authResult = USER_UNAUTHORIZED;
+    assertThrows(
+        ForbiddenException.class, () -> action.handleJsonRequest(ImmutableMap.of("id", CLIENT_ID)));
     assertNoTasksEnqueued("sheet");
   }
 
-  /**
-   * This is the default read test for the registrar settings actions.
-   */
+  /** This is the default read test for the registrar settings actions. */
   @Test
   public void testSuccess_readRegistrarInfo_authorized() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of("id", CLIENT_ID));
-    assertThat(response).containsExactly(
-        "status", "SUCCESS",
-        "message", "Success",
-        "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
-  }
-
-  /**
-   * We got a different CLIENT_ID from the JS than the one we find ourself.
-   *
-   * <p>This might happen if the user's "guessed" registrar changes after the initial page load. For
-   * example, if the user was added as contact to a different registrar, or removed as contact from
-   * the current registrar (but is still a contact of a different one, so the "guessing" works).
-   */
-  @Test
-  public void testFailure_readRegistrarInfo_differentClientId() {
-    assertThrows(
-        BadRequestException.class,
-        () -> action.handleJsonRequest(ImmutableMap.of("id", "different")));
+    assertThat(response)
+        .containsExactly(
+            "status", "SUCCESS",
+            "message", "Success",
+            "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
   }
 
   @Test
@@ -157,6 +140,19 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "status", "SUCCESS",
         "message", "Saved TheRegistrar",
         "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
+  }
+
+  @Test
+  public void testFailute_updateRegistrarInfo_notAuthorized() {
+    action.authResult = USER_UNAUTHORIZED;
+    assertThrows(
+        ForbiddenException.class,
+        () ->
+            action.handleJsonRequest(
+                ImmutableMap.of(
+                    "op", "update",
+                    "id", CLIENT_ID,
+                    "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime()))));
   }
 
   @Test

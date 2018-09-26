@@ -16,29 +16,25 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.AppEngineRule.THE_REGISTRAR_GAE_USER_ID;
-import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.NullPointerTester;
 import com.google.common.testing.TestLogHandler;
-import google.registry.model.registrar.RegistrarContact;
+import google.registry.request.HttpException.ForbiddenException;
+import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,25 +51,27 @@ public class SessionUtilsTest {
 
   private final HttpServletRequest req = mock(HttpServletRequest.class);
   private final HttpServletResponse rsp = mock(HttpServletResponse.class);
-  private final HttpSession session = mock(HttpSession.class);
   private final TestLogHandler testLogHandler = new TestLogHandler();
 
   private SessionUtils sessionUtils;
 
-  private static final UserAuthInfo AUTHORIZED_USER = createAuthInfo(true, false);
-  private static final UserAuthInfo UNAUTHORIZED_USER = createAuthInfo(false, false);
-  private static final UserAuthInfo AUTHORIZED_ADMIN = createAuthInfo(true, true);
-  private static final UserAuthInfo UNAUTHORIZED_ADMIN = createAuthInfo(false, true);
+  private static final AuthResult AUTHORIZED_USER = createAuthResult(true, false);
+  private static final AuthResult UNAUTHORIZED_USER = createAuthResult(false, false);
+  private static final AuthResult AUTHORIZED_ADMIN = createAuthResult(true, true);
+  private static final AuthResult UNAUTHORIZED_ADMIN = createAuthResult(false, true);
+  private static final AuthResult NO_USER = AuthResult.create(AuthLevel.NONE);
   private static final String DEFAULT_CLIENT_ID = "TheRegistrar";
   private static final String ADMIN_CLIENT_ID = "NewRegistrar";
 
-  private static UserAuthInfo createAuthInfo(boolean isAuthorized, boolean isAdmin) {
-    return UserAuthInfo.create(
-        new User(
-            "user1@google.com",
-            "google.com",
-            isAuthorized ? THE_REGISTRAR_GAE_USER_ID : "badGaeUserId"),
-        isAdmin);
+  private static AuthResult createAuthResult(boolean isAuthorized, boolean isAdmin) {
+    return AuthResult.create(
+        AuthLevel.USER,
+        UserAuthInfo.create(
+            new User(
+                "user1@google.com",
+                "google.com",
+                isAuthorized ? THE_REGISTRAR_GAE_USER_ID : "badGaeUserId"),
+            isAdmin));
   }
 
   @Before
@@ -82,7 +80,6 @@ public class SessionUtilsTest {
     sessionUtils = new SessionUtils();
     sessionUtils.registryAdminClientId = ADMIN_CLIENT_ID;
     persistResource(loadRegistrar(ADMIN_CLIENT_ID));
-    when(req.getSession()).thenReturn(session);
   }
 
   @After
@@ -90,240 +87,161 @@ public class SessionUtilsTest {
     LoggerConfig.getConfig(SessionUtils.class).removeHandler(testLogHandler);
   }
 
-  /** User needs to be logged in before calling checkRegistrarConsoleLogin */
-  @Test
-  public void testCheckRegistrarConsoleLogin_notLoggedIn_throwsIllegalStateException() {
-    assertThrows(
-        IllegalStateException.class,
-        () -> {
-          @SuppressWarnings("unused")
-          boolean unused = sessionUtils.checkRegistrarConsoleLogin(req, null);
-        });
+  private String formatMessage(String message, AuthResult authResult, String clientId) {
+    return message
+        .replace("{user}", authResult.userIdForLogging())
+        .replace("{clientId}", String.valueOf(clientId));
   }
 
-  /**
-   * If clientId exists in the session and the user does not have access to that registrar, then no
-   * access should be granted.
-   */
+  /** Fail loading registrar if user doesn't have access to it. */
   @Test
-  public void testCheckRegistrarConsoleLogin_hasSession_noAccess_isNotAdmin() {
-    when(session.getAttribute("clientId")).thenReturn(DEFAULT_CLIENT_ID);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_USER)).isFalse();
-    verify(session).invalidate();
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(Level.INFO, "Registrar Console access revoked");
+  public void testGetRegistrarForUser_noAccess_isNotAdmin() {
+    expectGetRegistrarFailure(
+        DEFAULT_CLIENT_ID,
+        UNAUTHORIZED_USER,
+        "User {user} doesn't have access to registrar {clientId}");
   }
 
-  /**
-   * If clientId exists in the session and the user does not have access to that registrar, then
-   * access should be revoked. The admin flag should be ignored.
-   */
+  /** Fail loading registrar if there's no user associated with the request. */
   @Test
-  public void testCheckRegistrarConsoleLogin_hasSession_noAccess_isAdmin() {
-    when(session.getAttribute("clientId")).thenReturn(DEFAULT_CLIENT_ID);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isFalse();
-    verify(session).invalidate();
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(Level.INFO, "Registrar Console access revoked");
+  public void testGetRegistrarForUser_noUser() {
+    expectGetRegistrarFailure(DEFAULT_CLIENT_ID, NO_USER, "Not logged in");
   }
 
-  /**
-   * If clientId exists in the session and the user does have access to that registrar, then access
-   * should be allowed.
-   */
+  /** Succeed loading registrar if user has access to it. */
   @Test
-  public void testCheckRegistrarConsoleLogin_hasSession_hasAccess_isNotAdmin() {
-    when(session.getAttribute("clientId")).thenReturn(DEFAULT_CLIENT_ID);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, AUTHORIZED_USER)).isTrue();
-    verify(session).getAttribute("clientId");
-    verifyNoMoreInteractions(session);
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(
-            Level.INFO,
-            String.format(
-                "Associating user %s with given registrar %s.",
-                AUTHORIZED_USER.user().getUserId(), DEFAULT_CLIENT_ID));
+  public void testGetRegistrarForUser_hasAccess_isNotAdmin() {
+    expectGetRegistrarSuccess(AUTHORIZED_USER, "User {user} has access to registrar {clientId}");
   }
 
-  /**
-   * If clientId exists in the session and the user does have access to that registrar, then access
-   * should be allowed. The admin flag should be ignored.
-   */
+  /** Succeed loading registrar if admin. */
   @Test
-  public void testCheckRegistrarConsoleLogin_hasSession_hasAccess_isAdmin() {
-    when(session.getAttribute("clientId")).thenReturn(DEFAULT_CLIENT_ID);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, AUTHORIZED_ADMIN)).isTrue();
-    verify(session).getAttribute("clientId");
-    verifyNoMoreInteractions(session);
+  public void testGetRegistrarForUser_hasAccess_isAdmin() {
+    expectGetRegistrarSuccess(AUTHORIZED_ADMIN, "User {user} has access to registrar {clientId}");
+  }
+
+  /** Fail loading registrar if admin isn't on the approved contacts list. */
+  @Test
+  public void testGetRegistrarForUser_noAccess_isAdmin() {
+    expectGetRegistrarFailure(
+        DEFAULT_CLIENT_ID,
+        UNAUTHORIZED_ADMIN,
+        "User {user} doesn't have access to registrar {clientId}");
+  }
+
+  /** Succeed loading registrarAdmin even if unauthorized admin. */
+  @Test
+  public void testGetRegistrarForUser_registrarAdminClientId() {
+    sessionUtils.registryAdminClientId = DEFAULT_CLIENT_ID;
+    expectGetRegistrarSuccess(
+        UNAUTHORIZED_ADMIN, "Allowing admin {user} access to registrar {clientId}.");
+  }
+
+  /** Fail loading registrar even if admin, if registrar doesn't exist. */
+  @Test
+  public void testGetRegistrarForUser_doesntExist_isAdmin() {
+    expectGetRegistrarFailure("BadClientId", UNAUTHORIZED_ADMIN, "Registrar {clientId} not found");
+  }
+
+  private void expectGetRegistrarSuccess(AuthResult authResult, String message) {
+    assertThat(sessionUtils.getRegistrarForUser(DEFAULT_CLIENT_ID, authResult)).isNotNull();
     assertAboutLogs()
         .that(testLogHandler)
         .hasLogAtLevelWithMessage(
-            Level.INFO,
-            String.format(
-                "Associating user %s with given registrar %s.",
-                AUTHORIZED_ADMIN.user().getUserId(), DEFAULT_CLIENT_ID));
+            Level.INFO, formatMessage(message, authResult, DEFAULT_CLIENT_ID));
+  }
+
+  private void expectGetRegistrarFailure(String clientId, AuthResult authResult, String message) {
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class, () -> sessionUtils.getRegistrarForUser(clientId, authResult));
+
+    assertThat(exception).hasMessageThat().contains(formatMessage(message, authResult, clientId));
+    assertAboutLogs().that(testLogHandler).hasNoLogsAtLevel(Level.INFO);
+  }
+
+  /** If a user has access to a registrar, we should guess that registrar. */
+  @Test
+  public void testGuessClientIdForUser_hasAccess_isNotAdmin() {
+    expectGuessRegistrarSuccess(
+        AUTHORIZED_USER,
+        DEFAULT_CLIENT_ID,
+        "Associating user {user} with found registrar {clientId}.");
+  }
+
+  /** If a user doesn't have access to any registrars, guess returns nothing. */
+  @Test
+  public void testGuessClientIdForUser_noAccess_isNotAdmin() {
+    expectGuessRegistrarFailure(
+        UNAUTHORIZED_USER, "User {user} isn't associated with any registrar");
   }
 
   /**
-   * If clientId does not exist in the session and the user has access to a registrar, then access
-   * should be granted to that registrar.
+   * If an admin has access to a registrar, we should guess that registrar (rather than the
+   * ADMIN_CLIENT_ID).
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_noSession_hasAccess_isNotAdmin() {
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, AUTHORIZED_USER)).isTrue();
-    verify(session).setAttribute(eq("clientId"), eq(DEFAULT_CLIENT_ID));
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(
-            Level.INFO,
-            String.format(
-                "Associating user %s with found registrar %s.",
-                AUTHORIZED_USER.user().getUserId(), DEFAULT_CLIENT_ID));
+  public void testGuessClientIdForUser_hasAccess_isAdmin() {
+    expectGuessRegistrarSuccess(
+        AUTHORIZED_ADMIN,
+        DEFAULT_CLIENT_ID,
+        "Associating user {user} with found registrar {clientId}.");
+  }
+
+  /** If an admin doesn't have access to a registrar, we should guess the ADMIN_CLIENT_ID. */
+  @Test
+  public void testGuessClientIdForUser_noAccess_isAdmin() {
+    expectGuessRegistrarSuccess(
+        UNAUTHORIZED_ADMIN,
+        ADMIN_CLIENT_ID,
+        "User {user} is an admin with no associated registrar."
+            + " Automatically associating the user with configured client Id {clientId}.");
   }
 
   /**
-   * If clientId does not exist in the session and the user has access to a registrar, then access
-   * should be granted to that registrar. The admin flag should be ignored.
+   * If an admin is not associated with a registrar and there is no configured adminClientId, we
+   * can't guess the clientId.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_noSession_hasAccess_isAdmin() {
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, AUTHORIZED_ADMIN)).isTrue();
-    verify(session).setAttribute(eq("clientId"), eq(DEFAULT_CLIENT_ID));
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(
-            Level.INFO,
-            String.format(
-                "Associating user %s with found registrar %s.",
-                AUTHORIZED_ADMIN.user().getUserId(), DEFAULT_CLIENT_ID));
-  }
-
-  /**
-   * If clientId does not exist in the session, the user is not associated with a registrar and the
-   * user is an admin, then access could be granted to the configured adminClientId. But if the
-   * configured adminClientId is empty or null, no access is granted.
-   */
-  @Test
-  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin_adminClientIdEmpty() {
+  public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdEmpty() {
     sessionUtils.registryAdminClientId = "";
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isFalse();
+    expectGuessRegistrarFailure(
+        UNAUTHORIZED_ADMIN, "User {user} isn't associated with any registrar");
     assertAboutLogs()
         .that(testLogHandler)
         .hasLogAtLevelWithMessage(
             Level.INFO,
-            String.format(
-                "Cannot associate admin user %s with configured client Id."
-                    + " ClientId is null or empty.",
-                UNAUTHORIZED_ADMIN.user().getUserId()));
+            "Cannot associate admin user badGaeUserId with configured client Id."
+                + " ClientId is null or empty.");
   }
 
   /**
-   * If clientId does not exist in the session, the user is not associated with a registrar and the
-   * user is an admin, then access could be granted to the configured adminClientId. But if the
-   * configured adminClientId does not reference a registry, then no access is granted.
+   * If an admin is not associated with a registrar and the configured adminClientId points to a
+   * non-existent registrar, we still guess it (we will later failing loading the registrar).
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin_adminClientIdInvalid() {
-    sessionUtils.registryAdminClientId = "NonexistentRegistry";
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isFalse();
+  public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdInvalid() {
+    sessionUtils.registryAdminClientId = "NonexistentRegistrar";
+    expectGuessRegistrarSuccess(
+        UNAUTHORIZED_ADMIN,
+        "NonexistentRegistrar",
+        "User {user} is an admin with no associated registrar."
+            + " Automatically associating the user with configured client Id {clientId}.");
+  }
+
+  private void expectGuessRegistrarSuccess(AuthResult authResult, String clientId, String message) {
+    assertThat(sessionUtils.guessClientIdForUser(authResult)).isEqualTo(clientId);
     assertAboutLogs()
         .that(testLogHandler)
-        .hasLogAtLevelWithMessage(
-            Level.INFO,
-            String.format(
-                "Cannot associate admin user %s with configured client Id %s."
-                    + " Registrar does not exist.",
-                UNAUTHORIZED_ADMIN.user().getUserId(), "NonexistentRegistry"));
+        .hasLogAtLevelWithMessage(Level.INFO, formatMessage(message, authResult, clientId));
   }
 
-  /**
-   * If clientId does not exist in the session, the user does not have access to a registrar and the
-   * user is an admin, then grant the user access to the validated configured adminClientId.
-   */
-  @Test
-  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin() {
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isTrue();
-    verify(session).setAttribute(eq("clientId"), eq(ADMIN_CLIENT_ID));
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(
-            Level.INFO,
-            String.format(
-                "User %s is an admin with no associated registrar."
-                    + " Automatically associating the user with configured client Id %s.",
-                UNAUTHORIZED_ADMIN.user().getUserId(), ADMIN_CLIENT_ID));
-  }
-
-  /**
-   * If session clientId points to the adminClientId, and the user is an admin that doesn't have
-   * access to this registrar - it means this is the second (or later) visit of this admin and they
-   * were granted access to the default registrar because they aren't associated with any other
-   * registrar.
-   *
-   * We continue to grant the admin access.
-   */
-  @Test
-  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin_secondRequest() {
-    when(session.getAttribute("clientId")).thenReturn(ADMIN_CLIENT_ID);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isTrue();
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(
-            Level.INFO,
-            String.format(
-                "Associating user %s with given registrar %s.",
-                UNAUTHORIZED_ADMIN.user().getUserId(), ADMIN_CLIENT_ID));
-  }
-
-  /**
-   * If clientId does not exist in the session and the user is not associated with a registrar, then
-   * access should not be granted.
-   */
-  @Test
-  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isNotAdmin() {
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_USER)).isFalse();
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(
-            Level.INFO,
-            String.format(
-                "User not associated with any Registrar: %s",
-                UNAUTHORIZED_USER.user().getUserId()));
-  }
-
-  @Test
-  public void testHasAccessToRegistrar_orphanedContact_returnsFalse() {
-    deleteResource(loadRegistrar(DEFAULT_CLIENT_ID));
-    assertThat(
-            sessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, false))
-        .isFalse();
-  }
-
-  @Test
-  public void testHasAccessToRegistrar_accessRevoked_returnsFalse() {
-    RegistrarContact.updateContacts(loadRegistrar(DEFAULT_CLIENT_ID), new java.util.HashSet<>());
-    assertThat(
-            sessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, false))
-        .isFalse();
-  }
-
-  @Test
-  public void testHasAccessToRegistrar_orphanedAdmin_notAdminRegistrar_returnsFalse() {
-    RegistrarContact.updateContacts(loadRegistrar(DEFAULT_CLIENT_ID), new java.util.HashSet<>());
-    assertThat(
-            sessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, true))
-        .isFalse();
-  }
-
-  @Test
-  public void testHasAccessToRegistrar_orphanedAdmin_onAdminRegistrar_returnsTrue() {
-    RegistrarContact.updateContacts(loadRegistrar(ADMIN_CLIENT_ID), new java.util.HashSet<>());
-    assertThat(
-            sessionUtils.hasAccessToRegistrar(ADMIN_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, true))
-        .isTrue();
+  private void expectGuessRegistrarFailure(AuthResult authResult, String message) {
+    ForbiddenException exception =
+        assertThrows(ForbiddenException.class, () -> sessionUtils.guessClientIdForUser(authResult));
+    assertThat(exception)
+        .hasMessageThat()
+        .contains(formatMessage(message, UNAUTHORIZED_USER, null));
   }
 
   @Test

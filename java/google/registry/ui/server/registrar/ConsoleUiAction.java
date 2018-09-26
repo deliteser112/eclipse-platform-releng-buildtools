@@ -16,14 +16,15 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
-import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 
+import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.Resources;
 import com.google.common.net.MediaType;
 import com.google.template.soy.data.SoyMapData;
@@ -32,10 +33,10 @@ import com.google.template.soy.tofu.SoyTofu;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
+import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthResult;
-import google.registry.request.auth.UserAuthInfo;
 import google.registry.security.XsrfTokenManager;
 import google.registry.ui.server.SoyTemplateUtils;
 import google.registry.ui.soy.registrar.ConsoleSoyInfo;
@@ -48,6 +49,8 @@ import javax.servlet.http.HttpServletRequest;
   auth = Auth.AUTH_PUBLIC
 )
 public final class ConsoleUiAction implements Runnable {
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static final String PATH = "/registrar";
 
@@ -97,7 +100,7 @@ public final class ConsoleUiAction implements Runnable {
       response.setHeader(LOCATION, location);
       return;
     }
-    UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
+    User user = authResult.userAuthInfo().get().user();
     response.setContentType(MediaType.HTML_UTF_8);
     response.setHeader(X_FRAME_OPTIONS, "SAMEORIGIN");  // Disallow iframing.
     response.setHeader("X-Ui-Compatible", "IE=edge");  // Ask IE not to be silly.
@@ -119,9 +122,24 @@ public final class ConsoleUiAction implements Runnable {
               .render());
       return;
     }
-    data.put("username", userAuthInfo.user().getNickname());
+    data.put("username", user.getNickname());
     data.put("logoutUrl", userService.createLogoutURL(PATH));
-    if (!sessionUtils.checkRegistrarConsoleLogin(req, userAuthInfo)) {
+    data.put("xsrfToken", xsrfTokenManager.generateToken(user.getEmail()));
+    try {
+      String clientId = sessionUtils.guessClientIdForUser(authResult);
+      data.put("clientId", clientId);
+      // We want to load the registrar even if we won't use it later (even if we remove the
+      // requireFeeExtension) - to make sure the user indeed has access to the guessed registrar.
+      //
+      // Note that not doing so (and just passing the "clientId" as given) isn't a security issue
+      // since we double check the access to the registrar on any read / update request. We have to
+      // - since the access might get revoked between the initial page load and the request! (also
+      // because the requests come from the browser, and can easily be faked)
+      Registrar registrar = sessionUtils.getRegistrarForUser(clientId, authResult);
+      data.put("requireFeeExtension", registrar.getPremiumPriceAckRequired());
+    } catch (ForbiddenException e) {
+      logger.atWarning().withCause(e).log(
+          "User %s doesn't have access to registrar console.", authResult.userIdForLogging());
       response.setStatus(SC_FORBIDDEN);
       response.setPayload(
           TOFU_SUPPLIER.get()
@@ -131,13 +149,6 @@ public final class ConsoleUiAction implements Runnable {
               .render());
       return;
     }
-    String clientId = sessionUtils.getRegistrarClientId(req);
-    Registrar registrar =
-        checkArgumentPresent(
-            Registrar.loadByClientIdCached(clientId), "Registrar %s does not exist", clientId);
-    data.put("xsrfToken", xsrfTokenManager.generateToken(userAuthInfo.user().getEmail()));
-    data.put("clientId", clientId);
-    data.put("requireFeeExtension", registrar.getPremiumPriceAckRequired());
 
     String payload = TOFU_SUPPLIER.get()
             .newRenderer(ConsoleSoyInfo.MAIN)

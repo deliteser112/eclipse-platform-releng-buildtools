@@ -24,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
-import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registrar.Registrar;
@@ -112,8 +111,6 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
                 .setClientCertificate(SAMPLE_CERT, START_OF_TIME)
                 .setFailoverClientCertificate(SAMPLE_CERT2, START_OF_TIME)
                 .build());
-    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
-        .thenReturn(initialRegistrar);
     Map<String, Object> jsonMap = initialRegistrar.toJsonMap();
     jsonMap.put("clientCertificate", null);
     jsonMap.put("failoverClientCertificate", "");

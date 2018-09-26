@@ -58,7 +58,6 @@ import google.registry.ui.server.registrar.SessionUtils;
 import java.net.URLDecoder;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -77,14 +76,21 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
 
   @Rule public final InjectRule inject = new InjectRule();
 
-  private final HttpServletRequest request = mock(HttpServletRequest.class);
   private FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
-  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
-  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
-  private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
   private final RdapNameserverSearchAction action = new RdapNameserverSearchAction();
+
+  private static final AuthResult AUTH_RESULT =
+      AuthResult.create(
+          AuthLevel.USER,
+          UserAuthInfo.create(new User("rdap.user@user.com", "gmail.com", "12345"), false));
+
+  private static final AuthResult AUTH_RESULT_ADMIN =
+      AuthResult.create(
+          AuthLevel.USER,
+          UserAuthInfo.create(new User("rdap.user@google.com", "gmail.com", "12345"), true));
+
 
   private DomainResource domainCatLol;
   private HostResource hostNs1CatLol;
@@ -183,7 +189,6 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
     action.requestUrl = "https://example.tld/rdap/nameservers";
     action.requestPath = RdapNameserverSearchAction.PATH;
     action.parameterMap = ImmutableListMultimap.of();
-    action.request = request;
     action.requestMethod = Action.Method.GET;
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
@@ -194,22 +199,19 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
     action.registrarParam = Optional.empty();
     action.includeDeletedParam = Optional.empty();
     action.formatOutputParam = Optional.empty();
-    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    action.authResult = AUTH_RESULT;
     action.sessionUtils = sessionUtils;
     action.rdapMetrics = rdapMetrics;
     action.cursorTokenParam = Optional.empty();
   }
-
   private void login(String clientId) {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn(clientId);
+    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn(clientId);
     metricRole = REGISTRAR;
   }
 
   private void loginAsAdmin() {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
-    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
+    when(sessionUtils.guessClientIdForUser(AUTH_RESULT_ADMIN)).thenReturn("irrelevant");
+    action.authResult = AUTH_RESULT_ADMIN;
     metricRole = ADMINISTRATOR;
   }
 
