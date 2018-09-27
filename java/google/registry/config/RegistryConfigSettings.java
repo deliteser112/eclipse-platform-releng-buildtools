@@ -81,7 +81,6 @@ public class RegistryConfigSettings {
     public String greetingServerId;
     public List<String> registrarChangesNotificationEmailAddresses;
     public String defaultRegistrarWhoisServer;
-    public String defaultRegistrarReferralUrl;
     public String tmchCaMode;
     public String tmchCrlUrl;
     public String tmchMarksDbUrl;
