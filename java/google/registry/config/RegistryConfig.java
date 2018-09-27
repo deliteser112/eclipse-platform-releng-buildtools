@@ -1061,7 +1061,7 @@ public final class RegistryConfig {
     @Provides
     @Config("premiumTermsExportDisclaimer")
     public static String providePremiumTermsExportDisclaimer(RegistryConfigSettings config) {
-      return formatComments(config.registryPolicy.reservedTermsExportDisclaimer);
+      return formatComments(config.registryPolicy.premiumTermsExportDisclaimer);
     }
 
     /**
