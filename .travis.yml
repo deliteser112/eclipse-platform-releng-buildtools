@@ -11,4 +11,4 @@ before_install:
   - sudo ./bazel-0.17.1-installer-linux-x86_64.sh
 
 script:
-  - bazel test ... |& cat
+  - bazel --test_output=errors test ... |& cat
