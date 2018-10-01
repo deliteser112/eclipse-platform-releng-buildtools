@@ -24,13 +24,10 @@ import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.kms.KmsModule;
 import google.registry.rde.RdeModule;
-import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.DatastoreServiceModule;
-import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
-import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
 import google.registry.util.SystemClock.SystemClockModule;
@@ -50,7 +47,6 @@ import javax.inject.Singleton;
       AppEngineConnectionFlags.FlagsModule.class,
       AppEngineServiceUtilsModule.class,
       // TODO(b/36866706): Find a way to replace this with a command-line friendly version
-      AppIdentityCredentialModule.class,
       AuthModule.class,
       BigqueryModule.class,
       ConfigModule.class,
@@ -61,7 +57,6 @@ import javax.inject.Singleton;
       DefaultRequestFactoryModule.class,
       DefaultRequestFactoryModule.RequestFactoryModule.class,
       DnsUpdateWriterModule.class,
-      GoogleCredentialModule.class,
       Jackson2Module.class,
       KeyModule.class,
       KmsModule.class,
@@ -71,8 +66,6 @@ import javax.inject.Singleton;
       SystemSleeperModule.class,
       URLFetchServiceModule.class,
       UrlFetchTransportModule.class,
-      // TODO(b/36866706): Find a way to replace this with a command-line friendly version
-      UseAppIdentityCredentialForGoogleApisModule.class,
       UserServiceModule.class,
       VoidDnsWriterModule.class,
       WhoisModule.class,

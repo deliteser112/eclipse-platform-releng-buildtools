@@ -32,14 +32,11 @@ import google.registry.keyring.kms.KmsModule;
 import google.registry.module.backend.BackendRequestComponent.BackendRequestComponentModule;
 import google.registry.monitoring.whitebox.StackdriverModule;
 import google.registry.rde.JSchModule;
-import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.DatastoreServiceModule;
-import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.NetHttpTransportModule;
 import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
-import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.request.auth.AuthModule;
 import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
@@ -52,7 +49,6 @@ import javax.inject.Singleton;
 @Component(
     modules = {
       AppEngineServiceUtilsModule.class,
-      AppIdentityCredentialModule.class,
       AuthModule.class,
       BackendRequestComponentModule.class,
       BigqueryModule.class,
@@ -63,7 +59,6 @@ import javax.inject.Singleton;
       google.registry.keyring.api.DummyKeyringModule.class,
       DriveModule.class,
       GcsServiceModule.class,
-      GoogleCredentialModule.class,
       GroupsModule.class,
       GroupssettingsModule.class,
       JSchModule.class,
@@ -77,7 +72,6 @@ import javax.inject.Singleton;
       SystemSleeperModule.class,
       URLFetchServiceModule.class,
       UrlFetchTransportModule.class,
-      UseAppIdentityCredentialForGoogleApisModule.class,
       UserServiceModule.class,
       VoidDnsWriterModule.class,
     })

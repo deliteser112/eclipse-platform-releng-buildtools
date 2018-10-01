@@ -25,12 +25,9 @@ import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.kms.KmsModule;
 import google.registry.module.frontend.FrontendRequestComponent.FrontendRequestComponentModule;
 import google.registry.monitoring.whitebox.StackdriverModule;
-import google.registry.request.Modules.AppIdentityCredentialModule;
-import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.NetHttpTransportModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
-import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.request.auth.AuthModule;
 import google.registry.ui.ConsoleDebug.ConsoleConfigModule;
@@ -44,7 +41,6 @@ import javax.inject.Singleton;
 @Component(
     modules = {
       AppEngineServiceUtilsModule.class,
-      AppIdentityCredentialModule.class,
       AuthModule.class,
       ConfigModule.class,
       ConsoleConfigModule.class,
@@ -52,7 +48,6 @@ import javax.inject.Singleton;
       CustomLogicFactoryModule.class,
       google.registry.keyring.api.DummyKeyringModule.class,
       FrontendRequestComponentModule.class,
-      GoogleCredentialModule.class,
       Jackson2Module.class,
       KeyModule.class,
       KmsModule.class,
@@ -62,7 +57,6 @@ import javax.inject.Singleton;
       SystemClockModule.class,
       SystemSleeperModule.class,
       UrlFetchTransportModule.class,
-      UseAppIdentityCredentialForGoogleApisModule.class,
       UserServiceModule.class,
     })
 interface FrontendComponent {
