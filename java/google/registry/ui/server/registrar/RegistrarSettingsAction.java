@@ -123,7 +123,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       logger.atWarning().withCause(e).log(
           "Failed to perform operation '%s' on registrar '%s' for args %s", op, clientId, args);
       return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
-    } catch (FormException e) {
+    } catch (Throwable e) {
       logger.atWarning().withCause(e).log(
           "Failed to perform operation '%s' on registrar '%s' for args %s", op, clientId, args);
       return JsonResponseHelper.create(ERROR, e.getMessage());

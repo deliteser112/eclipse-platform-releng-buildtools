@@ -68,8 +68,9 @@ public class SessionUtilsTest {
         AuthLevel.USER,
         UserAuthInfo.create(
             new User(
-                "user1@google.com",
-                "google.com",
+                String.format(
+                    "%s_%s@gmail.com", isAuthorized ? "good" : "evil", isAdmin ? "admin" : "user"),
+                "gmail.com",
                 isAuthorized ? THE_REGISTRAR_GAE_USER_ID : "badGaeUserId"),
             isAdmin));
   }
@@ -211,8 +212,11 @@ public class SessionUtilsTest {
         .that(testLogHandler)
         .hasLogAtLevelWithMessage(
             Level.INFO,
-            "Cannot associate admin user badGaeUserId with configured client Id."
-                + " ClientId is null or empty.");
+            formatMessage(
+                "Cannot associate admin user {user} with configured client Id."
+                    + " ClientId is null or empty.",
+                UNAUTHORIZED_ADMIN,
+                null));
   }
 
   /**
@@ -241,7 +245,7 @@ public class SessionUtilsTest {
         assertThrows(ForbiddenException.class, () -> sessionUtils.guessClientIdForUser(authResult));
     assertThat(exception)
         .hasMessageThat()
-        .contains(formatMessage(message, UNAUTHORIZED_USER, null));
+        .contains(formatMessage(message, authResult, null));
   }
 
   @Test

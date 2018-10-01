@@ -17,7 +17,6 @@ package google.registry.ui.server.registrar;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.testing.TestDataHelper.loadFile;
@@ -30,7 +29,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
-import google.registry.request.HttpException.ForbiddenException;
 import google.registry.testing.CertificateSamples;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.CidrAddressBlock;
@@ -84,8 +82,11 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   @Test
   public void testFailure_readRegistrarInfo_notAuthorized() {
     action.authResult = USER_UNAUTHORIZED;
-    assertThrows(
-        ForbiddenException.class, () -> action.handleJsonRequest(ImmutableMap.of("id", CLIENT_ID)));
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of("id", CLIENT_ID));
+    assertThat(response).containsExactly(
+        "status", "ERROR",
+        "results", ImmutableList.of(),
+        "message", "forbidden test error");
     assertNoTasksEnqueued("sheet");
   }
 
@@ -145,14 +146,15 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   @Test
   public void testFailute_updateRegistrarInfo_notAuthorized() {
     action.authResult = USER_UNAUTHORIZED;
-    assertThrows(
-        ForbiddenException.class,
-        () ->
-            action.handleJsonRequest(
-                ImmutableMap.of(
-                    "op", "update",
-                    "id", CLIENT_ID,
-                    "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime()))));
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
+        "op", "update",
+        "id", CLIENT_ID,
+        "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
+    assertThat(response).containsExactly(
+        "status", "ERROR",
+        "results", ImmutableList.of(),
+        "message", "forbidden test error");
+    assertNoTasksEnqueued("sheet");
   }
 
   @Test

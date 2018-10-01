@@ -38,7 +38,7 @@ public abstract class AuthResult {
 
   public String userIdForLogging() {
     return userAuthInfo()
-        .map(userAuthInfo -> userAuthInfo.user().getUserId())
+        .map(userAuthInfo -> userAuthInfo.user().getEmail())
         .orElse("<logged-out user>");
   }
 

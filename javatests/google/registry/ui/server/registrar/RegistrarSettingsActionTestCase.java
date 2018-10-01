@@ -112,6 +112,6 @@ public class RegistrarSettingsActionTestCase {
     when(sessionUtils.getRegistrarForUser(CLIENT_ID, USER_AUTHORIZED))
         .thenAnswer(x -> loadRegistrar(CLIENT_ID));
     when(sessionUtils.getRegistrarForUser(CLIENT_ID, USER_UNAUTHORIZED))
-        .thenThrow(new ForbiddenException("forbidden"));
+        .thenThrow(new ForbiddenException("forbidden test error"));
   }
 }

@@ -77,7 +77,7 @@ public class SessionUtils {
         authResult.userAuthInfo().orElseThrow(() -> new ForbiddenException("Not logged in"));
     boolean isAdmin = userAuthInfo.isUserAdmin();
     User user = userAuthInfo.user();
-    String gaeUserId = user.getUserId();
+    String userIdForLogging = authResult.userIdForLogging();
 
     Registrar registrar =
         registrarLoader
@@ -85,20 +85,20 @@ public class SessionUtils {
             .orElseThrow(
                 () -> new ForbiddenException(String.format("Registrar %s not found", clientId)));
 
-    if (isInAllowedContacts(registrar, gaeUserId)) {
-      logger.atInfo().log("User %s has access to registrar %s.", gaeUserId, clientId);
+    if (isInAllowedContacts(registrar, user)) {
+      logger.atInfo().log("User %s has access to registrar %s.", userIdForLogging, clientId);
       return registrar;
     }
 
     if (isAdmin && clientId.equals(registryAdminClientId)) {
       // Admins have access to the registryAdminClientId even if they aren't explicitly in the
       // allowed contacts
-      logger.atInfo().log("Allowing admin %s access to registrar %s.", gaeUserId, clientId);
+      logger.atInfo().log("Allowing admin %s access to registrar %s.", userIdForLogging, clientId);
       return registrar;
     }
 
     throw new ForbiddenException(
-        String.format("User %s doesn't have access to registrar %s", gaeUserId, clientId));
+        String.format("User %s doesn't have access to registrar %s", userIdForLogging, clientId));
   }
 
   /**
@@ -126,14 +126,19 @@ public class SessionUtils {
         authResult.userAuthInfo().orElseThrow(() -> new ForbiddenException("No logged in"));
     boolean isAdmin = userAuthInfo.isUserAdmin();
     User user = userAuthInfo.user();
-    String gaeUserId = user.getUserId();
+    String userIdForLogging = authResult.userIdForLogging();
 
     RegistrarContact contact =
-        ofy().load().type(RegistrarContact.class).filter("gaeUserId", gaeUserId).first().now();
+        ofy()
+            .load()
+            .type(RegistrarContact.class)
+            .filter("gaeUserId", user.getUserId())
+            .first()
+            .now();
     if (contact != null) {
       String registrarClientId = contact.getParent().getName();
       logger.atInfo().log(
-          "Associating user %s with found registrar %s.", gaeUserId, registrarClientId);
+          "Associating user %s with found registrar %s.", userIdForLogging, registrarClientId);
       return registrarClientId;
     }
 
@@ -144,28 +149,29 @@ public class SessionUtils {
         logger.atInfo().log(
             "User %s is an admin with no associated registrar."
                 + " Automatically associating the user with configured client Id %s.",
-            gaeUserId, registryAdminClientId);
+            userIdForLogging, registryAdminClientId);
         return registryAdminClientId;
       }
       logger.atInfo().log(
           "Cannot associate admin user %s with configured client Id."
               + " ClientId is null or empty.",
-          gaeUserId);
+          userIdForLogging);
     }
 
     // We couldn't find any relevant clientId
     throw new ForbiddenException(
-        String.format("User %s isn't associated with any registrar", gaeUserId));
+        String.format("User %s isn't associated with any registrar", userIdForLogging));
   }
 
   /**
-   * Returns {@code true} if {@code gaeUserId} is listed in contacts with access to the registrar.
+   * Returns {@code true} if {@code user} is listed in contacts with access to the registrar.
    *
    * <p>Each registrar contact can either have getGaeUserId equals null or the user's gaeUserId.
    * Null means the contact doesn't have access to the registrar console. None-null means the
    * contact has access.
    */
-  private static boolean isInAllowedContacts(Registrar registrar, final String gaeUserId) {
+  private static boolean isInAllowedContacts(Registrar registrar, User user) {
+    String gaeUserId = user.getUserId();
     return registrar
         .getContacts()
         .stream()
