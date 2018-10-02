@@ -20,6 +20,8 @@ import static google.registry.export.sheet.SyncRegistrarsSheetAction.enqueueRegi
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
+import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
+import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_WRITE;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
@@ -132,7 +134,9 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   Map<String, Object> read(String clientId) {
     return JsonResponseHelper.create(
-        SUCCESS, "Success", sessionUtils.getRegistrarForUser(clientId, authResult).toJsonMap());
+        SUCCESS,
+        "Success",
+        sessionUtils.getRegistrarForUser(clientId, READ_ONLY, authResult).toJsonMap());
   }
 
   Map<String, Object> update(final Map<String, ?> args, String clientId) {
@@ -142,7 +146,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
               // We load the registrar here rather than outside of the transaction - to make
               // sure we have the latest version. This one is loaded inside the transaction, so it's
               // guaranteed to not change before we update it.
-              Registrar registrar = sessionUtils.getRegistrarForUser(clientId, authResult);
+              Registrar registrar =
+                  sessionUtils.getRegistrarForUser(clientId, READ_WRITE, authResult);
               // Verify that the registrar hasn't been changed.
               // To do that - we find the latest update time (or null if the registrar has been
               // deleted) and compare to the update time from the args. The update time in the args

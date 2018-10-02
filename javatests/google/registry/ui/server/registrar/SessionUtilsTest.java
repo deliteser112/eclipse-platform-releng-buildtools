@@ -20,6 +20,8 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
+import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
+import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_WRITE;
 import static org.mockito.Mockito.mock;
 
 import com.google.appengine.api.users.User;
@@ -32,6 +34,7 @@ import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
+import google.registry.ui.server.registrar.SessionUtils.AccessType;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -96,66 +99,121 @@ public class SessionUtilsTest {
 
   /** Fail loading registrar if user doesn't have access to it. */
   @Test
-  public void testGetRegistrarForUser_noAccess_isNotAdmin() {
+  public void testGetRegistrarForUser_readOnly_noAccess_isNotAdmin() {
     expectGetRegistrarFailure(
         DEFAULT_CLIENT_ID,
+        READ_ONLY,
         UNAUTHORIZED_USER,
-        "User {user} doesn't have access to registrar {clientId}");
+        "User {user} doesn't have READ_ONLY access to registrar {clientId}");
+  }
+
+  /** Fail loading registrar if user doesn't have access to it. */
+  @Test
+  public void testGetRegistrarForUser_readWrite_noAccess_isNotAdmin() {
+    expectGetRegistrarFailure(
+        DEFAULT_CLIENT_ID,
+        READ_WRITE,
+        UNAUTHORIZED_USER,
+        "User {user} doesn't have READ_WRITE access to registrar {clientId}");
   }
 
   /** Fail loading registrar if there's no user associated with the request. */
   @Test
-  public void testGetRegistrarForUser_noUser() {
-    expectGetRegistrarFailure(DEFAULT_CLIENT_ID, NO_USER, "Not logged in");
+  public void testGetRegistrarForUser_readOnly_noUser() {
+    expectGetRegistrarFailure(DEFAULT_CLIENT_ID, READ_ONLY, NO_USER, "Not logged in");
   }
 
-  /** Succeed loading registrar if user has access to it. */
+  /** Fail loading registrar if there's no user associated with the request. */
   @Test
-  public void testGetRegistrarForUser_hasAccess_isNotAdmin() {
-    expectGetRegistrarSuccess(AUTHORIZED_USER, "User {user} has access to registrar {clientId}");
+  public void testGetRegistrarForUser_readWrite_noUser() {
+    expectGetRegistrarFailure(DEFAULT_CLIENT_ID, READ_WRITE, NO_USER, "Not logged in");
+
+    assertAboutLogs().that(testLogHandler).hasNoLogsAtLevel(Level.INFO);
   }
 
-  /** Succeed loading registrar if admin. */
+  /** Succeed loading registrar in read-only mode if user has access to it. */
   @Test
-  public void testGetRegistrarForUser_hasAccess_isAdmin() {
-    expectGetRegistrarSuccess(AUTHORIZED_ADMIN, "User {user} has access to registrar {clientId}");
+  public void testGetRegistrarForUser_readOnly_hasAccess_isNotAdmin() {
+    expectGetRegistrarSuccess(
+        AUTHORIZED_USER, READ_ONLY, "User {user} has access to registrar {clientId}");
   }
 
-  /** Fail loading registrar if admin isn't on the approved contacts list. */
+  /** Succeed loading registrar in read-write mode if user has access to it. */
   @Test
-  public void testGetRegistrarForUser_noAccess_isAdmin() {
+  public void testGetRegistrarForUser_readWrite_hasAccess_isNotAdmin() {
+    expectGetRegistrarSuccess(
+        AUTHORIZED_USER, READ_WRITE, "User {user} has access to registrar {clientId}");
+  }
+
+  /** Succeed loading registrar in read-only mode if admin with access. */
+  @Test
+  public void testGetRegistrarForUser_readOnly_hasAccess_isAdmin() {
+    expectGetRegistrarSuccess(
+        AUTHORIZED_ADMIN, READ_ONLY, "User {user} has access to registrar {clientId}");
+  }
+
+  /** Succeed loading registrar in read-write mode if admin with access. */
+  @Test
+  public void testGetRegistrarForUser_readWrite_hasAccess_isAdmin() {
+    expectGetRegistrarSuccess(
+        AUTHORIZED_ADMIN, READ_WRITE, "User {user} has access to registrar {clientId}");
+  }
+
+  /** Succeed loading registrar for read-only when admin isn't on the approved contacts list. */
+  @Test
+  public void testGetRegistrarForUser_readOnly_noAccess_isAdmin() {
+    expectGetRegistrarSuccess(
+        UNAUTHORIZED_ADMIN,
+        READ_ONLY,
+        "Allowing admin {user} read-only access to registrar {clientId}.");
+  }
+
+  /** Fail loading registrar for read-write when admin isn't on the approved contacts list. */
+  @Test
+  public void testGetRegistrarForUser_readWrite_noAccess_isAdmin() {
     expectGetRegistrarFailure(
         DEFAULT_CLIENT_ID,
+        READ_WRITE,
         UNAUTHORIZED_ADMIN,
-        "User {user} doesn't have access to registrar {clientId}");
-  }
-
-  /** Succeed loading registrarAdmin even if unauthorized admin. */
-  @Test
-  public void testGetRegistrarForUser_registrarAdminClientId() {
-    sessionUtils.registryAdminClientId = DEFAULT_CLIENT_ID;
-    expectGetRegistrarSuccess(
-        UNAUTHORIZED_ADMIN, "Allowing admin {user} access to registrar {clientId}.");
+        "User {user} doesn't have READ_WRITE access to registrar {clientId}");
   }
 
   /** Fail loading registrar even if admin, if registrar doesn't exist. */
   @Test
-  public void testGetRegistrarForUser_doesntExist_isAdmin() {
-    expectGetRegistrarFailure("BadClientId", UNAUTHORIZED_ADMIN, "Registrar {clientId} not found");
+  public void testGetRegistrarForUser_readOnly_doesntExist_isAdmin() {
+    expectGetRegistrarFailure(
+        "BadClientId",
+        READ_ONLY,
+        AUTHORIZED_ADMIN,
+        "Registrar {clientId} not found");
   }
 
-  private void expectGetRegistrarSuccess(AuthResult authResult, String message) {
-    assertThat(sessionUtils.getRegistrarForUser(DEFAULT_CLIENT_ID, authResult)).isNotNull();
+  /** Fail loading registrar even if admin, if registrar doesn't exist. */
+  @Test
+  public void testGetRegistrarForUser_readWrite_doesntExist_isAdmin() {
+    expectGetRegistrarFailure(
+        "BadClientId",
+        READ_WRITE,
+        AUTHORIZED_ADMIN,
+        "Registrar {clientId} not found");
+  }
+
+  private void expectGetRegistrarSuccess(
+      AuthResult authResult, AccessType accessType, String message) {
+    assertThat(sessionUtils.getRegistrarForUser(DEFAULT_CLIENT_ID, accessType, authResult))
+        .isNotNull();
     assertAboutLogs()
         .that(testLogHandler)
         .hasLogAtLevelWithMessage(
             Level.INFO, formatMessage(message, authResult, DEFAULT_CLIENT_ID));
   }
 
-  private void expectGetRegistrarFailure(String clientId, AuthResult authResult, String message) {
+  private void expectGetRegistrarFailure(
+      String clientId, AccessType accessType, AuthResult authResult, String message) {
     ForbiddenException exception =
         assertThrows(
-            ForbiddenException.class, () -> sessionUtils.getRegistrarForUser(clientId, authResult));
+            ForbiddenException.class,
+            () -> sessionUtils.getRegistrarForUser(clientId, accessType, authResult));
 
     assertThat(exception).hasMessageThat().contains(formatMessage(message, authResult, clientId));
     assertAboutLogs().that(testLogHandler).hasNoLogsAtLevel(Level.INFO);
@@ -221,7 +279,7 @@ public class SessionUtilsTest {
 
   /**
    * If an admin is not associated with a registrar and the configured adminClientId points to a
-   * non-existent registrar, we still guess it (we will later failing loading the registrar).
+   * non-existent registrar, we still guess it (we will later fail loading the registrar).
    */
   @Test
   public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdInvalid() {

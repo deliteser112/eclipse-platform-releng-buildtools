@@ -160,7 +160,7 @@ registry.registrar.Console.prototype.changeNavStyle = function() {
   slashNdx = slashNdx == -1 ? hashToken.length : slashNdx;
   var regNavlist = goog.dom.getRequiredElement('reg-navlist');
   var path = hashToken.substring(0, slashNdx);
-  var active = regNavlist.querySelector('a[href="/registrar#' + path + '"]');
+  var active = regNavlist.querySelector('a[href="#' + path + '"]');
   if (goog.isNull(active)) {
     registry.util.log('Unknown path or path form in changeNavStyle.');
     return;

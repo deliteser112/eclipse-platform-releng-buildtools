@@ -30,7 +30,7 @@ import java.util.function.Function;
 import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
 
-/** Authenticated Registrar access helper class. */
+/** HTTP session management helper class. */
 @Immutable
 public class SessionUtils {
 
@@ -43,6 +43,9 @@ public class SessionUtils {
   @Inject
   public SessionUtils() {}
 
+  /** Type of access we're requesting. */
+  public enum AccessType {READ_ONLY, READ_WRITE}
+
   /**
    * Loads Registrar on behalf of an authorised user.
    *
@@ -50,10 +53,13 @@ public class SessionUtils {
    * access the requested registrar.
    *
    * @param clientId ID of the registrar we request
+   * @param accessType what kind of access do we want for this registrar - just read it or write as
+   *     well? (different users might have different access levels)
    * @param authResult AuthResult of the user on behalf of which we want to access the data
    */
-  public Registrar getRegistrarForUser(String clientId, AuthResult authResult) {
-    return getAndAuthorize(Registrar::loadByClientId, clientId, authResult);
+  public Registrar getRegistrarForUser(
+      String clientId, AccessType accessType, AuthResult authResult) {
+    return getAndAuthorize(Registrar::loadByClientId, clientId, accessType, authResult);
   }
 
   /**
@@ -63,15 +69,19 @@ public class SessionUtils {
    * access the requested registrar.
    *
    * @param clientId ID of the registrar we request
+   * @param accessType what kind of access do we want for this registrar - just read it or write as
+   *     well? (different users might have different access levels)
    * @param authResult AuthResult of the user on behalf of which we want to access the data
    */
-  public Registrar getRegistrarForUserCached(String clientId, AuthResult authResult) {
-    return getAndAuthorize(Registrar::loadByClientIdCached, clientId, authResult);
+  public Registrar getRegistrarForUserCached(
+      String clientId, AccessType accessType, AuthResult authResult) {
+    return getAndAuthorize(Registrar::loadByClientIdCached, clientId, accessType, authResult);
   }
 
-  Registrar getAndAuthorize(
+  private Registrar getAndAuthorize(
       Function<String, Optional<Registrar>> registrarLoader,
       String clientId,
+      AccessType accessType,
       AuthResult authResult) {
     UserAuthInfo userAuthInfo =
         authResult.userAuthInfo().orElseThrow(() -> new ForbiddenException("Not logged in"));
@@ -97,8 +107,17 @@ public class SessionUtils {
       return registrar;
     }
 
+    if (isAdmin && accessType == AccessType.READ_ONLY) {
+      // Admins have read-only access to all registrars
+      logger.atInfo().log(
+          "Allowing admin %s read-only access to registrar %s.", userIdForLogging, clientId);
+      return registrar;
+    }
+
     throw new ForbiddenException(
-        String.format("User %s doesn't have access to registrar %s", userIdForLogging, clientId));
+        String.format(
+            "User %s doesn't have %s access to registrar %s",
+            userIdForLogging, accessType, clientId));
   }
 
   /**

@@ -18,6 +18,8 @@ import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddres
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
+import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
+import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_WRITE;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
@@ -58,12 +60,14 @@ public class RegistrarSettingsActionTestCase {
 
   static final String CLIENT_ID = "TheRegistrar";
 
-  static final AuthResult USER_AUTHORIZED =
-      AuthResult.create(AuthLevel.USER, UserAuthInfo.create(new User("user", "gmail.com"), false));
+  static final AuthResult USER_READ_WRITE =
+      AuthResult.create(AuthLevel.USER, UserAuthInfo.create(new User("rw", "gmail.com"), false));
+
+  static final AuthResult USER_READ_ONLY =
+      AuthResult.create(AuthLevel.USER, UserAuthInfo.create(new User("ro", "gmail.com"), false));
 
   static final AuthResult USER_UNAUTHORIZED =
-      AuthResult.create(
-          AuthLevel.USER, UserAuthInfo.create(new User("unauthorized", "gmail.com"), false));
+      AuthResult.create(AuthLevel.USER, UserAuthInfo.create(new User("evil", "gmail.com"), false));
 
   @Rule
   public final AppEngineRule appEngine =
@@ -90,7 +94,9 @@ public class RegistrarSettingsActionTestCase {
     action.sessionUtils = sessionUtils;
     action.appEngineServiceUtils = appEngineServiceUtils;
     when(appEngineServiceUtils.getCurrentVersionHostname("backend")).thenReturn("backend.hostname");
-    action.authResult = USER_AUTHORIZED;
+    // We set the default user to one with read-write access, as that's the most common test case.
+    // When we want to specifically check read-only or unauthorized, we can switch the user here.
+    action.authResult = USER_READ_WRITE;
     action.jsonActionRunner = new JsonActionRunner(
         ImmutableMap.of(), new JsonResponse(new ResponseImpl(rsp)));
     action.registrarChangesNotificationEmailAddresses = ImmutableList.of(
@@ -109,9 +115,19 @@ public class RegistrarSettingsActionTestCase {
     // the result is out of date after mutations.
     // (for example, if someone wants to change the registrar to prepare for a test, the function
     // would still return the old value)
-    when(sessionUtils.getRegistrarForUser(CLIENT_ID, USER_AUTHORIZED))
+    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_ONLY, USER_READ_WRITE))
         .thenAnswer(x -> loadRegistrar(CLIENT_ID));
-    when(sessionUtils.getRegistrarForUser(CLIENT_ID, USER_UNAUTHORIZED))
+    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_WRITE, USER_READ_WRITE))
+        .thenAnswer(x -> loadRegistrar(CLIENT_ID));
+
+    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_ONLY, USER_READ_ONLY))
+        .thenAnswer(x -> loadRegistrar(CLIENT_ID));
+    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_WRITE, USER_READ_ONLY))
+        .thenThrow(new ForbiddenException("forbidden test error"));
+
+    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_ONLY, USER_UNAUTHORIZED))
+        .thenThrow(new ForbiddenException("forbidden test error"));
+    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_WRITE, USER_UNAUTHORIZED))
         .thenThrow(new ForbiddenException("forbidden test error"));
   }
 }

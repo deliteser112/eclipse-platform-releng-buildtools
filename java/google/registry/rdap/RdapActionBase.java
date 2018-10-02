@@ -18,6 +18,7 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -181,7 +182,7 @@ public abstract class RdapActionBase implements Runnable {
       String clientId = sessionUtils.guessClientIdForUser(authResult);
       // We load the Registrar to make sure the user has access to it. We don't actually need it,
       // we're just checking if an exception is thrown.
-      sessionUtils.getRegistrarForUserCached(clientId, authResult);
+      sessionUtils.getRegistrarForUserCached(clientId, READ_ONLY, authResult);
       return Optional.of(clientId);
     } catch (Exception e) {
       logger.atWarning().withCause(e).log(

@@ -17,6 +17,7 @@ package google.registry.ui.server.registrar;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
+import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -34,6 +35,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.UserInfo;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Rule;
@@ -72,10 +74,11 @@ public class ConsoleUiActionTest {
     action.sessionUtils = sessionUtils;
     action.userService = UserServiceFactory.getUserService();
     action.xsrfTokenManager = new XsrfTokenManager(new FakeClock(), action.userService);
+    action.paramClientId = Optional.empty();
     AuthResult authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     action.authResult = authResult;
     when(sessionUtils.guessClientIdForUser(authResult)).thenReturn("TheRegistrar");
-    when(sessionUtils.getRegistrarForUser("TheRegistrar", authResult))
+    when(sessionUtils.getRegistrarForUser("TheRegistrar", READ_ONLY, authResult))
         .thenReturn(loadRegistrar("TheRegistrar"));
   }
 
@@ -117,6 +120,7 @@ public class ConsoleUiActionTest {
         .thenThrow(new ForbiddenException("forbidden"));
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
+    assertThat(response.getPayload()).contains("not associated with Nomulus.");
   }
 
   @Test
@@ -135,5 +139,25 @@ public class ConsoleUiActionTest {
     action.run();
     assertThat(response.getStatus()).isEqualTo(SC_MOVED_TEMPORARILY);
     assertThat(response.getHeaders().get(LOCATION)).isEqualTo("/");
+  }
+
+  @Test
+  public void testSettingClientId_notAllowed_showsNeedPermissionPage() {
+    action.paramClientId = Optional.of("OtherClientId");
+    when(sessionUtils.getRegistrarForUser("OtherClientId", READ_ONLY, action.authResult))
+        .thenThrow(new ForbiddenException("forbidden"));
+    action.run();
+    assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
+    assertThat(response.getPayload()).contains("not associated with the registrar OtherClientId.");
+  }
+
+  @Test
+  public void testSettingClientId_allowed_showsRegistrarConsole() {
+    action.paramClientId = Optional.of("OtherClientId");
+    when(sessionUtils.getRegistrarForUser("OtherClientId", READ_ONLY, action.authResult))
+        .thenReturn(loadRegistrar("TheRegistrar"));
+    action.run();
+    assertThat(response.getPayload()).contains("Registrar Console");
+    assertThat(response.getPayload()).contains("reg-content-and-footer");
   }
 }

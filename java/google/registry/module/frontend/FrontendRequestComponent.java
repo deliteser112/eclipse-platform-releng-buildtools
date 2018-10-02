@@ -26,12 +26,14 @@ import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
 import google.registry.ui.server.registrar.ConsoleUiAction;
+import google.registry.ui.server.registrar.RegistrarConsoleModule;
 import google.registry.ui.server.registrar.RegistrarSettingsAction;
 
 /** Dagger component with per-request lifetime for "default" App Engine module. */
 @RequestScope
 @Subcomponent(
     modules = {
+      RegistrarConsoleModule.class,
       DnsModule.class,
       EppTlsModule.class,
       RequestModule.class,

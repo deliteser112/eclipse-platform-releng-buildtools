@@ -61,7 +61,7 @@ function setUp() {
   });
   registry.registrar.ConsoleTestUtil.setup(test);
   var regNavlist = $('reg-navlist');
-  var active = regNavlist.querySelector('a[href="/registrar#contact-us"]');
+  var active = regNavlist.querySelector('a[href="#contact-us"]');
   assertTrue(active != null);
 }
 
