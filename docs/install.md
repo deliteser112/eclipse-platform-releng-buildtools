@@ -7,8 +7,8 @@ This document covers the steps necessary to download, build, and deploy Nomulus.
 You will need the following programs installed on your local machine:
 
 *   A recent version of the [Java 8 JDK][java-jdk8].
-*   [Bazel build system](http://bazel.io/) (version [0.17.1][bazel-version]
-    works as of 2018-09-14).
+*   [Bazel build system](http://bazel.io/) (version [0.17.2][bazel-version]
+    works as of 2018-10-03).
 *   [Google App Engine SDK for Java][app-engine-sdk], and configure aliases to
     to the `gcloud` and `appcfg.sh` utilities (you'll use them a lot).
 *   [Git](https://git-scm.com/) version control system.
@@ -181,4 +181,4 @@ See the [first steps tutorial](./first-steps-tutorial.md) for more information.
 
 [app-engine-sdk]: https://cloud.google.com/appengine/docs/java/download
 [java-jdk8]: http://www.oracle.com/technetwork/java/javase/downloads
-[bazel-version]: https://github.com/bazelbuild/bazel/releases/download/0.17.1/bazel-0.17.1-installer-linux-x86_64.sh
+[bazel-version]: https://github.com/bazelbuild/bazel/releases/download/0.17.2/bazel-0.17.2-installer-linux-x86_64.sh
