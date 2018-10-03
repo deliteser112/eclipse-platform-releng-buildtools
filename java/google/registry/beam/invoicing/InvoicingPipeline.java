@@ -34,6 +34,7 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.options.ValueProvider.NestedValueProvider;
 import org.apache.beam.sdk.transforms.Count;
+import org.apache.beam.sdk.transforms.Filter;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.values.KV;
@@ -141,6 +142,7 @@ public class InvoicingPipeline implements Serializable {
               "Map to invoicing key",
               MapElements.into(TypeDescriptor.of(InvoiceGroupingKey.class))
                   .via(BillingEvent::getInvoiceGroupingKey))
+          .apply(Filter.by((InvoiceGroupingKey key) -> key.unitPrice() != 0))
           .setCoder(new InvoiceGroupingKeyCoder())
           .apply("Count occurrences", Count.perElement())
           .apply(

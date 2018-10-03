@@ -177,9 +177,7 @@ public class InvoicingPipelineTest {
         "2017-10-01,2022-09-30,234,70.75,JPY,10125,1,PURCHASE,theRegistrar - hello,1,"
             + "CREATE | TLD: hello | TERM: 5-year,70.75,JPY,",
         "2017-10-01,2018-09-30,456,20.50,USD,10125,1,PURCHASE,bestdomains - test,1,"
-            + "RENEW | TLD: test | TERM: 1-year,20.50,USD,116688",
-        "2017-10-01,2018-09-30,789,0.00,USD,10125,1,PURCHASE,anotherRegistrar - test,1,"
-            + "CREATE | TLD: test | TERM: 1-year,0.00,USD,");
+            + "RENEW | TLD: test | TERM: 1-year,20.50,USD,116688");
   }
 
   @Test
