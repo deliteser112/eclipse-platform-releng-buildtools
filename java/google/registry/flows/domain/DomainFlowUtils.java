@@ -621,7 +621,10 @@ public class DomainFlowUtils {
           builder.setReasonIfSupported("reserved");
         } else {
           builder.setAvailIfSupported(true);
-          fees = pricingLogic.getCreatePrice(registry, domainNameString, now, years).getFees();
+          // TODO(b/117145844): Once allocation token support for domain check flow is implemented,
+          // we should be able to calculate the correct price here.
+          fees =
+              pricingLogic.getCreatePrice(registry, domainNameString, now, years, false).getFees();
         }
         break;
       case RENEW:

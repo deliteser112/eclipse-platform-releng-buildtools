@@ -54,7 +54,8 @@ public final class DomainPricingLogic {
 
   /** Returns a new create price for the pricer. */
   public FeesAndCredits getCreatePrice(
-      Registry registry, String domainName, DateTime date, int years) throws EppException {
+      Registry registry, String domainName, DateTime date, int years, boolean isAnchorTenant)
+      throws EppException {
     CurrencyUnit currency = registry.getCurrency();
 
     // Get the vanilla create cost.
@@ -65,7 +66,8 @@ public final class DomainPricingLogic {
     Fee eapFee = registry.getEapFeeFor(date);
     FeesAndCredits.Builder feesBuilder =
         new FeesAndCredits.Builder().setCurrency(currency).addFeeOrCredit(createFeeOrCredit);
-    if (!eapFee.hasZeroCost()) {
+    // Don't charge anchor tenants EAP fees.
+    if (!isAnchorTenant && !eapFee.hasZeroCost()) {
       feesBuilder.addFeeOrCredit(eapFee);
     }
 

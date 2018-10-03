@@ -391,7 +391,8 @@ public class DomainAllocateFlow implements TransactionalFlow {
 
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
       DateTime now, Registry registry, int years) throws EppException {
-    FeesAndCredits feesAndCredits = pricingLogic.getCreatePrice(registry, targetId, now, years);
+    FeesAndCredits feesAndCredits =
+        pricingLogic.getCreatePrice(registry, targetId, now, years, false);
     Optional<FeeCreateCommandExtension> feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     return feeCreate.isPresent()
