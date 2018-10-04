@@ -139,6 +139,8 @@ def domain_registry_repositories(
         omit_org_apache_httpcomponents_httpcore = False,
         omit_org_apache_mina_core = False,
         omit_org_apache_sshd_core = False,
+        omit_org_apache_sshd_scp = False,
+        omit_org_apache_sshd_sftp = False,
         omit_org_apache_tomcat_servlet_api = False,
         omit_org_apache_tomcat_annotations_api = False,
         omit_org_bouncycastle_bcpg_jdk15on = False,
@@ -397,6 +399,10 @@ def domain_registry_repositories(
         org_apache_mina_core()
     if not omit_org_apache_sshd_core:
         org_apache_sshd_core()
+    if not omit_org_apache_sshd_scp:
+        org_apache_sshd_scp()
+    if not omit_org_apache_sshd_sftp:
+        org_apache_sshd_sftp()
     if not omit_org_apache_tomcat_servlet_api:
         org_apache_tomcat_servlet_api()
     if not omit_org_apache_tomcat_annotations_api:
@@ -2244,13 +2250,49 @@ def org_apache_mina_core():
 def org_apache_sshd_core():
     java_import_external(
         name = "org_apache_sshd_core",
-        jar_sha256 = "5630fa11f7e2f7f5b6b7e6b9be06e476715dfb48db37998b4b7c3eea098d86ff",
+        # Apache 2.0 License
+        # http://www.apache.org/licenses/LICENSE-2.0
+        # Apache License, Version 2.0
+        # http://www.apache.org/licenses/LICENSE-2.0.txt
+        licenses = ["notice"],
+        jar_sha256 = "00c944fac00dec2e7ace4052e0a52c772ca3fa2653918bbcfadf7100df022e25",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/org/apache/sshd/sshd-core/1.2.0/sshd-core-1.2.0.jar",
-            "http://repo1.maven.org/maven2/org/apache/sshd/sshd-core/1.2.0/sshd-core-1.2.0.jar",
+            "http://repo1.maven.org/maven2/org/apache/sshd/sshd-core/2.0.0/sshd-core-2.0.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/sshd/sshd-core/2.0.0/sshd-core-2.0.0.jar",
         ],
-        licenses = ["notice"],  # Apache 2.0 License
         deps = ["@org_slf4j_api"],
+    )
+
+def org_apache_sshd_scp():
+    java_import_external(
+        name = "org_apache_sshd_scp",
+        # Apache 2.0 License
+        # http://www.apache.org/licenses/LICENSE-2.0
+        # Apache License, Version 2.0
+        # http://www.apache.org/licenses/LICENSE-2.0.txt
+        licenses = ["notice"],
+        jar_sha256 = "ae32fcc16ab0a0ae04655b8832676b41199814184dc50028b3c6aa61053635ca",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/org/apache/sshd/sshd-scp/2.0.0/sshd-scp-2.0.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/sshd/sshd-scp/2.0.0/sshd-scp-2.0.0.jar",
+        ],
+        deps = ["@org_apache_sshd_core"],
+    )
+
+def org_apache_sshd_sftp():
+    java_import_external(
+        name = "org_apache_sshd_sftp",
+        # Apache 2.0 License
+        # http://www.apache.org/licenses/LICENSE-2.0
+        # Apache License, Version 2.0
+        # http://www.apache.org/licenses/LICENSE-2.0.txt
+        licenses = ["notice"],
+        jar_sha256 = "0504af9a4afcaf61be9f0b56d3cfc76a9187a654e297bc57b7fa81aa76bb8cb0",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/org/apache/sshd/sshd-sftp/2.0.0/sshd-sftp-2.0.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/sshd/sshd-sftp/2.0.0/sshd-sftp-2.0.0.jar",
+        ],
+        deps = ["@org_apache_sshd_core"],
     )
 
 def org_apache_tomcat_servlet_api():
