@@ -26,7 +26,6 @@ PATH                                   CLASS                              METHOD
 /_dr/task/importRdeHosts               RdeHostImportAction                GET      n  INTERNAL     APP IGNORED
 /_dr/task/linkRdeHosts                 RdeHostLinkAction                  GET      n  INTERNAL     APP IGNORED
 /_dr/task/loadSnapshot                 LoadSnapshotAction                 POST     n  INTERNAL     APP IGNORED
-/_dr/task/metrics                      MetricsExportAction                POST     n  INTERNAL     APP IGNORED
 /_dr/task/nordnUpload                  NordnUploadAction                  POST     y  INTERNAL     APP IGNORED
 /_dr/task/nordnVerify                  NordnVerifyAction                  POST     y  INTERNAL     APP IGNORED
 /_dr/task/pollBigqueryJob              BigqueryPollJobAction              GET,POST y  INTERNAL     APP IGNORED

@@ -278,7 +278,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
 
   private EppOutput runFlowInternal(CommitMode commitMode, UserPrivileges userPrivileges)
       throws Exception {
-    eppMetricBuilder = EppMetric.builderForRequest("request-id-1", clock);
+    eppMetricBuilder = EppMetric.builderForRequest(clock);
     // Assert that the xml triggers the flow we expect.
     assertThat(FlowPicker.getFlowClass(eppLoader.getEpp()))
         .isEqualTo(new TypeInstantiator<F>(getClass()){}.getExactType());

@@ -22,7 +22,6 @@ import static google.registry.flows.FlowReporter.extractTlds;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.flogger.FluentLogger;
@@ -33,7 +32,6 @@ import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
-import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -52,7 +50,6 @@ public final class EppController {
   @Inject FlowComponent.Builder flowComponentBuilder;
   @Inject EppMetric.Builder eppMetricBuilder;
   @Inject EppMetrics eppMetrics;
-  @Inject BigQueryMetricsEnqueuer bigQueryMetricsEnqueuer;
   @Inject ServerTridProvider serverTridProvider;
   @Inject EppController() {}
 
@@ -65,7 +62,6 @@ public final class EppController {
       boolean isSuperuser,
       byte[] inputXmlBytes) {
     eppMetricBuilder.setClientId(Optional.ofNullable(sessionMetadata.getClientId()));
-    eppMetricBuilder.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
     try {
       EppInput eppInput;
       try {
@@ -99,7 +95,6 @@ public final class EppController {
             e.getResult(), Trid.create(null, serverTridProvider.createServerTrid()));
       }
       if (!eppInput.getTargetIds().isEmpty()) {
-        eppMetricBuilder.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
         if (eppInput.isDomainResourceType()) {
           eppMetricBuilder.setTlds(extractTlds(eppInput.getTargetIds()));
         }
@@ -122,7 +117,6 @@ public final class EppController {
     } finally {
       if (!isDryRun) {
         EppMetric metric = eppMetricBuilder.build();
-        bigQueryMetricsEnqueuer.export(metric);
         eppMetrics.incrementEppRequests(metric);
         eppMetrics.recordProcessingTime(metric);
       }

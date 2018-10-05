@@ -2541,6 +2541,5 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlow();
     EppMetric eppMetric = getEppMetric();
     assertThat(eppMetric.getCommandName()).hasValue("DomainCreate");
-    assertThat(eppMetric.getAttempts()).isEqualTo(1);
   }
 }

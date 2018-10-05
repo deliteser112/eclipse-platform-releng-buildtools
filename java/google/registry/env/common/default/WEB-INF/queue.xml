@@ -192,17 +192,6 @@
     </retry-parameters>
   </queue>
 
-  <!-- queue for whitebox metrics -->
-  <queue>
-    <name>bigquery-streaming-metrics</name>
-    <rate>500/s</rate>
-    <bucket-size>500</bucket-size>
-    <retry-parameters>
-      <task-retry-limit>1</task-retry-limit>
-      <task-age-limit>1m</task-age-limit>
-    </retry-parameters>
-  </queue>
-
   <!-- Queue for infrequent cron tasks (i.e. hourly or less often) that should retry three times on failure. -->
   <queue>
     <name>retryable-cron-tasks</name>

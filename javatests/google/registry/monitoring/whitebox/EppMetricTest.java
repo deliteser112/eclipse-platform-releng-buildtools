@@ -14,18 +14,13 @@
 
 package google.registry.monitoring.whitebox;
 
-import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
 
-import com.google.api.services.bigquery.model.TableFieldSchema;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import google.registry.model.eppoutput.Result.Code;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
-import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +35,7 @@ public class EppMetricTest {
   @Test
   public void test_invalidTld_isRecordedAsInvalid() {
     EppMetric metric =
-        EppMetric.builderForRequest("request-id-1", new FakeClock())
+        EppMetric.builderForRequest(new FakeClock())
             .setTlds(ImmutableSet.of("notarealtld"))
             .build();
     assertThat(metric.getTld()).hasValue("_invalid");
@@ -50,9 +45,7 @@ public class EppMetricTest {
   public void test_validTld_isRecorded() {
     createTld("example");
     EppMetric metric =
-        EppMetric.builderForRequest("request-id-1", new FakeClock())
-            .setTlds(ImmutableSet.of("example"))
-            .build();
+        EppMetric.builderForRequest(new FakeClock()).setTlds(ImmutableSet.of("example")).build();
     assertThat(metric.getTld()).hasValue("example");
   }
 
@@ -60,7 +53,7 @@ public class EppMetricTest {
   public void test_multipleTlds_areRecordedAsVarious() {
     createTlds("foo", "bar");
     EppMetric metric =
-        EppMetric.builderForRequest("request-id-1", new FakeClock())
+        EppMetric.builderForRequest(new FakeClock())
             .setTlds(ImmutableSet.of("foo", "bar", "baz"))
             .build();
     assertThat(metric.getTld()).hasValue("_various");
@@ -69,64 +62,7 @@ public class EppMetricTest {
   @Test
   public void test_zeroTlds_areRecordedAsAbsent() {
     EppMetric metric =
-        EppMetric.builderForRequest("request-id-1", new FakeClock())
-            .setTlds(ImmutableSet.of())
-            .build();
+        EppMetric.builderForRequest(new FakeClock()).setTlds(ImmutableSet.of()).build();
     assertThat(metric.getTld()).isEmpty();
-  }
-
-  @Test
-  public void testGetBigQueryRowEncoding_encodesCorrectly() {
-    EppMetric metric =
-        EppMetric.builder()
-            .setRequestId("request-id-1")
-            .setStartTimestamp(new DateTime(1337))
-            .setEndTimestamp(new DateTime(1338))
-            .setCommandName("command")
-            .setClientId("client")
-            .setTld("example")
-            .setPrivilegeLevel("level")
-            .setEppTarget("target")
-            .setStatus(Code.COMMAND_USE_ERROR)
-            .incrementAttempts()
-            .build();
-
-    assertThat(metric.getBigQueryRowEncoding())
-        .containsExactlyEntriesIn(
-            new ImmutableMap.Builder<String, String>()
-                .put("requestId", "request-id-1")
-                .put("startTime", "1.337000")
-                .put("endTime", "1.338000")
-                .put("commandName", "command")
-                .put("clientId", "client")
-                .put("tld", "example")
-                .put("privilegeLevel", "level")
-                .put("eppTarget", "target")
-                .put("eppStatus", "2002")
-                .put("attempts", "1")
-                .build());
-  }
-
-  @Test
-  public void testGetBigQueryRowEncoding_hasAllSchemaFields() {
-    EppMetric metric =
-        EppMetric.builder()
-            .setRequestId("request-id-1")
-            .setStartTimestamp(new DateTime(1337))
-            .setEndTimestamp(new DateTime(1338))
-            .setCommandName("command")
-            .setClientId("client")
-            .setTld("example")
-            .setPrivilegeLevel("level")
-            .setEppTarget("target")
-            .setStatus(Code.COMMAND_USE_ERROR)
-            .incrementAttempts()
-            .build();
-    ImmutableSet.Builder<String> schemaFieldNames = new ImmutableSet.Builder<>();
-    for (TableFieldSchema schemaField : metric.getSchemaFields()) {
-      schemaFieldNames.add(schemaField.getName());
-    }
-
-    assertThat(metric.getBigQueryRowEncoding().keySet()).isEqualTo(schemaFieldNames.build());
   }
 }

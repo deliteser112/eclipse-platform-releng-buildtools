@@ -167,7 +167,7 @@ public class EppTestCase extends ShardableTestCase {
     EppRequestHandler handler = new EppRequestHandler();
     FakeResponse response = new FakeResponse();
     handler.response = response;
-    eppMetricBuilder = EppMetric.builderForRequest("request-id-1", clock);
+    eppMetricBuilder = EppMetric.builderForRequest(clock);
     handler.eppController = DaggerEppTestComponent.builder()
         .fakesAndMocksModule(FakesAndMocksModule.create(clock, eppMetricBuilder))
         .build()

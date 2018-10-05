@@ -44,10 +44,6 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
     return hasValue(commandName, actual().getCommandName(), "has commandName");
   }
 
-  public And<EppMetricSubject> hasEppTarget(String eppTarget) {
-    return hasValue(eppTarget, actual().getEppTarget(), "has eppTarget");
-  }
-
   public And<EppMetricSubject> hasStatus(Code status) {
     return hasValue(status, actual().getStatus(), "has status");
   }

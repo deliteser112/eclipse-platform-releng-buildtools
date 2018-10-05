@@ -54,8 +54,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   public final AppEngineRule appEngineRule = new AppEngineRule.Builder().build();
 
   private final FlowRunner flowRunner = new FlowRunner();
-  private final EppMetric.Builder eppMetricBuilder =
-      EppMetric.builderForRequest("request-id-1", new FakeClock());
+  private final EppMetric.Builder eppMetricBuilder = EppMetric.builderForRequest(new FakeClock());
 
   private final TestLogHandler handler = new TestLogHandler();
 
@@ -82,19 +81,6 @@ public class FlowRunnerTest extends ShardableTestCase {
         new StatelessRequestSessionMetadata("TheRegistrar", ImmutableSet.of());
     flowRunner.trid = Trid.create("client-123", "server-456");
     flowRunner.flowReporter = Mockito.mock(FlowReporter.class);
-  }
-
-  @Test
-  public void testRun_nonTransactionalCommand_incrementsMetricAttempts() throws Exception {
-    flowRunner.run(eppMetricBuilder);
-    assertThat(eppMetricBuilder.build().getAttempts()).isEqualTo(1);
-  }
-
-  @Test
-  public void testRun_transactionalCommand_incrementsMetricAttempts() throws Exception {
-    flowRunner.isTransactional = true;
-    flowRunner.run(eppMetricBuilder);
-    assertThat(eppMetricBuilder.build().getAttempts()).isEqualTo(1);
   }
 
   @Test

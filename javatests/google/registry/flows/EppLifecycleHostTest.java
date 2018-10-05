@@ -67,8 +67,6 @@ public class EppLifecycleHostTest extends EppTestCase {
         .and()
         .hasCommandName("HostCreate")
         .and()
-        .hasEppTarget("ns1.example.tld")
-        .and()
         .hasStatus(SUCCESS);
     assertThatCommand("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld"))
         .atTime("2000-06-02T00:02:00Z")
@@ -81,8 +79,6 @@ public class EppLifecycleHostTest extends EppTestCase {
         .and()
         .hasCommandName("HostInfo")
         .and()
-        .hasEppTarget("ns1.example.tld")
-        .and()
         .hasStatus(SUCCESS);
     assertThatCommand("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld"))
         .atTime("2000-06-02T00:03:00Z")
@@ -91,8 +87,6 @@ public class EppLifecycleHostTest extends EppTestCase {
         .hasClientId("NewRegistrar")
         .and()
         .hasCommandName("HostDelete")
-        .and()
-        .hasEppTarget("ns1.example.tld")
         .and()
         .hasStatus(SUCCESS_WITH_ACTION_PENDING);
     assertThatLogoutSucceeds();
