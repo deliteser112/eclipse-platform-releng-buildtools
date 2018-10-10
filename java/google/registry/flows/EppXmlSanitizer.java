@@ -14,14 +14,18 @@
 
 package google.registry.flows;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
@@ -32,6 +36,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.StartDocument;
 import javax.xml.stream.events.XMLEvent;
 
 /**
@@ -71,31 +76,47 @@ public class EppXmlSanitizer {
   private static final XMLEventFactory XML_EVENT_FACTORY = XMLEventFactory.newFactory();
 
   /**
-   * Returns sanitized and pretty-printed EPP XML message. For malformed XML messages,
-   * base64-encoded raw bytes will be returned.
+   * Returns sanitized EPP XML message. For malformed XML messages, base64-encoded raw bytes will be
+   * returned.
    *
-   * <p>The xml version header {@code <?xml version="1.0" ?>} is added to the result if the input
-   * does not already contain it. Also, an empty element will be formatted as {@code <tag></tag>}
-   * instead of {@code <tag/>}.
+   * <p>The output always begins with version and encoding declarations no matter if the input
+   * includes them. If encoding is not declared by input, UTF-8 will be used according to XML
+   * standard.
+   *
+   * <p>Also, an empty element will be formatted as {@code <tag></tag>} instead of {@code <tag/>}.
    */
   public static String sanitizeEppXml(byte[] inputXmlBytes) {
     try {
       // Keep exactly one newline at end of sanitized string.
-      return CharMatcher.whitespace()
-              .trimTrailingFrom(new String(sanitize(inputXmlBytes), StandardCharsets.UTF_8))
-          + "\n";
-    } catch (XMLStreamException e) {
+      return CharMatcher.whitespace().trimTrailingFrom(sanitizeAndEncode(inputXmlBytes)) + "\n";
+    } catch (XMLStreamException | UnsupportedEncodingException e) {
       logger.atWarning().withCause(e).log("Failed to sanitize EPP XML message.");
       return Base64.getMimeEncoder().encodeToString(inputXmlBytes);
     }
   }
 
-  private static byte[] sanitize(byte[] inputXmlBytes) throws XMLStreamException {
+  private static String sanitizeAndEncode(byte[] inputXmlBytes)
+      throws XMLStreamException, UnsupportedEncodingException {
     XMLEventReader xmlEventReader =
         XML_INPUT_FACTORY.createXMLEventReader(new ByteArrayInputStream(inputXmlBytes));
 
+    if (!xmlEventReader.hasNext()) {
+      return "";
+    }
+
+    XMLEvent firstEvent = xmlEventReader.nextEvent();
+    checkState(firstEvent.isStartDocument(), "Missing StartDocument");
+    // Get input encoding for use in XMLEventWriter creation, so that sanitized XML preserves the
+    // encoding declaration. According to XML spec, UTF-8 is to be used unless input declares
+    // otherwise. Epp officially allows UTF-8 and UTF-16.
+    String inputEncoding =
+        Optional.ofNullable(((StartDocument) firstEvent).getCharacterEncodingScheme())
+            .orElse(StandardCharsets.UTF_8.name());
+
     ByteArrayOutputStream outputXmlBytes = new ByteArrayOutputStream();
-    XMLEventWriter xmlEventWriter = XML_OUTPUT_FACTORY.createXMLEventWriter(outputXmlBytes);
+    XMLEventWriter xmlEventWriter =
+        XML_OUTPUT_FACTORY.createXMLEventWriter(outputXmlBytes, inputEncoding);
+    xmlEventWriter.add(firstEvent);
 
     while (xmlEventReader.hasNext()) {
       XMLEvent xmlEvent = xmlEventReader.nextEvent();
@@ -118,7 +139,7 @@ public class EppXmlSanitizer {
       }
     }
     xmlEventWriter.flush();
-    return outputXmlBytes.toByteArray();
+    return outputXmlBytes.toString(inputEncoding);
   }
 
   private static String maskSensitiveData(String original) {

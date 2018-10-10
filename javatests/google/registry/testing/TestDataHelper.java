@@ -23,7 +23,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
 import com.google.common.io.MoreFiles;
 import com.google.common.io.Resources;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -93,7 +95,21 @@ public final class TestDataHelper {
   /** Returns a recursive iterable of all files in the given directory. */
   public static Iterable<Path> listFiles(Class<?> context, String directory) throws Exception {
     URI dir = Resources.getResource(context, directory).toURI();
-    FileSystems.newFileSystem(dir, ImmutableMap.of("create", "true"));
+    ensureFileSystemPresentForUri(dir);
     return MoreFiles.fileTraverser().breadthFirst(Paths.get(dir));
+  }
+
+  private static void ensureFileSystemPresentForUri(URI uri) throws IOException {
+    if (uri.getScheme().equals(FileSystems.getDefault().provider().getScheme())) {
+      // URI maps to default file system (file://...), which must be present. Besides, calling
+      // FileSystem.newFileSystem on this URI may trigger FileSystemAlreadyExistsException.
+      return;
+    }
+    try {
+      // URI maps to a special file system, e.g., jar:...
+      FileSystems.newFileSystem(uri, ImmutableMap.of("create", "true"));
+    } catch (FileSystemAlreadyExistsException e) {
+      // ignore.
+    }
   }
 }
