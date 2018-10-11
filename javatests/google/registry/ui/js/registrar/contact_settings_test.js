@@ -17,23 +17,21 @@ goog.setTestOnly();
 goog.require('goog.array');
 goog.require('goog.dispose');
 goog.require('goog.dom');
-goog.require('goog.soy');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.asserts');
 goog.require('goog.testing.jsunit');
 goog.require('goog.testing.net.XhrIo');
 goog.require('registry.registrar.ConsoleTestUtil');
-goog.require('registry.soy.registrar.console');
 goog.require('registry.testing');
 goog.require('registry.util');
 
 
-var $ = goog.dom.getRequiredElement;
-var stubs = new goog.testing.PropertyReplacer();
-var testContact = null;
+const $ = goog.dom.getRequiredElement;
+const stubs = new goog.testing.PropertyReplacer();
+let testContact = null;
 
-var test = {
+const test = {
   testXsrfToken: '༼༎෴ ༎༽',
   testClientId: 'testClientId',
   mockControl: new goog.testing.MockControl()
@@ -44,19 +42,9 @@ function setUp() {
   registry.testing.addToDocument('<div id="test"/>');
   registry.testing.addToDocument('<div class="kd-butterbar"/>');
   testContact = createTestContact();
-  goog.soy.renderElement($('test'), registry.soy.registrar.console.main, {
+  registry.registrar.ConsoleTestUtil.renderConsoleMain($('test'), {
     xsrfToken: test.testXsrfToken,
-    username: 'blah',
-    logoutUrl: 'omg',
-    isAdmin: true,
     clientId: test.testClientId,
-    logoFilename: 'logo.png',
-    productName: 'Nomulus',
-    integrationEmail: 'integration@google.com',
-    supportEmail: 'support@google.com',
-    announcementsEmail: 'announcements@google.com',
-    supportPhoneNumber: '123 456 7890',
-    technicalDocsUrl: 'http://example.com/techdocs'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   registry.registrar.ConsoleTestUtil.setup(test);
@@ -208,7 +196,7 @@ function testOneOfManyUpdate() {
     xsrfToken: test.testXsrfToken,
     clientId: test.testClientId
   });
-  var testContacts = [
+  const testContacts = [
     createTestContact('new1@asdf.com'),
     testContact,
     createTestContact('new2@asdf.com')
@@ -262,9 +250,9 @@ function testDomainWhoisAbuseContactOverride() {
     xsrfToken: test.testXsrfToken,
     clientId: test.testClientId
   });
-  var oldDomainWhoisAbuseContact = createTestContact('old@asdf.com');
+  const oldDomainWhoisAbuseContact = createTestContact('old@asdf.com');
   oldDomainWhoisAbuseContact.visibleInDomainWhoisAsAbuse = true;
-  var testContacts = [oldDomainWhoisAbuseContact, testContact];
+  const testContacts = [oldDomainWhoisAbuseContact, testContact];
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
@@ -299,7 +287,7 @@ function testDelete() {
     xsrfToken: test.testXsrfToken,
     clientId: test.testClientId
   });
-  var testContacts = [
+  const testContacts = [
     createTestContact('new1@asdf.com'),
     testContact,
     createTestContact('new2@asdf.com')
@@ -343,10 +331,10 @@ function testDelete() {
 
 /**
  * @param {string=} opt_email
- * @return {Object}
+ * @return {!Object}
  */
 function createTestContact(opt_email) {
-  var nameMail = opt_email || 'test@example.com';
+  const nameMail = opt_email || 'test@example.com';
   return {
     name: nameMail,
     emailAddress: nameMail,
@@ -363,14 +351,14 @@ function createTestContact(opt_email) {
 /**
  * Convert parsed formContact to simulated wire form.
  * @param {!Element} contact
- * @return {Object}
+ * @return {!Object}
  */
 function simulateJsonForContact(contact) {
   contact.visibleInWhoisAsAdmin = contact.visibleInWhoisAsAdmin == 'true';
   contact.visibleInWhoisAsTech = contact.visibleInWhoisAsTech == 'true';
   contact.visibleInDomainWhoisAsAbuse = contact.visibleInDomainWhoisAsAbuse == 'true';
   contact.types = '';
-  for (var tNdx in contact.type) {
+  for (const tNdx in contact.type) {
     if (contact.type[tNdx]) {
       if (contact.types.length > 0) {
         contact.types += ',';

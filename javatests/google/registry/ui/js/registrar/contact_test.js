@@ -16,18 +16,16 @@ goog.setTestOnly();
 
 goog.require('goog.dispose');
 goog.require('goog.dom');
-goog.require('goog.soy');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.asserts');
 goog.require('goog.testing.jsunit');
 goog.require('registry.registrar.ConsoleTestUtil');
-goog.require('registry.soy.registrar.console');
 goog.require('registry.testing');
 
 
-var $ = goog.dom.getRequiredElement;
+const $ = goog.dom.getRequiredElement;
 
-var test = {
+const test = {
   mockControl: new goog.testing.MockControl()
 };
 
@@ -35,20 +33,7 @@ var test = {
 function setUp() {
   registry.testing.addToDocument('<div id="test"/>');
   registry.testing.addToDocument('<div class="kd-butterbar"/>');
-  goog.soy.renderElement($('test'), registry.soy.registrar.console.main, {
-    xsrfToken: 'test',
-    username: 'blah',
-    logoutUrl: 'omg',
-    isAdmin: true,
-    clientId: 'daddy',
-    logoFilename: 'logo.png',
-    productName: 'Nomulus',
-    integrationEmail: 'integration@example.com',
-    supportEmail: 'support@example.com',
-    announcementsEmail: 'announcement@example.com',
-    supportPhoneNumber: '+1 (888) 555 0123',
-    technicalDocsUrl: 'http://example.com/techdocs'
-  });
+  registry.registrar.ConsoleTestUtil.renderConsoleMain($('test'), {});
   registry.registrar.ConsoleTestUtil.setup(test);
 }
 
@@ -126,7 +111,7 @@ function testEdit() {
 /** Contact hash path should nav to contact page. */
 function testAddPostalInfo() {
   testEdit();
-  var addPiBtn = $('domain-contact-postalInfo-add-button');
+  const addPiBtn = $('domain-contact-postalInfo-add-button');
   assertNull(addPiBtn.getAttribute('disabled'));
   registry.testing.click(addPiBtn);
   assertTrue(addPiBtn.hasAttribute('disabled'));

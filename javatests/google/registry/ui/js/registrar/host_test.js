@@ -17,7 +17,6 @@ goog.setTestOnly();
 goog.require('goog.History');
 goog.require('goog.dispose');
 goog.require('goog.dom');
-goog.require('goog.soy');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.asserts');
@@ -25,36 +24,23 @@ goog.require('goog.testing.jsunit');
 goog.require('goog.testing.mockmatchers');
 goog.require('goog.testing.net.XhrIo');
 goog.require('registry.registrar.Console');
-goog.require('registry.soy.registrar.console');
+goog.require('registry.registrar.ConsoleTestUtil');
 goog.require('registry.testing');
 
 
-var $ = goog.dom.getRequiredElement;
-var _ = goog.testing.mockmatchers.ignoreArgument;
-var stubs = new goog.testing.PropertyReplacer();
-var mocks = new goog.testing.MockControl();
+const $ = goog.dom.getRequiredElement;
+const _ = goog.testing.mockmatchers.ignoreArgument;
+const stubs = new goog.testing.PropertyReplacer();
+const mocks = new goog.testing.MockControl();
 
-var historyMock;
-var registrarConsole;
+let historyMock;
+let registrarConsole;
 
 
 function setUp() {
   registry.testing.addToDocument('<div id="test"/>');
   registry.testing.addToDocument('<div class="kd-butterbar"/>');
-  goog.soy.renderElement($('test'), registry.soy.registrar.console.main, {
-    xsrfToken: 'ignore',
-    username: 'jart',
-    logoutUrl: 'https://example.com',
-    isAdmin: true,
-    clientId: 'ignore',
-    logoFilename: 'logo.png',
-    productName: 'Nomulus',
-    integrationEmail: 'integration@example.com',
-    supportEmail: 'support@example.com',
-    announcementsEmail: 'announcement@example.com',
-    supportPhoneNumber: '+1 (888) 555 0123',
-    technicalDocsUrl: 'http://example.com/techdocs'
-  });
+  registry.registrar.ConsoleTestUtil.renderConsoleMain($('test'), {});
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
 
   historyMock = mocks.createStrictMock(goog.History);
@@ -81,7 +67,7 @@ function tearDown() {
 
 /** Handles EPP login. */
 function handleLogin() {
-  var request = registry.testing.loadXml(
+  const request = registry.testing.loadXml(
       '<?xml version="1.0"?>' +
       '<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">' +
       '  <command>' +
@@ -101,7 +87,7 @@ function handleLogin() {
       '    <clTRID>asdf-1235</clTRID>' +
       '  </command>' +
       '</epp>');
-  var response = registry.testing.loadXml(
+  const response = registry.testing.loadXml(
       '<?xml version="1.0"?>' +
       '<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">' +
       '  <response>' +
@@ -114,7 +100,7 @@ function handleLogin() {
       '    </trID>' +
       '  </response>' +
       '</epp>');
-  var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
+  const xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue(xhr.isActive());
   assertEquals('/registrar-xhr', xhr.getLastUri());
   assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
@@ -132,7 +118,7 @@ function testView() {
   registrarConsole.handleHashChange();
   handleLogin();
 
-  var request = registry.testing.loadXml(
+  const request = registry.testing.loadXml(
       '<?xml version="1.0"?>' +
       '<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">' +
       '  <command>' +
@@ -144,7 +130,7 @@ function testView() {
       '    <clTRID>abc-1234</clTRID>' +
       '  </command>' +
       '</epp>');
-  var response = registry.testing.loadXml(
+  const response = registry.testing.loadXml(
       '<?xml version="1.0"?>' +
       '<epp xmlns="urn:ietf:params:xml:ns:epp-1.0"' +
       '     xmlns:host="urn:ietf:params:xml:ns:host-1.0">' +
@@ -170,7 +156,7 @@ function testView() {
       '    </trID>' +
       '  </response>' +
       '</epp>');
-  var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
+  const xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
   assertEquals('/registrar-xhr', xhr.getLastUri());
   assertEquals('application/epp+xml',
@@ -207,7 +193,7 @@ function testEditFirstAddr_ignoreSecond_addThird() {
 
   registry.testing.click($('reg-app-btn-save'));
 
-  var request = registry.testing.loadXml(
+  let request = registry.testing.loadXml(
       '<?xml version="1.0"?>' +
       '<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">' +
       '  <command>' +
@@ -226,7 +212,7 @@ function testEditFirstAddr_ignoreSecond_addThird() {
       '    <clTRID>abc-1234</clTRID>' +
       '  </command>' +
       '</epp>');
-  var response = registry.testing.loadXml(
+  let response = registry.testing.loadXml(
       '<?xml version="1.0"?>' +
       '<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">' +
       '  <response>' +
@@ -239,7 +225,7 @@ function testEditFirstAddr_ignoreSecond_addThird() {
       '    </trID>' +
       '  </response>' +
       '</epp>');
-  var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
+  let xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
   assertEquals('/registrar-xhr', xhr.getLastUri());
   assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
@@ -327,7 +313,7 @@ function testCreate() {
 
   registry.testing.click($('reg-app-btn-save'));
 
-  var request = registry.testing.loadXml(
+  let request = registry.testing.loadXml(
       '<?xml version="1.0"?>' +
       '<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">' +
       '  <command>' +
@@ -342,7 +328,7 @@ function testCreate() {
       '    <clTRID>abc-1234</clTRID>' +
       '  </command>' +
       '</epp>');
-  var response = registry.testing.loadXml(
+  let response = registry.testing.loadXml(
       '<?xml version="1.0"?>' +
       '<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">' +
       '  <response>' +
@@ -361,7 +347,7 @@ function testCreate() {
       '    </trID>' +
       '  </response>' +
       '</epp>');
-  var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
+  let xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
   assertEquals('/registrar-xhr', xhr.getLastUri());
   assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
