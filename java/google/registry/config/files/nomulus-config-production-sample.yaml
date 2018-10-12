@@ -61,5 +61,7 @@ cloudDns:
   rootUrl: null
   servicePath: null
 
-kms:
-  projectId: placeholder
+keyring:
+  activeKeyring: KMS
+  kms:
+    projectId: placeholder

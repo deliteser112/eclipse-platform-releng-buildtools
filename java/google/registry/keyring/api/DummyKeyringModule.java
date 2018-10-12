@@ -21,11 +21,15 @@ import static google.registry.keyring.api.PgpHelper.lookupKeyPair;
 import com.google.common.base.VerifyException;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.IntoMap;
+import dagger.multibindings.StringKey;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.annotation.concurrent.Immutable;
+import javax.inject.Named;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection;
@@ -68,7 +72,9 @@ import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
  */
 @Module
 @Immutable
-public final class DummyKeyringModule {
+public abstract class DummyKeyringModule {
+
+  public static final String NAME = "Dummy";
 
   /** The contents of a dummy PGP public key stored in a file. */
   private static final ByteSource PGP_PUBLIC_KEYRING =
@@ -81,9 +87,15 @@ public final class DummyKeyringModule {
   /** The email address of the aforementioned PGP key. */
   private static final String EMAIL_ADDRESS = "test-registry@example.com";
 
+  @Binds
+  @IntoMap
+  @StringKey(NAME)
+  abstract Keyring provideKeyring(@Named("DummyKeyring") InMemoryKeyring keyring);
+
   /** Always returns a {@link InMemoryKeyring} instance. */
   @Provides
-  static Keyring provideKeyring() {
+  @Named("DummyKeyring")
+  static InMemoryKeyring provideDummyKeyring() {
     PGPKeyPair dummyKey;
     try (InputStream publicInput = PGP_PUBLIC_KEYRING.openStream();
         InputStream privateInput = PGP_PRIVATE_KEYRING.openStream()) {
@@ -112,4 +124,6 @@ public final class DummyKeyringModule {
         "not a real login",
         "not a real credential");
   }
+
+  private DummyKeyringModule() {}
 }

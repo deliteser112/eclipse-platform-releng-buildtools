@@ -22,6 +22,7 @@ java_library(
         "//java/google/registry/flows",
         "//java/google/registry/gcs",
         "//java/google/registry/groups",
+        "//java/google/registry/keyring",
         "//java/google/registry/keyring/api",
         "//java/google/registry/keyring/kms",
         "//java/google/registry/mapreduce",

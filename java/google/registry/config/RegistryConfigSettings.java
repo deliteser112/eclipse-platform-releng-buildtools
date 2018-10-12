@@ -34,7 +34,7 @@ public class RegistryConfigSettings {
   public Monitoring monitoring;
   public Misc misc;
   public Beam beam;
-  public Kms kms;
+  public Keyring keyring;
   public RegistryTool registryTool;
 
   /** Configuration options that apply to the entire App Engine project. */
@@ -97,12 +97,6 @@ public class RegistryConfigSettings {
     public int commitLogBucketsNum;
     public int eppResourceIndexBucketsNum;
     public int baseOfyRetryMillis;
-  }
-
-  /** Configuration for Cloud KMS. */
-  public static class Kms {
-    public String keyringName;
-    public String projectId;
   }
 
   /** Configuration for Apache Beam (Cloud Dataflow). */
@@ -168,6 +162,18 @@ public class RegistryConfigSettings {
     public String alertRecipientEmailAddress;
     public String alertEmailSenderDomain;
     public int asyncDeleteDelaySeconds;
+  }
+
+  /** Configuration for keyrings (used to store secrets outside of source). */
+  public static class Keyring {
+    public String activeKeyring;
+    public Kms kms;
+  }
+
+  /** Configuration for Cloud KMS. */
+  public static class Kms {
+    public String keyringName;
+    public String projectId;
   }
 
   /** Configuration options for the registry tool. */

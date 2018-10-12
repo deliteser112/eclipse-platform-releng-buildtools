@@ -322,14 +322,19 @@ beam:
   # The default zone to run Apache Beam (Cloud Dataflow) jobs in.
   defaultJobZone: us-east1-c
 
-kms:
-  # GCP project containing the KMS keyring. Should only be used for KMS in
-  # order to keep a simple locked down IAM configuration.
-  projectId: registry-kms-project-id
+keyring:
+  # The name of the active keyring, either "KMS" or "Dummy".
+  activeKeyring: Dummy
 
-  # The name to use for the Cloud KMS KeyRing which will store encryption keys
-  # for Nomulus secrets.
-  keyringName: nomulus
+  # Configuration options specific to Google Cloud KMS.
+  kms:
+    # GCP project containing the KMS keyring. Should only be used for KMS in
+    # order to keep a simple locked down IAM configuration.
+    projectId: registry-kms-project-id
+
+    # The name to use for the Cloud KMS KeyRing which will store encryption keys
+    # for Nomulus secrets.
+    keyringName: nomulus
 
 # Configuration options relevant to the "nomulus" registry tool.
 registryTool:

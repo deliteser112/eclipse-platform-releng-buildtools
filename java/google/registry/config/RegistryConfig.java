@@ -1021,6 +1021,12 @@ public final class RegistryConfig {
       return config.registryPolicy.greetingServerId;
     }
 
+    @Provides
+    @Config("activeKeyring")
+    public static String provideKeyring(RegistryConfigSettings config) {
+      return config.keyring.activeKeyring;
+    }
+
     /**
      * The name to use for the Cloud KMS KeyRing containing encryption keys for Nomulus secrets.
      *
@@ -1030,13 +1036,13 @@ public final class RegistryConfig {
     @Provides
     @Config("cloudKmsKeyRing")
     public static String provideCloudKmsKeyRing(RegistryConfigSettings config) {
-      return config.kms.keyringName;
+      return config.keyring.kms.keyringName;
     }
 
     @Provides
     @Config("cloudKmsProjectId")
     public static String provideCloudKmsProjectId(RegistryConfigSettings config) {
-      return config.kms.projectId;
+      return config.keyring.kms.projectId;
     }
 
     @Provides

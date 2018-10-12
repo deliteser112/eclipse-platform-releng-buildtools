@@ -27,6 +27,8 @@ import google.registry.gcs.GcsServiceModule;
 import google.registry.groups.DirectoryModule;
 import google.registry.groups.GroupsModule;
 import google.registry.groups.GroupssettingsModule;
+import google.registry.keyring.KeyringModule;
+import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.kms.KmsModule;
 import google.registry.module.backend.BackendRequestComponent.BackendRequestComponentModule;
@@ -56,7 +58,7 @@ import javax.inject.Singleton;
       CredentialModule.class,
       DatastoreServiceModule.class,
       DirectoryModule.class,
-      google.registry.keyring.api.DummyKeyringModule.class,
+      DummyKeyringModule.class,
       DriveModule.class,
       GcsServiceModule.class,
       GroupsModule.class,
@@ -64,6 +66,7 @@ import javax.inject.Singleton;
       JSchModule.class,
       Jackson2Module.class,
       KeyModule.class,
+      KeyringModule.class,
       KmsModule.class,
       NetHttpTransportModule.class,
       SheetsServiceModule.class,
