@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/* Here's an extra comment, just for the heck of it. */
+
 package google.registry.tools;
 
 
