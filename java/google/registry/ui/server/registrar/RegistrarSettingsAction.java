@@ -20,8 +20,8 @@ import static google.registry.export.sheet.SyncRegistrarsSheetAction.enqueueRegi
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
-import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
-import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_WRITE;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.UPDATE;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
@@ -34,13 +34,11 @@ import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
-import google.registry.model.registrar.RegistrarContact.Builder;
 import google.registry.model.registrar.RegistrarContact.Type;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthResult;
 import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
@@ -79,9 +77,9 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   @Inject JsonActionRunner jsonActionRunner;
   @Inject AppEngineServiceUtils appEngineServiceUtils;
-  @Inject AuthResult authResult;
   @Inject SendEmailUtils sendEmailUtils;
-  @Inject SessionUtils sessionUtils;
+  @Inject AuthenticatedRegistrarAccessor registrarAccessor;
+
   @Inject @Config("registrarChangesNotificationEmailAddresses") ImmutableList<String>
       registrarChangesNotificationEmailAddresses;
   @Inject RegistrarSettingsAction() {}
@@ -134,9 +132,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   Map<String, Object> read(String clientId) {
     return JsonResponseHelper.create(
-        SUCCESS,
-        "Success",
-        sessionUtils.getRegistrarForUser(clientId, READ_ONLY, authResult).toJsonMap());
+        SUCCESS, "Success", registrarAccessor.getRegistrar(clientId, READ).toJsonMap());
   }
 
   Map<String, Object> update(final Map<String, ?> args, String clientId) {
@@ -146,8 +142,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
               // We load the registrar here rather than outside of the transaction - to make
               // sure we have the latest version. This one is loaded inside the transaction, so it's
               // guaranteed to not change before we update it.
-              Registrar registrar =
-                  sessionUtils.getRegistrarForUser(clientId, READ_WRITE, authResult);
+              Registrar registrar = registrarAccessor.getRegistrar(clientId, UPDATE);
               // Verify that the registrar hasn't been changed.
               // To do that - we find the latest update time (or null if the registrar has been
               // deleted) and compare to the update time from the args. The update time in the args
@@ -263,7 +258,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       Registrar registrar, Map<String, ?> args) {
 
     ImmutableSet.Builder<RegistrarContact> contacts = new ImmutableSet.Builder<>();
-    Optional<List<Builder>> builders = RegistrarFormFields.CONTACTS_FIELD.extractUntyped(args);
+    Optional<List<RegistrarContact.Builder>> builders =
+        RegistrarFormFields.CONTACTS_FIELD.extractUntyped(args);
     if (builders.isPresent()) {
       builders.get().forEach(c -> contacts.add(c.setParent(registrar).build()));
     }

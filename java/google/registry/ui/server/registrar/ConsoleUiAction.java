@@ -16,8 +16,9 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.UPDATE;
 import static google.registry.ui.server.registrar.RegistrarConsoleModule.PARAM_CLIENT_ID;
-import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
@@ -26,6 +27,7 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
+import com.google.common.collect.Sets;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.io.Resources;
 import com.google.common.net.MediaType;
@@ -71,7 +73,7 @@ public final class ConsoleUiAction implements Runnable {
 
   @Inject HttpServletRequest req;
   @Inject Response response;
-  @Inject SessionUtils sessionUtils;
+  @Inject AuthenticatedRegistrarAccessor registrarAccessor;
   @Inject UserService userService;
   @Inject XsrfTokenManager xsrfTokenManager;
   @Inject AuthResult authResult;
@@ -131,9 +133,16 @@ public final class ConsoleUiAction implements Runnable {
     data.put("logoutUrl", userService.createLogoutURL(PATH));
     data.put("xsrfToken", xsrfTokenManager.generateToken(user.getEmail()));
     try {
-      String clientId =
-          paramClientId.orElseGet(() -> sessionUtils.guessClientIdForUser(authResult));
+      String clientId = paramClientId.orElse(registrarAccessor.guessClientId());
       data.put("clientId", clientId);
+
+      data.put("readWriteClientIds", registrarAccessor.getAllClientIdWithAccess().get(UPDATE));
+      data.put(
+          "readOnlyClientIds",
+          Sets.difference(
+              registrarAccessor.getAllClientIdWithAccess().get(READ),
+              registrarAccessor.getAllClientIdWithAccess().get(UPDATE)));
+
       // We want to load the registrar even if we won't use it later (even if we remove the
       // requireFeeExtension) - to make sure the user indeed has access to the guessed registrar.
       //
@@ -141,7 +150,7 @@ public final class ConsoleUiAction implements Runnable {
       // since we double check the access to the registrar on any read / update request. We have to
       // - since the access might get revoked between the initial page load and the request! (also
       // because the requests come from the browser, and can easily be faked)
-      Registrar registrar = sessionUtils.getRegistrarForUser(clientId, READ_ONLY, authResult);
+      Registrar registrar = registrarAccessor.getRegistrar(clientId, READ);
       data.put("requireFeeExtension", registrar.getPremiumPriceAckRequired());
     } catch (ForbiddenException e) {
       logger.atWarning().withCause(e).log(

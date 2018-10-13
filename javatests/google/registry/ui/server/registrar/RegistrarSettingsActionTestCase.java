@@ -18,8 +18,9 @@ import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddres
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
-import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_WRITE;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.UPDATE;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
@@ -30,9 +31,6 @@ import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonResponse;
 import google.registry.request.ResponseImpl;
-import google.registry.request.auth.AuthLevel;
-import google.registry.request.auth.AuthResult;
-import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
@@ -60,15 +58,6 @@ public class RegistrarSettingsActionTestCase {
 
   static final String CLIENT_ID = "TheRegistrar";
 
-  static final AuthResult USER_READ_WRITE =
-      AuthResult.create(AuthLevel.USER, UserAuthInfo.create(new User("rw", "gmail.com"), false));
-
-  static final AuthResult USER_READ_ONLY =
-      AuthResult.create(AuthLevel.USER, UserAuthInfo.create(new User("ro", "gmail.com"), false));
-
-  static final AuthResult USER_UNAUTHORIZED =
-      AuthResult.create(AuthLevel.USER, UserAuthInfo.create(new User("evil", "gmail.com"), false));
-
   @Rule
   public final AppEngineRule appEngine =
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
@@ -80,7 +69,6 @@ public class RegistrarSettingsActionTestCase {
   @Mock HttpServletRequest req;
   @Mock HttpServletResponse rsp;
   @Mock SendEmailService emailService;
-  @Mock SessionUtils sessionUtils;
   final User user = new User("user", "gmail.com");
 
   Message message;
@@ -91,12 +79,9 @@ public class RegistrarSettingsActionTestCase {
 
   @Before
   public void setUp() throws Exception {
-    action.sessionUtils = sessionUtils;
+    action.registrarAccessor = null;
     action.appEngineServiceUtils = appEngineServiceUtils;
     when(appEngineServiceUtils.getCurrentVersionHostname("backend")).thenReturn("backend.hostname");
-    // We set the default user to one with read-write access, as that's the most common test case.
-    // When we want to specifically check read-only or unauthorized, we can switch the user here.
-    action.authResult = USER_READ_WRITE;
     action.jsonActionRunner = new JsonActionRunner(
         ImmutableMap.of(), new JsonResponse(new ResponseImpl(rsp)));
     action.registrarChangesNotificationEmailAddresses = ImmutableList.of(
@@ -111,23 +96,41 @@ public class RegistrarSettingsActionTestCase {
     when(rsp.getWriter()).thenReturn(new PrintWriter(writer));
     when(req.getContentType()).thenReturn("application/json");
     when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of("op", "read")));
-    // We mock getRegistrarForAuthResult to reload the registrar each time it's called. Otherwise -
-    // the result is out of date after mutations.
-    // (for example, if someone wants to change the registrar to prepare for a test, the function
-    // would still return the old value)
-    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_ONLY, USER_READ_WRITE))
-        .thenAnswer(x -> loadRegistrar(CLIENT_ID));
-    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_WRITE, USER_READ_WRITE))
+    // We set the default user to one with read-write access, as that's the most common test case.
+    // When we want to specifically check read-only or unauthorized, we can switch the user here.
+    setUserReadWriteAccess();
+  }
+
+  /** Sets registrarAccessor.getRegistrar to succeed for all AccessTypes. */
+  protected void setUserReadWriteAccess() {
+    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
+
+    when(action.registrarAccessor.getRegistrar(CLIENT_ID, READ))
         .thenAnswer(x -> loadRegistrar(CLIENT_ID));
 
-    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_ONLY, USER_READ_ONLY))
+    when(action.registrarAccessor.getRegistrar(CLIENT_ID, UPDATE))
         .thenAnswer(x -> loadRegistrar(CLIENT_ID));
-    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_WRITE, USER_READ_ONLY))
+  }
+
+  /** Sets registrarAccessor.getRegistrar to only succeed for READ. */
+  protected void setUserReadOnlyAccess() {
+    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
+
+    when(action.registrarAccessor.getRegistrar(CLIENT_ID, READ))
+        .thenAnswer(x -> loadRegistrar(CLIENT_ID));
+
+    when(action.registrarAccessor.getRegistrar(CLIENT_ID, UPDATE))
+        .thenThrow(new ForbiddenException("forbidden test error"));
+  }
+
+  /** Sets registrarAccessor.getRegistrar to always fail. */
+  protected void setUserWithoutAccess() {
+    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
+
+    when(action.registrarAccessor.getRegistrar(CLIENT_ID, READ))
         .thenThrow(new ForbiddenException("forbidden test error"));
 
-    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_ONLY, USER_UNAUTHORIZED))
-        .thenThrow(new ForbiddenException("forbidden test error"));
-    when(sessionUtils.getRegistrarForUser(CLIENT_ID, READ_WRITE, USER_UNAUTHORIZED))
+    when(action.registrarAccessor.getRegistrar(CLIENT_ID, UPDATE))
         .thenThrow(new ForbiddenException("forbidden test error"));
   }
 }

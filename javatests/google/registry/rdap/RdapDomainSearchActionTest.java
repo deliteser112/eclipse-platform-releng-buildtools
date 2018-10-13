@@ -62,7 +62,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
-import google.registry.ui.server.registrar.SessionUtils;
+import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor;
 import google.registry.util.Idn;
 import java.net.IDN;
 import java.net.URLDecoder;
@@ -91,7 +91,8 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
   @Rule public final InjectRule inject = new InjectRule();
 
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
-  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+  private final AuthenticatedRegistrarAccessor registrarAccessor =
+      mock(AuthenticatedRegistrarAccessor.class);
   private final RdapDomainSearchAction action = new RdapDomainSearchAction();
 
   private static final AuthResult AUTH_RESULT =
@@ -405,7 +406,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
     action.formatOutputParam = Optional.empty();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapWhoisServer = null;
-    action.sessionUtils = sessionUtils;
+    action.registrarAccessor = registrarAccessor;
     action.authResult = AUTH_RESULT;
     action.rdapMetrics = rdapMetrics;
     action.cursorTokenParam = Optional.empty();
@@ -413,12 +414,12 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
   }
 
   private void login(String clientId) {
-    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn(clientId);
+    when(registrarAccessor.guessClientId()).thenReturn(clientId);
     metricRole = REGISTRAR;
   }
 
   private void loginAsAdmin() {
-    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn("irrelevant");
+    when(registrarAccessor.guessClientId()).thenReturn("irrelevant");
     action.authResult = AUTH_RESULT_ADMIN;
     metricRole = ADMINISTRATOR;
   }

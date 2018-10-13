@@ -17,14 +17,15 @@ package google.registry.ui.server.registrar;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.UPDATE;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.net.MediaType;
 import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthLevel;
@@ -53,7 +54,8 @@ public class ConsoleUiActionTest {
       .withUserService(UserInfo.create("marla.singer@example.com", "12345"))
       .build();
 
-  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+  private final AuthenticatedRegistrarAccessor registrarAccessor =
+      mock(AuthenticatedRegistrarAccessor.class);
   private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final FakeResponse response = new FakeResponse();
   private final ConsoleUiAction action = new ConsoleUiAction();
@@ -71,15 +73,25 @@ public class ConsoleUiActionTest {
     action.technicalDocsUrl = "http://example.com/technical-docs";
     action.req = request;
     action.response = response;
-    action.sessionUtils = sessionUtils;
+    action.registrarAccessor = registrarAccessor;
     action.userService = UserServiceFactory.getUserService();
     action.xsrfTokenManager = new XsrfTokenManager(new FakeClock(), action.userService);
     action.paramClientId = Optional.empty();
     AuthResult authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     action.authResult = authResult;
-    when(sessionUtils.guessClientIdForUser(authResult)).thenReturn("TheRegistrar");
-    when(sessionUtils.getRegistrarForUser("TheRegistrar", READ_ONLY, authResult))
+    when(registrarAccessor.getRegistrar("TheRegistrar", READ))
         .thenReturn(loadRegistrar("TheRegistrar"));
+    when(registrarAccessor.getAllClientIdWithAccess())
+        .thenReturn(
+            ImmutableSetMultimap.of(
+                UPDATE, "TheRegistrar",
+                READ, "TheRegistrar",
+                UPDATE, "ReadWriteRegistrar",
+                READ, "ReadWriteRegistrar",
+                READ, "ReadOnlyRegistrar"));
+    when(registrarAccessor.guessClientId()).thenCallRealMethod();
+    // Used for error message in guessClientId
+    registrarAccessor.authResult = authResult;
   }
 
   @Test
@@ -116,8 +128,7 @@ public class ConsoleUiActionTest {
 
   @Test
   public void testUserDoesntHaveAccessToAnyRegistrar_showsWhoAreYouPage() {
-    when(sessionUtils.guessClientIdForUser(any(AuthResult.class)))
-        .thenThrow(new ForbiddenException("forbidden"));
+    when(registrarAccessor.getAllClientIdWithAccess()).thenReturn(ImmutableSetMultimap.of());
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
     assertThat(response.getPayload()).contains("not associated with Nomulus.");
@@ -144,7 +155,7 @@ public class ConsoleUiActionTest {
   @Test
   public void testSettingClientId_notAllowed_showsNeedPermissionPage() {
     action.paramClientId = Optional.of("OtherClientId");
-    when(sessionUtils.getRegistrarForUser("OtherClientId", READ_ONLY, action.authResult))
+    when(registrarAccessor.getRegistrar("OtherClientId", READ))
         .thenThrow(new ForbiddenException("forbidden"));
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
@@ -154,10 +165,18 @@ public class ConsoleUiActionTest {
   @Test
   public void testSettingClientId_allowed_showsRegistrarConsole() {
     action.paramClientId = Optional.of("OtherClientId");
-    when(sessionUtils.getRegistrarForUser("OtherClientId", READ_ONLY, action.authResult))
+    when(registrarAccessor.getRegistrar("OtherClientId", READ))
         .thenReturn(loadRegistrar("TheRegistrar"));
     action.run();
     assertThat(response.getPayload()).contains("Registrar Console");
     assertThat(response.getPayload()).contains("reg-content-and-footer");
+  }
+
+  @Test
+  public void testUserHasAccessAsTheRegistrar_showsClientIdChooser() {
+    action.run();
+    assertThat(response.getPayload()).contains("<option value=\"TheRegistrar\" selected>");
+    assertThat(response.getPayload()).contains("<option value=\"ReadWriteRegistrar\">");
+    assertThat(response.getPayload()).contains("<option value=\"ReadOnlyRegistrar\">");
   }
 }

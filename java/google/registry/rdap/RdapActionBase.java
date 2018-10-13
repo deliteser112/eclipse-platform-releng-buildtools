@@ -18,7 +18,7 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -48,7 +48,7 @@ import google.registry.request.RequestPath;
 import google.registry.request.Response;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
-import google.registry.ui.server.registrar.SessionUtils;
+import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -91,7 +91,7 @@ public abstract class RdapActionBase implements Runnable {
   @Inject @RequestPath String requestPath;
   @Inject @FullServletPath String fullServletPath;
   @Inject AuthResult authResult;
-  @Inject SessionUtils sessionUtils;
+  @Inject AuthenticatedRegistrarAccessor registrarAccessor;
   @Inject RdapJsonFormatter rdapJsonFormatter;
   @Inject @Parameter("registrar") Optional<String> registrarParam;
   @Inject @Parameter("includeDeleted") Optional<Boolean> includeDeletedParam;
@@ -177,12 +177,12 @@ public abstract class RdapActionBase implements Runnable {
   /**
    * Returns a clientId the given user has console access on, or Optional.empty if there is none.
    */
-  private Optional<String> getAuthorizedClientId(AuthResult authResult) {
+  private Optional<String> getAuthorizedClientId() {
     try {
-      String clientId = sessionUtils.guessClientIdForUser(authResult);
+      String clientId = registrarAccessor.guessClientId();
       // We load the Registrar to make sure the user has access to it. We don't actually need it,
       // we're just checking if an exception is thrown.
-      sessionUtils.getRegistrarForUserCached(clientId, READ_ONLY, authResult);
+      registrarAccessor.getRegistrarForUserCached(clientId, READ);
       return Optional.of(clientId);
     } catch (Exception e) {
       logger.atWarning().withCause(e).log(
@@ -215,7 +215,7 @@ public abstract class RdapActionBase implements Runnable {
     if (userAuthInfo.isUserAdmin()) {
       return RdapAuthorization.ADMINISTRATOR_AUTHORIZATION;
     }
-    Optional<String> clientId = getAuthorizedClientId(authResult);
+    Optional<String> clientId = getAuthorizedClientId();
     if (!clientId.isPresent()) {
       return RdapAuthorization.PUBLIC_AUTHORIZATION;
     }
@@ -249,7 +249,7 @@ public abstract class RdapActionBase implements Runnable {
     if (userAuthInfo.isUserAdmin()) {
       return true;
     }
-    if (!getAuthorizedClientId(authResult).isPresent()) {
+    if (!getAuthorizedClientId().isPresent()) {
       return false;
     }
     return true;

@@ -23,6 +23,8 @@
 {template .main}
   {@param xsrfToken: string} /** Security token. */
   {@param clientId: string} /** Registrar client identifier. */
+  {@param readWriteClientIds: list<string>}
+  {@param readOnlyClientIds: list<string>}
   {@param username: string} /** Arbitrary username to display. */
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param productName: string} /** Name to display for this software product. */
@@ -75,7 +77,33 @@
 
 /** Sidebar nav. Ids on each elt for testing only. */
 {template .navbar_ visibility="private"}
+  {@param clientId: string} /** Registrar client identifier. */
+  {@param readWriteClientIds: list<string>}
+  {@param readOnlyClientIds: list<string>}
+
   <div id="reg-nav" class="{css('kd-content-sidebar')}">
+    <form>
+      <select name="clientId"
+              id="select-client-id"
+              class="{css('kd-button')} {css('kd-button-submit')}"
+              onchange='this.form.submit()'>
+        <option value="">[auto select]</option>
+        {if length($readWriteClientIds) > 0}
+          <optgroup label="READ/WRITE">
+          {for $id in $readWriteClientIds}
+            <option value="{$id}" {if $id == $clientId}selected{/if}>{$id}</option>
+          {/for}
+          </optgroup>
+        {/if}
+        {if length($readOnlyClientIds) > 0}
+          <optgroup label="READ ONLY">
+          {for $id in $readOnlyClientIds}
+            <option value="{$id}" {if $id == $clientId}selected{/if}>{$id}</option>
+          {/for}
+          </optgroup>
+        {/if}
+      </select>
+    </form>
     <ul id="reg-navlist">
       <li>
         <a href="#">Home</a>
@@ -159,6 +187,12 @@
       <a href="{$logoutUrl}"
          class="{css('kd-button')} {css('kd-button-submit')}"
          tabindex="-1">Logout and switch to another account</a>
+      {if isNonnull($clientId)} // A clientId was given - but we don't have access to it
+        {sp}
+        <a href="?"
+           class="{css('kd-button')} {css('kd-button-submit')}"
+           tabindex="-1">Find registrar associated with your account</a>
+      {/if}
     </div>
   </div>
 {/template}

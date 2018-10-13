@@ -40,7 +40,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
-import google.registry.ui.server.registrar.SessionUtils;
+import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor;
 import java.util.Optional;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
@@ -64,7 +64,8 @@ public class RdapActionBaseTest {
 
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
-  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+  private final AuthenticatedRegistrarAccessor registrarAccessor =
+      mock(AuthenticatedRegistrarAccessor.class);
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
   private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
   private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
@@ -119,7 +120,7 @@ public class RdapActionBaseTest {
     createTld("thing");
     inject.setStaticField(Ofy.class, "clock", clock);
     action = new RdapTestAction();
-    action.sessionUtils = sessionUtils;
+    action.registrarAccessor = registrarAccessor;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     action.includeDeletedParam = Optional.empty();
     action.registrarParam = Optional.empty();

@@ -62,6 +62,8 @@ registry.registrar.ConsoleTestUtil.renderConsoleMain = function(
     logoutUrl: args.logoutUrl || 'https://logout.url.com',
     isAdmin: goog.isDefAndNotNull(args.isAdmin) ? args.isAdmin : true,
     clientId: args.clientId || 'ignore',
+    readWriteClientIds: args.readWriteClientIds || ['readWrite'],
+    readOnlyClientIds: args.readOnlyClientIds || ['readOnly'],
     logoFilename: args.logoFilename || 'logo.png',
     productName: args.productName || 'Nomulus',
     integrationEmail: args.integrationEmail || 'integration@example.com',

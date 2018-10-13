@@ -43,7 +43,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
-import google.registry.ui.server.registrar.SessionUtils;
+import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -69,7 +69,8 @@ public class RdapNameserverActionTest {
 
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
-  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+  private final AuthenticatedRegistrarAccessor registrarAccessor =
+      mock(AuthenticatedRegistrarAccessor.class);
   private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   private static final AuthResult AUTH_RESULT =
@@ -132,7 +133,7 @@ public class RdapNameserverActionTest {
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapWhoisServer = null;
     action.authResult = authResult;
-    action.sessionUtils = sessionUtils;
+    action.registrarAccessor = registrarAccessor;
     action.rdapMetrics = rdapMetrics;
     return action;
   }
@@ -362,21 +363,21 @@ public class RdapNameserverActionTest {
 
   @Test
   public void testDeletedNameserver_notFound_notLoggedIn() {
-    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenThrow(new ForbiddenException("blah"));
+    when(registrarAccessor.guessClientId()).thenThrow(new ForbiddenException("blah"));
     generateActualJson("nsdeleted.cat.lol", Optional.empty(), Optional.of(true));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
   public void testDeletedNameserver_notFound_loggedInAsDifferentRegistrar() {
-    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn("otherregistrar");
+    when(registrarAccessor.guessClientId()).thenReturn("otherregistrar");
     generateActualJson("nsdeleted.cat.lol", Optional.empty(), Optional.of(true));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
   public void testDeletedNameserver_found_loggedInAsCorrectRegistrar() {
-    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn("TheRegistrar");
+    when(registrarAccessor.guessClientId()).thenReturn("TheRegistrar");
     assertThat(
             generateActualJson("nsdeleted.cat.lol", Optional.empty(), Optional.of(true)))
         .isEqualTo(
@@ -393,7 +394,7 @@ public class RdapNameserverActionTest {
 
   @Test
   public void testDeletedNameserver_found_loggedInAsAdmin() {
-    when(sessionUtils.guessClientIdForUser(AUTH_RESULT_ADMIN)).thenReturn("irrelevant");
+    when(registrarAccessor.guessClientId()).thenReturn("irrelevant");
     newRdapNameserverAction(
             "nsdeleted.cat.lol",
             Optional.empty(),
@@ -415,7 +416,7 @@ public class RdapNameserverActionTest {
 
   @Test
   public void testDeletedNameserver_found_sameRegistrarRequested() {
-    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn("TheRegistrar");
+    when(registrarAccessor.guessClientId()).thenReturn("TheRegistrar");
     assertThat(
             generateActualJson("nsdeleted.cat.lol", Optional.of("TheRegistrar"), Optional.of(true)))
         .isEqualTo(
@@ -432,7 +433,7 @@ public class RdapNameserverActionTest {
 
   @Test
   public void testDeletedNameserver_notFound_differentRegistrarRequested() {
-    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn("TheRegistrar");
+    when(registrarAccessor.guessClientId()).thenReturn("TheRegistrar");
     generateActualJson("ns1.cat.lol", Optional.of("otherregistrar"), Optional.of(false));
     assertThat(response.getStatus()).isEqualTo(404);
   }

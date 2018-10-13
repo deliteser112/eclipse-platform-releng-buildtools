@@ -53,7 +53,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
-import google.registry.ui.server.registrar.SessionUtils;
+import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -82,7 +82,8 @@ public class RdapDomainActionTest {
 
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
-  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+  private final AuthenticatedRegistrarAccessor registrarAccessor =
+      mock(AuthenticatedRegistrarAccessor.class);
   private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   private RdapDomainAction action;
@@ -275,17 +276,17 @@ public class RdapDomainActionTest {
     action.formatOutputParam = Optional.empty();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapWhoisServer = null;
-    action.sessionUtils = sessionUtils;
+    action.registrarAccessor = registrarAccessor;
     action.authResult = AUTH_RESULT;
     action.rdapMetrics = rdapMetrics;
   }
 
   private void login(String clientId) {
-    when(sessionUtils.guessClientIdForUser(AUTH_RESULT)).thenReturn(clientId);
+    when(registrarAccessor.guessClientId()).thenReturn(clientId);
   }
 
   private void loginAsAdmin() {
-    when(sessionUtils.guessClientIdForUser(AUTH_RESULT_ADMIN)).thenReturn("irrelevant");
+    when(registrarAccessor.guessClientId()).thenReturn("irrelevant");
     action.authResult = AUTH_RESULT_ADMIN;
   }
 

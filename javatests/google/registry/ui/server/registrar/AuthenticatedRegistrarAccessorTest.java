@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
-import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_ONLY;
-import static google.registry.ui.server.registrar.SessionUtils.AccessType.READ_WRITE;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.UPDATE;
 import static org.mockito.Mockito.mock;
 
 import com.google.appengine.api.users.User;
@@ -34,7 +34,7 @@ import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
-import google.registry.ui.server.registrar.SessionUtils.AccessType;
+import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,9 +45,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Unit tests for {@link SessionUtils}. */
+/** Unit tests for {@link AuthenticatedRegistrarAccessor}. */
 @RunWith(JUnit4.class)
-public class SessionUtilsTest {
+public class AuthenticatedRegistrarAccessorTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
   @Rule public final InjectRule inject = new InjectRule();
@@ -55,8 +55,6 @@ public class SessionUtilsTest {
   private final HttpServletRequest req = mock(HttpServletRequest.class);
   private final HttpServletResponse rsp = mock(HttpServletResponse.class);
   private final TestLogHandler testLogHandler = new TestLogHandler();
-
-  private SessionUtils sessionUtils;
 
   private static final AuthResult AUTHORIZED_USER = createAuthResult(true, false);
   private static final AuthResult UNAUTHORIZED_USER = createAuthResult(false, false);
@@ -80,15 +78,13 @@ public class SessionUtilsTest {
 
   @Before
   public void before() {
-    LoggerConfig.getConfig(SessionUtils.class).addHandler(testLogHandler);
-    sessionUtils = new SessionUtils();
-    sessionUtils.registryAdminClientId = ADMIN_CLIENT_ID;
+    LoggerConfig.getConfig(AuthenticatedRegistrarAccessor.class).addHandler(testLogHandler);
     persistResource(loadRegistrar(ADMIN_CLIENT_ID));
   }
 
   @After
   public void after() {
-    LoggerConfig.getConfig(SessionUtils.class).removeHandler(testLogHandler);
+    LoggerConfig.getConfig(AuthenticatedRegistrarAccessor.class).removeHandler(testLogHandler);
   }
 
   private String formatMessage(String message, AuthResult authResult, String clientId) {
@@ -97,14 +93,78 @@ public class SessionUtilsTest {
         .replace("{clientId}", String.valueOf(clientId));
   }
 
+  /** Users only have access to the registrars they are a contact for. */
+  @Test
+  public void getAllClientIdWithAccess_authorizedUser() {
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(AUTHORIZED_USER, ADMIN_CLIENT_ID);
+
+    assertThat(registrarAccessor.getAllClientIdWithAccess())
+        .containsExactly(
+            UPDATE, DEFAULT_CLIENT_ID,
+            READ, DEFAULT_CLIENT_ID)
+        .inOrder();
+  }
+
+  /** Logged out users don't have access to anything. */
+  @Test
+  public void getAllClientIdWithAccess_loggedOutUser() {
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(NO_USER, ADMIN_CLIENT_ID);
+
+    ForbiddenException exception =
+        assertThrows(ForbiddenException.class, () -> registrarAccessor.getAllClientIdWithAccess());
+    assertThat(exception).hasMessageThat().contains("Not logged in");
+  }
+
+  /** Unauthorized users don't have access to anything. */
+  @Test
+  public void getAllClientIdWithAccess_unauthorizedUser() {
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(UNAUTHORIZED_USER, ADMIN_CLIENT_ID);
+
+    assertThat(registrarAccessor.getAllClientIdWithAccess()).isEmpty();
+  }
+
+  /** Admins have read/write access to the authorized registrars, AND the admin registrar. */
+  @Test
+  public void getAllClientIdWithAccess_authorizedAdmin() {
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(AUTHORIZED_ADMIN, ADMIN_CLIENT_ID);
+
+    assertThat(registrarAccessor.getAllClientIdWithAccess())
+        .containsExactly(
+            UPDATE, DEFAULT_CLIENT_ID,
+            READ, DEFAULT_CLIENT_ID,
+            UPDATE, ADMIN_CLIENT_ID,
+            READ, ADMIN_CLIENT_ID)
+        .inOrder();
+  }
+
+  /**
+   * Unauthorized admins only have full access to the admin registrar, and read-only to the rest.
+   */
+  @Test
+  public void getAllClientIdWithAccess_unauthorizedAdmin() {
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(UNAUTHORIZED_ADMIN, ADMIN_CLIENT_ID);
+
+    assertThat(registrarAccessor.getAllClientIdWithAccess())
+        .containsExactly(
+            UPDATE, ADMIN_CLIENT_ID,
+            READ, ADMIN_CLIENT_ID,
+            READ, DEFAULT_CLIENT_ID)
+        .inOrder();
+  }
+
   /** Fail loading registrar if user doesn't have access to it. */
   @Test
   public void testGetRegistrarForUser_readOnly_noAccess_isNotAdmin() {
     expectGetRegistrarFailure(
         DEFAULT_CLIENT_ID,
-        READ_ONLY,
+        READ,
         UNAUTHORIZED_USER,
-        "User {user} doesn't have READ_ONLY access to registrar {clientId}");
+        "User {user} doesn't have READ access to registrar {clientId}");
   }
 
   /** Fail loading registrar if user doesn't have access to it. */
@@ -112,60 +172,56 @@ public class SessionUtilsTest {
   public void testGetRegistrarForUser_readWrite_noAccess_isNotAdmin() {
     expectGetRegistrarFailure(
         DEFAULT_CLIENT_ID,
-        READ_WRITE,
+        UPDATE,
         UNAUTHORIZED_USER,
-        "User {user} doesn't have READ_WRITE access to registrar {clientId}");
+        "User {user} doesn't have UPDATE access to registrar {clientId}");
   }
 
   /** Fail loading registrar if there's no user associated with the request. */
   @Test
   public void testGetRegistrarForUser_readOnly_noUser() {
-    expectGetRegistrarFailure(DEFAULT_CLIENT_ID, READ_ONLY, NO_USER, "Not logged in");
+    expectGetRegistrarFailure(DEFAULT_CLIENT_ID, READ, NO_USER, "Not logged in");
   }
 
   /** Fail loading registrar if there's no user associated with the request. */
   @Test
   public void testGetRegistrarForUser_readWrite_noUser() {
-    expectGetRegistrarFailure(DEFAULT_CLIENT_ID, READ_WRITE, NO_USER, "Not logged in");
-
-    assertAboutLogs().that(testLogHandler).hasNoLogsAtLevel(Level.INFO);
+    expectGetRegistrarFailure(DEFAULT_CLIENT_ID, UPDATE, NO_USER, "Not logged in");
   }
 
   /** Succeed loading registrar in read-only mode if user has access to it. */
   @Test
   public void testGetRegistrarForUser_readOnly_hasAccess_isNotAdmin() {
     expectGetRegistrarSuccess(
-        AUTHORIZED_USER, READ_ONLY, "User {user} has access to registrar {clientId}");
+        AUTHORIZED_USER, READ, "User {user} has READ access to registrar {clientId}");
   }
 
   /** Succeed loading registrar in read-write mode if user has access to it. */
   @Test
   public void testGetRegistrarForUser_readWrite_hasAccess_isNotAdmin() {
     expectGetRegistrarSuccess(
-        AUTHORIZED_USER, READ_WRITE, "User {user} has access to registrar {clientId}");
+        AUTHORIZED_USER, UPDATE, "User {user} has UPDATE access to registrar {clientId}");
   }
 
   /** Succeed loading registrar in read-only mode if admin with access. */
   @Test
   public void testGetRegistrarForUser_readOnly_hasAccess_isAdmin() {
     expectGetRegistrarSuccess(
-        AUTHORIZED_ADMIN, READ_ONLY, "User {user} has access to registrar {clientId}");
+        AUTHORIZED_ADMIN, READ, "User {user} has READ access to registrar {clientId}");
   }
 
   /** Succeed loading registrar in read-write mode if admin with access. */
   @Test
   public void testGetRegistrarForUser_readWrite_hasAccess_isAdmin() {
     expectGetRegistrarSuccess(
-        AUTHORIZED_ADMIN, READ_WRITE, "User {user} has access to registrar {clientId}");
+        AUTHORIZED_ADMIN, UPDATE, "User {user} has UPDATE access to registrar {clientId}");
   }
 
   /** Succeed loading registrar for read-only when admin isn't on the approved contacts list. */
   @Test
   public void testGetRegistrarForUser_readOnly_noAccess_isAdmin() {
     expectGetRegistrarSuccess(
-        UNAUTHORIZED_ADMIN,
-        READ_ONLY,
-        "Allowing admin {user} read-only access to registrar {clientId}.");
+        UNAUTHORIZED_ADMIN, READ, "User {user} has READ access to registrar {clientId}.");
   }
 
   /** Fail loading registrar for read-write when admin isn't on the approved contacts list. */
@@ -173,9 +229,9 @@ public class SessionUtilsTest {
   public void testGetRegistrarForUser_readWrite_noAccess_isAdmin() {
     expectGetRegistrarFailure(
         DEFAULT_CLIENT_ID,
-        READ_WRITE,
+        UPDATE,
         UNAUTHORIZED_ADMIN,
-        "User {user} doesn't have READ_WRITE access to registrar {clientId}");
+        "User {user} doesn't have UPDATE access to registrar {clientId}");
   }
 
   /** Fail loading registrar even if admin, if registrar doesn't exist. */
@@ -183,9 +239,9 @@ public class SessionUtilsTest {
   public void testGetRegistrarForUser_readOnly_doesntExist_isAdmin() {
     expectGetRegistrarFailure(
         "BadClientId",
-        READ_ONLY,
+        READ,
         AUTHORIZED_ADMIN,
-        "Registrar {clientId} not found");
+        "User {user} doesn't have READ access to registrar {clientId}");
   }
 
   /** Fail loading registrar even if admin, if registrar doesn't exist. */
@@ -193,15 +249,17 @@ public class SessionUtilsTest {
   public void testGetRegistrarForUser_readWrite_doesntExist_isAdmin() {
     expectGetRegistrarFailure(
         "BadClientId",
-        READ_WRITE,
+        UPDATE,
         AUTHORIZED_ADMIN,
-        "Registrar {clientId} not found");
+        "User {user} doesn't have UPDATE access to registrar {clientId}");
   }
 
   private void expectGetRegistrarSuccess(
       AuthResult authResult, AccessType accessType, String message) {
-    assertThat(sessionUtils.getRegistrarForUser(DEFAULT_CLIENT_ID, accessType, authResult))
-        .isNotNull();
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(authResult, ADMIN_CLIENT_ID);
+
+    assertThat(registrarAccessor.getRegistrar(DEFAULT_CLIENT_ID, accessType)).isNotNull();
     assertAboutLogs()
         .that(testLogHandler)
         .hasLogAtLevelWithMessage(
@@ -210,22 +268,23 @@ public class SessionUtilsTest {
 
   private void expectGetRegistrarFailure(
       String clientId, AccessType accessType, AuthResult authResult, String message) {
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(authResult, ADMIN_CLIENT_ID);
+
     ForbiddenException exception =
         assertThrows(
-            ForbiddenException.class,
-            () -> sessionUtils.getRegistrarForUser(clientId, accessType, authResult));
+            ForbiddenException.class, () -> registrarAccessor.getRegistrar(clientId, accessType));
 
     assertThat(exception).hasMessageThat().contains(formatMessage(message, authResult, clientId));
-    assertAboutLogs().that(testLogHandler).hasNoLogsAtLevel(Level.INFO);
   }
 
   /** If a user has access to a registrar, we should guess that registrar. */
   @Test
   public void testGuessClientIdForUser_hasAccess_isNotAdmin() {
-    expectGuessRegistrarSuccess(
-        AUTHORIZED_USER,
-        DEFAULT_CLIENT_ID,
-        "Associating user {user} with found registrar {clientId}.");
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(AUTHORIZED_USER, ADMIN_CLIENT_ID);
+
+    assertThat(registrarAccessor.guessClientId()).isEqualTo(DEFAULT_CLIENT_ID);
   }
 
   /** If a user doesn't have access to any registrars, guess returns nothing. */
@@ -241,40 +300,32 @@ public class SessionUtilsTest {
    */
   @Test
   public void testGuessClientIdForUser_hasAccess_isAdmin() {
-    expectGuessRegistrarSuccess(
-        AUTHORIZED_ADMIN,
-        DEFAULT_CLIENT_ID,
-        "Associating user {user} with found registrar {clientId}.");
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(AUTHORIZED_ADMIN, ADMIN_CLIENT_ID);
+
+    assertThat(registrarAccessor.guessClientId()).isEqualTo(DEFAULT_CLIENT_ID);
   }
 
   /** If an admin doesn't have access to a registrar, we should guess the ADMIN_CLIENT_ID. */
   @Test
   public void testGuessClientIdForUser_noAccess_isAdmin() {
-    expectGuessRegistrarSuccess(
-        UNAUTHORIZED_ADMIN,
-        ADMIN_CLIENT_ID,
-        "User {user} is an admin with no associated registrar."
-            + " Automatically associating the user with configured client Id {clientId}.");
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(UNAUTHORIZED_ADMIN, ADMIN_CLIENT_ID);
+
+    assertThat(registrarAccessor.guessClientId()).isEqualTo(ADMIN_CLIENT_ID);
   }
 
   /**
-   * If an admin is not associated with a registrar and there is no configured adminClientId, we
-   * can't guess the clientId.
+   * If an admin is not associated with a registrar and there is no configured adminClientId, but
+   * since it's an admin - we have read-only access to everything - return one of the existing
+   * registrars.
    */
   @Test
   public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdEmpty() {
-    sessionUtils.registryAdminClientId = "";
-    expectGuessRegistrarFailure(
-        UNAUTHORIZED_ADMIN, "User {user} isn't associated with any registrar");
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(
-            Level.INFO,
-            formatMessage(
-                "Cannot associate admin user {user} with configured client Id."
-                    + " ClientId is null or empty.",
-                UNAUTHORIZED_ADMIN,
-                null));
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(UNAUTHORIZED_ADMIN, "");
+
+    assertThat(registrarAccessor.guessClientId()).isAnyOf(ADMIN_CLIENT_ID, DEFAULT_CLIENT_ID);
   }
 
   /**
@@ -283,24 +334,18 @@ public class SessionUtilsTest {
    */
   @Test
   public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdInvalid() {
-    sessionUtils.registryAdminClientId = "NonexistentRegistrar";
-    expectGuessRegistrarSuccess(
-        UNAUTHORIZED_ADMIN,
-        "NonexistentRegistrar",
-        "User {user} is an admin with no associated registrar."
-            + " Automatically associating the user with configured client Id {clientId}.");
-  }
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(UNAUTHORIZED_ADMIN, "NonexistentRegistrar");
 
-  private void expectGuessRegistrarSuccess(AuthResult authResult, String clientId, String message) {
-    assertThat(sessionUtils.guessClientIdForUser(authResult)).isEqualTo(clientId);
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(Level.INFO, formatMessage(message, authResult, clientId));
+    assertThat(registrarAccessor.guessClientId()).isEqualTo("NonexistentRegistrar");
   }
 
   private void expectGuessRegistrarFailure(AuthResult authResult, String message) {
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(authResult, ADMIN_CLIENT_ID);
+
     ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> sessionUtils.guessClientIdForUser(authResult));
+        assertThrows(ForbiddenException.class, () -> registrarAccessor.guessClientId());
     assertThat(exception)
         .hasMessageThat()
         .contains(formatMessage(message, authResult, null));
@@ -311,6 +356,6 @@ public class SessionUtilsTest {
     new NullPointerTester()
         .setDefault(HttpServletRequest.class, req)
         .setDefault(HttpServletResponse.class, rsp)
-        .testAllPublicStaticMethods(SessionUtils.class);
+        .testAllPublicStaticMethods(AuthenticatedRegistrarAccessor.class);
   }
 }

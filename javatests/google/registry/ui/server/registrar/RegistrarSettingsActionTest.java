@@ -81,7 +81,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
    */
   @Test
   public void testFailure_readRegistrarInfo_notAuthorized() {
-    action.authResult = USER_UNAUTHORIZED;
+    setUserWithoutAccess();
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of("id", CLIENT_ID));
     assertThat(response).containsExactly(
         "status", "ERROR",
@@ -104,7 +104,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   /** This is the default read test for the registrar settings actions. */
   @Test
   public void testSuccess_readRegistrarInfo_authorizedReadOnly() {
-    action.authResult = USER_READ_ONLY;
+    setUserReadOnlyAccess();
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of("id", CLIENT_ID));
     assertThat(response)
         .containsExactly(
@@ -157,7 +157,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
   @Test
   public void testFailure_updateRegistrarInfo_notAuthorized() {
-    action.authResult = USER_UNAUTHORIZED;
+    setUserWithoutAccess();
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,
@@ -171,7 +171,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
   @Test
   public void testFailure_updateRegistrarInfo_readOnlyAccess() {
-    action.authResult = USER_READ_ONLY;
+    setUserReadOnlyAccess();
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,
