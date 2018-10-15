@@ -156,7 +156,9 @@ public abstract class QuotaHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) {
       // If no reads occurred before the connection is inactive (for example when the handshake
       // is not successful), no quota is leased and therefore no return is needed.
-      if (quotaResponse != null) {
+      // Note that the quota response can be a failure, in which case no token was leased to us from
+      // the token store. Consequently no return is necessary.
+      if (quotaResponse != null && quotaResponse.success()) {
         Future<?> unusedFuture = quotaManager.releaseQuota(QuotaRebate.create(quotaResponse));
       }
       ctx.fireChannelInactive();
