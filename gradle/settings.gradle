@@ -1,0 +1,5 @@
+rootProject.name = 'gradle'
+
+include 'third_party'
+include 'core'
+

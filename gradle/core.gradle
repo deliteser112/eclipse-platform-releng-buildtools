@@ -1,0 +1,206 @@
+def javaDir = "${rootDir}/../java"
+def javatestsDir = "${rootDir}/../javatests"
+
+def generatedDir = "${project.buildDir}/generated-sources"
+
+sourceSets {
+  main {
+    java {
+      srcDirs = [
+          "${javaDir}",
+          "${generatedDir}"
+      ]
+    }
+    resources {
+      srcDirs = [
+          "${javaDir}"
+      ]
+      exclude '**/*.java', '**/*.xjb'
+    }
+  }
+  test {
+    java {
+      srcDirs = [
+          "${javatestsDir}",
+          "${generatedDir}"
+      ]
+    }
+    resources {
+      srcDirs = [
+          "${javatestsDir}"
+      ]
+      exclude '**/*.java', '**/*.xsd', '**/*.xjb'
+    }
+  }
+}
+
+configurations {
+  css
+  jaxb
+  soy
+}
+
+dependencies {
+  testImplementation project(':third_party')
+
+  // Dependencies needed for jaxb compilation.
+  // Use jaxb 2.2.11 because 2.3 is known to break the Ant task we use.
+  // TODO: upgrade jaxb versions to 2.4.0, already in beta by Sept 2018
+  jaxb 'javax.xml.bind:jaxb-api:2.2.11'
+  jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.11'
+  jaxb 'com.sun.xml.bind:jaxb-impl:2.2.11'
+  jaxb 'com.sun.xml.bind:jaxb-osgi:2.2.11'
+
+  // Dependency needed for soy to java compilation.
+  soy 'com.google.template:soy:2018-03-14'
+
+  // Dependencies needed for compiling stylesheets to javascript
+  css 'com.google.closure-stylesheets:closure-stylesheets:1.5.0'
+  css 'args4j:args4j:2.0.26'
+}
+
+task jaxbToJava() {
+  doLast {
+    file(generatedDir).mkdirs()
+
+    // Temp dir to hold schema and bindings files. Files must be in the same directory because
+    // the bindings (.xjb) file does not declare relative paths to schema (.xsd) files.
+    def xjcTempSourceDir = file("${temporaryDir}/xjc")
+    xjcTempSourceDir.mkdirs()
+    ant.copy(
+        todir: "${xjcTempSourceDir}",
+        overwrite: true) {
+      fileSet(
+          dir: "${javaDir}/google/registry/xml/xsd",
+          includes: '**.xsd')
+    }
+    ant.copy(
+        todir: "${xjcTempSourceDir}",
+        overwrite: true,
+        file:
+            "${javaDir}/google/registry/xjc/bindings.xjb")
+
+    ant.taskdef(
+        name: 'xjc',
+        classname: 'com.sun.tools.xjc.XJCTask',
+        classpath: configurations.jaxb.asPath)
+    ant.xjc(
+        destdir: "${generatedDir}",
+        binding: "${xjcTempSourceDir}/bindings.xjb",
+        removeOldOutput: 'yes', extension: 'true') {
+      project.fileTree(
+          dir: new File("$xjcTempSourceDir"),
+          include: ['**/*.xsd'])
+          .addToAntBuilder(ant, 'schema', FileCollection.AntType.FileSet)
+      // -npa: do not generate package-info.java files. They will be generated below.
+      arg(line: '-npa -quiet -extension')
+    }
+    exec {
+      workingDir "${generatedDir}"
+
+      executable "${javaDir}/google/registry/xjc/make_pkginfo.sh"
+      args "${javaDir}/google/registry/xjc/package-info.java.in",
+          "${generatedDir}/google/registry/xjc"
+    }
+  }
+}
+
+task soyToJava() {
+  ext.soyToJava = { javaPackage, outputDirectory, soyFiles ->
+    javaexec {
+      main = "com.google.template.soy.SoyParseInfoGenerator"
+      classpath configurations.soy
+      args "--javaPackage", "${javaPackage}",
+          "--outputDirectory", "${outputDirectory}",
+          "--javaClassNameSource", "filename",
+          "--allowExternalCalls", "true",
+          "--srcs", "${soyFiles.join(',')}"
+    }
+  }
+
+  doLast {
+
+    soyToJava('google.registry.tools.soy', "${generatedDir}/google/registry/tools/soy",
+        fileTree(dir: "${javaDir}/google/registry/tools/soy", include: ['**/*.soy']))
+
+    soyToJava('google.registry.ui.soy.registrar',
+        "${generatedDir}/google/registry/ui/soy/registrar",
+        fileTree(dir: "${javaDir}/google/registry/ui/soy/registrar", include: ['**/*.soy']))
+
+    soyToJava('google.registry.ui.soy',
+        "${generatedDir}/google/registry/ui/soy",
+        files {
+          file("${javaDir}/google/registry/ui/soy").listFiles()
+        }.filter {
+          it.name.endsWith(".soy")
+        })
+  }
+}
+
+task stylesheetsToJavascript {
+  ext.cssCompile = { outputName, debug, cssFiles ->
+    javaexec {
+      main = "com.google.common.css.compiler.commandline.ClosureCommandLineCompiler"
+      classpath configurations.css
+
+      def argsBuffer = [
+          "--output-file", "${outputName}.css",
+          "--output-source-map", "${outputName}.css.map",
+          "--input-orientation", "LTR",
+          "--output-orientation", "NOCHANGE",
+          "--output-renaming-map", "${outputName}.css.js",
+          "--output-renaming-map-format", "CLOSURE_COMPILED_SPLIT_HYPHENS"
+      ]
+      if (debug) {
+        argsBuffer.addAll(["--rename", "DEBUG", "--pretty-print"])
+      } else {
+        argsBuffer.addAll(["--rename", "CLOSURE"])
+      }
+
+      argsBuffer.addAll(cssFiles)
+      args argsBuffer
+    }
+  }
+
+  doLast {
+    def cssSourceDir = "${javaDir}/google/registry/ui/css"
+    def outputDir = "${project.buildDir}/resources/main/google/registry/ui/css"
+    file("${outputDir}").mkdirs()
+    def srcFiles = [
+        "${cssSourceDir}/console.css", "${cssSourceDir}/contact-settings.css",
+        "${cssSourceDir}/contact-us.css", "${cssSourceDir}/dashboard.css",
+        "${cssSourceDir}/epp.css", "${cssSourceDir}/forms.css",
+        "${cssSourceDir}/kd_components.css", "${cssSourceDir}/registry.css",
+        "${cssSourceDir}/resources.css", "${cssSourceDir}/security-settings.css"
+    ]
+    cssCompile("${outputDir}/registrar_bin", false, srcFiles)
+    cssCompile("${outputDir}/registrar_dbg", true, srcFiles)
+  }
+}
+
+compileJava.dependsOn jaxbToJava
+compileJava.dependsOn soyToJava
+
+// stylesheetsToJavascript must happen after processResources, which wipes the resources folder
+// before copying data into it.
+stylesheetsToJavascript.dependsOn processResources
+classes.dependsOn stylesheetsToJavascript
+
+
+test {
+  // Test exclusion patterns:
+  // - *TestCase.java are inherited by concrete test classes.
+  // - *TestSuite.java are excluded to avoid duplicate execution of suite members. See README
+  //   in this directory for more information.
+  exclude "**/*TestCase.*", "**/*TestSuite.*"
+
+  // Use a single JVM to execute all tests. See README in this directory for more information.
+  maxParallelForks 1
+
+  // Use a single thread to execute all tests in a JVM. See README in this directory for more
+  // information.
+  forkEvery 1
+
+  // Uncomment to see test outputs in stdout.
+  //testLogging.showStandardStreams = true
+}
