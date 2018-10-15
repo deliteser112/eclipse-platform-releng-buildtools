@@ -47,8 +47,10 @@ public class Spec11EmailUtils {
   private final YearMonth yearMonth;
   private final String alertSenderAddress;
   private final String alertRecipientAddress;
+  private final String spec11ReplyToAddress;
   private final String reportingBucket;
   private final String spec11ReportDirectory;
+  private final String spec11EmailBodyTemplate;
   private final GcsUtils gcsUtils;
   private final Retrier retrier;
 
@@ -58,6 +60,8 @@ public class Spec11EmailUtils {
       YearMonth yearMonth,
       @Config("alertSenderEmailAddress") String alertSenderAddress,
       @Config("alertRecipientEmailAddress") String alertRecipientAddress,
+      @Config("spec11ReplyToEmailAddress") String spec11ReplyToAddress,
+      @Config("spec11EmailBodyTemplate") String spec11EmailBodyTemplate,
       @Config("reportingBucket") String reportingBucket,
       @Spec11ReportDirectory String spec11ReportDirectory,
       GcsUtils gcsUtils,
@@ -66,8 +70,10 @@ public class Spec11EmailUtils {
     this.yearMonth = yearMonth;
     this.alertSenderAddress = alertSenderAddress;
     this.alertRecipientAddress = alertRecipientAddress;
+    this.spec11ReplyToAddress = spec11ReplyToAddress;
     this.reportingBucket = reportingBucket;
     this.spec11ReportDirectory = spec11ReportDirectory;
+    this.spec11EmailBodyTemplate = spec11EmailBodyTemplate;
     this.gcsUtils = gcsUtils;
     this.retrier = retrier;
   }
@@ -114,23 +120,24 @@ public class Spec11EmailUtils {
     JSONObject reportJSON = new JSONObject(line);
     String registrarEmail = reportJSON.getString(Spec11Pipeline.REGISTRAR_EMAIL_FIELD);
     JSONArray threatMatches = reportJSON.getJSONArray(Spec11Pipeline.THREAT_MATCHES_FIELD);
-    StringBuilder body =
-        new StringBuilder("Hello registrar partner,\n")
-            .append("We have detected problems with the following domains:\n");
+    StringBuilder threatList = new StringBuilder();
     for (int i = 0; i < threatMatches.length(); i++) {
       ThreatMatch threatMatch = ThreatMatch.fromJSON(threatMatches.getJSONObject(i));
-      body.append(
+      threatList.append(
           String.format(
               "%s - %s\n", threatMatch.fullyQualifiedDomainName(), threatMatch.threatType()));
     }
-    body.append("At the moment, no action is required. This is purely informatory.")
-        .append("Regards,\nGoogle Registry\n");
+    String body =
+        spec11EmailBodyTemplate
+            .replace("{REPLY_TO_EMAIL}", spec11ReplyToAddress)
+            .replace("{LIST_OF_THREATS}", threatList.toString());
     Message msg = emailService.createMessage();
     msg.setSubject(
         String.format("Google Registry Monthly Threat Detector [%s]", yearMonth.toString()));
     msg.setText(body.toString());
     msg.setFrom(new InternetAddress(alertSenderAddress));
-    msg.setRecipient(RecipientType.TO, new InternetAddress(registrarEmail));
+    msg.addRecipient(RecipientType.TO, new InternetAddress(registrarEmail));
+    msg.addRecipient(RecipientType.BCC, new InternetAddress(spec11ReplyToAddress));
     emailService.sendMessage(msg);
   }
 

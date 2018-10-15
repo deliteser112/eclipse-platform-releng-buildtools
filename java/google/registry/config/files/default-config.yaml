@@ -142,6 +142,33 @@ registryPolicy:
 
     We reserve the right to modify this agreement at any time.
 
+  # Body of the spec 11 email sent to registrars.
+  # Items in braces are to be replaced.
+  spec11EmailBodyTemplate: |
+    Dear registrar partner,
+
+    The registry conducts periodic technical analyses of all domains registered
+    in its TLDs. As part of this analysis, the following domains that you
+    manage were flagged for potential security concerns:
+
+    {LIST_OF_THREATS}
+
+    Please communicate these findings to the registrant and work with the
+    registrant to mitigate any security issues and have the domains delisted.
+
+    Some helpful sites for getting off a blocked list include:
+
+      - Google Search Console (https://search.google.com/search-console/about)
+        -- includes information and tools for webmasters to learn about and
+        mitigate security threats and have their websites delisted
+      - first.org -- a registry of Computer Emergency Response Teams (CERTs)
+        that may be able to assist in mitigation
+      - stopbadware.org -- a non-profit anti-malware organization that provides
+        support and information for webmasters dealing with security threats
+
+    If you have any questions regarding this notice, please contact
+    {REPLY_TO_EMAIL}.
+
 datastore:
   # Number of commit log buckets in Datastore. Lowering this after initial
   # install risks losing up to a days' worth of differential backups.
@@ -304,6 +331,10 @@ misc:
 
   # Address we send alert summary emails to.
   alertRecipientEmailAddress: email@example.com
+
+  # Address to which the Spec 11 emails to registrars should be replied. This needs
+  # to be a deliverable email address in case the registrars want to contact us.
+  spec11ReplyToEmailAddress: reply-to@example.com
 
   # Domain for the email address we send alert summary emails from.
   alertEmailSenderDomain: appspotmail.com

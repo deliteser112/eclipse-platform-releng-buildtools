@@ -90,6 +90,7 @@ public class RegistryConfigSettings {
     public String reservedTermsExportDisclaimer;
     public String whoisDisclaimer;
     public String rdapTos;
+    public String spec11EmailBodyTemplate;
   }
 
   /** Configuration for Cloud Datastore. */
@@ -160,6 +161,7 @@ public class RegistryConfigSettings {
   public static class Misc {
     public String sheetExportId;
     public String alertRecipientEmailAddress;
+    public String spec11ReplyToEmailAddress;
     public String alertEmailSenderDomain;
     public int asyncDeleteDelaySeconds;
   }

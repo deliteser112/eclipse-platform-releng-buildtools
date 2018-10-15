@@ -36,7 +36,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
+import javax.annotation.Nullable;
 import javax.mail.Message;
+import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
@@ -83,6 +85,8 @@ public class Spec11EmailUtilsTest {
             new YearMonth(2018, 6),
             "my-sender@test.com",
             "my-receiver@test.com",
+            "my-reply-to@test.com",
+            "{LIST_OF_THREATS}\n{REPLY_TO_EMAIL}",
             "test-bucket",
             "icann/spec11/2018-06/SPEC11_MONTHLY_REPORT",
             gcsUtils,
@@ -99,27 +103,21 @@ public class Spec11EmailUtilsTest {
         capturedMessages.get(0),
         "my-sender@test.com",
         "a@fake.com",
+        "my-reply-to@test.com",
         "Google Registry Monthly Threat Detector [2018-06]",
-        "Hello registrar partner,\n"
-            + "We have detected problems with the following domains:\n"
-            + "a.com - MALWARE\n"
-            + "At the moment, no action is required. This is purely informatory."
-            + "Regards,\nGoogle Registry\n");
+        "a.com - MALWARE\n\nmy-reply-to@test.com");
     validateMessage(
         capturedMessages.get(1),
         "my-sender@test.com",
         "b@fake.com",
+        "my-reply-to@test.com",
         "Google Registry Monthly Threat Detector [2018-06]",
-        "Hello registrar partner,\n"
-            + "We have detected problems with the following domains:\n"
-            + "b.com - MALWARE\n"
-            + "c.com - MALWARE\n"
-            + "At the moment, no action is required. This is purely informatory."
-            + "Regards,\nGoogle Registry\n");
+        "b.com - MALWARE\nc.com - MALWARE\n\nmy-reply-to@test.com");
     validateMessage(
         capturedMessages.get(2),
         "my-sender@test.com",
         "my-receiver@test.com",
+        null,
         "Spec11 Pipeline Success 2018-06",
         "Spec11 reporting completed successfully.");
   }
@@ -163,6 +161,7 @@ public class Spec11EmailUtilsTest {
         gotMessage.getValue(),
         "my-sender@test.com",
         "my-receiver@test.com",
+        null,
         "Spec11 Emailing Failure 2018-06",
         "Emailing spec11 reports failed due to expected");
   }
@@ -175,17 +174,31 @@ public class Spec11EmailUtilsTest {
         gotMessage.getValue(),
         "my-sender@test.com",
         "my-receiver@test.com",
+        null,
         "Spec11 Pipeline Alert: 2018-06",
         "Alert!");
   }
 
   private void validateMessage(
-      Message message, String from, String recipient, String subject, String body)
+      Message message,
+      String from,
+      String recipient,
+      @Nullable String replyTo,
+      String subject,
+      String body)
       throws MessagingException, IOException {
     assertThat(message.getFrom()).asList().containsExactly(new InternetAddress(from));
-    assertThat(message.getAllRecipients())
+    assertThat(message.getRecipients(RecipientType.TO))
         .asList()
         .containsExactly(new InternetAddress(recipient));
+    if (replyTo == null) {
+      assertThat(message.getRecipients(RecipientType.BCC)).isNull();
+    } else {
+      assertThat(message.getRecipients(RecipientType.BCC))
+          .asList()
+          .containsExactly(new InternetAddress(replyTo));
+    }
+    assertThat(message.getRecipients(RecipientType.CC)).isNull();
     assertThat(message.getSubject()).isEqualTo(subject);
     assertThat(message.getContentType()).isEqualTo("text/plain");
     assertThat(message.getContent().toString()).isEqualTo(body);

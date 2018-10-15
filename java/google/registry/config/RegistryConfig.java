@@ -815,6 +815,7 @@ public final class RegistryConfig {
      *
      * @see google.registry.reporting.icann.ReportingEmailUtils
      * @see google.registry.reporting.billing.BillingEmailUtils
+     * @see google.registry.reporting.spec11.Spec11EmailUtils
      */
     @Provides
     @Config("alertRecipientEmailAddress")
@@ -827,13 +828,35 @@ public final class RegistryConfig {
      *
      * @see google.registry.reporting.icann.ReportingEmailUtils
      * @see google.registry.reporting.billing.BillingEmailUtils
+     * @see google.registry.reporting.spec11.Spec11EmailUtils
      */
-
     @Provides
     @Config("alertSenderEmailAddress")
     public static String provideAlertSenderEmailAddress(
         @Config("projectId") String projectId, RegistryConfigSettings config) {
-      return String.format("%s@%s", projectId, config.misc.alertEmailSenderDomain);
+      return String.format("%s-no-reply@%s", projectId, config.misc.alertEmailSenderDomain);
+    }
+
+    /**
+     * Returns the email address to which spec 11 email should be replied.
+     *
+     * @see google.registry.reporting.spec11.Spec11EmailUtils
+     */
+    @Provides
+    @Config("spec11ReplyToEmailAddress")
+    public static String provideSpec11ReplyToEmailAddress(RegistryConfigSettings config) {
+      return config.misc.spec11ReplyToEmailAddress;
+    }
+
+    /**
+     * Returns the template for the body of the spec 11 email to the registrars.
+     *
+     * @see google.registry.reporting.spec11.Spec11EmailUtils
+     */
+    @Provides
+    @Config("spec11EmailBodyTemplate")
+    public static String provideSpec11EmailBodyTemplate(RegistryConfigSettings config) {
+      return config.registryPolicy.spec11EmailBodyTemplate;
     }
 
     /**
