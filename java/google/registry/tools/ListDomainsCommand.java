@@ -15,11 +15,14 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static google.registry.model.registry.Registries.getTldsOfType;
+import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import google.registry.model.registry.Registry.TldType;
 import google.registry.tools.server.ListDomainsAction;
 import java.util.List;
 
@@ -29,8 +32,7 @@ final class ListDomainsCommand extends ListObjectsCommand {
 
   @Parameter(
       names = {"-t", "--tld", "--tlds"},
-      description = "Comma-delimited list of top-level domain(s) to list second-level domains of.",
-      required = true)
+      description = "Comma-delimited list of TLDs to list domains on; defaults to all REAL TLDs.")
   private List<String> tlds;
 
   @Parameter(
@@ -47,6 +49,10 @@ final class ListDomainsCommand extends ListObjectsCommand {
   /** Returns a map of parameters to be sent to the server (in addition to the usual ones). */
   @Override
   ImmutableMap<String, Object> getParameterMap() {
+    // Default to all REAL TLDs if not specified.
+    if (isNullOrEmpty(tlds)) {
+      tlds = getTldsOfType(TldType.REAL).asList();
+    }
     String tldsParam = Joiner.on(',').join(tlds);
     checkArgument(tldsParam.length() < 1024, "Total length of TLDs is too long for URL parameter");
     return ImmutableMap.of("tlds", tldsParam, "limit", maxDomains);
