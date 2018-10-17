@@ -18,18 +18,13 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.ParameterException;
-import google.registry.testing.InjectRule;
 import google.registry.tools.server.ToolsTestData;
 import java.io.ByteArrayInputStream;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 /** Unit tests for {@link ExecuteEppCommand}. */
 public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppCommand> {
-
-  @Rule
-  public InjectRule inject = new InjectRule();
 
   private String xmlInput;
   private String eppFile;
@@ -60,8 +55,7 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
 
   @Test
   public void testSuccess_fromStdin() throws Exception {
-    inject.setStaticField(
-        ExecuteEppCommand.class, "stdin", new ByteArrayInputStream(xmlInput.getBytes(UTF_8)));
+    System.setIn(new ByteArrayInputStream(xmlInput.getBytes(UTF_8)));
     runCommand("--client=NewRegistrar", "--force");
     eppVerifier.verifySent("contact_create.xml");
   }
