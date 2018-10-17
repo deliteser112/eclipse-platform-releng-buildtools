@@ -26,11 +26,15 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import google.registry.config.RegistryEnvironment;
 import google.registry.model.ofy.Ofy;
 import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonResponse;
 import google.registry.request.ResponseImpl;
+import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
@@ -88,6 +92,11 @@ public class RegistrarSettingsActionTestCase {
         "notification@test.example", "notification2@test.example");
     action.sendEmailUtils =
         new SendEmailUtils(getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName());
+    action.registryEnvironment = RegistryEnvironment.get();
+    action.authResult =
+        AuthResult.create(
+            AuthLevel.USER,
+            UserAuthInfo.create(new User("user@email.com", "email.com", "12345"), false));
     inject.setStaticField(Ofy.class, "clock", clock);
     inject.setStaticField(SendEmailUtils.class, "emailService", emailService);
     message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));

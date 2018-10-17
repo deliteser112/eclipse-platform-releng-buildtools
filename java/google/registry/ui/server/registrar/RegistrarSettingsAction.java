@@ -23,6 +23,7 @@ import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
 import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.UPDATE;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -32,6 +33,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registrar.RegistrarContact.Type;
@@ -39,6 +41,7 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthResult;
 import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
@@ -79,6 +82,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
   @Inject AppEngineServiceUtils appEngineServiceUtils;
   @Inject SendEmailUtils sendEmailUtils;
   @Inject AuthenticatedRegistrarAccessor registrarAccessor;
+  @Inject AuthResult authResult;
+  @Inject RegistryEnvironment registryEnvironment;
 
   @Inject @Config("registrarChangesNotificationEmailAddresses") ImmutableList<String>
       registrarChangesNotificationEmailAddresses;
@@ -126,7 +131,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     } catch (Throwable e) {
       logger.atWarning().withCause(e).log(
           "Failed to perform operation '%s' on registrar '%s' for args %s", op, clientId, args);
-      return JsonResponseHelper.create(ERROR, e.getMessage());
+      return JsonResponseHelper.create(
+          ERROR, Optional.ofNullable(e.getMessage()).orElse("Unspecified error"));
     }
   }
 
@@ -376,13 +382,20 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       return;
     }
     enqueueRegistrarSheetSync(appEngineServiceUtils.getCurrentVersionHostname("backend"));
-    if (!registrarChangesNotificationEmailAddresses.isEmpty()) {
-      sendEmailUtils.sendEmail(
-          registrarChangesNotificationEmailAddresses,
-          String.format("Registrar %s updated", existingRegistrar.getRegistrarName()),
-          "The following changes were made to the registrar:\n"
-              + DiffUtils.prettyPrintDiffedMap(diffs, null));
-    }
+    String environment = Ascii.toLowerCase(String.valueOf(registryEnvironment));
+    sendEmailUtils.sendEmail(
+        registrarChangesNotificationEmailAddresses,
+        String.format(
+            "Registrar %s (%s) updated in %s",
+            existingRegistrar.getRegistrarName(),
+            existingRegistrar.getClientId(),
+            environment),
+        String.format(
+            "The following changes were made on %s to the registrar %s by %s:\n\n%s",
+            environment,
+            existingRegistrar.getClientId(),
+            authResult.userIdForLogging(),
+            DiffUtils.prettyPrintDiffedMap(diffs, null)));
   }
 
   /** Thrown when a set of contacts doesn't meet certain constraints. */
