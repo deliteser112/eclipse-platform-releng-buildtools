@@ -14,6 +14,7 @@
 
 package google.registry.tmch;
 
+import static com.google.common.base.Randoms.insecureRandom;
 import static com.google.common.net.HttpHeaders.AUTHORIZATION;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.common.net.HttpHeaders.LOCATION;
@@ -115,6 +116,7 @@ public class NordnUploadActionTest {
     action.taskQueueUtils = new TaskQueueUtils(new Retrier(new FakeSleeper(clock), 3));
     action.tld = "tld";
     action.tmchMarksdbUrl = "http://127.0.0.1";
+    action.random = insecureRandom();
   }
 
   @Test

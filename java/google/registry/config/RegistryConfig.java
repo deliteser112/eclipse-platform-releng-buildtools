@@ -14,6 +14,7 @@
 
 package google.registry.config;
 
+import static com.google.common.base.Randoms.insecureRandom;
 import static com.google.common.base.Suppliers.memoize;
 import static google.registry.config.ConfigUtils.makeUrl;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -34,6 +35,7 @@ import java.lang.annotation.Retention;
 import java.net.URI;
 import java.net.URL;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Named;
@@ -1256,6 +1258,17 @@ public final class RegistryConfig {
               .setLinkValueSuffix("help/tos")
               .build())
           .build();
+    }
+
+    /**
+     * Returns a singleton random number generator.
+     *
+     * @see google.registry.util.UrlFetchUtils
+     */
+    @Singleton
+    @Provides
+    public static Random provideRandom() {
+      return insecureRandom();
     }
   }
 

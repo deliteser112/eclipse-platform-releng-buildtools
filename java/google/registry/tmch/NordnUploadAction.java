@@ -80,6 +80,7 @@ public final class NordnUploadAction implements Runnable {
   private final String actionLogId = String.valueOf(1000000000 + new Random().nextInt(1000000000));
 
   @Inject Clock clock;
+  @Inject Random random;
   @Inject LordnRequestInitializer lordnRequestInitializer;
   @Inject URLFetchService fetchService;
   @Inject @Config("tmchMarksdbUrl") String tmchMarksdbUrl;
@@ -138,7 +139,7 @@ public final class NordnUploadAction implements Runnable {
         "LORDN upload task %s: Sending to URL: %s ; data: %s", actionLogId, url, csvData);
     HTTPRequest req = new HTTPRequest(new URL(url), POST, validateCertificate().setDeadline(60d));
     lordnRequestInitializer.initialize(req, tld);
-    setPayloadMultipart(req, "file", "claims.csv", CSV_UTF_8, csvData);
+    setPayloadMultipart(req, "file", "claims.csv", CSV_UTF_8, csvData, random);
     HTTPResponse rsp = fetchService.fetch(req);
     logger.atInfo().log(
         "LORDN upload task %s response: HTTP response code %d, response data: %s",
