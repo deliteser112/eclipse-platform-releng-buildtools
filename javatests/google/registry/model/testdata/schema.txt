@@ -21,6 +21,7 @@ enum google.registry.model.billing.BillingEvent$Flag {
   ANCHOR_TENANT;
   AUTO_RENEW;
   LANDRUSH;
+  RESERVED;
   SUNRISE;
   SYNTHETIC;
 }

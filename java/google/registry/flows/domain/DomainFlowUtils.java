@@ -453,7 +453,7 @@ public class DomainFlowUtils {
   private static final ImmutableSet<ReservationType> RESERVED_TYPES =
       ImmutableSet.of(RESERVED_FOR_SPECIFIC_USE, RESERVED_FOR_ANCHOR_TENANT, FULLY_BLOCKED);
 
-  private static boolean isReserved(InternetDomainName domainName, boolean isSunrise) {
+  static boolean isReserved(InternetDomainName domainName, boolean isSunrise) {
     ImmutableSet<ReservationType> types = getReservationTypes(domainName);
     return !Sets.intersection(types, RESERVED_TYPES).isEmpty()
         || !(isSunrise || intersection(TYPES_ALLOWED_FOR_CREATE_ONLY_IN_SUNRISE, types).isEmpty());

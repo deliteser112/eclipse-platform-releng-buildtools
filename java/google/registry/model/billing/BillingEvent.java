@@ -71,6 +71,14 @@ public abstract class BillingEvent extends ImmutableObject
     ANCHOR_TENANT,
     AUTO_RENEW,
     LANDRUSH,
+    /**
+     * This flag is used on create {@link OneTime} billing events for domains that were reserved.
+     *
+     * <p>This can happen when allocation tokens are used or superusers override a domain
+     * reservation. These cases can need special handling in billing/invoicing. Anchor tenants will
+     * never have this flag applied; they will have ANCHOR_TENANT instead.
+     */
+    RESERVED,
     SUNRISE,
     /**
      * This flag will be added to any {@link OneTime} events that are created via, e.g., an

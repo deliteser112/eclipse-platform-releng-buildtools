@@ -1060,7 +1060,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     runFlowAssertResponse(
         loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "resdom.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of());
+    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.RESERVED));
     assertNoLordn();
     AllocationToken reloadedToken = ofy().load().entity(token).now();
     assertThat(reloadedToken.isRedeemed()).isTrue();
@@ -1074,7 +1074,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     runFlowAssertResponse(
         CommitMode.LIVE, SUPERUSER, loadFile("domain_create_reserved_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of());
+    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.RESERVED));
   }
 
   @Test
