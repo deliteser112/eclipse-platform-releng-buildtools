@@ -33,6 +33,7 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
 import java.net.URL;
+import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -1267,7 +1268,7 @@ public final class RegistryConfig {
     @Singleton
     @Provides
     public static Random provideRandom() {
-      return new Random();
+      return new SecureRandom();
     }
   }
 
