@@ -1,5 +1,6 @@
-This folder contains experimental Gradle scripts as an alternative to Bazel.
-These are work-in-progress and are expected to evolve in the near future.
+This folder contains experimental Gradle scripts as an alternative to Bazel for
+the open-source Nomulus project. These are work-in-progress and are expected to
+evolve in the near future.
 
 ## Current status
 
@@ -7,7 +8,8 @@ Currently there are two sub-projects, third_party, which contains the
 back-ported JUnit 4.13 code; and core, which contains all Nomulus source code.
 Gradle can be used to compile and run all Java tests.
 
-Gradle is configured to use the existing Nomulus source tree.
+Gradle is configured to use the directory containing this file as root, but use
+the existing Nomulus source tree.
 
 Dependencies are mostly the same as in Bazel, with a few exceptions:
 
@@ -38,38 +40,22 @@ sub-project configs.
 
 ## Initial Setup
 
-Install Gradle 4.10.x on your local host, then run the following commands from
-this directory:
+Install Gradle on your local host, then run the following commands from this
+directory:
 
 ```shell
-GRADLE_DIR="$(pwd)"
+# One-time command to add gradle wrapper:
+gradle wrapper
 
-(cd "${GRADLE_DIR}"; gradle init; mkdir third_party core)
-
-cp root.gradle "${GRADLE_DIR}/build.gradle"
-
-cp settings.gradle "${GRADLE_DIR}"
-
-cp third_party.gradle "${GRADLE_DIR}/third_party/build.gradle"
-
-cp core.gradle "${GRADLE_DIR}/core/build.gradle"
-
-cd "${GRADLE_DIR}"
-
+# Start the build:
 ./gradlew build
 ```
 
-The example above uses the directory with this file as working directory for
-Gradle. You may use a different directory for Gradle, by assigning GRADLE_DIR to
-the desired path. You will also need to update the following paths in the
-.gradle files:
-
-*   In "${GRADLE_DIR}/build.gradle", update allprojects > repositories >
-    flatDir > dirs to the correct location.
-*   In core/build.gradle, update 'javaSourceDir' and 'javatestSourceDir' to the
-    correct locations.
-*   In third_party/build.gradle, update SourceSets > main > java > srcDirs to
-    the correct locations.
-
-From now on, use './gradlew build' or './gradlew test' build and test your
+From now on, use './gradlew build' or './gradlew test' to build and test your
 changes.
+
+To upgrade to a new Gradle version for this project, use:
+
+```shell
+gradle wrapper --gradle-version version-number
+```
