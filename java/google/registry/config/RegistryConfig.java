@@ -14,7 +14,6 @@
 
 package google.registry.config;
 
-import static com.google.common.base.Randoms.insecureRandom;
 import static com.google.common.base.Suppliers.memoize;
 import static google.registry.config.ConfigUtils.makeUrl;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -1268,7 +1267,7 @@ public final class RegistryConfig {
     @Singleton
     @Provides
     public static Random provideRandom() {
-      return insecureRandom();
+      return new Random();
     }
   }
 

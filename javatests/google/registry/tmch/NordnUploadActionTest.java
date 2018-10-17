@@ -14,7 +14,6 @@
 
 package google.registry.tmch;
 
-import static com.google.common.base.Randoms.insecureRandom;
 import static com.google.common.net.HttpHeaders.AUTHORIZATION;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.common.net.HttpHeaders.LOCATION;
@@ -57,6 +56,7 @@ import google.registry.util.TaskQueueUtils;
 import google.registry.util.UrlFetchException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.Random;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -116,7 +116,7 @@ public class NordnUploadActionTest {
     action.taskQueueUtils = new TaskQueueUtils(new Retrier(new FakeSleeper(clock), 3));
     action.tld = "tld";
     action.tmchMarksdbUrl = "http://127.0.0.1";
-    action.random = insecureRandom();
+    action.random = new Random();
   }
 
   @Test
