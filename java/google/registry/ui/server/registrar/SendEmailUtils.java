@@ -21,7 +21,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Streams;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.util.NonFinalForTesting;
 import google.registry.util.SendEmailService;
 import java.util.List;
 import java.util.Objects;
@@ -39,17 +38,17 @@ public class SendEmailUtils {
 
   private final String gSuiteOutgoingEmailAddress;
   private final String gSuiteOutoingEmailDisplayName;
+  private final SendEmailService emailService;
 
   @Inject
   public SendEmailUtils(
       @Config("gSuiteOutgoingEmailAddress") String gSuiteOutgoingEmailAddress,
-      @Config("gSuiteOutoingEmailDisplayName") String gSuiteOutoingEmailDisplayName) {
+      @Config("gSuiteOutoingEmailDisplayName") String gSuiteOutoingEmailDisplayName,
+      SendEmailService emailService) {
     this.gSuiteOutgoingEmailAddress = gSuiteOutgoingEmailAddress;
     this.gSuiteOutoingEmailDisplayName = gSuiteOutoingEmailDisplayName;
+    this.emailService = emailService;
   }
-
-  @NonFinalForTesting
-  private static SendEmailService emailService = new SendEmailService();
 
   /**
    * Sends an email from Nomulus to the specified recipient(s). Returns true iff sending was

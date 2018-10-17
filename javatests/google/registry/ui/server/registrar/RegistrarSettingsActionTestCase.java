@@ -91,14 +91,14 @@ public class RegistrarSettingsActionTestCase {
     action.registrarChangesNotificationEmailAddresses = ImmutableList.of(
         "notification@test.example", "notification2@test.example");
     action.sendEmailUtils =
-        new SendEmailUtils(getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName());
+        new SendEmailUtils(
+            getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName(), emailService);
     action.registryEnvironment = RegistryEnvironment.get();
     action.authResult =
         AuthResult.create(
             AuthLevel.USER,
             UserAuthInfo.create(new User("user@email.com", "email.com", "12345"), false));
     inject.setStaticField(Ofy.class, "clock", clock);
-    inject.setStaticField(SendEmailUtils.class, "emailService", emailService);
     message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
     when(emailService.createMessage()).thenReturn(message);
     when(req.getMethod()).thenReturn("POST");

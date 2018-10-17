@@ -15,6 +15,8 @@
 package google.registry.util;
 
 import java.util.Properties;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -22,7 +24,11 @@ import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
 
 /** Wrapper around javax.mail's Transport.send that can be mocked for testing purposes. */
+@Singleton
 public class SendEmailService {
+
+  @Inject
+  SendEmailService() {};
 
   /** Returns a new MimeMessage using default App Engine transport settings. */
   public Message createMessage() {

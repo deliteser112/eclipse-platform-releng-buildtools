@@ -25,7 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import google.registry.testing.InjectRule;
 import google.registry.util.SendEmailService;
 import java.util.Properties;
 import javax.mail.Message;
@@ -35,7 +34,6 @@ import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -44,9 +42,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class SendEmailUtilsTest {
 
-  @Rule
-  public final InjectRule inject = new InjectRule();
-
   private final SendEmailService emailService = mock(SendEmailService.class);
 
   private Message message;
@@ -54,11 +49,11 @@ public class SendEmailUtilsTest {
 
   @Before
   public void init() {
-    inject.setStaticField(SendEmailUtils.class, "emailService", emailService);
     message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
     when(emailService.createMessage()).thenReturn(message);
     sendEmailUtils =
-        new SendEmailUtils(getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName());
+        new SendEmailUtils(
+            getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName(), emailService);
   }
 
   @Test
