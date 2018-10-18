@@ -88,7 +88,7 @@ import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
-import google.registry.tmch.LordnTask;
+import google.registry.tmch.LordnTaskUtils;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
@@ -385,7 +385,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
       dnsQueue.get().addDomainRefreshTask(newDomain.getFullyQualifiedDomainName());
     }
     if (allocateCreate.getSmdId() != null || allocateCreate.getNotice() != null) {
-      LordnTask.enqueueDomainResourceTask(newDomain);
+      LordnTaskUtils.enqueueDomainResourceTask(newDomain);
     }
   }
 

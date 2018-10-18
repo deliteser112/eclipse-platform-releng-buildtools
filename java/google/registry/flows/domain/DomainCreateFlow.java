@@ -114,7 +114,7 @@ import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
-import google.registry.tmch.LordnTask;
+import google.registry.tmch.LordnTaskUtils;
 import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -608,7 +608,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       dnsQueue.addDomainRefreshTask(newDomain.getFullyQualifiedDomainName());
     }
     if (hasClaimsNotice || hasSignedMarks) {
-      LordnTask.enqueueDomainResourceTask(newDomain);
+      LordnTaskUtils.enqueueDomainResourceTask(newDomain);
     }
   }
 
