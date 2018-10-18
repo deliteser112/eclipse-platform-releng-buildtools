@@ -32,7 +32,6 @@ import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_SPECIFIC_USE;
 import static google.registry.model.registry.label.ReservedList.getAllowedNameservers;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
-import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
@@ -113,6 +112,7 @@ import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.tmch.ClaimsListShard;
+import google.registry.tldconfig.idn.IdnLabelValidator;
 import google.registry.util.Idn;
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -165,6 +165,10 @@ public class DomainFlowUtils {
   /** Strict validator for ascii lowercase letters, digits, and "-", allowing "." as a separator */
   private static final CharMatcher ALLOWED_CHARS =
       CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('0', '9').or(CharMatcher.anyOf("-.")));
+
+  /** Default validator used to determine if an IDN name can be provisioned on a TLD. */
+  private static final IdnLabelValidator IDN_LABEL_VALIDATOR =
+      IdnLabelValidator.createDefaultIdnLabelValidator();
 
   /** The maximum number of DS records allowed on a domain. */
   private static final int MAX_DS_RECORDS_PER_DOMAIN = 8;
@@ -239,7 +243,8 @@ public class DomainFlowUtils {
   public static String validateDomainNameWithIdnTables(InternetDomainName domainName)
       throws InvalidIdnDomainLabelException {
     Optional<String> idnTableName =
-        findValidIdnTableForTld(domainName.parts().get(0), domainName.parent().toString());
+        IDN_LABEL_VALIDATOR.findValidIdnTableForTld(
+            domainName.parts().get(0), domainName.parent().toString());
     if (!idnTableName.isPresent()) {
       throw new InvalidIdnDomainLabelException();
     }

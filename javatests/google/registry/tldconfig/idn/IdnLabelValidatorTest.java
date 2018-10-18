@@ -15,12 +15,9 @@
 package google.registry.tldconfig.idn;
 
 import static com.google.common.truth.Truth8.assertThat;
-import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import google.registry.testing.InjectRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -29,64 +26,63 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class IdnLabelValidatorTest {
 
-  @Rule
-  public final InjectRule inject = new InjectRule();
+  private IdnLabelValidator idnLabelValidator = IdnLabelValidator.createDefaultIdnLabelValidator();
 
   private void doJapaneseLanguageTests(String tld) {
-    assertThat(findValidIdnTableForTld("foo", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("12379foar", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("みんな", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("アシヨ", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("わみけ", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("みんなアシヨわみけabc", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("-みんなアシヨわみけ-", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("あいう〆", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("〆わをん", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("foo", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("12379foar", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("みんな", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("アシヨ", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("わみけ", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("みんなアシヨわみけabc", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("-みんなアシヨわみけ-", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("あいう〆", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("〆わをん", tld)).isPresent();
 
     // This should fail since it mixes Japanese characters with extended Latin characters. These are
     // allowed individually, but not together, since they are in separate IDN tables.
-    assertThat(findValidIdnTableForTld("みんなアシヨわみけæ", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("みんなアシヨわみけæ", tld)).isEmpty();
 
     // This fails because it has Cyrillic characters, which just aren't allowed in either IDN table.
-    assertThat(findValidIdnTableForTld("aЖЗ", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("aЖЗ", tld)).isEmpty();
 
-    assertThat(findValidIdnTableForTld("abcdefghæ", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("happy", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("ite-love-you", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("凹凸商事", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("いすゞ製鉄", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("日々の生活", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("1000万円", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("たか--い", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("ザ・セール", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("example・例", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("カレー・ライス",   tld)).isPresent();
-    assertThat(findValidIdnTableForTld("〆切・明日", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("そのスピードで",   tld)).isPresent();
-    assertThat(findValidIdnTableForTld("visaクレジットカード", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("cdケース", tld)).isPresent();
-    assertThat(findValidIdnTableForTld("らーめん",   tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("abcdefghæ", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("happy", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("ite-love-you", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("凹凸商事", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("いすゞ製鉄", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("日々の生活", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("1000万円", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("たか--い", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("ザ・セール", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("example・例", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("カレー・ライス", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("〆切・明日", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("そのスピードで", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("visaクレジットカード", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("cdケース", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("らーめん", tld)).isPresent();
 
     // These fail because they have a KATAKANA MIDDLE DOT or IDEOGRAPHIC_CLOSING_MARK without any
     // Japanese non-exception characters.
-    assertThat(findValidIdnTableForTld("eco・driving", tld)).isEmpty();
-    assertThat(findValidIdnTableForTld("・ー・", tld)).isEmpty();
-    assertThat(findValidIdnTableForTld("〆〆example・・", tld)).isEmpty();
-    assertThat(findValidIdnTableForTld("abc〆", tld)).isEmpty();
-    assertThat(findValidIdnTableForTld("〆xyz", tld)).isEmpty();
-    assertThat(findValidIdnTableForTld("〆bar・", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("eco・driving", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("・ー・", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("〆〆example・・", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("abc〆", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("〆xyz", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("〆bar・", tld)).isEmpty();
 
     // This is a Japanese label with exactly 15 characters.
-    assertThat(findValidIdnTableForTld("カレー・ライスaaaaaaaa", tld)).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("カレー・ライスaaaaaaaa", tld)).isPresent();
 
     // Should fail since it has Japanese characters but is more than 15 characters long.
-    assertThat(findValidIdnTableForTld("カレー・ライスaaaaaaaaa", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("カレー・ライスaaaaaaaaa", tld)).isEmpty();
 
     // Should fail since it has a prolonged sound mark that is not preceded by Hiragana or Katakana
     // characters.
-    assertThat(findValidIdnTableForTld("aー", tld)).isEmpty();
-    assertThat(findValidIdnTableForTld("-ー", tld)).isEmpty();
-    assertThat(findValidIdnTableForTld("0ー", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("aー", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("-ー", tld)).isEmpty();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("0ー", tld)).isEmpty();
   }
 
   @Test
@@ -107,11 +103,10 @@ public class IdnLabelValidatorTest {
   @Test
   public void testOverridenTables() {
     // Set .tld to have only the extended latin table and not japanese.
-    inject.setStaticField(
-        IdnLabelValidator.class,
-        "idnTableListsPerTld",
-        ImmutableMap.of("tld", ImmutableList.of(IdnTableEnum.EXTENDED_LATIN)));
-    assertThat(findValidIdnTableForTld("foo", "tld")).isPresent();
-    assertThat(findValidIdnTableForTld("みんな",  "tld")).isEmpty();
+    idnLabelValidator =
+        new IdnLabelValidator(
+            ImmutableMap.of("tld", ImmutableList.of(IdnTableEnum.EXTENDED_LATIN)));
+    assertThat(idnLabelValidator.findValidIdnTableForTld("foo", "tld")).isPresent();
+    assertThat(idnLabelValidator.findValidIdnTableForTld("みんな", "tld")).isEmpty();
   }
 }
