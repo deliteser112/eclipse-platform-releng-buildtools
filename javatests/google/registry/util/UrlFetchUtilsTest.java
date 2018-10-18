@@ -31,7 +31,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.InjectRule;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -49,8 +48,6 @@ public class UrlFetchUtilsTest {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .build();
-  @Rule
-  public final InjectRule inject = new InjectRule();
 
   private final Random random = mock(Random.class);
 
