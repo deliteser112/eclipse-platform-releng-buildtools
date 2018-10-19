@@ -31,7 +31,6 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
-import google.registry.util.Clock;
 import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -58,8 +57,7 @@ public class RdapEntityAction extends RdapActionBase {
 
   private static final Pattern ROID_PATTERN = Pattern.compile("[-_.a-zA-Z0-9]+");
 
-  @Inject Clock clock;
-  @Inject RdapEntityAction() {}
+  @Inject public RdapEntityAction() {}
 
   @Override
   public String getHumanReadableObjectTypeName() {

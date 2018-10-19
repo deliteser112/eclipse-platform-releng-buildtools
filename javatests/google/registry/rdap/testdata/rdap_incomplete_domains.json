@@ -20,10 +20,10 @@
          "handle":"%DOMAINHANDLE1%",
          "links":[
             {
-               "value":"https://example.com/rdap/domain/%DOMAINNAME1%",
+               "value":"https://example.tld/rdap/domain/%DOMAINNAME1%",
                "type":"application/rdap+json",
                "rel":"self",
-               "href":"https://example.com/rdap/domain/%DOMAINNAME1%"
+               "href":"https://example.tld/rdap/domain/%DOMAINNAME1%"
             }
          ],
          "objectClassName":"domain"
@@ -48,10 +48,10 @@
          "handle":"%DOMAINHANDLE2%",
          "links":[
             {
-               "value":"https://example.com/rdap/domain/%DOMAINNAME2%",
+               "value":"https://example.tld/rdap/domain/%DOMAINNAME2%",
                "type":"application/rdap+json",
                "rel":"self",
-               "href":"https://example.com/rdap/domain/%DOMAINNAME2%"
+               "href":"https://example.tld/rdap/domain/%DOMAINNAME2%"
             }
          ],
          "objectClassName":"domain"
@@ -81,7 +81,7 @@
          ],
          "links":[
             {
-               "value":"https://example.com/rdap/help/tos",
+               "value":"https://example.tld/rdap/help/tos",
                "type":"text/html",
                "rel":"alternate",
                "href":"https://www.registry.tld/about/rdap/tos.html"

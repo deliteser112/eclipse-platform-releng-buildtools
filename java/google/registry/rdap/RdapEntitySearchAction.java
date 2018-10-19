@@ -39,7 +39,6 @@ import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.util.Clock;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -84,11 +83,10 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
 
   public static final String PATH = "/rdap/entities";
 
-  @Inject Clock clock;
   @Inject @Parameter("fn") Optional<String> fnParam;
   @Inject @Parameter("handle") Optional<String> handleParam;
   @Inject @Parameter("subtype") Optional<String> subtypeParam;
-  @Inject RdapEntitySearchAction() {}
+  @Inject public RdapEntitySearchAction() {}
 
   private enum QueryType {
     FULL_NAME,

@@ -45,7 +45,6 @@ import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.util.Clock;
 import google.registry.util.Idn;
 import google.registry.util.NonFinalForTesting;
 import java.net.InetAddress;
@@ -83,11 +82,10 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  @Inject Clock clock;
   @Inject @Parameter("name") Optional<String> nameParam;
   @Inject @Parameter("nsLdhName") Optional<String> nsLdhNameParam;
   @Inject @Parameter("nsIp") Optional<String> nsIpParam;
-  @Inject RdapDomainSearchAction() {}
+  @Inject public RdapDomainSearchAction() {}
 
   @Override
   public String getHumanReadableObjectTypeName() {

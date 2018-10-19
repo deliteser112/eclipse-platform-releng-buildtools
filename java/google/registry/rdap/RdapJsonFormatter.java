@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Streams;
-import com.google.common.flogger.FluentLogger;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.config.RdapNoticeDescriptor;
@@ -82,8 +81,6 @@ public class RdapJsonFormatter {
   @Inject @Config("rdapTosPath") String rdapTosPath;
   @Inject @Config("rdapHelpMap") ImmutableMap<String, RdapNoticeDescriptor> rdapHelpMap;
   @Inject RdapJsonFormatter() {}
-
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
    * What type of data to generate. Summary data includes only information about the object itself,

@@ -49,6 +49,7 @@ import google.registry.request.Response;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor;
+import google.registry.util.Clock;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -87,6 +88,7 @@ public abstract class RdapActionBase implements Runnable {
   }
 
   @Inject Response response;
+  @Inject Clock clock;
   @Inject @RequestMethod Action.Method requestMethod;
   @Inject @RequestPath String requestPath;
   @Inject @FullServletPath String fullServletPath;

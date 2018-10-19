@@ -10,10 +10,10 @@
       "handle": "%DOMAINHANDLE1%",
       "links": [
         {
-          "href": "https://example.com/rdap/domain/%DOMAINPUNYCODENAME1%",
+          "href": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME1%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/domain/%DOMAINPUNYCODENAME1%"
+          "value": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME1%"
         }
       ],
       "ldhName": "%DOMAINPUNYCODENAME1%",
@@ -38,10 +38,10 @@
       "handle": "%DOMAINHANDLE2%",
       "links": [
         {
-          "href": "https://example.com/rdap/domain/%DOMAINPUNYCODENAME2%",
+          "href": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME2%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/domain/%DOMAINPUNYCODENAME2%"
+          "value": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME2%"
         }
       ],
       "ldhName": "%DOMAINPUNYCODENAME2%",
@@ -66,10 +66,10 @@
       "handle": "%DOMAINHANDLE3%",
       "links": [
         {
-          "href": "https://example.com/rdap/domain/%DOMAINPUNYCODENAME3%",
+          "href": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME3%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/domain/%DOMAINPUNYCODENAME3%"
+          "value": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME3%"
         }
       ],
       "ldhName": "%DOMAINPUNYCODENAME3%",
@@ -94,10 +94,10 @@
       "handle": "%DOMAINHANDLE4%",
       "links": [
         {
-          "href": "https://example.com/rdap/domain/%DOMAINPUNYCODENAME4%",
+          "href": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME4%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/domain/%DOMAINPUNYCODENAME4%"
+          "value": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME4%"
         }
       ],
       "ldhName": "%DOMAINPUNYCODENAME4%",
@@ -135,7 +135,7 @@
         {
           "type" : "application/rdap+json",
           "rel" : "next",
-          "href" : "https://example.com/rdap/domains?%NEXT_QUERY%"
+          "href" : "https://example.tld/rdap/domains?%NEXT_QUERY%"
         }
       ]
     },
@@ -157,7 +157,7 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/help/tos",
+          "value" : "https://example.tld/rdap/help/tos",
           "rel" : "alternate",
           "href" : "https://www.registry.tld/about/rdap/tos.html",
           "type" : "text/html"

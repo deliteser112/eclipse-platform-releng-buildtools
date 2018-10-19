@@ -16,8 +16,6 @@ package google.registry.rdap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.rdap.RdapAuthorization.Role.ADMINISTRATOR;
-import static google.registry.rdap.RdapAuthorization.Role.REGISTRAR;
 import static google.registry.request.Action.Method.POST;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
@@ -31,10 +29,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntr
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFile;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -46,7 +41,6 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.host.HostResource;
-import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
@@ -54,15 +48,7 @@ import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
-import google.registry.request.Action;
-import google.registry.request.auth.AuthLevel;
-import google.registry.request.auth.AuthResult;
-import google.registry.request.auth.UserAuthInfo;
-import google.registry.testing.AppEngineRule;
-import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
-import google.registry.testing.InjectRule;
-import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor;
 import google.registry.util.Idn;
 import java.net.IDN;
 import java.net.URLDecoder;
@@ -71,42 +57,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdapDomainSearchAction}. */
 @RunWith(JUnit4.class)
-public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
+public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDomainSearchAction> {
 
-  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule public final InjectRule inject = new InjectRule();
-
-  private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
-  private final AuthenticatedRegistrarAccessor registrarAccessor =
-      mock(AuthenticatedRegistrarAccessor.class);
-  private final RdapDomainSearchAction action = new RdapDomainSearchAction();
-
-  private static final AuthResult AUTH_RESULT =
-      AuthResult.create(
-          AuthLevel.USER,
-          UserAuthInfo.create(new User("rdap.user@user.com", "gmail.com", "12345"), false));
-
-  private static final AuthResult AUTH_RESULT_ADMIN =
-      AuthResult.create(
-          AuthLevel.USER,
-          UserAuthInfo.create(new User("rdap.user@google.com", "gmail.com", "12345"), true));
-
-
-  private FakeResponse response = new FakeResponse();
+  public RdapDomainSearchActionTest() {
+    super(RdapDomainSearchAction.class, RdapDomainSearchAction.PATH);
+  }
 
   private Registrar registrar;
   private DomainResource domainCatLol;
@@ -131,6 +97,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
   private Object generateActualJson(
       RequestType requestType, String paramValue, String cursor) {
     action.requestPath = RdapDomainSearchAction.PATH;
+    action.requestMethod = POST;
     String requestTypeParam = null;
     switch (requestType) {
       case NAME:
@@ -180,7 +147,6 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
   @Before
   public void setUp() {
     RdapDomainSearchAction.maxNameserversInFirstStage = 40;
-    inject.setStaticField(Ofy.class, "clock", clock);
 
     // cat.lol and cat2.lol
     createTld("lol");
@@ -394,34 +360,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
             "created",
             clock.nowUtc()));
 
-    action.clock = clock;
-    action.requestMethod = Action.Method.GET;
-    action.fullServletPath = "https://example.com/rdap";
-    action.requestUrl = "https://example.com/rdap/domains";
-    action.parameterMap = ImmutableListMultimap.of();
     action.requestMethod = POST;
-    action.response = response;
-    action.registrarParam = Optional.empty();
-    action.includeDeletedParam = Optional.empty();
-    action.formatOutputParam = Optional.empty();
-    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
-    action.rdapWhoisServer = null;
-    action.registrarAccessor = registrarAccessor;
-    action.authResult = AUTH_RESULT;
-    action.rdapMetrics = rdapMetrics;
-    action.cursorTokenParam = Optional.empty();
-    action.rdapResultSetMaxSize = 4;
-  }
-
-  private void login(String clientId) {
-    when(registrarAccessor.guessClientId()).thenReturn(clientId);
-    metricRole = REGISTRAR;
-  }
-
-  private void loginAsAdmin() {
-    when(registrarAccessor.guessClientId()).thenReturn("irrelevant");
-    action.authResult = AUTH_RESULT_ADMIN;
-    metricRole = ADMINISTRATOR;
   }
 
   private Object generateExpectedJsonForTwoDomains() {
@@ -562,7 +501,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
     builder.put("domainSearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
     RdapTestHelper.addDomainBoilerplateNotices(
-        builder, RdapTestHelper.createNotices("https://example.com/rdap/"));
+        builder, RdapTestHelper.createNotices("https://example.tld/rdap/"));
     return new JSONObject(builder.build());
   }
 

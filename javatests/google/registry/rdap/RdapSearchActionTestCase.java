@@ -14,26 +14,39 @@
 
 package google.registry.rdap;
 
-import static google.registry.rdap.RdapAuthorization.Role.PUBLIC;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.google.common.collect.ImmutableListMultimap;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import java.util.Optional;
+import org.junit.Before;
 
-public class RdapSearchActionTestCase {
+/** Common unit test code for actions inheriting {@link RdapSearchActionBase}. */
+public class RdapSearchActionTestCase<A extends RdapSearchActionBase>
+    extends RdapActionBaseTestCase<A> {
 
-  RdapAuthorization.Role metricRole = PUBLIC;
+  protected RdapSearchActionTestCase(Class<A> rdapActionClass, String path) {
+    super(rdapActionClass, path);
+  }
+
   SearchType metricSearchType = SearchType.NONE;
   WildcardType metricWildcardType = WildcardType.INVALID;
   int metricPrefixLength = 0;
   int metricStatusCode = SC_OK;
-  final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
+
+  @Before
+  public void initRdapSearchActionTestCase() {
+    action.parameterMap = ImmutableListMultimap.of();
+    action.cursorTokenParam = Optional.empty();
+    action.rdapResultSetMaxSize = 4;
+    action.requestUrl = "https://example.tld" + actionPath;
+    action.requestPath = actionPath;
+  }
 
   void rememberWildcardType(String queryString) {
     try {
