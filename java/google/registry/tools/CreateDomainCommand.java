@@ -23,6 +23,7 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.template.soy.data.SoyMapData;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.tools.soy.DomainCreateSoyInfo;
 import google.registry.util.StringGenerator;
@@ -46,6 +47,7 @@ final class CreateDomainCommand extends CreateOrUpdateDomainCommand
   private boolean forcePremiums;
 
   @Inject
+  @Config("base64StringGenerator")
   StringGenerator passwordGenerator;
 
   private static final int PASSWORD_LENGTH = 16;

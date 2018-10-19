@@ -25,6 +25,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.net.InternetDomainName;
 import com.google.template.soy.data.SoyMapData;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.tools.soy.CreateAnchorTenantSoyInfo;
 import google.registry.util.StringGenerator;
 import javax.inject.Inject;
@@ -72,6 +73,7 @@ final class CreateAnchorTenantCommand extends MutatingEppToolCommand {
   private boolean fee;
 
   @Inject
+  @Config("base64StringGenerator")
   StringGenerator passwordGenerator;
 
   @Override

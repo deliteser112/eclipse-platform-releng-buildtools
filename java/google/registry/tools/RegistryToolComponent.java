@@ -64,7 +64,6 @@ import javax.inject.Singleton;
       KeyringModule.class,
       KmsModule.class,
       RdeModule.class,
-      RegistryToolModule.class,
       SystemClockModule.class,
       SystemSleeperModule.class,
       URLFetchServiceModule.class,

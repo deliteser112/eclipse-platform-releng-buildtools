@@ -89,7 +89,7 @@ public final class NordnUploadAction implements Runnable {
 
   @Inject Clock clock;
   @Inject Retrier retrier;
-  @Inject Random random;
+  @Inject @Config("insecureRandom") Random random;
   @Inject LordnRequestInitializer lordnRequestInitializer;
   @Inject URLFetchService fetchService;
   @Inject @Config("tmchMarksdbUrl") String tmchMarksdbUrl;

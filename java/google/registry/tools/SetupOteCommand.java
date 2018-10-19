@@ -27,6 +27,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.re2j.Pattern;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.common.GaeUserIdConverter;
 import google.registry.model.registrar.Registrar;
@@ -139,7 +140,9 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
   )
   private boolean eapOnly = false;
 
-  @Inject StringGenerator passwordGenerator;
+  @Inject
+  @Config("base64StringGenerator")
+  StringGenerator passwordGenerator;
 
   /**
    * Long registrar names are truncated and then have an incrementing digit appended at the end so

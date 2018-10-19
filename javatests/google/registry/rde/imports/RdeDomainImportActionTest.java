@@ -50,9 +50,12 @@ import google.registry.model.transfer.TransferStatus;
 import google.registry.request.Response;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
+import google.registry.util.RandomStringGenerator;
+import google.registry.util.StringGenerator;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -91,12 +94,14 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
     persistActiveContact("sh8013");
     response = new FakeResponse();
     mrRunner = makeDefaultRunner();
-    action = new RdeDomainImportAction(
-        mrRunner,
-        response,
-        IMPORT_BUCKET_NAME,
-        IMPORT_FILE_NAME,
-        Optional.of(3));
+    action =
+        new RdeDomainImportAction(
+            mrRunner,
+            response,
+            IMPORT_BUCKET_NAME,
+            IMPORT_FILE_NAME,
+            Optional.of(3),
+            new RandomStringGenerator(StringGenerator.Alphabets.BASE_64, new SecureRandom()));
   }
 
   @Test

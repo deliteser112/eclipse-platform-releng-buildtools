@@ -28,11 +28,15 @@ import com.google.common.net.HostAndPort;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfigSettings.AppEngine.ToolsServiceUrl;
+import google.registry.util.RandomStringGenerator;
+import google.registry.util.StringGenerator;
 import google.registry.util.TaskQueueUtils;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
+import java.security.ProviderException;
 import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.Random;
@@ -1261,14 +1265,43 @@ public final class RegistryConfig {
     }
 
     /**
-     * Returns a singleton random number generator.
+     * Returns a singleton insecure random number generator that is fast.
      *
-     * @see google.registry.util.UrlFetchUtils
+     * <p>This binding is intentionally qualified so that any requester must explicitly acknowledge
+     * that using an insecure random number generator is fine for its use case.
      */
     @Singleton
     @Provides
-    public static Random provideRandom() {
-      return new SecureRandom();
+    @Config("insecureRandom")
+    public static Random provideInsecureRandom() {
+      return new Random();
+    };
+
+    /** Returns a singleton secure random number generator this is slow. */
+    @Singleton
+    @Provides
+    public static SecureRandom provideSecureRandom() {
+      try {
+        return SecureRandom.getInstance("NativePRNG");
+      } catch (NoSuchAlgorithmException e) {
+        throw new ProviderException(e);
+      }
+    }
+
+    /** Returns a singleton random string generator using Base58 encoding. */
+    @Singleton
+    @Provides
+    @Config("base58StringGenerator")
+    public static StringGenerator provideBase58StringGenerator(SecureRandom secureRandom) {
+      return new RandomStringGenerator(StringGenerator.Alphabets.BASE_58, secureRandom);
+    }
+
+    /** Returns a singleton random string generator using Base58 encoding. */
+    @Singleton
+    @Provides
+    @Config("base64StringGenerator")
+    public static StringGenerator provideBase64StringGenerator(SecureRandom secureRandom) {
+      return new RandomStringGenerator(StringGenerator.Alphabets.BASE_64, secureRandom);
     }
   }
 

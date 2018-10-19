@@ -17,16 +17,13 @@ package google.registry.util;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.security.SecureRandom;
-import javax.inject.Inject;
-import javax.inject.Named;
 
 /** Random string generator. */
 public class RandomStringGenerator extends StringGenerator {
 
   private final SecureRandom random;
 
-  @Inject
-  public RandomStringGenerator(@Named("alphabetBase64") String alphabet, SecureRandom random) {
+  public RandomStringGenerator(String alphabet, SecureRandom random) {
     super(alphabet);
     this.random = random;
   }
