@@ -18,8 +18,6 @@ import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddres
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.UPDATE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -105,41 +103,24 @@ public class RegistrarSettingsActionTestCase {
     when(rsp.getWriter()).thenReturn(new PrintWriter(writer));
     when(req.getContentType()).thenReturn("application/json");
     when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of("op", "read")));
-    // We set the default user to one with read-write access, as that's the most common test case.
-    // When we want to specifically check read-only or unauthorized, we can switch the user here.
-    setUserReadWriteAccess();
+    // We set the default to a user with access, as that's the most common test case. When we want
+    // to specifically check a user without access, we can switch user for that specific test.
+    setUserWithAccess();
   }
 
   /** Sets registrarAccessor.getRegistrar to succeed for all AccessTypes. */
-  protected void setUserReadWriteAccess() {
+  protected void setUserWithAccess() {
     action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
 
-    when(action.registrarAccessor.getRegistrar(CLIENT_ID, READ))
+    when(action.registrarAccessor.getRegistrar(CLIENT_ID))
         .thenAnswer(x -> loadRegistrar(CLIENT_ID));
-
-    when(action.registrarAccessor.getRegistrar(CLIENT_ID, UPDATE))
-        .thenAnswer(x -> loadRegistrar(CLIENT_ID));
-  }
-
-  /** Sets registrarAccessor.getRegistrar to only succeed for READ. */
-  protected void setUserReadOnlyAccess() {
-    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
-
-    when(action.registrarAccessor.getRegistrar(CLIENT_ID, READ))
-        .thenAnswer(x -> loadRegistrar(CLIENT_ID));
-
-    when(action.registrarAccessor.getRegistrar(CLIENT_ID, UPDATE))
-        .thenThrow(new ForbiddenException("forbidden test error"));
   }
 
   /** Sets registrarAccessor.getRegistrar to always fail. */
   protected void setUserWithoutAccess() {
     action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
 
-    when(action.registrarAccessor.getRegistrar(CLIENT_ID, READ))
-        .thenThrow(new ForbiddenException("forbidden test error"));
-
-    when(action.registrarAccessor.getRegistrar(CLIENT_ID, UPDATE))
+    when(action.registrarAccessor.getRegistrar(CLIENT_ID))
         .thenThrow(new ForbiddenException("forbidden test error"));
   }
 }

@@ -18,6 +18,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
@@ -26,83 +27,53 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
-import java.util.Optional;
-import java.util.function.Function;
 import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
 
 /**
  * Allows access only to {@link Registrar}s the current user has access to.
  *
- * <p>A user has read+write access to a Registrar if there exists a {@link RegistrarContact} with
+ * <p>A user has OWNER role on a Registrar if there exists a {@link RegistrarContact} with
  * that user's gaeId and the registrar as a parent.
  *
- * <p>An admin has in addition read+write access to {@link #registryAdminClientId}.
+ * <p>An admin has in addition OWNER role on {@link #registryAdminClientId}.
  *
- * <p>An admin also has read access to ALL registrars.
+ * <p>An admin also has ADMIN role on ALL registrars.
  */
 @Immutable
 public class AuthenticatedRegistrarAccessor {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  /** Type of access we're requesting. */
-  public enum AccessType {
-    READ,
-    UPDATE
+  /** The role under which access is granted. */
+  public enum Role {
+    OWNER,
+    ADMIN
   }
 
   AuthResult authResult;
   String registryAdminClientId;
 
   /**
-   * For any AccessType requested - all clientIDs this user is allowed that AccessType on.
+   * Gives all roles a user has for a given clientId.
    *
    * <p>The order is significant, with "more specific to this user" coming first.
    */
-  private final ImmutableSetMultimap<AccessType, String> accessMap;
+  private final ImmutableSetMultimap<String, Role> roleMap;
 
   @Inject
   public AuthenticatedRegistrarAccessor(
       AuthResult authResult, @Config("registryAdminClientId") String registryAdminClientId) {
     this.authResult = authResult;
     this.registryAdminClientId = registryAdminClientId;
-    this.accessMap = createAccessMap(authResult, registryAdminClientId);
+    this.roleMap = createRoleMap(authResult, registryAdminClientId);
 
     logger.atInfo().log(
-        "User %s has the following accesses: %s", authResult.userIdForLogging(), accessMap);
+        "%s has the following roles: %s", authResult.userIdForLogging(), roleMap);
   }
 
   /**
-   * Loads a Registrar IFF the user is authorized.
-   *
-   * <p>Throws a {@link ForbiddenException} if the user is not logged in, or not authorized to
-   * access the requested registrar.
-   *
-   * @param clientId ID of the registrar we request
-   * @param accessType what kind of access do we want for this registrar - just read it or write as
-   *     well? (different users might have different access levels)
-   */
-  public Registrar getRegistrar(String clientId, AccessType accessType) {
-    return getAndAuthorize(Registrar::loadByClientId, clientId, accessType);
-  }
-
-  /**
-   * Loads a Registrar from the cache IFF the user is authorized.
-   *
-   * <p>Throws a {@link ForbiddenException} if the user is not logged in, or not authorized to
-   * access the requested registrar.
-   *
-   * @param clientId ID of the registrar we request
-   * @param accessType what kind of access do we want for this registrar - just read it or write as
-   *     well? (different users might have different access levels)
-   */
-  public Registrar getRegistrarForUserCached(String clientId, AccessType accessType) {
-    return getAndAuthorize(Registrar::loadByClientIdCached, clientId, accessType);
-  }
-
-  /**
-   * For all {@link AccessType}s, Returns all ClientIds this user is allowed this access.
+   * A map that gives all roles a user has for a given clientId.
    *
    * <p>Throws a {@link ForbiddenException} if the user is not logged in.
    *
@@ -116,9 +87,8 @@ public class AuthenticatedRegistrarAccessor {
    * other clue as to the requested {@code clientId}. It is perfectly OK to get a {@code clientId}
    * from any other source, as long as the registrar is then loaded using {@link #getRegistrar}.
    */
-  public ImmutableSetMultimap<AccessType, String> getAllClientIdWithAccess() {
-    verifyLoggedIn();
-    return accessMap;
+  public ImmutableSetMultimap<String, Role> getAllClientIdWithRoles() {
+    return roleMap;
   }
 
   /**
@@ -138,32 +108,38 @@ public class AuthenticatedRegistrarAccessor {
    */
   public String guessClientId() {
     verifyLoggedIn();
-    return getAllClientIdWithAccess().values().stream()
+    return getAllClientIdWithRoles().keySet().stream()
         .findFirst()
         .orElseThrow(
             () ->
                 new ForbiddenException(
                     String.format(
-                        "User %s isn't associated with any registrar",
+                        "%s isn't associated with any registrar",
                         authResult.userIdForLogging())));
   }
 
-  private Registrar getAndAuthorize(
-      Function<String, Optional<Registrar>> registrarLoader,
-      String clientId,
-      AccessType accessType) {
+  /**
+   * Loads a Registrar IFF the user is authorized.
+   *
+   * <p>Throws a {@link ForbiddenException} if the user is not logged in, or not authorized to
+   * access the requested registrar.
+   *
+   * @param clientId ID of the registrar we request
+   */
+  public Registrar getRegistrar(String clientId) {
     verifyLoggedIn();
 
-    if (!accessMap.containsEntry(accessType, clientId)) {
+    ImmutableSet<Role> roles = getAllClientIdWithRoles().get(clientId);
+
+    if (roles.isEmpty()) {
       throw new ForbiddenException(
           String.format(
-              "User %s doesn't have %s access to registrar %s",
-              authResult.userIdForLogging(), accessType, clientId));
+              "%s doesn't have access to registrar %s",
+              authResult.userIdForLogging(), clientId));
     }
 
     Registrar registrar =
-        registrarLoader
-            .apply(clientId)
+        Registrar.loadByClientId(clientId)
             .orElseThrow(
                 () -> new ForbiddenException(String.format("Registrar %s not found", clientId)));
 
@@ -176,12 +152,11 @@ public class AuthenticatedRegistrarAccessor {
     }
 
     logger.atInfo().log(
-        "User %s has %s access to registrar %s.",
-        authResult.userIdForLogging(), accessType, clientId);
+        "%s has %s access to registrar %s.", authResult.userIdForLogging(), roles, clientId);
     return registrar;
   }
 
-  private static ImmutableSetMultimap<AccessType, String> createAccessMap(
+  private static ImmutableSetMultimap<String, Role> createRoleMap(
       AuthResult authResult, String registryAdminClientId) {
 
     if (!authResult.userAuthInfo().isPresent()) {
@@ -193,7 +168,7 @@ public class AuthenticatedRegistrarAccessor {
     boolean isAdmin = userAuthInfo.isUserAdmin();
     User user = userAuthInfo.user();
 
-    ImmutableSetMultimap.Builder<AccessType, String> builder = new ImmutableSetMultimap.Builder<>();
+    ImmutableSetMultimap.Builder<String, Role> builder = new ImmutableSetMultimap.Builder<>();
 
     ofy()
         .load()
@@ -202,25 +177,18 @@ public class AuthenticatedRegistrarAccessor {
         .forEach(
             contact ->
                 builder
-                    .put(AccessType.UPDATE, contact.getParent().getName())
-                    .put(AccessType.READ, contact.getParent().getName()));
+                    .put(contact.getParent().getName(), Role.OWNER));
     if (isAdmin && !Strings.isNullOrEmpty(registryAdminClientId)) {
-      logger.atInfo().log(
-          "Giving admin %s read+write access to admin registrar %s",
-          authResult.userIdForLogging(), registryAdminClientId);
       builder
-          .put(AccessType.UPDATE, registryAdminClientId)
-          .put(AccessType.READ, registryAdminClientId);
+          .put(registryAdminClientId, Role.OWNER);
     }
 
     if (isAdmin) {
-      // Admins have READ access to all registrars
-      logger.atInfo().log(
-          "Giving admin %s read-only access to all registrars", authResult.userIdForLogging());
+      // Admins have access to all registrars
       ofy()
           .load()
           .type(Registrar.class)
-          .forEach(registrar -> builder.put(AccessType.READ, registrar.getClientId()));
+          .forEach(registrar -> builder.put(registrar.getClientId(), Role.ADMIN));
     }
 
     return builder.build();

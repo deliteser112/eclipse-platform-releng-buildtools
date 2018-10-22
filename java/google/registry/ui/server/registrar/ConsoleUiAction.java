@@ -16,8 +16,8 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.UPDATE;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.ADMIN;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static google.registry.ui.server.registrar.RegistrarConsoleModule.PARAM_CLIENT_ID;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
@@ -27,6 +27,7 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.io.Resources;
@@ -44,6 +45,7 @@ import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthResult;
 import google.registry.security.XsrfTokenManager;
 import google.registry.ui.server.SoyTemplateUtils;
+import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role;
 import google.registry.ui.soy.registrar.ConsoleSoyInfo;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -136,12 +138,10 @@ public final class ConsoleUiAction implements Runnable {
       String clientId = paramClientId.orElse(registrarAccessor.guessClientId());
       data.put("clientId", clientId);
 
-      data.put("readWriteClientIds", registrarAccessor.getAllClientIdWithAccess().get(UPDATE));
-      data.put(
-          "readOnlyClientIds",
-          Sets.difference(
-              registrarAccessor.getAllClientIdWithAccess().get(READ),
-              registrarAccessor.getAllClientIdWithAccess().get(UPDATE)));
+      ImmutableSetMultimap<Role, String> roleMap =
+          registrarAccessor.getAllClientIdWithRoles().inverse();
+      data.put("ownerClientIds", roleMap.get(OWNER));
+      data.put("adminClientIds", Sets.difference(roleMap.get(ADMIN), roleMap.get(OWNER)));
 
       // We want to load the registrar even if we won't use it later (even if we remove the
       // requireFeeExtension) - to make sure the user indeed has access to the guessed registrar.
@@ -150,7 +150,7 @@ public final class ConsoleUiAction implements Runnable {
       // since we double check the access to the registrar on any read / update request. We have to
       // - since the access might get revoked between the initial page load and the request! (also
       // because the requests come from the browser, and can easily be faked)
-      Registrar registrar = registrarAccessor.getRegistrar(clientId, READ);
+      Registrar registrar = registrarAccessor.getRegistrar(clientId);
       data.put("requireFeeExtension", registrar.getPremiumPriceAckRequired());
     } catch (ForbiddenException e) {
       logger.atWarning().withCause(e).log(

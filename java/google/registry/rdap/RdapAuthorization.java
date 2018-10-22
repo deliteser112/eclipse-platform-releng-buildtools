@@ -15,7 +15,7 @@
 package google.registry.rdap;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import google.registry.model.ImmutableObject;
 
 /** Authorization information for RDAP data access. */
@@ -32,13 +32,13 @@ public abstract class RdapAuthorization extends ImmutableObject {
   public abstract Role role();
 
   /** The registrar client IDs for which access is granted (used only if the role is REGISTRAR. */
-  public abstract ImmutableList<String> clientIds();
+  public abstract ImmutableSet<String> clientIds();
 
   static RdapAuthorization create(Role role, String clientId) {
-    return new AutoValue_RdapAuthorization(role, ImmutableList.of(clientId));
+    return new AutoValue_RdapAuthorization(role, ImmutableSet.of(clientId));
   }
 
-  static RdapAuthorization create(Role role, ImmutableList<String> clientIds) {
+  static RdapAuthorization create(Role role, ImmutableSet<String> clientIds) {
     return new AutoValue_RdapAuthorization(role, clientIds);
   }
 
@@ -54,9 +54,8 @@ public abstract class RdapAuthorization extends ImmutableObject {
   }
 
   public static final RdapAuthorization PUBLIC_AUTHORIZATION =
-      create(Role.PUBLIC, ImmutableList.of());
+      create(Role.PUBLIC, ImmutableSet.of());
 
   public static final RdapAuthorization ADMINISTRATOR_AUTHORIZATION =
-      create(Role.ADMINISTRATOR, ImmutableList.of());
+      create(Role.ADMINISTRATOR, ImmutableSet.of());
 }
-

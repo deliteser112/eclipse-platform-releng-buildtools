@@ -20,8 +20,6 @@ import static google.registry.export.sheet.SyncRegistrarsSheetAction.enqueueRegi
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.UPDATE;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
@@ -138,7 +136,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   Map<String, Object> read(String clientId) {
     return JsonResponseHelper.create(
-        SUCCESS, "Success", registrarAccessor.getRegistrar(clientId, READ).toJsonMap());
+        SUCCESS, "Success", registrarAccessor.getRegistrar(clientId).toJsonMap());
   }
 
   Map<String, Object> update(final Map<String, ?> args, String clientId) {
@@ -148,7 +146,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
               // We load the registrar here rather than outside of the transaction - to make
               // sure we have the latest version. This one is loaded inside the transaction, so it's
               // guaranteed to not change before we update it.
-              Registrar registrar = registrarAccessor.getRegistrar(clientId, UPDATE);
+              Registrar registrar = registrarAccessor.getRegistrar(clientId);
               // Verify that the registrar hasn't been changed.
               // To do that - we find the latest update time (or null if the registrar has been
               // deleted) and compare to the update time from the args. The update time in the args

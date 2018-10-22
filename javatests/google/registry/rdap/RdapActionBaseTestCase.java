@@ -19,13 +19,14 @@ import static google.registry.rdap.RdapAuthorization.Role.PUBLIC;
 import static google.registry.rdap.RdapAuthorization.Role.REGISTRAR;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
+import com.google.common.collect.ImmutableSetMultimap;
 import google.registry.model.ofy.Ofy;
 import google.registry.request.Action;
-import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
@@ -99,22 +100,27 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
     action.requestMethod = Action.Method.GET;
     action.fullServletPath = "https://example.tld/rdap";
     action.rdapWhoisServer = null;
+    logout();
   }
 
   protected void login(String clientId) {
-    when(registrarAccessor.guessClientId()).thenReturn(clientId);
+    when(registrarAccessor.getAllClientIdWithRoles())
+        .thenReturn(ImmutableSetMultimap.of(clientId, OWNER));
     action.authResult = AUTH_RESULT;
     metricRole = REGISTRAR;
   }
 
   protected void logout() {
-    when(registrarAccessor.guessClientId()).thenThrow(new ForbiddenException("not logged in"));
+    when(registrarAccessor.getAllClientIdWithRoles()).thenReturn(ImmutableSetMultimap.of());
     action.authResult = AUTH_RESULT;
     metricRole = PUBLIC;
   }
 
   protected void loginAsAdmin() {
-    when(registrarAccessor.guessClientId()).thenReturn("irrelevant");
+    // when admin, we don't actually check what they have access to - so it doesn't matter what we
+    // return.
+    // null isn't actually a legal value, we just want to make sure it's never actually used.
+    when(registrarAccessor.getAllClientIdWithRoles()).thenReturn(null);
     action.authResult = AUTH_RESULT_ADMIN;
     metricRole = ADMINISTRATOR;
   }

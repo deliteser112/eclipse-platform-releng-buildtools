@@ -18,7 +18,6 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -27,6 +26,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import com.google.re2j.Pattern;
@@ -176,23 +176,6 @@ public abstract class RdapActionBase implements Runnable {
     }
   }
 
-  /**
-   * Returns a clientId the given user has console access on, or Optional.empty if there is none.
-   */
-  private Optional<String> getAuthorizedClientId() {
-    try {
-      String clientId = registrarAccessor.guessClientId();
-      // We load the Registrar to make sure the user has access to it. We don't actually need it,
-      // we're just checking if an exception is thrown.
-      registrarAccessor.getRegistrarForUserCached(clientId, READ);
-      return Optional.of(clientId);
-    } catch (Exception e) {
-      logger.atWarning().withCause(e).log(
-          "Couldn't find registrar for User %s.", authResult.userIdForLogging());
-      return Optional.empty();
-    }
-  }
-
   void setPayload(ImmutableMap<String, Object> rdapJson) {
     if (requestMethod == Action.Method.HEAD) {
       return;
@@ -217,11 +200,12 @@ public abstract class RdapActionBase implements Runnable {
     if (userAuthInfo.isUserAdmin()) {
       return RdapAuthorization.ADMINISTRATOR_AUTHORIZATION;
     }
-    Optional<String> clientId = getAuthorizedClientId();
-    if (!clientId.isPresent()) {
+    ImmutableSet<String> clientIds = registrarAccessor.getAllClientIdWithRoles().keySet();
+    if (clientIds.isEmpty()) {
+      logger.atWarning().log("Couldn't find registrar for User %s.", authResult.userIdForLogging());
       return RdapAuthorization.PUBLIC_AUTHORIZATION;
     }
-    return RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, clientId.get());
+    return RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, clientIds);
   }
 
   /** Returns the registrar on which results should be filtered, or absent(). */
@@ -251,7 +235,7 @@ public abstract class RdapActionBase implements Runnable {
     if (userAuthInfo.isUserAdmin()) {
       return true;
     }
-    if (!getAuthorizedClientId().isPresent()) {
+    if (registrarAccessor.getAllClientIdWithRoles().isEmpty()) {
       return false;
     }
     return true;

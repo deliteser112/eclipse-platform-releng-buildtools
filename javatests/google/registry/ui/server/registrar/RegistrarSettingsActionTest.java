@@ -101,18 +101,6 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
             "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
   }
 
-  /** This is the default read test for the registrar settings actions. */
-  @Test
-  public void testSuccess_readRegistrarInfo_authorizedReadOnly() {
-    setUserReadOnlyAccess();
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of("id", CLIENT_ID));
-    assertThat(response)
-        .containsExactly(
-            "status", "SUCCESS",
-            "message", "Success",
-            "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
-  }
-
   @Test
   public void testUpdate_emptyJsonObject_errorLastUpdateTimeFieldRequired() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
@@ -158,20 +146,6 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   @Test
   public void testFailure_updateRegistrarInfo_notAuthorized() {
     setUserWithoutAccess();
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update",
-        "id", CLIENT_ID,
-        "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
-    assertThat(response).containsExactly(
-        "status", "ERROR",
-        "results", ImmutableList.of(),
-        "message", "forbidden test error");
-    assertNoTasksEnqueued("sheet");
-  }
-
-  @Test
-  public void testFailure_updateRegistrarInfo_readOnlyAccess() {
-    setUserReadOnlyAccess();
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,

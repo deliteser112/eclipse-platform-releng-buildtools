@@ -17,8 +17,8 @@ package google.registry.ui.server.registrar;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.READ;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.AccessType.UPDATE;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.ADMIN;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -79,16 +79,15 @@ public class ConsoleUiActionTest {
     action.paramClientId = Optional.empty();
     AuthResult authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     action.authResult = authResult;
-    when(registrarAccessor.getRegistrar("TheRegistrar", READ))
+    when(registrarAccessor.getRegistrar("TheRegistrar"))
         .thenReturn(loadRegistrar("TheRegistrar"));
-    when(registrarAccessor.getAllClientIdWithAccess())
+    when(registrarAccessor.getAllClientIdWithRoles())
         .thenReturn(
             ImmutableSetMultimap.of(
-                UPDATE, "TheRegistrar",
-                READ, "TheRegistrar",
-                UPDATE, "ReadWriteRegistrar",
-                READ, "ReadWriteRegistrar",
-                READ, "ReadOnlyRegistrar"));
+                "TheRegistrar", OWNER,
+                "OtherRegistrar", OWNER,
+                "OtherRegistrar", ADMIN,
+                "AdminRegistrar", ADMIN));
     when(registrarAccessor.guessClientId()).thenCallRealMethod();
     // Used for error message in guessClientId
     registrarAccessor.authResult = authResult;
@@ -128,7 +127,7 @@ public class ConsoleUiActionTest {
 
   @Test
   public void testUserDoesntHaveAccessToAnyRegistrar_showsWhoAreYouPage() {
-    when(registrarAccessor.getAllClientIdWithAccess()).thenReturn(ImmutableSetMultimap.of());
+    when(registrarAccessor.getAllClientIdWithRoles()).thenReturn(ImmutableSetMultimap.of());
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
     assertThat(response.getPayload()).contains("not associated with Nomulus.");
@@ -155,7 +154,7 @@ public class ConsoleUiActionTest {
   @Test
   public void testSettingClientId_notAllowed_showsNeedPermissionPage() {
     action.paramClientId = Optional.of("OtherClientId");
-    when(registrarAccessor.getRegistrar("OtherClientId", READ))
+    when(registrarAccessor.getRegistrar("OtherClientId"))
         .thenThrow(new ForbiddenException("forbidden"));
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
@@ -165,7 +164,7 @@ public class ConsoleUiActionTest {
   @Test
   public void testSettingClientId_allowed_showsRegistrarConsole() {
     action.paramClientId = Optional.of("OtherClientId");
-    when(registrarAccessor.getRegistrar("OtherClientId", READ))
+    when(registrarAccessor.getRegistrar("OtherClientId"))
         .thenReturn(loadRegistrar("TheRegistrar"));
     action.run();
     assertThat(response.getPayload()).contains("Registrar Console");
@@ -176,7 +175,7 @@ public class ConsoleUiActionTest {
   public void testUserHasAccessAsTheRegistrar_showsClientIdChooser() {
     action.run();
     assertThat(response.getPayload()).contains("<option value=\"TheRegistrar\" selected>");
-    assertThat(response.getPayload()).contains("<option value=\"ReadWriteRegistrar\">");
-    assertThat(response.getPayload()).contains("<option value=\"ReadOnlyRegistrar\">");
+    assertThat(response.getPayload()).contains("<option value=\"OtherRegistrar\">");
+    assertThat(response.getPayload()).contains("<option value=\"AdminRegistrar\">");
   }
 }
