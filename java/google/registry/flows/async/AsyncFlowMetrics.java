@@ -29,7 +29,6 @@ import com.google.monitoring.metrics.IncrementableMetric;
 import com.google.monitoring.metrics.LabelDescriptor;
 import com.google.monitoring.metrics.MetricRegistryImpl;
 import google.registry.util.Clock;
-import google.registry.util.NonFinalForTesting;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -67,9 +66,8 @@ public class AsyncFlowMetrics {
           LabelDescriptor.create("operation_type", "The type of async flow operation."),
           LabelDescriptor.create("result", "The result of the async flow operation."));
 
-  @NonFinalForTesting
   @VisibleForTesting
-  static IncrementableMetric asyncFlowOperationCounts =
+  static final IncrementableMetric asyncFlowOperationCounts =
       MetricRegistryImpl.getDefault()
           .newIncrementableMetric(
               "/async_flows/operations",
@@ -77,9 +75,8 @@ public class AsyncFlowMetrics {
               "count",
               LABEL_DESCRIPTORS);
 
-  @NonFinalForTesting
   @VisibleForTesting
-  static EventMetric asyncFlowOperationProcessingTime =
+  static final EventMetric asyncFlowOperationProcessingTime =
       MetricRegistryImpl.getDefault()
           .newEventMetric(
               "/async_flows/processing_time",
@@ -88,9 +85,8 @@ public class AsyncFlowMetrics {
               LABEL_DESCRIPTORS,
               DEFAULT_FITTER);
 
-  @NonFinalForTesting
   @VisibleForTesting
-  static EventMetric asyncFlowBatchSize =
+  static final EventMetric asyncFlowBatchSize =
       MetricRegistryImpl.getDefault()
           .newEventMetric(
               "/async_flows/batch_size",
