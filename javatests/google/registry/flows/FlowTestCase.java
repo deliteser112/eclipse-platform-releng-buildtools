@@ -110,8 +110,6 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     ofy().saveWithoutBackup().entity(new ClaimsListSingleton()).now();
     // For transactional flows
     inject.setStaticField(Ofy.class, "clock", clock);
-    // For SignedMark signature validity
-    inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
  }
 
   protected void removeServiceExtensionUri(String uri) {
@@ -286,7 +284,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     TmchXmlSignature tmchXmlSignature =
         testTmchXmlSignature != null
             ? testTmchXmlSignature
-            : new TmchXmlSignature(new TmchCertificateAuthority(tmchCaMode));
+            : new TmchXmlSignature(new TmchCertificateAuthority(tmchCaMode, clock));
     return DaggerEppTestComponent.builder()
         .fakesAndMocksModule(FakesAndMocksModule.create(clock, eppMetricBuilder, tmchXmlSignature))
         .build()

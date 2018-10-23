@@ -80,7 +80,7 @@ interface EppTestComponent {
       return create(
           clock,
           metricBuilder,
-          new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT)));
+          new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT, clock)));
     }
 
     public static FakesAndMocksModule create(

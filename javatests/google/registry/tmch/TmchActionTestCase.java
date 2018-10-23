@@ -24,7 +24,6 @@ import com.google.appengine.api.urlfetch.URLFetchService;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeClock;
-import google.registry.testing.InjectRule;
 import google.registry.testing.MockitoJUnitRule;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,7 +43,6 @@ public class TmchActionTestCase {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
   @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
   @Rule public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
-  @Rule public final InjectRule inject = new InjectRule();
 
   @Mock URLFetchService fetchService;
   @Mock HTTPResponse httpResponse;
@@ -55,7 +53,6 @@ public class TmchActionTestCase {
 
   @Before
   public void commonBefore() throws Exception {
-    inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
     marksdb.fetchService = fetchService;
     marksdb.tmchMarksdbUrl = MARKSDB_URL;
     marksdb.marksdbPublicKey = TmchData.loadPublicKey(TmchTestData.loadBytes("pubkey"));

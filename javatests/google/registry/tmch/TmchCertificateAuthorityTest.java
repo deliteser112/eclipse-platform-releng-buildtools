@@ -25,13 +25,11 @@ import static google.registry.util.X509Utils.loadCertificate;
 import google.registry.model.tmch.TmchCrl;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
-import google.registry.testing.InjectRule;
 import java.security.SignatureException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.CertificateRevokedException;
 import org.joda.time.DateTime;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,38 +46,35 @@ public class TmchCertificateAuthorityTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-  @Rule
-  public final InjectRule inject = new InjectRule();
 
   private FakeClock clock = new FakeClock(DateTime.parse("2014-01-01T00:00:00Z"));
 
-  @Before
-  public void before() {
-    inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
-  }
-
   @Test
   public void testFailure_prodRootExpired() {
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
+    TmchCertificateAuthority tmchCertificateAuthority =
+        new TmchCertificateAuthority(PRODUCTION, clock);
     clock.setTo(DateTime.parse("2024-01-01T00:00:00Z"));
     CertificateExpiredException e =
-        assertThrows(CertificateExpiredException.class, tmchCertificateAuthority::getRoot);
+        assertThrows(
+            CertificateExpiredException.class, tmchCertificateAuthority::getAndValidateRoot);
     assertThat(e).hasMessageThat().containsMatch("NotAfter: Sun Jul 23 23:59:59 UTC 2023");
   }
 
   @Test
   public void testFailure_prodRootNotYetValid() {
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
+    TmchCertificateAuthority tmchCertificateAuthority =
+        new TmchCertificateAuthority(PRODUCTION, clock);
     clock.setTo(DateTime.parse("2000-01-01T00:00:00Z"));
     CertificateNotYetValidException e =
-        assertThrows(CertificateNotYetValidException.class, tmchCertificateAuthority::getRoot);
+        assertThrows(
+            CertificateNotYetValidException.class, tmchCertificateAuthority::getAndValidateRoot);
     assertThat(e).hasMessageThat().containsMatch("NotBefore: Wed Jul 24 00:00:00 UTC 2013");
   }
 
   @Test
   public void testFailure_crlDoesntMatchCerts() {
     // Use the prod cl, which won't match our test certificate.
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT);
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT, clock);
     TmchCrl.set(
         readResourceUtf8(TmchCertificateAuthority.class, "icann-tmch.crl"), "http://cert.crl");
     SignatureException e =
@@ -91,13 +86,14 @@ public class TmchCertificateAuthorityTest {
 
   @Test
   public void testSuccess_verify() throws Exception {
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT);
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT, clock);
     tmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE));
   }
 
   @Test
   public void testFailure_verifySignatureDoesntMatch() {
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
+    TmchCertificateAuthority tmchCertificateAuthority =
+        new TmchCertificateAuthority(PRODUCTION, clock);
     SignatureException e =
         assertThrows(
             SignatureException.class,
@@ -107,7 +103,7 @@ public class TmchCertificateAuthorityTest {
 
   @Test
   public void testFailure_verifyRevoked() {
-    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT);
+    TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT, clock);
     CertificateRevokedException thrown =
         assertThrows(
             CertificateRevokedException.class,

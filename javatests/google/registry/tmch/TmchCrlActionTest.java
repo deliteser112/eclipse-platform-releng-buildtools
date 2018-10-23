@@ -36,7 +36,7 @@ public class TmchCrlActionTest extends TmchActionTestCase {
   private TmchCrlAction newTmchCrlAction(TmchCaMode tmchCaMode) throws MalformedURLException {
     TmchCrlAction action = new TmchCrlAction();
     action.marksdb = marksdb;
-    action.tmchCertificateAuthority = new TmchCertificateAuthority(tmchCaMode);
+    action.tmchCertificateAuthority = new TmchCertificateAuthority(tmchCaMode, clock);
     action.tmchCrlUrl = new URL("http://sloth.lol/tmch.crl");
     return action;
   }

@@ -75,8 +75,6 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
 
   @Before
   public void init() {
-    // For SignedMark signature validity
-    inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("xn--q9jyb4c");
     clock.advanceOneMilli();
@@ -87,7 +85,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
         .build());
     clock.advanceOneMilli();
     command.tmchUtils =
-        new DomainFlowTmchUtils(new TmchXmlSignature(new TmchCertificateAuthority(PILOT)));
+        new DomainFlowTmchUtils(new TmchXmlSignature(new TmchCertificateAuthority(PILOT, clock)));
   }
 
   private DomainApplication reloadDomainApplication() {
