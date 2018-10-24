@@ -31,7 +31,7 @@
       }
     ],
     "allowedTlds": [
-      "ga"
+      "currenttld"
     ],
     "clientCertificateHash": null,
     "faxNumber": "",

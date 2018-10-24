@@ -17,13 +17,18 @@ package google.registry.ui.server.registrar;
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddress;
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.disallowRegistrarAccess;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.ADMIN;
+import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.ofy.Ofy;
 import google.registry.request.HttpException.ForbiddenException;
@@ -81,7 +86,13 @@ public class RegistrarSettingsActionTestCase {
 
   @Before
   public void setUp() throws Exception {
-    action.registrarAccessor = null;
+    // Create a tld and give access to registrar "TheRegistrar" for most common test case.
+    createTlds("currenttld");
+    // Create another tld but remove access for registrar "TheRegistrar". This is for the test case
+    // of updating allowed tld for registrar
+    createTlds("newtld");
+    disallowRegistrarAccess(CLIENT_ID, "newtld");
+    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
     action.appEngineServiceUtils = appEngineServiceUtils;
     when(appEngineServiceUtils.getCurrentVersionHostname("backend")).thenReturn("backend.hostname");
     action.jsonActionRunner = new JsonActionRunner(
@@ -110,17 +121,24 @@ public class RegistrarSettingsActionTestCase {
 
   /** Sets registrarAccessor.getRegistrar to succeed for all AccessTypes. */
   protected void setUserWithAccess() {
-    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
-
+    when(action.registrarAccessor.getAllClientIdWithRoles())
+        .thenReturn(ImmutableSetMultimap.of(CLIENT_ID, OWNER));
     when(action.registrarAccessor.getRegistrar(CLIENT_ID))
         .thenAnswer(x -> loadRegistrar(CLIENT_ID));
   }
 
   /** Sets registrarAccessor.getRegistrar to always fail. */
   protected void setUserWithoutAccess() {
-    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
-
+    when(action.registrarAccessor.getAllClientIdWithRoles()).thenReturn(ImmutableSetMultimap.of());
     when(action.registrarAccessor.getRegistrar(CLIENT_ID))
         .thenThrow(new ForbiddenException("forbidden test error"));
+  }
+
+  /**
+   * Sets registrarAccessor.getAllClientIdWithRoles to return a map with admin role for CLIENT_ID
+   */
+  protected void setUserAdmin() {
+    when(action.registrarAccessor.getAllClientIdWithRoles())
+        .thenReturn(ImmutableSetMultimap.of(CLIENT_ID, ADMIN));
   }
 }

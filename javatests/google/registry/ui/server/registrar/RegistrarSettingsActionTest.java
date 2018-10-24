@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.CertificateSamples;
@@ -136,7 +137,9 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,
-        "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
+        "args", ImmutableMap.of(
+            "allowedTlds", ImmutableList.of("currenttld"),
+            "lastUpdateTime", getLastUpdateTime())));
     assertThat(response).containsExactly(
         "status", "SUCCESS",
         "message", "Saved TheRegistrar",
@@ -271,6 +274,75 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         Registrar::getFailoverClientCertificate,
         CertificateSamples.SAMPLE_CERT,
         (builder, s) -> builder.setFailoverClientCertificate(s, clock.nowUtc()));
+  }
+
+  @Test
+  public void testUpdate_allowedTlds_succeedWhenUserIsAdmin() {
+    setUserAdmin();
+    doTestUpdate(
+        Registrar::getAllowedTlds,
+        ImmutableSet.of("newtld"),
+        (builder, s) -> builder.setAllowedTlds(s));
+  }
+
+  @Test
+  public void testUpdate_allowedTlds_failedWhenUserIsNotAdmin() {
+    Map<String, Object> response =
+        action.handleJsonRequest(
+            ImmutableMap.of(
+                "op", "update",
+                "id", CLIENT_ID,
+                "args",
+                ImmutableMap.of(
+                    "lastUpdateTime", getLastUpdateTime(),
+                    "emailAddress", "abc@def.com",
+                    "allowedTlds", ImmutableList.of("newtld"))));
+    assertThat(response)
+        .containsExactly(
+            "status", "ERROR",
+            "results", ImmutableList.of(),
+            "message", "Only admin can update allowed TLDs.");
+    assertNoTasksEnqueued("sheet");
+  }
+
+  @Test
+  public void testUpdate_allowedTlds_failedWhenTldNotExist() {
+    setUserAdmin();
+    Map<String, Object> response =
+        action.handleJsonRequest(
+            ImmutableMap.of(
+                "op", "update",
+                "id", CLIENT_ID,
+                "args",
+                ImmutableMap.of(
+                    "lastUpdateTime", getLastUpdateTime(),
+                    "emailAddress", "abc@def.com",
+                    "allowedTlds", ImmutableList.of("invalidtld"))));
+    assertThat(response)
+        .containsExactly(
+            "status", "ERROR",
+            "results", ImmutableList.of(),
+            "message", "TLDs do not exist: invalidtld");
+    assertNoTasksEnqueued("sheet");
+  }
+
+  @Test
+  public void testUpdate_allowedTlds_noChange_successWhenUserIsNotAdmin() {
+    Map<String, Object> response =
+        action.handleJsonRequest(
+            ImmutableMap.of(
+                "op", "update",
+                "id", CLIENT_ID,
+                "args",
+                ImmutableMap.of(
+                    "lastUpdateTime", getLastUpdateTime(),
+                    "emailAddress", "abc@def.com",
+                    "allowedTlds", ImmutableList.of("currenttld"))));
+    assertThat(response)
+        .containsExactly(
+            "status", "SUCCESS",
+            "message", "Saved TheRegistrar",
+            "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
   }
 
   @Test

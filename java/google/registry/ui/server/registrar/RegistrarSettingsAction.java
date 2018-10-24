@@ -37,6 +37,7 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registrar.RegistrarContact.Type;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthResult;
@@ -44,6 +45,7 @@ import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
 import google.registry.ui.server.RegistrarFormFields;
+import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role;
 import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.CollectionUtils;
 import google.registry.util.DiffUtils;
@@ -160,8 +162,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
                     "registrar changed since reading the data! "
                         + " Last updated at %s, but args data last updated at %s",
                     latest, latestFromArgs);
-                return JsonResponseHelper.create(
-                    ERROR, "registrar has been changed by someone else. Please reload and retry.");
+                throw new IllegalStateException(
+                    "registrar has been changed by someone else. Please reload and retry.");
               }
 
               // Keep the current contacts so we can later check that no required contact was
@@ -170,7 +172,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
               // Update the registrar from the request.
               Registrar.Builder builder = registrar.asBuilder();
-              changeRegistrarFields(registrar, builder, args);
+              Set<Role> roles = registrarAccessor.getAllClientIdWithRoles().get(clientId);
+              changeRegistrarFields(registrar, roles, builder, args);
 
               // read the contacts from the request.
               ImmutableSet<RegistrarContact> updatedContacts = readContacts(registrar, args);
@@ -211,11 +214,12 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     return result;
   }
 
-  /**
-   * Updates a registrar builder with the supplied args from the http request;
-   */
+  /** Updates a registrar builder with the supplied args from the http request; */
   public static void changeRegistrarFields(
-      Registrar existingRegistrarObj, Registrar.Builder builder, Map<String, ?> args) {
+      Registrar existingRegistrarObj,
+      Set<Role> roles,
+      Registrar.Builder builder,
+      Map<String, ?> args) {
 
     // BILLING
     RegistrarFormFields.PREMIUM_PRICE_ACK_REQUIRED
@@ -255,6 +259,18 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
         .ifPresent(
             certificate ->
                 builder.setFailoverClientCertificate(certificate, ofy().getTransactionTime()));
+
+    // Update allowed TLDs only when it is modified
+    Set<String> updatedAllowedTlds =
+        RegistrarFormFields.ALLOWED_TLDS_FIELD.extractUntyped(args).orElse(ImmutableSet.of());
+    if (!updatedAllowedTlds.equals(existingRegistrarObj.getAllowedTlds())) {
+      // Only admin is allowed to update allowed TLDs
+      if (roles.contains(Role.ADMIN)) {
+        builder.setAllowedTlds(updatedAllowedTlds);
+      } else {
+        throw new ForbiddenException("Only admin can update allowed TLDs.");
+      }
+    }
   }
 
   /** Reads the contacts from the supplied args. */

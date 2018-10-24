@@ -454,7 +454,7 @@ public class DatastoreHelper {
         registrar.asBuilder().setAllowedTlds(union(registrar.getAllowedTlds(), tld)).build());
   }
 
-  private static void disallowRegistrarAccess(String clientId, String tld) {
+  public static void disallowRegistrarAccess(String clientId, String tld) {
     Registrar registrar = loadRegistrar(clientId);
     persistResource(
         registrar.asBuilder().setAllowedTlds(difference(registrar.getAllowedTlds(), tld)).build());
