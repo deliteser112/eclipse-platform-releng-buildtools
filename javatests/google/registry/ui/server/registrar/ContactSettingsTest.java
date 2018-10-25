@@ -51,6 +51,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     List<Map<String, ?>> results = (List<Map<String, ?>>) response.get("results");
     assertThat(results.get(0).get("contacts"))
         .isEqualTo(loadRegistrar(CLIENT_ID).toJsonMap().get("contacts"));
+    assertMetric(CLIENT_ID, "read", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -60,6 +61,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
         "id", CLIENT_ID,
         "args", loadRegistrar(CLIENT_ID).toJsonMap()));
     assertThat(response).containsEntry("status", "SUCCESS");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -88,6 +90,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
         .setTypes(ImmutableList.of(RegistrarContact.Type.ADMIN))
         .build();
     assertThat(loadRegistrar(CLIENT_ID).getContacts()).containsExactly(newContact);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -105,6 +108,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response).containsEntry("status", "ERROR");
     assertThat(response).containsEntry("message", "Must have at least one "
         + RegistrarContact.Type.ADMIN.getDisplayName() + " contact");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: ContactRequirementException");
   }
 
   @Test
@@ -131,6 +135,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response).containsEntry("status", "ERROR");
     assertThat(response).containsEntry("message", "Please provide a phone number for at least one "
         + RegistrarContact.Type.TECH.getDisplayName() + " contact");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: ContactRequirementException");
   }
 
   @Test
@@ -157,6 +162,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response)
         .containsEntry(
             "message", "An abuse contact visible in domain WHOIS query must be designated");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: ContactRequirementException");
   }
 
   @Test
@@ -183,5 +189,6 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response)
         .containsEntry(
             "message", "The abuse contact visible in domain WHOIS query must have a phone number");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: ContactRequirementException");
   }
 }

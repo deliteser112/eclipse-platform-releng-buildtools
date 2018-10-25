@@ -14,6 +14,7 @@
 
 package google.registry.ui.server.registrar;
 
+import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddress;
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
@@ -53,6 +54,7 @@ import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -92,7 +94,7 @@ public class RegistrarSettingsActionTestCase {
     // of updating allowed tld for registrar
     createTlds("newtld");
     disallowRegistrarAccess(CLIENT_ID, "newtld");
-    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
+    action.registrarAccessor = null;
     action.appEngineServiceUtils = appEngineServiceUtils;
     when(appEngineServiceUtils.getCurrentVersionHostname("backend")).thenReturn("backend.hostname");
     action.jsonActionRunner = new JsonActionRunner(
@@ -103,6 +105,7 @@ public class RegistrarSettingsActionTestCase {
         new SendEmailUtils(
             getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName(), emailService);
     action.registryEnvironment = RegistryEnvironment.get();
+    action.registrarConsoleMetrics = new RegistrarConsoleMetrics();
     action.authResult =
         AuthResult.create(
             AuthLevel.USER,
@@ -117,10 +120,24 @@ public class RegistrarSettingsActionTestCase {
     // We set the default to a user with access, as that's the most common test case. When we want
     // to specifically check a user without access, we can switch user for that specific test.
     setUserWithAccess();
+    RegistrarConsoleMetrics.settingsRequestMetric.reset();
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    assertThat(RegistrarConsoleMetrics.settingsRequestMetric).hasNoOtherValues();
+  }
+
+  public void assertMetric(String clientId, String op, String roles, String status) {
+    assertThat(RegistrarConsoleMetrics.settingsRequestMetric)
+        .hasValueForLabels(1, clientId, op, roles, status);
+    RegistrarConsoleMetrics.settingsRequestMetric.reset(clientId, op, roles, status);
   }
 
   /** Sets registrarAccessor.getRegistrar to succeed for all AccessTypes. */
   protected void setUserWithAccess() {
+    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
+
     when(action.registrarAccessor.getAllClientIdWithRoles())
         .thenReturn(ImmutableSetMultimap.of(CLIENT_ID, OWNER));
     when(action.registrarAccessor.getRegistrar(CLIENT_ID))
@@ -129,6 +146,8 @@ public class RegistrarSettingsActionTestCase {
 
   /** Sets registrarAccessor.getRegistrar to always fail. */
   protected void setUserWithoutAccess() {
+    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
+
     when(action.registrarAccessor.getAllClientIdWithRoles()).thenReturn(ImmutableSetMultimap.of());
     when(action.registrarAccessor.getRegistrar(CLIENT_ID))
         .thenThrow(new ForbiddenException("forbidden test error"));
@@ -138,7 +157,11 @@ public class RegistrarSettingsActionTestCase {
    * Sets registrarAccessor.getAllClientIdWithRoles to return a map with admin role for CLIENT_ID
    */
   protected void setUserAdmin() {
+    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
+
     when(action.registrarAccessor.getAllClientIdWithRoles())
         .thenReturn(ImmutableSetMultimap.of(CLIENT_ID, ADMIN));
+    when(action.registrarAccessor.getRegistrar(CLIENT_ID))
+        .thenAnswer(x -> loadRegistrar(CLIENT_ID));
   }
 }

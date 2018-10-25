@@ -75,6 +75,7 @@ public final class ConsoleUiAction implements Runnable {
 
   @Inject HttpServletRequest req;
   @Inject Response response;
+  @Inject RegistrarConsoleMetrics registrarConsoleMetrics;
   @Inject AuthenticatedRegistrarAccessor registrarAccessor;
   @Inject UserService userService;
   @Inject XsrfTokenManager xsrfTokenManager;
@@ -134,14 +135,18 @@ public final class ConsoleUiAction implements Runnable {
     data.put("username", user.getNickname());
     data.put("logoutUrl", userService.createLogoutURL(PATH));
     data.put("xsrfToken", xsrfTokenManager.generateToken(user.getEmail()));
+    ImmutableSetMultimap<String, Role> roleMap = registrarAccessor.getAllClientIdWithRoles();
+    ImmutableSetMultimap<Role, String> roleMapInverse = roleMap.inverse();
+    // TODO(guyben):just return all the clientIDs in a single list, and add an "isAdmin" or "roles"
+    // item
+    data.put("ownerClientIds", roleMapInverse.get(OWNER));
+    data.put(
+        "adminClientIds", Sets.difference(roleMapInverse.get(ADMIN), roleMapInverse.get(OWNER)));
+    // We set the initual value to the value that will show if guessClientId throws.
+    String clientId = "<null>";
     try {
-      String clientId = paramClientId.orElse(registrarAccessor.guessClientId());
+      clientId = paramClientId.orElse(registrarAccessor.guessClientId());
       data.put("clientId", clientId);
-
-      ImmutableSetMultimap<Role, String> roleMap =
-          registrarAccessor.getAllClientIdWithRoles().inverse();
-      data.put("ownerClientIds", roleMap.get(OWNER));
-      data.put("adminClientIds", Sets.difference(roleMap.get(ADMIN), roleMap.get(OWNER)));
 
       // We want to load the registrar even if we won't use it later (even if we remove the
       // requireFeeExtension) - to make sure the user indeed has access to the guessed registrar.
@@ -162,7 +167,13 @@ public final class ConsoleUiAction implements Runnable {
               .setCssRenamingMap(CSS_RENAMING_MAP_SUPPLIER.get())
               .setData(data)
               .render());
+      registrarConsoleMetrics.registerConsoleRequest(
+          clientId, paramClientId.isPresent(), roleMap.get(clientId), "FORBIDDEN");
       return;
+    } catch (Exception e) {
+      registrarConsoleMetrics.registerConsoleRequest(
+          clientId, paramClientId.isPresent(), roleMap.get(clientId), "UNEXPECTED ERROR");
+      throw e;
     }
 
     String payload = TOFU_SUPPLIER.get()
@@ -171,5 +182,7 @@ public final class ConsoleUiAction implements Runnable {
             .setData(data)
             .render();
     response.setPayload(payload);
+    registrarConsoleMetrics.registerConsoleRequest(
+        clientId, paramClientId.isPresent(), roleMap.get(clientId), "SUCCESS");
   }
 }

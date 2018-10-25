@@ -16,6 +16,7 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.ADMIN;
 import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.OWNER;
@@ -38,6 +39,7 @@ import google.registry.testing.FakeResponse;
 import google.registry.testing.UserInfo;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,6 +75,7 @@ public class ConsoleUiActionTest {
     action.technicalDocsUrl = "http://example.com/technical-docs";
     action.req = request;
     action.response = response;
+    action.registrarConsoleMetrics = new RegistrarConsoleMetrics();
     action.registrarAccessor = registrarAccessor;
     action.userService = UserServiceFactory.getUserService();
     action.xsrfTokenManager = new XsrfTokenManager(new FakeClock(), action.userService);
@@ -91,24 +94,39 @@ public class ConsoleUiActionTest {
     when(registrarAccessor.guessClientId()).thenCallRealMethod();
     // Used for error message in guessClientId
     registrarAccessor.authResult = authResult;
+    RegistrarConsoleMetrics.consoleRequestMetric.reset();
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    assertThat(RegistrarConsoleMetrics.consoleRequestMetric).hasNoOtherValues();
+  }
+
+  public void assertMetric(String clientId, String explicitClientId, String roles, String status) {
+    assertThat(RegistrarConsoleMetrics.consoleRequestMetric)
+        .hasValueForLabels(1, clientId, explicitClientId, roles, status);
+    RegistrarConsoleMetrics.consoleRequestMetric.reset(clientId, explicitClientId, roles, status);
   }
 
   @Test
   public void testWebPage_disallowsIframe() {
     action.run();
     assertThat(response.getHeaders()).containsEntry("X-Frame-Options", "SAMEORIGIN");
+    assertMetric("TheRegistrar", "false", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testWebPage_setsHtmlUtf8ContentType() {
     action.run();
     assertThat(response.getContentType()).isEqualTo(MediaType.HTML_UTF_8);
+    assertMetric("TheRegistrar", "false", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testWebPage_containsUserNickname() {
     action.run();
     assertThat(response.getPayload()).contains("marla.singer");
+    assertMetric("TheRegistrar", "false", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -116,6 +134,7 @@ public class ConsoleUiActionTest {
     action.run();
     assertThat(response.getPayload()).contains("Registrar Console");
     assertThat(response.getPayload()).contains("reg-content-and-footer");
+    assertMetric("TheRegistrar", "false", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -131,6 +150,7 @@ public class ConsoleUiActionTest {
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
     assertThat(response.getPayload()).contains("not associated with Nomulus.");
+    assertMetric("<null>", "false", "[]", "FORBIDDEN");
   }
 
   @Test
@@ -153,22 +173,25 @@ public class ConsoleUiActionTest {
 
   @Test
   public void testSettingClientId_notAllowed_showsNeedPermissionPage() {
-    action.paramClientId = Optional.of("OtherClientId");
-    when(registrarAccessor.getRegistrar("OtherClientId"))
+    // Behaves the same way if fakeRegistrar exists, but we don't have access to it
+    action.paramClientId = Optional.of("fakeRegistrar");
+    when(registrarAccessor.getRegistrar("fakeRegistrar"))
         .thenThrow(new ForbiddenException("forbidden"));
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
-    assertThat(response.getPayload()).contains("not associated with the registrar OtherClientId.");
+    assertThat(response.getPayload()).contains("not associated with the registrar fakeRegistrar.");
+    assertMetric("fakeRegistrar", "true", "[]", "FORBIDDEN");
   }
 
   @Test
   public void testSettingClientId_allowed_showsRegistrarConsole() {
-    action.paramClientId = Optional.of("OtherClientId");
-    when(registrarAccessor.getRegistrar("OtherClientId"))
+    action.paramClientId = Optional.of("OtherRegistrar");
+    when(registrarAccessor.getRegistrar("OtherRegistrar"))
         .thenReturn(loadRegistrar("TheRegistrar"));
     action.run();
     assertThat(response.getPayload()).contains("Registrar Console");
     assertThat(response.getPayload()).contains("reg-content-and-footer");
+    assertMetric("OtherRegistrar", "true", "[OWNER, ADMIN]", "SUCCESS");
   }
 
   @Test
@@ -177,5 +200,6 @@ public class ConsoleUiActionTest {
     assertThat(response.getPayload()).contains("<option value=\"TheRegistrar\" selected>");
     assertThat(response.getPayload()).contains("<option value=\"OtherRegistrar\">");
     assertThat(response.getPayload()).contains("<option value=\"AdminRegistrar\">");
+    assertMetric("TheRegistrar", "false", "[OWNER]", "SUCCESS");
   }
 }

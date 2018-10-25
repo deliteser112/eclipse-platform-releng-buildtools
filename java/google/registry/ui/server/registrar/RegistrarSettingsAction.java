@@ -21,6 +21,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
@@ -80,6 +81,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   @Inject JsonActionRunner jsonActionRunner;
   @Inject AppEngineServiceUtils appEngineServiceUtils;
+  @Inject RegistrarConsoleMetrics registrarConsoleMetrics;
   @Inject SendEmailUtils sendEmailUtils;
   @Inject AuthenticatedRegistrarAccessor registrarAccessor;
   @Inject AuthResult authResult;
@@ -114,34 +116,55 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     @SuppressWarnings("unchecked")
     Map<String, ?> args = (Map<String, Object>)
         Optional.<Object>ofNullable(input.get(ARGS_PARAM)).orElse(ImmutableMap.of());
+
     logger.atInfo().log("Received request '%s' on registrar '%s' with args %s", op, clientId, args);
+    String status = "SUCCESS";
     try {
       switch (op) {
         case "update":
-          return update(args, clientId);
+          return update(args, clientId).toJsonResponse();
         case "read":
-          return read(clientId);
+          return read(clientId).toJsonResponse();
         default:
-          return JsonResponseHelper.create(ERROR, "Unknown or unsupported operation: " + op);
+          throw new IllegalArgumentException("Unknown or unsupported operation: " + op);
       }
-    } catch (FormFieldException e) {
-      logger.atWarning().withCause(e).log(
-          "Failed to perform operation '%s' on registrar '%s' for args %s", op, clientId, args);
-      return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
     } catch (Throwable e) {
       logger.atWarning().withCause(e).log(
           "Failed to perform operation '%s' on registrar '%s' for args %s", op, clientId, args);
+      status = "ERROR: " + e.getClass().getSimpleName();
+      if (e instanceof FormFieldException) {
+        FormFieldException formFieldException = (FormFieldException) e;
+        return JsonResponseHelper.createFormFieldError(
+            formFieldException.getMessage(), formFieldException.getFieldName());
+      }
       return JsonResponseHelper.create(
           ERROR, Optional.ofNullable(e.getMessage()).orElse("Unspecified error"));
+    } finally {
+      registrarConsoleMetrics.registerSettingsRequest(
+          clientId, op, registrarAccessor.getAllClientIdWithRoles().get(clientId), status);
     }
   }
 
-  Map<String, Object> read(String clientId) {
-    return JsonResponseHelper.create(
-        SUCCESS, "Success", registrarAccessor.getRegistrar(clientId).toJsonMap());
+  @AutoValue
+  abstract static class RegistrarResult {
+    abstract String message();
+
+    abstract Registrar registrar();
+
+    Map<String, Object> toJsonResponse() {
+      return JsonResponseHelper.create(SUCCESS, message(), registrar().toJsonMap());
+    }
+
+    static RegistrarResult create(String message, Registrar registrar) {
+      return new AutoValue_RegistrarSettingsAction_RegistrarResult(message, registrar);
+    }
   }
 
-  Map<String, Object> update(final Map<String, ?> args, String clientId) {
+  private RegistrarResult read(String clientId) {
+    return RegistrarResult.create("Success", registrarAccessor.getRegistrar(clientId));
+  }
+
+  private RegistrarResult update(final Map<String, ?> args, String clientId) {
     return ofy()
         .transact(
             () -> {
@@ -196,8 +219,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
               // Email and return update.
               sendExternalUpdatesIfNecessary(
                   registrar, contacts, updatedRegistrar, updatedContacts);
-              return JsonResponseHelper.create(
-                  SUCCESS, "Saved " + clientId, updatedRegistrar.toJsonMap());
+              return RegistrarResult.create("Saved " + clientId, updatedRegistrar);
             });
   }
 

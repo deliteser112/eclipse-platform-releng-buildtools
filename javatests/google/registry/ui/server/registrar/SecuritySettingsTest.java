@@ -61,6 +61,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response).containsEntry("status", "SUCCESS");
     assertThat(response).containsEntry("results", asList(modified.toJsonMap()));
     assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -73,6 +74,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
         "args", reqJson));
     assertThat(response).containsEntry("status", "ERROR");
     assertThat(response).containsEntry("message", "Invalid X.509 PEM certificate");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 
   @Test
@@ -88,6 +90,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(registrar.getClientCertificateHash()).isEqualTo(SAMPLE_CERT_HASH);
     assertThat(registrar.getFailoverClientCertificate()).isNull();
     assertThat(registrar.getFailoverClientCertificateHash()).isNull();
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -100,6 +103,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     Registrar registrar = loadRegistrar(CLIENT_ID);
     assertThat(registrar.getFailoverClientCertificate()).isEqualTo(SAMPLE_CERT2);
     assertThat(registrar.getFailoverClientCertificateHash()).isEqualTo(SAMPLE_CERT2_HASH);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -122,6 +126,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(registrar.getClientCertificateHash()).isEqualTo(SAMPLE_CERT_HASH);
     assertThat(registrar.getFailoverClientCertificate()).isEqualTo(SAMPLE_CERT2);
     assertThat(registrar.getFailoverClientCertificateHash()).isEqualTo(SAMPLE_CERT2_HASH);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test

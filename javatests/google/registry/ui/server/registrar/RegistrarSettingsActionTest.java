@@ -62,6 +62,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         .url(SyncRegistrarsSheetAction.PATH)
         .method("GET")
         .header("Host", "backend.hostname"));
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -74,6 +75,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "message",
         "One email address (etphonehome@example.com) cannot be used for multiple contacts");
     assertNoTasksEnqueued("sheet");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: ContactRequirementException");
   }
 
   /**
@@ -89,6 +91,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "results", ImmutableList.of(),
         "message", "forbidden test error");
     assertNoTasksEnqueued("sheet");
+    assertMetric(CLIENT_ID, "read", "[]", "ERROR: ForbiddenException");
   }
 
   /** This is the default read test for the registrar settings actions. */
@@ -100,6 +103,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
             "status", "SUCCESS",
             "message", "Success",
             "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
+    assertMetric(CLIENT_ID, "read", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -114,6 +118,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "results", ImmutableList.of(),
         "message", "This field is required.");
     assertNoTasksEnqueued("sheet");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 
   @Test
@@ -128,6 +133,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "results", ImmutableList.of(),
         "message", "This field is required.");
     assertNoTasksEnqueued("sheet");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 
   @Test
@@ -144,6 +150,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "status", "SUCCESS",
         "message", "Saved TheRegistrar",
         "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -158,6 +165,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "results", ImmutableList.of(),
         "message", "forbidden test error");
     assertNoTasksEnqueued("sheet");
+    assertMetric(CLIENT_ID, "update", "[]", "ERROR: ForbiddenException");
   }
 
   @Test
@@ -174,6 +182,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "results", ImmutableList.of(),
         "message", "Please enter a valid email address.");
     assertNoTasksEnqueued("sheet");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 
   @Test
@@ -188,6 +197,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "results", ImmutableList.of(),
         "message", "Not a valid ISO date-time string.");
     assertNoTasksEnqueued("sheet");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 
   @Test
@@ -204,6 +214,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "results", ImmutableList.of(),
         "message", "Please only use ASCII-US characters.");
     assertNoTasksEnqueued("sheet");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 
   private <T> void doTestUpdate(
@@ -230,26 +241,31 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   public void testUpdate_premiumPriceAck() {
     doTestUpdate(
         Registrar::getPremiumPriceAckRequired, true, Registrar.Builder::setPremiumPriceAckRequired);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testUpdate_whoisServer() {
     doTestUpdate(Registrar::getWhoisServer, "new-whois.example", Registrar.Builder::setWhoisServer);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testUpdate_phoneNumber() {
     doTestUpdate(Registrar::getPhoneNumber, "+1.2345678900", Registrar.Builder::setPhoneNumber);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testUpdate_faxNumber() {
     doTestUpdate(Registrar::getFaxNumber, "+1.2345678900", Registrar.Builder::setFaxNumber);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testUpdate_url() {
     doTestUpdate(Registrar::getUrl, "new-url.example", Registrar.Builder::setUrl);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -258,6 +274,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         Registrar::getIpAddressWhitelist,
         ImmutableList.of(CidrAddressBlock.create("1.1.1.0/24")),
         Registrar.Builder::setIpAddressWhitelist);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -266,6 +283,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         Registrar::getClientCertificate,
         CertificateSamples.SAMPLE_CERT,
         (builder, s) -> builder.setClientCertificate(s, clock.nowUtc()));
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -274,6 +292,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         Registrar::getFailoverClientCertificate,
         CertificateSamples.SAMPLE_CERT,
         (builder, s) -> builder.setFailoverClientCertificate(s, clock.nowUtc()));
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -283,6 +302,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         Registrar::getAllowedTlds,
         ImmutableSet.of("newtld"),
         (builder, s) -> builder.setAllowedTlds(s));
+    assertMetric(CLIENT_ID, "update", "[ADMIN]", "SUCCESS");
   }
 
   @Test
@@ -302,6 +322,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
             "status", "ERROR",
             "results", ImmutableList.of(),
             "message", "Only admin can update allowed TLDs.");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: ForbiddenException");
     assertNoTasksEnqueued("sheet");
   }
 
@@ -323,6 +344,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
             "status", "ERROR",
             "results", ImmutableList.of(),
             "message", "TLDs do not exist: invalidtld");
+    assertMetric(CLIENT_ID, "update", "[ADMIN]", "ERROR: IllegalArgumentException");
     assertNoTasksEnqueued("sheet");
   }
 
@@ -343,6 +365,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
             "status", "SUCCESS",
             "message", "Saved TheRegistrar",
             "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -351,6 +374,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setCity("newCity").build(),
         Registrar.Builder::setLocalizedAddress);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -359,6 +383,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setCountryCode("GB").build(),
         Registrar.Builder::setLocalizedAddress);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -367,6 +392,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setState("NJ").build(),
         Registrar.Builder::setLocalizedAddress);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -379,6 +405,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
             .setStreet(ImmutableList.of("new street"))
             .build(),
         Registrar.Builder::setLocalizedAddress);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -387,6 +414,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setZip("new zip").build(),
         Registrar.Builder::setLocalizedAddress);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   private static String getLastUpdateTime() {

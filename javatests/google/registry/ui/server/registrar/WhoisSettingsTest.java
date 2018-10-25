@@ -61,6 +61,7 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response.get("status")).isEqualTo("SUCCESS");
     assertThat(response.get("results")).isEqualTo(asList(modified.toJsonMap()));
     assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -87,6 +88,7 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response.get("field")).isEqualTo("localizedAddress.state");
     assertThat(response.get("message")).isEqualTo("Unknown US state code.");
     assertThat(loadRegistrar(CLIENT_ID)).isNotEqualTo(modified);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 
   @Test
@@ -114,6 +116,7 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat((String) response.get("message"))
         .contains("Number of characters (600) not in range");
     assertThat(loadRegistrar(CLIENT_ID)).isNotEqualTo(modified);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 
   @Test
@@ -127,5 +130,6 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response.get("field")).isEqualTo("whoisServer");
     assertThat(response.get("message")).isEqualTo("Not a valid hostname.");
     assertThat(loadRegistrar(CLIENT_ID)).isNotEqualTo(modified);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 }
