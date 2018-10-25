@@ -24,10 +24,8 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.net.HostAndPort;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.RegistryConfigSettings.AppEngine.ToolsServiceUrl;
 import google.registry.util.RandomStringGenerator;
 import google.registry.util.StringGenerator;
 import google.registry.util.TaskQueueUtils;
@@ -1275,7 +1273,7 @@ public final class RegistryConfig {
     @Config("insecureRandom")
     public static Random provideInsecureRandom() {
       return new Random();
-    };
+    }
 
     /** Returns a singleton secure random number generator this is slow. */
     @Singleton
@@ -1351,14 +1349,44 @@ public final class RegistryConfig {
     return Duration.standardDays(30);
   }
 
+  public static boolean areServersLocal() {
+    return CONFIG_SETTINGS.get().appEngine.isLocal;
+  }
+
   /**
-   * Returns the address of the Nomulus app HTTP server.
+   * Returns the address of the Nomulus app default HTTP server.
    *
    * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
    */
-  public static HostAndPort getServer() {
-    ToolsServiceUrl url = CONFIG_SETTINGS.get().appEngine.toolsServiceUrl;
-    return HostAndPort.fromParts(url.hostName, url.port);
+  public static URL getDefaultServer() {
+    return makeUrl(CONFIG_SETTINGS.get().appEngine.defaultServiceUrl);
+  }
+
+  /**
+   * Returns the address of the Nomulus app backend HTTP server.
+   *
+   * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
+   */
+  public static URL getBackendServer() {
+    return makeUrl(CONFIG_SETTINGS.get().appEngine.backendServiceUrl);
+  }
+
+  /**
+   * Returns the address of the Nomulus app tools HTTP server.
+   *
+   * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
+   */
+  public static URL getToolsServer() {
+    return makeUrl(CONFIG_SETTINGS.get().appEngine.toolsServiceUrl);
+  }
+
+  /**
+   * Returns the address of the Nomulus app pubapi HTTP server.
+   *
+   * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
+   */
+  public static URL getPubapiServer() {
+    return makeUrl(CONFIG_SETTINGS.get().appEngine.pubapiServiceUrl);
   }
 
   /** Returns the amount of time a singleton should be cached, before expiring. */
@@ -1466,7 +1494,7 @@ public final class RegistryConfig {
    * change the contents of the YAML config files.
    */
   @VisibleForTesting
-  static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
+  public static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
       memoize(YamlUtils::getConfigSettings);
 
   private static String formatComments(String text) {

@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.net.HttpHeaders.X_REQUESTED_WITH;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static google.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
@@ -27,48 +26,55 @@ import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
-import com.google.common.net.HostAndPort;
 import com.google.common.net.MediaType;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
-import google.registry.security.XsrfTokenManager;
-import google.registry.tools.CommandWithConnection.Connection;
+import google.registry.config.RegistryConfig;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Map;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.json.simple.JSONValue;
 
-/** An http connection to the appengine server. */
-class AppEngineConnection implements Connection {
+/**
+ * An http connection to an appengine server.
+ *
+ * <p>By default - connects to the TOOLS service. To create a Connection to another service, call
+ * the {@link #withService} function.
+ */
+class AppEngineConnection {
 
   /** Pattern to heuristically extract title tag contents in HTML responses. */
   private static final Pattern HTML_TITLE_TAG_PATTERN = Pattern.compile("<title>(.*?)</title>");
 
   @Inject HttpRequestFactory requestFactory;
-  @Inject AppEngineConnectionFlags flags;
-  @Inject XsrfTokenManager xsrfTokenManager;
+  private final Service service;
 
   @Inject
-  AppEngineConnection() {}
+  AppEngineConnection() {
+    service = Service.TOOLS;
+  }
 
-  /**
-   * Memoized XSRF security token.
-   *
-   * <p>Computing this is expensive since it needs to load {@code ServerSecret} so do it once.
-   */
-  private final Supplier<String> xsrfToken =
-      memoize(() -> xsrfTokenManager.generateToken(getUserId()));
+  private AppEngineConnection(Service service, HttpRequestFactory requestFactory) {
+    this.service = service;
+    this.requestFactory = requestFactory;
+  }
 
-  @Override
-  public void prefetchXsrfToken() {
-    // Cause XSRF token to be fetched, and then stay resident in cache (since it's memoized).
-    xsrfToken.get();
+  enum Service {
+    DEFAULT,
+    TOOLS,
+    BACKEND,
+    PUBAPI
+  }
+
+  /** Returns a copy of this connection that talks to a different service. */
+  public AppEngineConnection withService(Service service) {
+    return new AppEngineConnection(service, requestFactory);
   }
 
   /** Returns the contents of the title tag in the given HTML, or null if not found. */
@@ -85,7 +91,8 @@ class AppEngineConnection implements Connection {
   private String internalSend(
       String endpoint, Map<String, ?> params, MediaType contentType, @Nullable byte[] payload)
       throws IOException {
-    GenericUrl url = new GenericUrl(String.format("%s%s", getServerUrl(), endpoint));
+    GenericUrl url = new GenericUrl(getServer());
+    url.setRawPath(endpoint);
     url.putAll(params);
     HttpRequest request =
         (payload != null)
@@ -120,23 +127,20 @@ class AppEngineConnection implements Connection {
     }
   }
 
-  // TODO(b/111123862): Rename this to sendPostRequest()
-  @Override
-  public String send(String endpoint, Map<String, ?> params, MediaType contentType, byte[] payload)
+  public String sendPostRequest(
+      String endpoint, Map<String, ?> params, MediaType contentType, byte[] payload)
       throws IOException {
     return internalSend(endpoint, params, contentType, checkNotNull(payload, "payload"));
   }
 
-  @Override
   public String sendGetRequest(String endpoint, Map<String, ?> params) throws IOException {
     return internalSend(endpoint, params, MediaType.PLAIN_TEXT_UTF_8, null);
   }
 
-  @Override
   @SuppressWarnings("unchecked")
   public Map<String, Object> sendJson(String endpoint, Map<String, ?> object) throws IOException {
     String response =
-        send(
+        sendPostRequest(
             endpoint,
             ImmutableMap.of(),
             JSON_UTF_8,
@@ -144,22 +148,17 @@ class AppEngineConnection implements Connection {
     return (Map<String, Object>) JSONValue.parse(response.substring(JSON_SAFETY_PREFIX.length()));
   }
 
-  @Override
-  public String getServerUrl() {
-    return (isLocalhost() ? "http://" : "https://") + getServer().toString();
-  }
-
-  HostAndPort getServer() {
-    return flags.getServer().withDefaultPort(443);  // Default to HTTPS port if unspecified.
-  }
-
-  boolean isLocalhost() {
-    return flags.getServer().getHost().equals("localhost");
-  }
-
-  private String getUserId() {
-    return isLocalhost()
-        ? UserIdProvider.getTestUserId()
-        : UserIdProvider.getProdUserId();
+  public URL getServer() {
+    switch (service) {
+      case DEFAULT:
+        return RegistryConfig.getDefaultServer();
+      case TOOLS:
+        return RegistryConfig.getToolsServer();
+      case BACKEND:
+        return RegistryConfig.getBackendServer();
+      case PUBAPI:
+        return RegistryConfig.getPubapiServer();
+    }
+    throw new IllegalStateException("Unknown service: " + service);
   }
 }

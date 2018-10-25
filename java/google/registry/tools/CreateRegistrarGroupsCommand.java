@@ -41,10 +41,10 @@ public class CreateRegistrarGroupsCommand extends ConfirmingCommand
 
   private List<Registrar> registrars = new ArrayList<>();
 
-  private Connection connection;
+  private AppEngineConnection connection;
 
   @Override
-  public void setConnection(Connection connection) {
+  public void setConnection(AppEngineConnection connection) {
     this.connection = connection;
   }
 
@@ -66,8 +66,8 @@ public class CreateRegistrarGroupsCommand extends ConfirmingCommand
   }
 
   /** Calls the server endpoint to create groups for the specified registrar client id. */
-  static void executeOnServer(Connection connection, String clientId) throws IOException {
-    connection.send(
+  static void executeOnServer(AppEngineConnection connection, String clientId) throws IOException {
+    connection.sendPostRequest(
         CreateGroupsAction.PATH,
         ImmutableMap.of(CreateGroupsAction.CLIENT_ID_PARAM, clientId),
         MediaType.PLAIN_TEXT_UTF_8,
@@ -77,7 +77,7 @@ public class CreateRegistrarGroupsCommand extends ConfirmingCommand
   @Override
   protected String execute() throws IOException {
     for (Registrar registrar : registrars) {
-      connection.send(
+      connection.sendPostRequest(
           CreateGroupsAction.PATH,
           ImmutableMap.of(CreateGroupsAction.CLIENT_ID_PARAM, registrar.getClientId()),
           MediaType.PLAIN_TEXT_UTF_8,

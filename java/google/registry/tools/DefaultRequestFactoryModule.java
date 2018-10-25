@@ -20,6 +20,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.RegistryConfig;
 import javax.inject.Named;
 import javax.inject.Provider;
 
@@ -43,9 +44,8 @@ class DefaultRequestFactoryModule {
   @Provides
   @Named("default")
   public HttpRequestFactory provideHttpRequestFactory(
-      AppEngineConnectionFlags connectionFlags,
       Provider<Credential> credentialProvider) {
-    if (connectionFlags.getServer().getHost().equals("localhost")) {
+    if (RegistryConfig.areServersLocal()) {
       return new NetHttpTransport()
           .createRequestFactory(
               request -> request

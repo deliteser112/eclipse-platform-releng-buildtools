@@ -54,10 +54,10 @@ abstract class ListObjectsCommand implements CommandWithConnection, CommandWithR
       description = "Whether to print full field names in header row (as opposed to aliases)")
   private boolean fullFieldNames = false;
 
-  private Connection connection;
+  private AppEngineConnection connection;
 
   @Override
-  public void setConnection(Connection connection) {
+  public void setConnection(AppEngineConnection connection) {
     this.connection = connection;
   }
 
@@ -83,11 +83,9 @@ abstract class ListObjectsCommand implements CommandWithConnection, CommandWithR
     }
     params.putAll(getParameterMap());
     // Call the server and get the response data.
-    String response = connection.send(
-        getCommandPath(),
-        params.build(),
-        MediaType.PLAIN_TEXT_UTF_8,
-        new byte[0]);
+    String response =
+        connection.sendPostRequest(
+            getCommandPath(), params.build(), MediaType.PLAIN_TEXT_UTF_8, new byte[0]);
     // Parse the returned JSON and make sure it's a map.
     Object obj = JSONValue.parse(response.substring(JSON_SAFETY_PREFIX.length()));
     if (!(obj instanceof Map<?, ?>)) {

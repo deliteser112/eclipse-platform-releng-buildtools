@@ -40,13 +40,11 @@ public class RegistryConfigSettings {
   /** Configuration options that apply to the entire App Engine project. */
   public static class AppEngine {
     public String projectId;
-    public ToolsServiceUrl toolsServiceUrl;
-
-    /** Configuration options for the tools service URL. */
-    public static class ToolsServiceUrl {
-      public String hostName;
-      public int port;
-    }
+    public boolean isLocal;
+    public String defaultServiceUrl;
+    public String backendServiceUrl;
+    public String toolsServiceUrl;
+    public String pubapiServiceUrl;
   }
 
   /** Configuration options for OAuth settings for authenticating users. */

@@ -9,10 +9,13 @@ appEngine:
   # Globally unique App Engine project ID
   projectId: registry-project-id
 
-  # Hostname and port of the tools service for the project.
-  toolsServiceUrl:
-    hostName: localhost
-    port: 443
+  # whether to use local/test credentials when connecting to the servers
+  isLocal: true
+  # URLs of the services for the project.
+  defaultServiceUrl: https://localhost
+  backendServiceUrl: https://localhost
+  toolsServiceUrl: https://localhost
+  pubapiServiceUrl: https://localhost
 
 gSuite:
   # Publicly accessible domain name of the running G Suite instance.

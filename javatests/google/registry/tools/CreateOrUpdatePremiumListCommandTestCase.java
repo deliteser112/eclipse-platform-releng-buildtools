@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.net.MediaType;
 import google.registry.testing.UriParameters;
-import google.registry.tools.CommandWithConnection.Connection;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import org.mockito.ArgumentCaptor;
@@ -46,13 +45,14 @@ public abstract class CreateOrUpdatePremiumListCommandTestCase<
   }
 
   void verifySentParams(
-      Connection connection, String path, ImmutableMap<String, String> parameterMap)
-          throws Exception {
-    verify(connection).send(
-        eq(path),
-        urlParamCaptor.capture(),
-        eq(MediaType.FORM_DATA),
-        requestBodyCaptor.capture());
+      AppEngineConnection connection, String path, ImmutableMap<String, String> parameterMap)
+      throws Exception {
+    verify(connection)
+        .sendPostRequest(
+            eq(path),
+            urlParamCaptor.capture(),
+            eq(MediaType.FORM_DATA),
+            requestBodyCaptor.capture());
     assertThat(new ImmutableMap.Builder<String, String>()
         .putAll(urlParamCaptor.getValue())
         .putAll(UriParameters.parse(new String(requestBodyCaptor.getValue(), UTF_8)).entries())

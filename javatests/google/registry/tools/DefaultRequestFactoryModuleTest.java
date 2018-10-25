@@ -20,7 +20,7 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpRequestInitializer;
-import com.google.common.net.HostAndPort;
+import google.registry.config.RegistryConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,10 +50,8 @@ public class DefaultRequestFactoryModuleTest {
   @Test
   public void test_provideHttpRequestFactory_localhost() {
     // Make sure that localhost creates a request factory with an initializer.
-    HttpRequestFactory factory =
-        module.provideHttpRequestFactory(
-            new AppEngineConnectionFlags(HostAndPort.fromParts("localhost", 1000)),
-            () -> FAKE_CREDENTIAL);
+    RegistryConfig.CONFIG_SETTINGS.get().appEngine.isLocal = true;
+    HttpRequestFactory factory = module.provideHttpRequestFactory(() -> FAKE_CREDENTIAL);
     HttpRequestInitializer initializer = factory.getInitializer();
     assertThat(initializer).isNotNull();
     assertThat(initializer).isNotSameAs(FAKE_CREDENTIAL);
@@ -62,11 +60,8 @@ public class DefaultRequestFactoryModuleTest {
   @Test
   public void test_provideHttpRequestFactory_remote() {
     // Make sure that example.com creates a request factory with the UNITTEST client id but no
-    // initializer.
-    HttpRequestFactory factory =
-        module.provideHttpRequestFactory(
-            new AppEngineConnectionFlags(HostAndPort.fromParts("example.com", 1000)),
-            () -> FAKE_CREDENTIAL);
+    RegistryConfig.CONFIG_SETTINGS.get().appEngine.isLocal = false;
+    HttpRequestFactory factory = module.provideHttpRequestFactory(() -> FAKE_CREDENTIAL);
     assertThat(factory.getInitializer()).isSameAs(FAKE_CREDENTIAL);
   }
 }

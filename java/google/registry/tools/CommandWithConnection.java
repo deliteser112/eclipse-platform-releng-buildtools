@@ -14,30 +14,7 @@
 
 package google.registry.tools;
 
-import com.google.common.net.MediaType;
-import java.io.IOException;
-import java.util.Map;
-import javax.annotation.Nullable;
-
 /** A command that can send HTTP requests to a backend module. */
 interface CommandWithConnection extends Command {
-
-  /** An http connection to AppEngine. */
-  interface Connection {
-
-    void prefetchXsrfToken();
-
-    /** Send a POST request.  TODO(mmuller): change to sendPostRequest() */
-    String send(
-        String endpoint, Map<String, ?> params, MediaType contentType, @Nullable byte[] payload)
-        throws IOException;
-
-    String sendGetRequest(String endpoint, Map<String, ?> params) throws IOException;
-
-    Map<String, Object> sendJson(String endpoint, Map<String, ?> object) throws IOException;
-
-    String getServerUrl();
-  }
-
-  void setConnection(Connection connection);
+  void setConnection(AppEngineConnection connection);
 }

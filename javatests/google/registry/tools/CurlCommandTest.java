@@ -16,13 +16,19 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.tools.AppEngineConnection.Service.BACKEND;
+import static google.registry.tools.AppEngineConnection.Service.DEFAULT;
+import static google.registry.tools.AppEngineConnection.Service.PUBAPI;
+import static google.registry.tools.AppEngineConnection.Service.TOOLS;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.tools.CommandWithConnection.Connection;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -31,34 +37,42 @@ import org.mockito.Mock;
 
 /** Unit tests for {@link RefreshDnsForAllDomainsCommand}. */
 public class CurlCommandTest extends CommandTestCase<CurlCommand> {
-  @Mock private Connection connection;
+  @Mock private AppEngineConnection connection;
+  @Mock private AppEngineConnection connectionForService;
 
   @Before
   public void init() {
     command.setConnection(connection);
+    when(connection.withService(any())).thenReturn(connectionForService);
   }
 
   @Captor ArgumentCaptor<ImmutableMap<String, String>> urlParamCaptor;
 
   @Test
   public void testGetInvocation() throws Exception {
-    runCommand("--path=/foo/bar?a=1&b=2");
-    verify(connection)
+    runCommand("--path=/foo/bar?a=1&b=2", "--service=TOOLS");
+    verify(connection).withService(TOOLS);
+    verifyNoMoreInteractions(connection);
+    verify(connectionForService)
         .sendGetRequest(eq("/foo/bar?a=1&b=2"), eq(ImmutableMap.<String, String>of()));
   }
 
   @Test
   public void testExplicitGetInvocation() throws Exception {
-    runCommand("--path=/foo/bar?a=1&b=2", "--request=GET");
-    verify(connection)
+    runCommand("--path=/foo/bar?a=1&b=2", "--request=GET", "--service=BACKEND");
+    verify(connection).withService(BACKEND);
+    verifyNoMoreInteractions(connection);
+    verify(connectionForService)
         .sendGetRequest(eq("/foo/bar?a=1&b=2"), eq(ImmutableMap.<String, String>of()));
   }
 
   @Test
   public void testPostInvocation() throws Exception {
-    runCommand("--path=/foo/bar?a=1&b=2", "--data=some data");
-    verify(connection)
-        .send(
+    runCommand("--path=/foo/bar?a=1&b=2", "--data=some data", "--service=DEFAULT");
+    verify(connection).withService(DEFAULT);
+    verifyNoMoreInteractions(connection);
+    verify(connectionForService)
+        .sendPostRequest(
             eq("/foo/bar?a=1&b=2"),
             eq(ImmutableMap.<String, String>of()),
             eq(MediaType.PLAIN_TEXT_UTF_8),
@@ -67,9 +81,12 @@ public class CurlCommandTest extends CommandTestCase<CurlCommand> {
 
   @Test
   public void testMultiDataPost() throws Exception {
-    runCommand("--path=/foo/bar?a=1&b=2", "--data=first=100", "-d", "second=200");
-    verify(connection)
-        .send(
+    runCommand(
+        "--path=/foo/bar?a=1&b=2", "--data=first=100", "-d", "second=200", "--service=PUBAPI");
+    verify(connection).withService(PUBAPI);
+    verifyNoMoreInteractions(connection);
+    verify(connectionForService)
+        .sendPostRequest(
             eq("/foo/bar?a=1&b=2"),
             eq(ImmutableMap.<String, String>of()),
             eq(MediaType.PLAIN_TEXT_UTF_8),
@@ -78,9 +95,11 @@ public class CurlCommandTest extends CommandTestCase<CurlCommand> {
 
   @Test
   public void testExplicitPostInvocation() throws Exception {
-    runCommand("--path=/foo/bar?a=1&b=2", "--request=POST");
-    verify(connection)
-        .send(
+    runCommand("--path=/foo/bar?a=1&b=2", "--request=POST", "--service=TOOLS");
+    verify(connection).withService(TOOLS);
+    verifyNoMoreInteractions(connection);
+    verify(connectionForService)
+        .sendPostRequest(
             eq("/foo/bar?a=1&b=2"),
             eq(ImmutableMap.<String, String>of()),
             eq(MediaType.PLAIN_TEXT_UTF_8),
@@ -94,7 +113,10 @@ public class CurlCommandTest extends CommandTestCase<CurlCommand> {
             IllegalArgumentException.class,
             () ->
                 runCommand(
-                    "--path=/foo/bar?a=1&b=2", "--request=GET", "--data=inappropriate data"));
+                    "--path=/foo/bar?a=1&b=2",
+                    "--request=GET",
+                    "--data=inappropriate data",
+                    "--service=TOOLS"));
     assertThat(thrown).hasMessageThat().contains("You may not specify a body for a get method.");
   }
 }

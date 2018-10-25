@@ -60,7 +60,7 @@ public class ListDomainsCommandTest extends ListObjectsCommandTestCase<ListDomai
   public void test_bothParamsSpecified() throws Exception {
     runCommand("--tlds=foo,bar", "--limit=100");
     verify(connection)
-        .send(
+        .sendPostRequest(
             eq(getTaskPath()),
             eq(ImmutableMap.of("tlds", "foo,bar", "limit", 100)),
             eq(MediaType.PLAIN_TEXT_UTF_8),
@@ -73,7 +73,7 @@ public class ListDomainsCommandTest extends ListObjectsCommandTestCase<ListDomai
     persistResource(newRegistry("fake", "FAKE").asBuilder().setTldType(TldType.TEST).build());
     runCommand();
     verify(connection)
-        .send(
+        .sendPostRequest(
             eq(getTaskPath()),
             eq(ImmutableMap.of("tlds", "tldone,tldtwo", "limit", Integer.MAX_VALUE)),
             eq(MediaType.PLAIN_TEXT_UTF_8),

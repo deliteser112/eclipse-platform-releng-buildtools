@@ -45,10 +45,10 @@ final class GenerateZoneFilesCommand implements CommandWithConnection, CommandWi
       validateWith = DateParameter.class)
   private DateTime exportDate = DateTime.now(UTC).minus(standardMinutes(2)).withTimeAtStartOfDay();
 
-  private Connection connection;
+  private AppEngineConnection connection;
 
   @Override
-  public void setConnection(Connection connection) {
+  public void setConnection(AppEngineConnection connection) {
     this.connection = connection;
   }
 
@@ -59,10 +59,7 @@ final class GenerateZoneFilesCommand implements CommandWithConnection, CommandWi
         "tlds", mainParameters,
         "exportTime", exportDate.toString());
     Map<String, Object> response = connection.sendJson(GenerateZoneFilesAction.PATH, params);
-    System.out.printf(
-        "Job started at %s%s\n",
-        connection.getServerUrl(),
-        response.get("jobPath"));
+    System.out.printf("Job started at %s %s\n", connection.getServer(), response.get("jobPath"));
     System.out.println("Output files:");
     @SuppressWarnings("unchecked")
     List<String> filenames = (List<String>) response.get("filenames");

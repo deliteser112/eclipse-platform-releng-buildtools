@@ -27,7 +27,6 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.CommandWithConnection.Connection;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -35,7 +34,7 @@ import org.mockito.Mock;
 /** Unit tests for {@link VerifyOteCommand}. */
 public class VerifyOteCommandTest extends CommandTestCase<VerifyOteCommand> {
 
-  @Mock private Connection connection;
+  @Mock private AppEngineConnection connection;
 
   @Before
   public void init() throws Exception {

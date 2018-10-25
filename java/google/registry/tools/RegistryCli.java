@@ -28,6 +28,7 @@ import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import google.registry.config.RegistryConfig;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.tools.params.ParameterFactory;
 import java.security.Security;
@@ -52,11 +53,6 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
       names = {"-c", "--commands"},
       description = "Returns all command names.")
   private boolean showAllCommands;
-
-  // Do not make this final - compile-time constant inlining may interfere with JCommander.
-  @ParametersDelegate
-  private AppEngineConnectionFlags appEngineConnectionFlags =
-      new AppEngineConnectionFlags();
 
 
   // Do not make this final - compile-time constant inlining may interfere with JCommander.
@@ -84,7 +80,6 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     Security.addProvider(new BouncyCastleProvider());
 
     component = DaggerRegistryToolComponent.builder()
-        .flagsModule(new AppEngineConnectionFlags.FlagsModule(appEngineConnectionFlags))
         .build();
   }
 
@@ -197,7 +192,7 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
         RemoteApiOptions options = new RemoteApiOptions();
         options.server(
             getConnection().getServer().getHost(), getConnection().getServer().getPort());
-        if (getConnection().isLocalhost()) {
+        if (RegistryConfig.areServersLocal()) {
           // Use dev credentials for localhost.
           options.useDevelopmentServerCredential();
         } else {

@@ -28,7 +28,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.tools.CommandWithConnection.Connection;
 import google.registry.tools.server.ToolsTestData;
 import java.net.URLDecoder;
 import java.util.Map;
@@ -49,7 +48,7 @@ import org.mockito.ArgumentCaptor;
  */
 public class EppToolVerifier {
 
-  private final Connection connection = mock(Connection.class);
+  private final AppEngineConnection connection = mock(AppEngineConnection.class);
 
   private String clientId;
   private boolean superuser;
@@ -167,11 +166,9 @@ public class EppToolVerifier {
       return;
     }
     ArgumentCaptor<byte[]> params = ArgumentCaptor.forClass(byte[].class);
-    verify(connection, atLeast(0)).send(
-        eq("/_dr/epptool"),
-        eq(ImmutableMap.of()),
-        eq(MediaType.FORM_DATA),
-        params.capture());
+    verify(connection, atLeast(0))
+        .sendPostRequest(
+            eq("/_dr/epptool"), eq(ImmutableMap.of()), eq(MediaType.FORM_DATA), params.capture());
     capturedParams = ImmutableList.copyOf(params.getAllValues());
     paramIndex = 0;
   }
@@ -198,7 +195,7 @@ public class EppToolVerifier {
   }
 
   /** Returns the (mock) Connection that is being monitored by this verifier. */
-  private Connection getConnection() {
+  private AppEngineConnection getConnection() {
     return connection;
   }
 }
