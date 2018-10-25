@@ -2,6 +2,8 @@ This folder contains experimental Gradle scripts as an alternative to Bazel for
 the open-source Nomulus project. These are work-in-progress and are expected to
 evolve in the near future.
 
+All testing is done with Gradle v4.10.2.
+
 ## Current status
 
 Currently there are two sub-projects, third_party, which contains the
