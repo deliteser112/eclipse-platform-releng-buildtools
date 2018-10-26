@@ -23,8 +23,7 @@
 {template .main}
   {@param xsrfToken: string} /** Security token. */
   {@param clientId: string} /** Registrar client identifier. */
-  {@param ownerClientIds: list<string>}
-  {@param adminClientIds: list<string>}
+  {@param allClientIds: list<string>} /** All registrar client identifiers for the user. */
   {@param username: string} /** Arbitrary username to display. */
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param productName: string} /** Name to display for this software product. */
@@ -78,8 +77,7 @@
 /** Sidebar nav. Ids on each elt for testing only. */
 {template .navbar_ visibility="private"}
   {@param clientId: string} /** Registrar client identifier. */
-  {@param ownerClientIds: list<string>}
-  {@param adminClientIds: list<string>}
+  {@param allClientIds: list<string>}
 
   <div id="reg-nav" class="{css('kd-content-sidebar')}">
     <form>
@@ -88,20 +86,9 @@
               class="{css('kd-button')} {css('kd-button-submit')}"
               onchange='this.form.submit()'>
         <option value="">[auto select]</option>
-        {if length($ownerClientIds) > 0}
-          <optgroup label="OWNER">
-          {for $id in $ownerClientIds}
-            <option value="{$id}" {if $id == $clientId}selected{/if}>{$id}</option>
-          {/for}
-          </optgroup>
-        {/if}
-        {if length($adminClientIds) > 0}
-          <optgroup label="ADMIN">
-          {for $id in $adminClientIds}
-            <option value="{$id}" {if $id == $clientId}selected{/if}>{$id}</option>
-          {/for}
-          </optgroup>
-        {/if}
+        {for $id in $allClientIds}
+          <option value="{$id}" {if $id == $clientId}selected{/if}>{$id}</option>
+        {/for}
       </select>
     </form>
     <ul id="reg-navlist">

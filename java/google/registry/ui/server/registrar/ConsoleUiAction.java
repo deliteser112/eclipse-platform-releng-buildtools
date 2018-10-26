@@ -16,8 +16,6 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.ADMIN;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static google.registry.ui.server.registrar.RegistrarConsoleModule.PARAM_CLIENT_ID;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
@@ -28,7 +26,6 @@ import com.google.appengine.api.users.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Sets;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.io.Resources;
 import com.google.common.net.MediaType;
@@ -136,12 +133,7 @@ public final class ConsoleUiAction implements Runnable {
     data.put("logoutUrl", userService.createLogoutURL(PATH));
     data.put("xsrfToken", xsrfTokenManager.generateToken(user.getEmail()));
     ImmutableSetMultimap<String, Role> roleMap = registrarAccessor.getAllClientIdWithRoles();
-    ImmutableSetMultimap<Role, String> roleMapInverse = roleMap.inverse();
-    // TODO(guyben):just return all the clientIDs in a single list, and add an "isAdmin" or "roles"
-    // item
-    data.put("ownerClientIds", roleMapInverse.get(OWNER));
-    data.put(
-        "adminClientIds", Sets.difference(roleMapInverse.get(ADMIN), roleMapInverse.get(OWNER)));
+    data.put("allClientIds", roleMap.keySet());
     // We set the initual value to the value that will show if guessClientId throws.
     String clientId = "<null>";
     try {
