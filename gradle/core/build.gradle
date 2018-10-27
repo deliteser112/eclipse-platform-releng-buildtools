@@ -206,6 +206,7 @@ dependencies {
   // Use jaxb 2.2.11 because 2.3 is known to break the Ant task we use.
   // TODO: upgrade jaxb versions to 2.4.0, already in beta by Sept 2018
   jaxb 'javax.xml.bind:jaxb-api:2.2.11'
+  jaxb 'com.sun.activation:javax.activation:1.2.0'
   jaxb 'com.sun.xml.bind:jaxb-xjc:2.2.11'
   jaxb 'com.sun.xml.bind:jaxb-impl:2.2.11'
   jaxb 'com.sun.xml.bind:jaxb-osgi:2.2.11'

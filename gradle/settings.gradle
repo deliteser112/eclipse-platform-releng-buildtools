@@ -1,4 +1,4 @@
-rootProject.name = 'gradle'
+rootProject.name = 'nomulus'
 
 include 'third_party'
 include 'core'
