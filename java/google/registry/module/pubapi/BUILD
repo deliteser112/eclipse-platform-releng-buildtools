@@ -29,6 +29,7 @@ java_library(
         "@com_google_monitoring_client_metrics",
         "@javax_inject",
         "@javax_servlet_api",
+        "@joda_time",
         "@org_bouncycastle_bcpkix_jdk15on",
     ],
 )

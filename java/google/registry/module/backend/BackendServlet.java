@@ -18,6 +18,7 @@ import com.google.appengine.api.LifecycleManager;
 import com.google.common.flogger.FluentLogger;
 import com.google.monitoring.metrics.MetricReporter;
 import dagger.Lazy;
+import google.registry.util.SystemClock;
 import java.io.IOException;
 import java.security.Security;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.joda.time.DateTime;
 
 /** Servlet that should handle all requests to our "backend" App Engine module. */
 public final class BackendServlet extends HttpServlet {
@@ -34,6 +36,7 @@ public final class BackendServlet extends HttpServlet {
   private static final BackendRequestHandler requestHandler = component.requestHandler();
   private static final Lazy<MetricReporter> metricReporter = component.metricReporter();
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final SystemClock clock = new SystemClock();
 
   @Override
   public void init() {
@@ -64,6 +67,13 @@ public final class BackendServlet extends HttpServlet {
   @Override
   public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
     logger.atInfo().log("Received backend request");
-    requestHandler.handleRequest(req, rsp);
+    DateTime startTime = clock.nowUtc();
+    try {
+      requestHandler.handleRequest(req, rsp);
+    } finally {
+      logger.atInfo().log(
+          "Finished backend request. Latency: %.3fs",
+          (clock.nowUtc().getMillis() - startTime.getMillis()) / 1000d);
+    }
   }
 }

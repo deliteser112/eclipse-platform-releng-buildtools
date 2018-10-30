@@ -18,6 +18,7 @@ import com.google.appengine.api.LifecycleManager;
 import com.google.common.flogger.FluentLogger;
 import com.google.monitoring.metrics.MetricReporter;
 import dagger.Lazy;
+import google.registry.util.SystemClock;
 import java.io.IOException;
 import java.security.Security;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.joda.time.DateTime;
 
 /** Servlet that should handle all requests to our "default" App Engine module. */
 public final class PubApiServlet extends HttpServlet {
@@ -34,6 +36,7 @@ public final class PubApiServlet extends HttpServlet {
   private static final PubApiRequestHandler requestHandler = component.requestHandler();
   private static final Lazy<MetricReporter> metricReporter = component.metricReporter();
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final SystemClock clock = new SystemClock();
 
   @Override
   public void init() {
@@ -62,7 +65,14 @@ public final class PubApiServlet extends HttpServlet {
 
   @Override
   public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-    logger.atInfo().log("Received frontend request");
-    requestHandler.handleRequest(req, rsp);
+    logger.atInfo().log("Received pubapi request");
+    DateTime startTime = clock.nowUtc();
+    try {
+      requestHandler.handleRequest(req, rsp);
+    } finally {
+      logger.atInfo().log(
+          "Finished pubapi request. Latency: %.3fs",
+          (clock.nowUtc().getMillis() - startTime.getMillis()) / 1000d);
+    }
   }
 }
