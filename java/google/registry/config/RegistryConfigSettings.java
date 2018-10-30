@@ -88,6 +88,7 @@ public class RegistryConfigSettings {
     public String reservedTermsExportDisclaimer;
     public String whoisDisclaimer;
     public String rdapTos;
+    public String rdapTosStaticUrl;
     public String spec11EmailBodyTemplate;
   }
 

@@ -145,6 +145,10 @@ registryPolicy:
 
     We reserve the right to modify this agreement at any time.
 
+  # Link to static Web page with RDAP terms of service. Displayed in RDAP
+  # responses. If null, no static Web page link is generated.
+  rdapTosStaticUrl: null
+
   # Body of the spec 11 email sent to registrars.
   # Items in braces are to be replaced.
   spec11EmailBodyTemplate: |
