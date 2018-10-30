@@ -20,6 +20,8 @@ import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
 import static google.registry.request.auth.Auth.AUTH_INTERNAL_OR_ADMIN;
 import static google.registry.request.auth.Auth.AUTH_PUBLIC;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -126,7 +128,7 @@ public final class RequestHandlerTest {
   @Action(
     path = "/auth/none",
     auth = AUTH_PUBLIC,
-    method = Action.Method.GET
+    method = GET
   )
   public class AuthNoneAction extends AuthBase {
     AuthNoneAction(AuthResult authResult) {
@@ -137,7 +139,7 @@ public final class RequestHandlerTest {
   @Action(
       path = "/auth/adminUser",
       auth = AUTH_INTERNAL_OR_ADMIN,
-      method = Action.Method.GET)
+      method = GET)
   public class AuthAdminUserAction extends AuthBase {
     AuthAdminUserAction(AuthResult authResult) {
       super(authResult);
@@ -200,6 +202,7 @@ public final class RequestHandlerTest {
   private final SlothTask slothTask = mock(SlothTask.class);
   private final SafeSlothTask safeSlothTask = mock(SafeSlothTask.class);
   private final RequestAuthenticator requestAuthenticator = mock(RequestAuthenticator.class);
+  private final RequestMetrics requestMetrics = mock(RequestMetrics.class);
 
   private final Component component = new Component();
   private final StringWriter httpOutput = new StringWriter();
@@ -223,11 +226,17 @@ public final class RequestHandlerTest {
                 },
             requestAuthenticator);
     when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
+    handler.requestMetrics = requestMetrics;
   }
 
   @After
   public void after() {
-    verifyNoMoreInteractions(rsp, bumblebeeTask, slothTask, safeSlothTask);
+    verifyNoMoreInteractions(rsp, bumblebeeTask, slothTask, safeSlothTask, requestMetrics);
+  }
+
+  private void assertMetric(
+      String path, Action.Method method, AuthLevel authLevel, boolean success) {
+    verify(requestMetrics).record(any(), eq(path), eq(method), eq(authLevel), eq(success));
   }
 
   @Test
@@ -241,6 +250,7 @@ public final class RequestHandlerTest {
 
     verifyZeroInteractions(rsp);
     verify(bumblebeeTask).run();
+    assertMetric("/bumblebee", GET, AuthLevel.NONE, true);
   }
 
   @Test
@@ -253,6 +263,7 @@ public final class RequestHandlerTest {
     handler.handleRequest(req, rsp);
 
     verify(bumblebeeTask).run();
+    assertMetric("/bumblebee", POST, AuthLevel.NONE, true);
   }
 
   @Test
@@ -265,6 +276,7 @@ public final class RequestHandlerTest {
     handler.handleRequest(req, rsp);
 
     verify(bumblebeeTask).run();
+    assertMetric("/bumblebee/hive", GET, AuthLevel.NONE, true);
   }
 
   @Test
@@ -280,6 +292,7 @@ public final class RequestHandlerTest {
     verify(rsp).setContentType("text/plain; charset=utf-8");
     verify(rsp).getWriter();
     assertThat(httpOutput.toString()).isEqualTo("OK\n");
+    assertMetric("/sloth", POST, AuthLevel.NONE, true);
   }
 
   @Test
@@ -304,6 +317,7 @@ public final class RequestHandlerTest {
     handler.handleRequest(req, rsp);
 
     verify(rsp).sendError(503, "Set sail for fail");
+    assertMetric("/fail", GET, AuthLevel.NONE, false);
   }
 
   /** Test for a regression of the issue in b/21377705. */
@@ -318,6 +332,7 @@ public final class RequestHandlerTest {
     handler.handleRequest(req, rsp);
 
     verify(rsp).sendError(503, "Fail at construction");
+    assertMetric("/failAtConstruction", GET, AuthLevel.NONE, false);
   }
 
   @Test
@@ -389,6 +404,7 @@ public final class RequestHandlerTest {
     handler.handleRequest(req, rsp);
 
     verify(safeSlothTask).run();
+    assertMetric("/safe-sloth", POST, AuthLevel.NONE, true);
   }
 
   @Test
@@ -401,6 +417,7 @@ public final class RequestHandlerTest {
     handler.handleRequest(req, rsp);
 
     verify(safeSlothTask).run();
+    assertMetric("/safe-sloth", GET, AuthLevel.NONE, true);
   }
 
   @Test
@@ -415,6 +432,7 @@ public final class RequestHandlerTest {
     assertThat(providedAuthResult).isNotNull();
     assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.NONE);
     assertThat(providedAuthResult.userAuthInfo()).isEmpty();
+    assertMetric("/auth/none", GET, AuthLevel.NONE, true);
   }
 
   @Test
@@ -445,6 +463,7 @@ public final class RequestHandlerTest {
     assertThat(providedAuthResult.userAuthInfo()).isPresent();
     assertThat(providedAuthResult.userAuthInfo().get().user()).isEqualTo(testUser);
     assertThat(providedAuthResult.userAuthInfo().get().oauthTokenInfo()).isEmpty();
+    assertMetric("/auth/adminUser", GET, AuthLevel.USER, true);
   }
 
 }
