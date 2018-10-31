@@ -39,7 +39,6 @@ import google.registry.model.annotations.VirtualEntity;
 import google.registry.model.common.CrossTldSingleton;
 import google.registry.util.CollectionUtils;
 import google.registry.util.Concurrent;
-import google.registry.util.NonFinalForTesting;
 import google.registry.util.Retrier;
 import google.registry.util.SystemSleeper;
 import java.util.HashMap;
@@ -69,10 +68,8 @@ import org.joda.time.DateTime;
 @NotBackedUp(reason = Reason.EXTERNALLY_SOURCED)
 public class ClaimsListShard extends ImmutableObject {
 
-  /** The number of claims list entries to store per shard.  Do not modify except for in tests. */
-  @VisibleForTesting
-  @NonFinalForTesting
-  static int shardSize = 10000;
+  /** The number of claims list entries to store per shard. */
+  private static final int SHARD_SIZE = 10000;
 
   @Id
   long id;
@@ -165,6 +162,11 @@ public class ClaimsListShard extends ImmutableObject {
    * switching over to using them atomically, then deleting the old ones.
    */
   public void save() {
+    save(SHARD_SIZE);
+  }
+
+  @VisibleForTesting
+  void save(int shardSize) {
     // Figure out what the next versionId should be based on which ones already exist.
     final Key<ClaimsListRevision> oldRevision = getCurrentRevision();
     final Key<ClaimsListRevision> parentKey = ClaimsListRevision.createKey();

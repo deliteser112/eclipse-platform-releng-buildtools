@@ -15,15 +15,21 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.tools.CommandUtilities.promptForYes;
 import static google.registry.util.X509Utils.loadCertificate;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.re2j.Pattern;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryEnvironment;
+import google.registry.model.common.GaeUserIdConverter;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.tools.params.PathParameter;
@@ -52,6 +58,10 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
   private static final Duration SHORT_ADD_GRACE_PERIOD = Duration.standardMinutes(60);
   private static final Duration SHORT_REDEMPTION_GRACE_PERIOD = Duration.standardMinutes(10);
   private static final Duration SHORT_PENDING_DELETE_LENGTH = Duration.standardMinutes(5);
+
+  // Whether to prompt the user on command failures. Set to false for testing of these failures.
+  @VisibleForTesting
+  static boolean interactive = true;
 
   private static final ImmutableSortedMap<DateTime, Money> EAP_FEE_SCHEDULE =
       ImmutableSortedMap.of(
@@ -88,6 +98,14 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
   private List<String> ipWhitelist = new ArrayList<>();
 
   @Parameter(
+      names = {"--email"},
+      description =
+          "the registrar's account to use for console access. "
+              + "Must be on the registry's G-Suite domain.",
+      required = true)
+  private String email;
+
+  @Parameter(
     names = {"-c", "--certfile"},
     description = "full path to cert file in PEM format (best if on local storage)",
     validateWith = PathParameter.InputFile.class
@@ -122,13 +140,30 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
   )
   private boolean eapOnly = false;
 
-  @Inject StringGenerator passwordGenerator;
+  @Inject
+  @Config("base64StringGenerator")
+  StringGenerator passwordGenerator;
 
   /**
    * Long registrar names are truncated and then have an incrementing digit appended at the end so
    * that unique ROID suffixes can be generated for all TLDs for the registrar.
    */
   private int roidSuffixCounter = 0;
+
+  /** Runs a command, clearing the cache before and prompting the user on failures. */
+  private void runCommand(Command command) {
+    ofy().clearSessionCache();
+    try {
+      command.run();
+    } catch (Exception e) {
+      System.err.format("Command failed with error %s\n", e);
+      if (interactive && promptForYes("Continue to next command?")) {
+        return;
+      }
+      Throwables.throwIfUnchecked(e);
+      throw new RuntimeException(e);
+    }
+  }
 
   /** Constructs and runs a CreateTldCommand. */
   private void createTld(
@@ -137,8 +172,7 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
       Duration addGracePeriod,
       Duration redemptionGracePeriod,
       Duration pendingDeleteLength,
-      boolean isEarlyAccess)
-      throws Exception {
+      boolean isEarlyAccess) {
     CreateTldCommand command = new CreateTldCommand();
     command.addGracePeriod = addGracePeriod;
     command.dnsWriters = dnsWriters;
@@ -158,11 +192,11 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
     if (isEarlyAccess) {
       command.eapFeeSchedule = EAP_FEE_SCHEDULE;
     }
-    command.run();
+    runCommand(command);
   }
 
   /** Constructs and runs a CreateRegistrarCommand */
-  private void createRegistrar(String registrarName, String password, String tld) throws Exception {
+  private void createRegistrar(String registrarName, String password, String tld) {
     CreateRegistrarCommand command = new CreateRegistrarCommand();
     command.mainParameters = ImmutableList.of(registrarName);
     command.createGoogleGroups = false; // Don't create Google Groups for OT&E registrars.
@@ -183,7 +217,19 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
     command.phone = Optional.of("+1.2125550100");
     command.icannReferralEmail = "nightmare@registrar.test";
     command.force = force;
-    command.run();
+    runCommand(command);
+  }
+
+  /** Constructs and runs a RegistrarContactCommand */
+  private void createRegistrarContact(String registrarName) {
+    RegistrarContactCommand command = new RegistrarContactCommand();
+    command.mainParameters = ImmutableList.of(registrarName);
+    command.mode = RegistrarContactCommand.Mode.CREATE;
+    command.name = email;
+    command.email = email;
+    command.allowConsoleAccess = true;
+    command.force = force;
+    runCommand(command);
   }
 
   /** Run any pre-execute command checks */
@@ -192,6 +238,14 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
     checkArgument(
         REGISTRAR_PATTERN.matcher(registrar).matches(),
         "Registrar name is invalid (see usage text for requirements).");
+
+    // Make sure the email is "correct" - as in it's a valid email we can convert to gaeId
+    // There's no need to look at the result - it'll be converted again inside
+    // RegistrarContactCommand.
+    checkNotNull(
+        GaeUserIdConverter.convertEmailAddressToGaeUserId(email),
+        "Email address %s is not associated with any GAE ID",
+        email);
 
     boolean warned = false;
     if (RegistryEnvironment.get() != RegistryEnvironment.SANDBOX
@@ -227,7 +281,9 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
       return "Creating TLD:\n"
           + "    " + registrar + "-eap\n"
           + "Creating registrar:\n"
-          + "    " + registrar + "-5 (access to TLD " + registrar + "-eap)";
+          + "    " + registrar + "-5 (access to TLD " + registrar + "-eap)\n"
+          + "Giving contact access to this registrar:\n"
+          + "    " + email;
     } else {
       return "Creating TLDs:\n"
           + "    " + registrar + "-sunrise\n"
@@ -239,7 +295,9 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
           + "    " + registrar + "-2 (access to TLD " + registrar + "-landrush)\n"
           + "    " + registrar + "-3 (access to TLD " + registrar + "-ga)\n"
           + "    " + registrar + "-4 (access to TLD " + registrar + "-ga)\n"
-          + "    " + registrar + "-5 (access to TLD " + registrar + "-eap)";
+          + "    " + registrar + "-5 (access to TLD " + registrar + "-eap)\n"
+          + "Giving contact access to these registrars:\n"
+          + "    " + email;
     }
   }
 
@@ -297,6 +355,7 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
 
     for (List<String> r : registrars) {
       createRegistrar(r.get(0), r.get(1), r.get(2));
+      createRegistrarContact(r.get(0));
     }
 
     StringBuilder output = new StringBuilder();

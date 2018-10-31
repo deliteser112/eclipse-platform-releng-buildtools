@@ -53,7 +53,6 @@ import google.registry.export.sheet.SheetModule;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.flows.async.AsyncFlowsModule;
 import google.registry.mapreduce.MapreduceModule;
-import google.registry.monitoring.whitebox.MetricsExportAction;
 import google.registry.monitoring.whitebox.WhiteboxModule;
 import google.registry.rde.BrdaCopyAction;
 import google.registry.rde.RdeModule;
@@ -136,7 +135,6 @@ interface BackendRequestComponent {
   IcannReportingStagingAction icannReportingStagingAction();
   IcannReportingUploadAction icannReportingUploadAction();
   LoadSnapshotAction loadSnapshotAction();
-  MetricsExportAction metricsExportAction();
   NordnUploadAction nordnUploadAction();
   NordnVerifyAction nordnVerifyAction();
   PublishDnsUpdatesAction publishDnsUpdatesAction();

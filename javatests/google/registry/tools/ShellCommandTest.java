@@ -53,6 +53,9 @@ public class ShellCommandTest {
   PrintStream orgStdout;
   PrintStream orgStderr;
 
+  ByteArrayOutputStream stdout;
+  ByteArrayOutputStream stderr;
+
   public ShellCommandTest() {}
 
   @Before
@@ -152,7 +155,6 @@ public class ShellCommandTest {
   public void testMultipleCommandInvocations() throws Exception {
     try (RegistryCli cli =
         new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class))) {
-      cli.uploadMetrics = false;
       RegistryToolEnvironment.UNITTEST.setup();
       cli.setEnvironment(RegistryToolEnvironment.UNITTEST);
       cli.run(new String[] {"test_command", "-x", "xval", "arg1", "arg2"});
@@ -170,7 +172,7 @@ public class ShellCommandTest {
   public void testNonExistentCommand() {
     try (RegistryCli cli =
         new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class))) {
-      cli.uploadMetrics = false;
+
       cli.setEnvironment(RegistryToolEnvironment.UNITTEST);
       assertThrows(MissingCommandException.class, () -> cli.run(new String[] {"bad_command"}));
     }
@@ -270,14 +272,7 @@ public class ShellCommandTest {
   @Test
   public void testEncapsulatedOutput_command() throws Exception {
     RegistryToolEnvironment.ALPHA.setup();
-
-    // capture output (have to do this before the shell command is created)
-    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-    ByteArrayOutputStream stderr = new ByteArrayOutputStream();
-    System.setOut(new PrintStream(stdout));
-    System.setErr(new PrintStream(stderr));
-    System.setIn(new ByteArrayInputStream("command1\n".getBytes(UTF_8)));
-
+    captureOutput();
     ShellCommand shellCommand =
         new ShellCommand(
             args -> {
@@ -295,6 +290,33 @@ public class ShellCommandTest {
         .isEqualTo(
             "out: first line\nerr: second line\nerr: surprise!\nout: fragmented line\n"
                 + "SUCCESS\n");
+  }
+
+  @Test
+  public void testEncapsulatedOutput_noCommand() throws Exception {
+    captureOutput();
+    ShellCommand shellCommand =
+        createShellCommand(
+            args -> {
+              System.out.println("first line");
+            },
+            Duration.ZERO,
+            "",
+            "do something");
+    shellCommand.encapsulateOutput = true;
+    shellCommand.run();
+    assertThat(stderr.toString()).isEmpty();
+    assertThat(stdout.toString())
+        .isEqualTo("out: first line\nSUCCESS\n");
+  }
+
+  void captureOutput() {
+    // capture output (have to do this before the shell command is created)
+    stdout = new ByteArrayOutputStream();
+    stderr = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(stdout));
+    System.setErr(new PrintStream(stderr));
+    System.setIn(new ByteArrayInputStream("command1\n".getBytes(UTF_8)));
   }
 
   @Parameters(commandDescription = "Test command")

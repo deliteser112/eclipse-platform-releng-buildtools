@@ -17,62 +17,37 @@ package google.registry.rdap;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.Action.Method.GET;
-import static google.registry.request.Action.Method.HEAD;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.TestDataHelper.loadFile;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import google.registry.model.ofy.Ofy;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
-import google.registry.request.auth.AuthLevel;
-import google.registry.request.auth.AuthResult;
-import google.registry.request.auth.UserAuthInfo;
-import google.registry.testing.AppEngineRule;
-import google.registry.testing.FakeClock;
-import google.registry.testing.FakeResponse;
-import google.registry.testing.InjectRule;
-import google.registry.ui.server.registrar.SessionUtils;
 import java.util.Optional;
-import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdapActionBase}. */
 @RunWith(JUnit4.class)
-public class RdapActionBaseTest {
+public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTest.RdapTestAction> {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
-
-  @Rule
-  public final InjectRule inject = new InjectRule();
-
-  private final FakeResponse response = new FakeResponse();
-  private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
-  private final SessionUtils sessionUtils = mock(SessionUtils.class);
-  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
-  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
-  private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
+  public RdapActionBaseTest() {
+    super(RdapTestAction.class, RdapTestAction.PATH);
+  }
 
   /**
    * Dummy RdapActionBase subclass used for testing.
    */
-  static class RdapTestAction extends RdapActionBase {
+  public static class RdapTestAction extends RdapActionBase {
 
     public static final String PATH = "/rdap/test/";
 
@@ -112,37 +87,10 @@ public class RdapActionBaseTest {
     }
   }
 
-  private RdapTestAction action;
-
   @Before
   public void setUp() {
     createTld("thing");
-    inject.setStaticField(Ofy.class, "clock", clock);
-    action = new RdapTestAction();
-    action.sessionUtils = sessionUtils;
-    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
-    action.includeDeletedParam = Optional.empty();
-    action.registrarParam = Optional.empty();
-    action.formatOutputParam = Optional.empty();
-    action.response = response;
-    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
-    action.rdapMetrics = rdapMetrics;
-  }
-
-  private Object generateActualJson(String domainName) {
-    action.requestPath = RdapTestAction.PATH + domainName;
     action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
-    action.requestMethod = GET;
-    action.run();
-    return JSONValue.parse(response.getPayload());
-  }
-
-  private String generateHeadPayload(String domainName) {
-    action.requestPath = RdapTestAction.PATH + domainName;
-    action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
-    action.requestMethod = HEAD;
-    action.run();
-    return response.getPayload();
   }
 
   @Test
@@ -241,7 +189,6 @@ public class RdapActionBaseTest {
   @Test
   public void testUnformatted() {
     action.requestPath = RdapTestAction.PATH + "no.thing";
-    action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
     action.requestMethod = GET;
     action.run();
     assertThat(response.getPayload())
@@ -251,7 +198,6 @@ public class RdapActionBaseTest {
   @Test
   public void testFormatted() {
     action.requestPath = RdapTestAction.PATH + "no.thing?formatOutput=true";
-    action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
     action.requestMethod = GET;
     action.formatOutputParam = Optional.of(true);
     action.run();

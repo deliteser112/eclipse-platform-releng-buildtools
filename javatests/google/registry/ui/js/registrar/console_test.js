@@ -17,7 +17,6 @@ goog.setTestOnly();
 goog.require('goog.dom');
 goog.require('goog.dom.classlist');
 goog.require('goog.json');
-goog.require('goog.soy');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.asserts');
@@ -25,15 +24,14 @@ goog.require('goog.testing.jsunit');
 goog.require('goog.testing.mockmatchers');
 goog.require('goog.testing.net.XhrIo');
 goog.require('registry.registrar.ConsoleTestUtil');
-goog.require('registry.soy.registrar.console');
 goog.require('registry.testing');
 goog.require('registry.util');
 
 
-var $ = goog.dom.getRequiredElement;
-var stubs = new goog.testing.PropertyReplacer();
+const $ = goog.dom.getRequiredElement;
+const stubs = new goog.testing.PropertyReplacer();
 
-var test = {
+const test = {
   testXsrfToken: 'testToken',
   testClientId: 'daddy',
   mockControl: new goog.testing.MockControl()
@@ -44,24 +42,13 @@ function setUp() {
   registry.testing.addToDocument('<div id="test"/>');
   registry.testing.addToDocument('<div class="kd-butterbar"/>');
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
-  var testElt = goog.dom.getElement('test');
-  goog.soy.renderElement(testElt, registry.soy.registrar.console.main, {
+  registry.registrar.ConsoleTestUtil.renderConsoleMain($('test'), {
     xsrfToken: test.testXsrfToken,
-    username: 'blah',
-    logoutUrl: 'omg',
-    isAdmin: true,
     clientId: test.testClientId,
-    logoFilename: 'logo.png',
-    productName: 'Nomulus',
-    integrationEmail: 'integration@example.com',
-    supportEmail: 'support@example.com',
-    announcementsEmail: 'announcement@example.com',
-    supportPhoneNumber: '+1 (888) 555 0123',
-    technicalDocsUrl: 'http://example.com/techdocs',
   });
   registry.registrar.ConsoleTestUtil.setup(test);
-  var regNavlist = $('reg-navlist');
-  var active = regNavlist.querySelector('a[href="/registrar#contact-us"]');
+  const regNavlist = $('reg-navlist');
+  const active = regNavlist.querySelector('a[href="#contact-us"]');
   assertTrue(active != null);
 }
 
@@ -78,7 +65,7 @@ function testButter() {
     productName: 'Foo Registry'
   });
   registry.util.butter('butter msg');
-  var butter = goog.dom.getElementByClass(goog.getCssName('kd-butterbar'));
+  const butter = goog.dom.getElementByClass(goog.getCssName('kd-butterbar'));
   assertNotNull(butter.innerHTML.match(/.*butter msg.*/));
   assertTrue(goog.dom.classlist.contains(butter, goog.getCssName('shown')));
 }
@@ -131,7 +118,7 @@ function testNavToResources() {
     premiumPriceAckRequired: false,
     readonly: true,
   });
-  var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
+  const xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue(xhr.isActive());
   assertEquals('/registrar-settings', xhr.getLastUri());
   assertEquals(test.testXsrfToken,
@@ -157,12 +144,12 @@ function testNavToContactUs() {
     announcementsEmail: 'announcement@example.com',
     supportPhoneNumber: '+1 (888) 555 0123'
   });
-  var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
+  const xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue(xhr.isActive());
   assertEquals('/registrar-settings', xhr.getLastUri());
   assertEquals(test.testXsrfToken,
                xhr.getLastRequestHeaders()['X-CSRF-Token']);
-  var passcode = '5-5-5-5-5';
+  const passcode = '5-5-5-5-5';
   xhr.simulateResponse(200, goog.json.serialize({
     status: 'SUCCESS',
     message: 'OK',

@@ -22,11 +22,12 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
+import google.registry.tools.AppEngineConnection.Service;
 import java.util.List;
 
 @Parameters(separators = " =", commandDescription = "Send an HTTP command to the nomulus server.")
 class CurlCommand implements CommandWithConnection {
-  private Connection connection;
+  private AppEngineConnection connection;
 
   // HTTP Methods that are acceptable for use as values for --method.
   public enum Method {
@@ -62,8 +63,14 @@ class CurlCommand implements CommandWithConnection {
               + "absent, a GET request is sent.")
   private List<String> data;
 
+  @Parameter(
+      names = {"--service"},
+      description = "Which service to connect to",
+      required = true)
+  private Service service;
+
   @Override
-  public void setConnection(Connection connection) {
+  public void setConnection(AppEngineConnection connection) {
     this.connection = connection;
   }
 
@@ -77,12 +84,14 @@ class CurlCommand implements CommandWithConnection {
       throw new IllegalArgumentException("You may not specify a body for a get method.");
     }
 
-    // TODO(b/112315418): Make it possible to address any backend.
+    AppEngineConnection connectionToService = connection.withService(service);
     String response =
         (method == Method.GET)
-            ? connection.sendGetRequest(path, ImmutableMap.<String, String>of())
-            : connection.send(
-                path, ImmutableMap.<String, String>of(), mimeType,
+            ? connectionToService.sendGetRequest(path, ImmutableMap.<String, String>of())
+            : connectionToService.sendPostRequest(
+                path,
+                ImmutableMap.<String, String>of(),
+                mimeType,
                 Joiner.on("&").join(data).getBytes(UTF_8));
     System.out.println(response);
   }

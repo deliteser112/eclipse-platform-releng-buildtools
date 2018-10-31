@@ -16,7 +16,6 @@ package google.registry.rdap;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -27,6 +26,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import com.google.re2j.Pattern;
@@ -48,7 +48,8 @@ import google.registry.request.RequestPath;
 import google.registry.request.Response;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
-import google.registry.ui.server.registrar.SessionUtils;
+import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor;
+import google.registry.util.Clock;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -57,7 +58,6 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 
@@ -87,13 +87,13 @@ public abstract class RdapActionBase implements Runnable {
     INCLUDE
   }
 
-  @Inject HttpServletRequest request;
   @Inject Response response;
+  @Inject Clock clock;
   @Inject @RequestMethod Action.Method requestMethod;
   @Inject @RequestPath String requestPath;
   @Inject @FullServletPath String fullServletPath;
   @Inject AuthResult authResult;
-  @Inject SessionUtils sessionUtils;
+  @Inject AuthenticatedRegistrarAccessor registrarAccessor;
   @Inject RdapJsonFormatter rdapJsonFormatter;
   @Inject @Parameter("registrar") Optional<String> registrarParam;
   @Inject @Parameter("includeDeleted") Optional<Boolean> includeDeletedParam;
@@ -200,15 +200,12 @@ public abstract class RdapActionBase implements Runnable {
     if (userAuthInfo.isUserAdmin()) {
       return RdapAuthorization.ADMINISTRATOR_AUTHORIZATION;
     }
-    if (!sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)) {
+    ImmutableSet<String> clientIds = registrarAccessor.getAllClientIdWithRoles().keySet();
+    if (clientIds.isEmpty()) {
+      logger.atWarning().log("Couldn't find registrar for User %s.", authResult.userIdForLogging());
       return RdapAuthorization.PUBLIC_AUTHORIZATION;
     }
-    String clientId = sessionUtils.getRegistrarClientId(request);
-    Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
-    if (!registrar.isPresent()) {
-      return RdapAuthorization.PUBLIC_AUTHORIZATION;
-    }
-    return RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, clientId);
+    return RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, clientIds);
   }
 
   /** Returns the registrar on which results should be filtered, or absent(). */
@@ -238,14 +235,9 @@ public abstract class RdapActionBase implements Runnable {
     if (userAuthInfo.isUserAdmin()) {
       return true;
     }
-    if (!sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)) {
+    if (registrarAccessor.getAllClientIdWithRoles().isEmpty()) {
       return false;
     }
-    String clientId = sessionUtils.getRegistrarClientId(request);
-    checkState(
-        Registrar.loadByClientIdCached(clientId).isPresent(),
-        "Registrar with clientId %s doesn't exist",
-        clientId);
     return true;
   }
 

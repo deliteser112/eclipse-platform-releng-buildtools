@@ -22,7 +22,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import google.registry.model.domain.DomainResource;
-import google.registry.tmch.LordnTask;
+import google.registry.tmch.LordnTaskUtils;
 import google.registry.tools.params.PathParameter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -61,26 +61,28 @@ final class GenerateLordnCommand implements CommandWithRemoteApi {
     for (DomainResource domain : ofy().load().type(DomainResource.class).filter("tld", tld)) {
       String status = " ";
       if (domain.getLaunchNotice() == null && domain.getSmdId() != null) {
-        sunriseCsv.add(LordnTask.getCsvLineForSunriseDomain(domain, domain.getCreationTime()));
+        sunriseCsv.add(LordnTaskUtils.getCsvLineForSunriseDomain(domain, domain.getCreationTime()));
         status = "S";
       } else if (domain.getLaunchNotice() != null || domain.getSmdId() != null) {
-        claimsCsv.add(LordnTask.getCsvLineForClaimsDomain(domain, domain.getCreationTime()));
+        claimsCsv.add(LordnTaskUtils.getCsvLineForClaimsDomain(domain, domain.getCreationTime()));
         status = "C";
       }
       System.out.printf("%s[%s] ", domain.getFullyQualifiedDomainName(), status);
     }
     ImmutableList<String> claimsRows = claimsCsv.build();
-    ImmutableList<String> claimsAll = new ImmutableList.Builder<String>()
-        .add(String.format("1,%s,%d", now, claimsRows.size()))
-        .add(LordnTask.COLUMNS_CLAIMS)
-        .addAll(claimsRows)
-        .build();
+    ImmutableList<String> claimsAll =
+        new ImmutableList.Builder<String>()
+            .add(String.format("1,%s,%d", now, claimsRows.size()))
+            .add(LordnTaskUtils.COLUMNS_CLAIMS)
+            .addAll(claimsRows)
+            .build();
     ImmutableList<String> sunriseRows = sunriseCsv.build();
-    ImmutableList<String> sunriseAll = new ImmutableList.Builder<String>()
-        .add(String.format("1,%s,%d", now.plusMillis(1), sunriseRows.size()))
-        .add(LordnTask.COLUMNS_SUNRISE)
-        .addAll(sunriseRows)
-        .build();
+    ImmutableList<String> sunriseAll =
+        new ImmutableList.Builder<String>()
+            .add(String.format("1,%s,%d", now.plusMillis(1), sunriseRows.size()))
+            .add(LordnTaskUtils.COLUMNS_SUNRISE)
+            .addAll(sunriseRows)
+            .build();
     Files.write(claimsOutputPath, claimsAll, UTF_8);
     Files.write(sunriseOutputPath, sunriseAll, UTF_8);
   }

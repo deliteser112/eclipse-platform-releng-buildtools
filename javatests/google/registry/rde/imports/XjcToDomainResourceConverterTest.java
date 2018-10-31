@@ -51,7 +51,6 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.DeterministicStringGenerator;
-import google.registry.testing.InjectRule;
 import google.registry.util.StringGenerator;
 import google.registry.xjc.rdedomain.XjcRdeDomain;
 import google.registry.xjc.rdedomain.XjcRdeDomainElement;
@@ -90,17 +89,16 @@ public class XjcToDomainResourceConverterTest {
       "google.registry.xjc.smd"));
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-  @Rule public final InjectRule inject = new InjectRule();
 
   private Unmarshaller unmarshaller;
-  private DeterministicStringGenerator stringGenerator;
+
+  private final DeterministicStringGenerator stringGenerator =
+      new DeterministicStringGenerator(StringGenerator.Alphabets.BASE_64);
 
   @Before
   public void before() throws Exception {
     createTld("example");
     unmarshaller = JAXBContext.newInstance(JAXB_CONTEXT_PACKAGES).createUnmarshaller();
-    stringGenerator = new DeterministicStringGenerator(StringGenerator.Alphabets.BASE_64);
-    inject.setStaticField(XjcToDomainResourceConverter.class, "stringGenerator", stringGenerator);
   }
 
   @Test
@@ -415,7 +413,7 @@ public class XjcToDomainResourceConverterTest {
     // without that there's no way to actually test the capping of the projected registration here.
   }
 
-  private static DomainResource convertDomainInTransaction(final XjcRdeDomain xjcDomain) {
+  private DomainResource convertDomainInTransaction(final XjcRdeDomain xjcDomain) {
     return ofy()
         .transact(
             () -> {
@@ -426,7 +424,7 @@ public class XjcToDomainResourceConverterTest {
                   createAutoRenewPollMessageForDomainImport(xjcDomain, historyEntry);
               ofy().save().entities(historyEntry, autorenewBillingEvent, autorenewPollMessage);
               return XjcToDomainResourceConverter.convertDomain(
-                  xjcDomain, autorenewBillingEvent, autorenewPollMessage);
+                  xjcDomain, autorenewBillingEvent, autorenewPollMessage, stringGenerator);
             });
   }
 

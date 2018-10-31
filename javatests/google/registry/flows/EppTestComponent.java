@@ -32,7 +32,6 @@ import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.custom.CustomLogicFactory;
 import google.registry.flows.custom.TestCustomLogicFactory;
 import google.registry.flows.domain.DomainFlowTmchUtils;
-import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.request.RequestScope;
 import google.registry.request.lock.LockHandler;
@@ -64,7 +63,6 @@ interface EppTestComponent {
   class FakesAndMocksModule {
 
     private AsyncFlowEnqueuer asyncFlowEnqueuer;
-    private BigQueryMetricsEnqueuer metricsEnqueuer;
     private DnsQueue dnsQueue;
     private DomainFlowTmchUtils domainFlowTmchUtils;
     private EppMetric.Builder metricBuilder;
@@ -75,14 +73,14 @@ interface EppTestComponent {
 
     public static FakesAndMocksModule create() {
       FakeClock clock = new FakeClock();
-      return create(clock, EppMetric.builderForRequest("request-id-1", clock));
+      return create(clock, EppMetric.builderForRequest(clock));
     }
 
     public static FakesAndMocksModule create(FakeClock clock, EppMetric.Builder metricBuilder) {
       return create(
           clock,
           metricBuilder,
-          new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT)));
+          new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT, clock)));
     }
 
     public static FakesAndMocksModule create(
@@ -106,7 +104,6 @@ interface EppTestComponent {
       instance.dnsQueue = DnsQueue.create();
       instance.metricBuilder = eppMetricBuilder;
       instance.appEngineServiceUtils = appEngineServiceUtils;
-      instance.metricsEnqueuer = mock(BigQueryMetricsEnqueuer.class);
       instance.lockHandler = new FakeLockHandler(true);
       return instance;
     }
@@ -114,11 +111,6 @@ interface EppTestComponent {
     @Provides
     AsyncFlowEnqueuer provideAsyncFlowEnqueuer() {
       return asyncFlowEnqueuer;
-    }
-
-    @Provides
-    BigQueryMetricsEnqueuer provideBigQueryMetricsEnqueuer() {
-      return metricsEnqueuer;
     }
 
     @Provides

@@ -52,8 +52,6 @@ public class EppLifecycleContactTest extends EppTestCase {
         .and()
         .hasCommandName("ContactCreate")
         .and()
-        .hasEppTarget("sh8013")
-        .and()
         .hasStatus(SUCCESS);
     assertThatCommand("contact_info.xml")
         .atTime("2000-06-01T00:01:00Z")
@@ -63,8 +61,6 @@ public class EppLifecycleContactTest extends EppTestCase {
         .and()
         .hasCommandName("ContactInfo")
         .and()
-        .hasEppTarget("sh8013")
-        .and()
         .hasStatus(SUCCESS);
     assertThatCommand("contact_delete_sh8013.xml")
         .hasResponse("contact_delete_response_sh8013.xml");
@@ -72,8 +68,6 @@ public class EppLifecycleContactTest extends EppTestCase {
         .hasClientId("NewRegistrar")
         .and()
         .hasCommandName("ContactDelete")
-        .and()
-        .hasEppTarget("sh8013")
         .and()
         .hasStatus(SUCCESS_WITH_ACTION_PENDING);
     assertThatLogoutSucceeds();

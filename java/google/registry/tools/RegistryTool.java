@@ -48,6 +48,7 @@ public final class RegistryTool {
           .put("create_sandbox_tld", CreateSandboxTldCommand.class)
           .put("create_tld", CreateTldCommand.class)
           .put("curl", CurlCommand.class)
+          .put("delete_allocation_tokens", DeleteAllocationTokensCommand.class)
           .put("delete_domain", DeleteDomainCommand.class)
           .put("delete_host", DeleteHostCommand.class)
           .put("delete_premium_list", DeletePremiumListCommand.class)

@@ -14,7 +14,6 @@
 
 goog.provide('registry.registrar.WhoisSettings');
 
-goog.require('goog.Uri');
 goog.require('goog.dom');
 goog.require('registry.Resource');
 goog.require('registry.ResourceComponent');
@@ -27,19 +26,15 @@ goog.forwardDeclare('registry.registrar.Console');
 /**
  * WHOIS Settings page.
  * @param {!registry.registrar.Console} console
- * @param {string} xsrfToken Cross-site request forgery protection token.
+ * @param {!registry.Resource} resource the RESTful resource for the registrar.
  * @constructor
  * @extends {registry.ResourceComponent}
  * @final
  */
-registry.registrar.WhoisSettings = function(console, xsrfToken) {
+registry.registrar.WhoisSettings = function(console, resource) {
   registry.registrar.WhoisSettings.base(
-      this,
-      'constructor',
-      console,
-      new registry.Resource(new goog.Uri('/registrar-settings'), xsrfToken),
-      registry.soy.registrar.whois.settings,
-      null);
+      this, 'constructor', console, resource,
+      registry.soy.registrar.whois.settings, null);
 };
 goog.inherits(registry.registrar.WhoisSettings, registry.ResourceComponent);
 

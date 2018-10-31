@@ -72,7 +72,6 @@ public class FlowRunner {
     }
     eppMetricBuilder.setCommandNameFromFlow(flowClass.getSimpleName());
     if (!isTransactional) {
-      eppMetricBuilder.incrementAttempts();
       EppOutput eppOutput = EppOutput.create(flowProvider.get().run());
       if (flowClass.equals(LoginFlow.class)) {
         // In LoginFlow, clientId isn't known until after the flow executes, so save it then.
@@ -84,7 +83,6 @@ public class FlowRunner {
       return ofy()
           .transact(
               () -> {
-                eppMetricBuilder.incrementAttempts();
                 try {
                   EppOutput output = EppOutput.create(flowProvider.get().run());
                   if (isDryRun) {

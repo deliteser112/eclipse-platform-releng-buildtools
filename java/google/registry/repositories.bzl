@@ -72,6 +72,7 @@ def domain_registry_repositories(
         omit_com_google_googlejavaformat_google_java_format = False,
         omit_com_google_guava = False,
         omit_com_google_guava_testlib = False,
+        omit_com_google_gwt_user = False,
         omit_com_google_http_client = False,
         omit_com_google_http_client_appengine = False,
         omit_com_google_http_client_jackson2 = False,
@@ -88,6 +89,7 @@ def domain_registry_repositories(
         omit_com_google_template_soy = False,
         omit_com_google_truth = False,
         omit_com_google_truth_extensions_truth_java8_extension = False,
+        omit_com_googlecode_java_diff_utils_diffutils = False,
         omit_com_googlecode_charts4j = False,
         omit_com_googlecode_json_simple = False,
         omit_com_ibm_icu_icu4j = False,
@@ -117,6 +119,7 @@ def domain_registry_repositories(
         omit_javax_inject = False,
         omit_javax_mail = False,
         omit_javax_servlet_api = False,
+        omit_javax_validation_api = False,
         omit_javax_xml_bind_jaxb_api = False,
         omit_javax_xml_soap_api = False,
         omit_javax_xml_ws_jaxws_api = False,
@@ -136,6 +139,8 @@ def domain_registry_repositories(
         omit_org_apache_httpcomponents_httpcore = False,
         omit_org_apache_mina_core = False,
         omit_org_apache_sshd_core = False,
+        omit_org_apache_sshd_scp = False,
+        omit_org_apache_sshd_sftp = False,
         omit_org_apache_tomcat_servlet_api = False,
         omit_org_apache_tomcat_annotations_api = False,
         omit_org_bouncycastle_bcpg_jdk15on = False,
@@ -262,6 +267,8 @@ def domain_registry_repositories(
         com_google_guava()
     if not omit_com_google_guava_testlib:
         com_google_guava_testlib()
+    if not omit_com_google_gwt_user:
+        com_google_gwt_user()
     if not omit_com_google_http_client:
         com_google_http_client()
     if not omit_com_google_http_client_appengine:
@@ -294,6 +301,8 @@ def domain_registry_repositories(
         com_google_truth()
     if not omit_com_google_truth_extensions_truth_java8_extension:
         com_google_truth_extensions_truth_java8_extension()
+    if not omit_com_googlecode_java_diff_utils_diffutils:
+        com_googlecode_java_diff_utils_diffutils()
     if not omit_com_googlecode_charts4j:
         com_googlecode_charts4j()
     if not omit_com_googlecode_json_simple:
@@ -352,6 +361,8 @@ def domain_registry_repositories(
         javax_mail()
     if not omit_javax_servlet_api:
         javax_servlet_api()
+    if not omit_javax_validation_api:
+        javax_validation_api()
     if not omit_javax_xml_bind_jaxb_api:
         javax_xml_bind_jaxb_api()
     if not omit_javax_xml_soap_api:
@@ -388,6 +399,10 @@ def domain_registry_repositories(
         org_apache_mina_core()
     if not omit_org_apache_sshd_core:
         org_apache_sshd_core()
+    if not omit_org_apache_sshd_scp:
+        org_apache_sshd_scp()
+    if not omit_org_apache_sshd_sftp:
+        org_apache_sshd_sftp()
     if not omit_org_apache_tomcat_servlet_api:
         org_apache_tomcat_servlet_api()
     if not omit_org_apache_tomcat_annotations_api:
@@ -1342,6 +1357,23 @@ def com_google_guava_testlib():
         ],
     )
 
+def com_google_gwt_user():
+    java_import_external(
+        name = "com_google_gwt_user",
+        neverlink = 1,
+        licenses = ["notice"],  # GWT Terms
+        jar_sha256 = "9f420f0d0c2f177d71cb1794b3be1418f9755f6e4181101af3951b8302b9556d",
+        jar_urls = [
+            "http://maven.ibiblio.org/maven2/com/google/gwt/gwt-user/2.8.2/gwt-user-2.8.2.jar",
+            "http://repo1.maven.org/maven2/com/google/gwt/gwt-user/2.8.2/gwt-user-2.8.2.jar",
+        ],
+        deps = [
+            "@javax_validation_api",
+            "@javax_servlet_api",
+            "@org_w3c_css_sac",
+        ],
+    )
+
 def com_google_http_client():
     java_import_external(
         name = "com_google_http_client",
@@ -1547,6 +1579,7 @@ def com_google_truth():
             "@junit",
             "@com_google_auto_value",
             "@com_google_errorprone_error_prone_annotations",
+            "@com_googlecode_java_diff_utils_diffutils",
         ],
     )
 
@@ -1575,6 +1608,17 @@ def com_googlecode_charts4j():
             "http://repo1.maven.org/maven2/com/googlecode/charts4j/charts4j/1.3/charts4j-1.3.jar",
         ],
         licenses = ["notice"],  # The MIT License
+    )
+
+def com_googlecode_java_diff_utils_diffutils():
+    java_import_external(
+        name = "com_googlecode_java_diff_utils_diffutils",
+        licenses = ["notice"],  # The Apache Software License, Version 2.0
+        jar_sha256 = "61ba4dc49adca95243beaa0569adc2a23aedb5292ae78aa01186fa782ebdc5c2",
+        jar_urls = [
+            "http://maven.ibiblio.org/maven2/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar",
+            "http://repo1.maven.org/maven2/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar",
+        ],
     )
 
 def com_googlecode_json_simple():
@@ -1907,6 +1951,17 @@ def javax_servlet_api():
         licenses = ["notice"],  # Apache
     )
 
+def javax_validation_api():
+    java_import_external(
+        name = "javax_validation_api",
+        licenses = ["notice"],  # Apache License, Version 2.0
+        jar_sha256 = "e459f313ebc6db2483f8ceaad39af07086361b474fa92e40f442e8de5d9895dc",
+        jar_urls = [
+            "http://maven.ibiblio.org/maven2/javax/validation/validation-api/1.0.0.GA/validation-api-1.0.0.GA.jar",
+            "http://repo1.maven.org/maven2/javax/validation/validation-api/1.0.0.GA/validation-api-1.0.0.GA.jar",
+        ],
+    )
+
 def javax_xml_bind_jaxb_api():
     java_import_external(
         name = "javax_xml_bind_jaxb_api",
@@ -2195,13 +2250,49 @@ def org_apache_mina_core():
 def org_apache_sshd_core():
     java_import_external(
         name = "org_apache_sshd_core",
-        jar_sha256 = "5630fa11f7e2f7f5b6b7e6b9be06e476715dfb48db37998b4b7c3eea098d86ff",
+        # Apache 2.0 License
+        # http://www.apache.org/licenses/LICENSE-2.0
+        # Apache License, Version 2.0
+        # http://www.apache.org/licenses/LICENSE-2.0.txt
+        licenses = ["notice"],
+        jar_sha256 = "00c944fac00dec2e7ace4052e0a52c772ca3fa2653918bbcfadf7100df022e25",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/org/apache/sshd/sshd-core/1.2.0/sshd-core-1.2.0.jar",
-            "http://repo1.maven.org/maven2/org/apache/sshd/sshd-core/1.2.0/sshd-core-1.2.0.jar",
+            "http://repo1.maven.org/maven2/org/apache/sshd/sshd-core/2.0.0/sshd-core-2.0.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/sshd/sshd-core/2.0.0/sshd-core-2.0.0.jar",
         ],
-        licenses = ["notice"],  # Apache 2.0 License
         deps = ["@org_slf4j_api"],
+    )
+
+def org_apache_sshd_scp():
+    java_import_external(
+        name = "org_apache_sshd_scp",
+        # Apache 2.0 License
+        # http://www.apache.org/licenses/LICENSE-2.0
+        # Apache License, Version 2.0
+        # http://www.apache.org/licenses/LICENSE-2.0.txt
+        licenses = ["notice"],
+        jar_sha256 = "ae32fcc16ab0a0ae04655b8832676b41199814184dc50028b3c6aa61053635ca",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/org/apache/sshd/sshd-scp/2.0.0/sshd-scp-2.0.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/sshd/sshd-scp/2.0.0/sshd-scp-2.0.0.jar",
+        ],
+        deps = ["@org_apache_sshd_core"],
+    )
+
+def org_apache_sshd_sftp():
+    java_import_external(
+        name = "org_apache_sshd_sftp",
+        # Apache 2.0 License
+        # http://www.apache.org/licenses/LICENSE-2.0
+        # Apache License, Version 2.0
+        # http://www.apache.org/licenses/LICENSE-2.0.txt
+        licenses = ["notice"],
+        jar_sha256 = "0504af9a4afcaf61be9f0b56d3cfc76a9187a654e297bc57b7fa81aa76bb8cb0",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/org/apache/sshd/sshd-sftp/2.0.0/sshd-sftp-2.0.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/sshd/sshd-sftp/2.0.0/sshd-sftp-2.0.0.jar",
+        ],
+        deps = ["@org_apache_sshd_core"],
     )
 
 def org_apache_tomcat_servlet_api():

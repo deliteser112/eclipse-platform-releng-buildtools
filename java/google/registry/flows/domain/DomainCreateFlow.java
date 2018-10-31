@@ -23,6 +23,7 @@ import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReference
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.isAnchorTenant;
+import static google.registry.flows.domain.DomainFlowUtils.isReserved;
 import static google.registry.flows.domain.DomainFlowUtils.isValidReservedCreate;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
@@ -113,7 +114,7 @@ import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
-import google.registry.tmch.LordnTask;
+import google.registry.tmch.LordnTaskUtils;
 import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -308,7 +309,8 @@ public class DomainCreateFlow implements TransactionalFlow {
             .build());
     Optional<FeeCreateCommandExtension> feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
-    FeesAndCredits feesAndCredits = pricingLogic.getCreatePrice(registry, targetId, now, years);
+    FeesAndCredits feesAndCredits =
+        pricingLogic.getCreatePrice(registry, targetId, now, years, isAnchorTenant);
     validateFeeChallenge(targetId, registry.getTldStr(), clientId, now, feeCreate, feesAndCredits);
     Optional<SecDnsCreateExtension> secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
@@ -319,7 +321,14 @@ public class DomainCreateFlow implements TransactionalFlow {
     // Bill for the create.
     BillingEvent.OneTime createBillingEvent =
         createOneTimeBillingEvent(
-            registry, isAnchorTenant, isSunriseCreate, years, feesAndCredits, historyEntry, now);
+            registry,
+            isAnchorTenant,
+            isSunriseCreate,
+            isReserved(domainName, isSunriseCreate),
+            years,
+            feesAndCredits,
+            historyEntry,
+            now);
     // Create a new autorenew billing event and poll message starting at the expiration time.
     BillingEvent.Recurring autorenewBillingEvent =
         createAutorenewBillingEvent(historyEntry, registrationExpirationTime);
@@ -506,6 +515,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       Registry registry,
       boolean isAnchorTenant,
       boolean isSunriseCreate,
+      boolean isReserved,
       int years,
       FeesAndCredits feesAndCredits,
       HistoryEntry historyEntry,
@@ -517,6 +527,10 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
     if (isAnchorTenant) {
       flagsBuilder.add(Flag.ANCHOR_TENANT);
+    } else if (isReserved) {
+      // Don't add this flag if the domain is an anchor tenant (which are also reserved); only add
+      // it if it's reserved for other reasons.
+      flagsBuilder.add(Flag.RESERVED);
     }
     return new BillingEvent.OneTime.Builder()
         .setReason(Reason.CREATE)
@@ -594,7 +608,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       dnsQueue.addDomainRefreshTask(newDomain.getFullyQualifiedDomainName());
     }
     if (hasClaimsNotice || hasSignedMarks) {
-      LordnTask.enqueueDomainResourceTask(newDomain);
+      LordnTaskUtils.enqueueDomainResourceTask(newDomain);
     }
   }
 

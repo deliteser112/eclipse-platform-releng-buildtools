@@ -17,6 +17,7 @@ package google.registry.flows;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlSanitizer.sanitizeEppXml;
 import static google.registry.testing.TestDataHelper.loadBytes;
+import static java.nio.charset.StandardCharsets.UTF_16LE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
@@ -30,12 +31,12 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class EppXmlSanitizerTest {
 
-  private static final String XML_HEADER = "<?xml version=\"1.0\" ?>";
+  private static final String UTF8_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
   @Test
   public void testSanitize_noSensitiveData_noop() throws Exception {
     byte[] inputXmlBytes = loadBytes(getClass(), "host_create.xml").read();
-    String expectedXml = XML_HEADER + new String(inputXmlBytes, UTF_8);
+    String expectedXml = UTF8_HEADER + new String(inputXmlBytes, UTF_8);
 
     String sanitizedXml = sanitizeEppXml(inputXmlBytes);
     assertThat(sanitizedXml).isEqualTo(expectedXml);
@@ -50,7 +51,7 @@ public class EppXmlSanitizerTest {
                 ImmutableMap.of("PW", "oldpass", "NEWPW", "newPw"))
             .getEppXml();
     String expectedXml =
-        XML_HEADER
+        UTF8_HEADER
             + new EppLoader(
                     this,
                     "login_update_password.xml",
@@ -68,7 +69,7 @@ public class EppXmlSanitizerTest {
                 this, "login_wrong_case.xml", ImmutableMap.of("PW", "oldpass", "NEWPW", "newPw"))
             .getEppXml();
     String expectedXml =
-        XML_HEADER
+        UTF8_HEADER
             + new EppLoader(
                     this,
                     "login_wrong_case.xml",
@@ -83,7 +84,7 @@ public class EppXmlSanitizerTest {
   public void testSanitize_contactAuthInfo_sanitized() throws Exception {
     byte[] inputXmlBytes = loadBytes(getClass(), "contact_info.xml").read();
     String expectedXml =
-        XML_HEADER
+        UTF8_HEADER
             + new EppLoader(this, "contact_info_sanitized.xml", ImmutableMap.of()).getEppXml();
 
     String sanitizedXml = sanitizeEppXml(inputXmlBytes);
@@ -94,7 +95,7 @@ public class EppXmlSanitizerTest {
   public void testSanitize_contactCreateResponseAuthInfo_sanitized() throws Exception {
     byte[] inputXmlBytes = loadBytes(getClass(), "contact_info_from_create_response.xml").read();
     String expectedXml =
-        XML_HEADER
+        UTF8_HEADER
             + new EppLoader(
                     this, "contact_info_from_create_response_sanitized.xml", ImmutableMap.of())
                 .getEppXml();
@@ -106,7 +107,7 @@ public class EppXmlSanitizerTest {
   @Test
   public void testSanitize_emptyElement_transformedToLongForm() {
     byte[] inputXmlBytes = "<pw/>".getBytes(UTF_8);
-    assertThat(sanitizeEppXml(inputXmlBytes)).isEqualTo(XML_HEADER + "<pw></pw>\n");
+    assertThat(sanitizeEppXml(inputXmlBytes)).isEqualTo(UTF8_HEADER + "<pw></pw>\n");
   }
 
   @Test
@@ -119,7 +120,22 @@ public class EppXmlSanitizerTest {
   @Test
   public void testSanitize_unicode_hasCorrectCharCount() {
     byte[] inputXmlBytes = "<pw>\u007F\u4E43x</pw>".getBytes(UTF_8);
-    String expectedXml = XML_HEADER + "<pw>C**</pw>\n";
+    String expectedXml = UTF8_HEADER + "<pw>C**</pw>\n";
     assertThat(sanitizeEppXml(inputXmlBytes)).isEqualTo(expectedXml);
+  }
+
+  @Test
+  public void testSanitize_emptyString_encodedToBase64() {
+    byte[] inputXmlBytes = "".getBytes(UTF_8);
+    assertThat(sanitizeEppXml(inputXmlBytes)).isEqualTo("");
+  }
+
+  @Test
+  public void testSanitize_utf16_encodingPreserved() {
+    // Test data should specify an endian-specific UTF-16 scheme for easy assertion. If 'UTF-16' is
+    // used, the XMLEventReader in sanitizer may resolve it to an endian-specific one.
+    String inputXml = "<?xml version=\"1.0\" encoding=\"UTF-16LE\"?><p>\u03bc</p>\n";
+    String sanitizedXml = sanitizeEppXml(inputXml.getBytes(UTF_16LE));
+    assertThat(sanitizedXml).isEqualTo(inputXml);
   }
 }

@@ -24,6 +24,7 @@ import google.registry.flows.domain.DomainFlowTmchUtils;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.testing.AppEngineRule;
 import google.registry.util.ResourceUtils;
+import google.registry.util.SystemClock;
 import java.nio.file.Path;
 import org.joda.time.DateTime;
 import org.junit.Rule;
@@ -43,7 +44,8 @@ public class TmchTestDataExpirationTest {
   public void testActiveSignedMarkFiles_areValidAndNotExpired() throws Exception {
     DomainFlowTmchUtils tmchUtils =
         new DomainFlowTmchUtils(
-            new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT)));
+            new TmchXmlSignature(
+                new TmchCertificateAuthority(TmchCaMode.PILOT, new SystemClock())));
 
     for (Path path : listFiles(TmchTestDataExpirationTest.class, "testdata/active/")) {
       if (path.toString().endsWith(".smd")) {

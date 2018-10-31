@@ -32,7 +32,6 @@ import google.registry.testing.FakeHttpSession;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.testing.ShardableTestCase;
-import google.registry.tmch.TmchCertificateAuthority;
 import java.util.Map;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -58,8 +57,6 @@ public class EppTestCase extends ShardableTestCase {
   public void initTestCase() {
     // For transactional flows
     inject.setStaticField(Ofy.class, "clock", clock);
-    // For SignedMark signature validity
-    inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
   }
 
   /**
@@ -167,7 +164,7 @@ public class EppTestCase extends ShardableTestCase {
     EppRequestHandler handler = new EppRequestHandler();
     FakeResponse response = new FakeResponse();
     handler.response = response;
-    eppMetricBuilder = EppMetric.builderForRequest("request-id-1", clock);
+    eppMetricBuilder = EppMetric.builderForRequest(clock);
     handler.eppController = DaggerEppTestComponent.builder()
         .fakesAndMocksModule(FakesAndMocksModule.create(clock, eppMetricBuilder))
         .build()

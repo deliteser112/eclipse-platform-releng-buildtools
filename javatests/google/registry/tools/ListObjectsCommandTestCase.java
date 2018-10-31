@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.tools.CommandWithConnection.Connection;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +37,7 @@ import org.mockito.Mock;
 public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     extends CommandTestCase<C> {
 
-  @Mock Connection connection;
+  @Mock AppEngineConnection connection;
 
   /** Where to find the servlet task; set by the subclass. */
   abstract String getTaskPath();
@@ -62,7 +61,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
               .collect(toImmutableList());
     }
     command.setConnection(connection);
-    when(connection.send(
+    when(connection.sendPostRequest(
             eq(getTaskPath()),
             anyMapOf(String.class, Object.class),
             eq(MediaType.PLAIN_TEXT_UTF_8),
@@ -82,7 +81,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     fullFieldNames.ifPresent(aBoolean -> params.put(FULL_FIELD_NAMES_PARAM, aBoolean));
     params.putAll(getOtherParameters());
     verify(connection)
-        .send(
+        .sendPostRequest(
             eq(getTaskPath()), eq(params.build()), eq(MediaType.PLAIN_TEXT_UTF_8), eq(new byte[0]));
   }
 

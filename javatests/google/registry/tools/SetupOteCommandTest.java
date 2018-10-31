@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.testing.DeterministicStringGenerator;
@@ -57,6 +58,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Before
   public void init() {
+    SetupOteCommand.interactive = false;
     command.validDnsWriterNames = ImmutableSet.of("FooDnsWriter", "BarDnsWriter", "VoidDnsWriter");
     command.passwordGenerator = passwordGenerator;
     persistPremiumList("default_sandbox_list", "sandbox,USD 1000");
@@ -144,11 +146,22 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyRegistrarCreation(registrarName, allowedTld, password, ipWhitelist, false);
   }
 
+  private void verifyRegistrarContactCreation(String registrarName, String email) {
+    ImmutableSet<RegistrarContact> registrarContacts =
+        loadRegistrar(registrarName).getContacts();
+    assertThat(registrarContacts).hasSize(1);
+    RegistrarContact registrarContact = registrarContacts.stream().findAny().get();
+    assertThat(registrarContact.getEmailAddress()).isEqualTo(email);
+    assertThat(registrarContact.getName()).isEqualTo(email);
+    assertThat(registrarContact.getGaeUserId()).isNotNull();
+  }
+
   @Test
   public void testSuccess() throws Exception {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
+        "--email=contact@email.com",
         "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
 
@@ -189,6 +202,12 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyRegistrarCreation("blobio-3", "blobio-ga", passwords.get(2), ipAddress);
     verifyRegistrarCreation("blobio-4", "blobio-ga", passwords.get(3), ipAddress);
     verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(4), ipAddress);
+
+    verifyRegistrarContactCreation("blobio-1", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-2", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-3", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-4", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-5", "contact@email.com");
   }
 
   @Test
@@ -196,6 +215,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=abc",
+        "--email=abc@email.com",
         "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
 
@@ -236,6 +256,12 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyRegistrarCreation("abc-3", "abc-ga", passwords.get(2), ipAddress);
     verifyRegistrarCreation("abc-4", "abc-ga", passwords.get(3), ipAddress);
     verifyRegistrarCreation("abc-5", "abc-eap", passwords.get(4), ipAddress);
+
+    verifyRegistrarContactCreation("abc-1", "abc@email.com");
+    verifyRegistrarContactCreation("abc-2", "abc@email.com");
+    verifyRegistrarContactCreation("abc-3", "abc@email.com");
+    verifyRegistrarContactCreation("abc-4", "abc@email.com");
+    verifyRegistrarContactCreation("abc-5", "abc@email.com");
   }
 
   @Test
@@ -244,6 +270,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--eap_only",
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
+        "--email=contact@email.com",
         "--dns_writers=VoidDnsWriter",
         "--certhash=" + SAMPLE_CERT_HASH);
 
@@ -262,6 +289,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         ImmutableList.of(CidrAddressBlock.create("1.1.1.1"));
 
     verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(0), ipAddress, true);
+
+    verifyRegistrarContactCreation("blobio-5", "contact@email.com");
   }
 
   @Test
@@ -270,6 +299,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--eap_only",
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
+        "--email=contact@email.com",
         "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
 
@@ -288,6 +318,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         CidrAddressBlock.create("1.1.1.1"));
 
     verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(0), ipAddress);
+
+    verifyRegistrarContactCreation("blobio-5", "contact@email.com");
   }
 
   @Test
@@ -295,6 +327,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1,2.2.2.2",
         "--registrar=blobio",
+        "--email=contact@email.com",
         "--dns_writers=FooDnsWriter",
         "--certfile=" + getCertFilename());
 
@@ -336,6 +369,12 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyRegistrarCreation("blobio-3", "blobio-ga", passwords.get(2), ipAddresses);
     verifyRegistrarCreation("blobio-4", "blobio-ga", passwords.get(3), ipAddresses);
     verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(4), ipAddresses);
+
+    verifyRegistrarContactCreation("blobio-1", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-2", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-3", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-4", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-5", "contact@email.com");
   }
 
   @Test
@@ -343,6 +382,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
+        "--email=contact@email.com",
         "--certfile=" + getCertFilename(),
         "--dns_writers=BarDnsWriter",
         "--premium_list=alternate_list");
@@ -384,6 +424,12 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyRegistrarCreation("blobio-3", "blobio-ga", passwords.get(2), ipAddress);
     verifyRegistrarCreation("blobio-4", "blobio-ga", passwords.get(3), ipAddress);
     verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(4), ipAddress);
+
+    verifyRegistrarContactCreation("blobio-1", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-2", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-3", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-4", "contact@email.com");
+    verifyRegistrarContactCreation("blobio-5", "contact@email.com");
   }
 
   @Test
@@ -394,6 +440,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
             () ->
                 runCommandForced(
                     "--registrar=blobio",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--certfile=" + getCertFilename()));
     assertThat(thrown).hasMessageThat().contains("option is required: -w, --ip_whitelist");
@@ -407,6 +454,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
             () ->
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--certfile=" + getCertFilename()));
     assertThat(thrown).hasMessageThat().contains("option is required: -r, --registrar");
@@ -419,7 +467,10 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
-                    "--ip_whitelist=1.1.1.1", "--dns_writers=VoidDnsWriter", "--registrar=blobio"));
+                    "--ip_whitelist=1.1.1.1",
+                    "--email=contact@email.com",
+                    "--dns_writers=VoidDnsWriter",
+                    "--registrar=blobio"));
     assertThat(thrown)
         .hasMessageThat()
         .contains(
@@ -434,6 +485,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
             () ->
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--registrar=blobio",
                     "--certfile=" + getCertFilename(),
@@ -452,9 +504,24 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
             () ->
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
+                    "--email=contact@email.com",
                     "--certfile=" + getCertFilename(),
                     "--registrar=blobio"));
     assertThat(thrown).hasMessageThat().contains("option is required: --dns_writers");
+  }
+
+  @Test
+  public void testFailure_missingEmail() {
+    ParameterException thrown =
+        assertThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=" + getCertFilename(),
+                    "--registrar=blobio"));
+    assertThat(thrown).hasMessageThat().contains("option is required: --email");
   }
 
   @Test
@@ -466,6 +533,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
                     "--registrar=blobio",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--certfile=/dev/null"));
     assertThat(thrown).hasMessageThat().contains("No X509Certificate found");
@@ -480,6 +548,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
                     "--registrar=3blobio",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--certfile=" + getCertFilename()));
     assertThat(thrown).hasMessageThat().contains("Registrar name is invalid");
@@ -494,6 +563,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
                     "--registrar=blobio",
+                    "--email=contact@email.com",
                     "--dns_writers=InvalidDnsWriter",
                     "--certfile=" + getCertFilename()));
     assertThat(thrown)
@@ -510,6 +580,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
                     "--registrar=bl",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--certfile=" + getCertFilename()));
     assertThat(thrown).hasMessageThat().contains("Registrar name is invalid");
@@ -524,6 +595,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
                     "--registrar=blobiotoooolong",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--certfile=" + getCertFilename()));
     assertThat(thrown).hasMessageThat().contains("Registrar name is invalid");
@@ -538,6 +610,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
                     "--registrar=blo#bio",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--certfile=" + getCertFilename()));
     assertThat(thrown).hasMessageThat().contains("Registrar name is invalid");
@@ -552,6 +625,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
                     "--registrar=blobio",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--certfile=" + getCertFilename(),
                     "--premium_list=foo"));
@@ -568,6 +642,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
                     "--registrar=blobio",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--certfile=" + getCertFilename()));
     assertThat(thrown).hasMessageThat().contains("TLD 'blobio-sunrise' already exists");
@@ -587,6 +662,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
                     "--registrar=blobio",
+                    "--email=contact@email.com",
                     "--dns_writers=VoidDnsWriter",
                     "--certfile=" + getCertFilename()));
     assertThat(thrown).hasMessageThat().contains("Registrar blobio-1 already exists");

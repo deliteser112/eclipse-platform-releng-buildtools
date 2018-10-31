@@ -109,7 +109,11 @@ public class EppQuotaHandlerTest {
         .thenReturn(QuotaResponse.create(false, clientCertHash, now));
     OverQuotaException e =
         assertThrows(OverQuotaException.class, () -> channel.writeInbound(message));
+    ChannelFuture unusedFuture = channel.close();
     assertThat(e).hasMessageThat().contains(clientCertHash);
+    verify(quotaManager).acquireQuota(QuotaRequest.create(clientCertHash));
+    // Make sure that quotaManager.releaseQuota() is not called when the channel closes.
+    verifyNoMoreInteractions(quotaManager);
     verify(metrics).registerQuotaRejection("epp", clientCertHash);
     verifyNoMoreInteractions(metrics);
   }

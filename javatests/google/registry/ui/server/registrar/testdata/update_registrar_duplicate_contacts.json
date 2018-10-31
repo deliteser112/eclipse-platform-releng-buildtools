@@ -1,5 +1,6 @@
 {
   "op": "update",
+  "id": "TheRegistrar",
   "args": {
     "clientIdentifier": "theregistrar",
     "driveFolderId": null,
@@ -30,7 +31,7 @@
       }
     ],
     "allowedTlds": [
-      "ga"
+      "currenttld"
     ],
     "clientCertificateHash": null,
     "faxNumber": "",

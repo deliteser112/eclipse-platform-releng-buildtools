@@ -17,6 +17,7 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -84,9 +85,14 @@ public final class GpgSystemCommandRule extends ExternalResource {
   @Override
   protected void before() throws IOException, InterruptedException {
     checkState(Objects.equals(cwd, DEV_NULL));
-    File tmpRoot = null;
-    tmpRoot = new File(System.getenv("TMPDIR"));
-    cwd = File.createTempFile(TEMP_FILE_PREFIX, "", tmpRoot);
+    String tmpRootDirString = System.getenv("TMPDIR");
+    // Create the working directory for the forked process on Temp file system. Create under the
+    // path specified by 'TMPDIR' envrionment variable if defined, otherwise create under the
+    // runtime's default (typically /tmp).
+    cwd =
+        isNullOrEmpty(tmpRootDirString)
+            ? File.createTempFile(TEMP_FILE_PREFIX, "")
+            : File.createTempFile(TEMP_FILE_PREFIX, "", new File(tmpRootDirString));
     cwd.delete();
     cwd.mkdir();
     conf = new File(cwd, ".gnupg");
@@ -118,6 +124,7 @@ public final class GpgSystemCommandRule extends ExternalResource {
 
   @Override
   protected void after() {
+    // TODO(weiminyu): we should delete the cwd tree.
     cwd = DEV_NULL;
     conf = DEV_NULL;
   }

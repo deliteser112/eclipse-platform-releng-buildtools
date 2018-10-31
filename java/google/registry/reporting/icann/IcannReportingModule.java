@@ -25,7 +25,6 @@ import dagger.Provides;
 import google.registry.bigquery.BigqueryConnection;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
-import google.registry.util.SendEmailService;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.util.Optional;
@@ -113,11 +112,6 @@ public final class IcannReportingModule {
     } catch (Throwable e) {
       throw new RuntimeException("Could not initialize BigqueryConnection!", e);
     }
-  }
-
-  @Provides
-  static SendEmailService provideSendEmailService() {
-    return new SendEmailService();
   }
 
   /** Dagger qualifier for the subdirectory we stage to/upload from. */

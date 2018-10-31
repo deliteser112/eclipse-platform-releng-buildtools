@@ -22,18 +22,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDomainAndEnqueueLordn;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.google.appengine.api.taskqueue.LeaseOptions;
-import com.google.appengine.api.taskqueue.Queue;
-import com.google.appengine.api.taskqueue.TaskHandle;
-import com.google.appengine.api.taskqueue.TaskOptions;
-import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.appengine.api.taskqueue.TransientFailureException;
-import com.google.apphosting.api.DeadlineExceededException;
-import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.launch.LaunchNotice;
@@ -44,7 +33,6 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Clock;
-import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,9 +40,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Unit tests for {@link LordnTask}. */
+/** Unit tests for {@link LordnTaskUtils}. */
 @RunWith(JUnit4.class)
-public class LordnTaskTest {
+public class LordnTaskUtilsTest {
 
   private static final Clock clock = new FakeClock(DateTime.parse("2010-05-01T10:11:12Z"));
 
@@ -70,32 +58,9 @@ public class LordnTaskTest {
   public void before() {
     createTld("example");
     inject.setStaticField(Ofy.class, "clock", clock);
-    inject.setStaticField(LordnTask.class, "backOffMillis", 1L);
   }
 
-  @Test
-  public void test_convertTasksToCsv() {
-    List<TaskHandle> tasks = ImmutableList.of(
-        makeTaskHandle("task1", "example", "csvLine1", "lordn-sunrise"),
-        makeTaskHandle("task2", "example", "csvLine2", "lordn-sunrise"),
-        makeTaskHandle("task3", "example", "ending", "lordn-sunrise"));
-    assertThat(LordnTask.convertTasksToCsv(tasks, clock.nowUtc(), "col1,col2"))
-        .isEqualTo("1,2010-05-01T10:11:12.000Z,3\ncol1,col2\ncsvLine1\ncsvLine2\nending\n");
-  }
 
-  @Test
-  public void test_convertTasksToCsv_doesntFailOnEmptyTasks() {
-    assertThat(
-        LordnTask.convertTasksToCsv(ImmutableList.of(), clock.nowUtc(), "col1,col2"))
-            .isEqualTo("1,2010-05-01T10:11:12.000Z,0\ncol1,col2\n");
-  }
-
-  @Test
-  public void test_convertTasksToCsv_throwsNpeOnNullTasks() {
-    assertThrows(
-        NullPointerException.class,
-        () -> LordnTask.convertTasksToCsv(null, clock.nowUtc(), "header"));
-  }
 
   private DomainResource.Builder newDomainBuilder(DateTime applicationTime) {
     return new DomainResource.Builder()
@@ -173,38 +138,6 @@ public class LordnTaskTest {
   public void test_enqueueDomainResourceTask_throwsNpeOnNullDomain() {
     assertThrows(
         NullPointerException.class,
-        () -> ofy().transactNew(() -> LordnTask.enqueueDomainResourceTask(null)));
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void test_loadAllTasks_retryLogic_thirdTrysTheCharm() {
-    Queue queue = mock(Queue.class);
-    TaskHandle task = new TaskHandle(TaskOptions.Builder.withTaskName("blah"), "blah");
-    when(queue.leaseTasks(any(LeaseOptions.class)))
-        .thenThrow(TransientFailureException.class)
-        .thenThrow(DeadlineExceededException.class)
-        .thenReturn(ImmutableList.of(task), ImmutableList.of());
-    assertThat(LordnTask.loadAllTasks(queue, "tld")).containsExactly(task);
-  }
-
-  @SuppressWarnings("unchecked")
-  @Test
-  public void test_loadAllTasks_retryLogic_allFailures() {
-    Queue queue = mock(Queue.class);
-    when(queue.leaseTasks(any(LeaseOptions.class))).thenThrow(TransientFailureException.class);
-    RuntimeException thrown =
-        assertThrows(RuntimeException.class, () -> LordnTask.loadAllTasks(queue, "tld"));
-    assertThat(thrown).hasMessageThat().contains("Error leasing tasks");
-  }
-
-  private static TaskHandle makeTaskHandle(
-      String taskName,
-      String tag,
-      String payload,
-      String queue) {
-    return new TaskHandle(
-        TaskOptions.Builder.withPayload(payload).method(Method.PULL).tag(tag).taskName(taskName),
-        queue);
+        () -> ofy().transactNew(() -> LordnTaskUtils.enqueueDomainResourceTask(null)));
   }
 }

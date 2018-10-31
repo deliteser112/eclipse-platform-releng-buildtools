@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.model.registrar.Registrar;
-import google.registry.tools.CommandWithConnection.Connection;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +31,7 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class LoadTestCommandTest extends CommandTestCase<LoadTestCommand> {
-  Connection connection = mock(Connection.class);
+  AppEngineConnection connection = mock(AppEngineConnection.class);
 
   @Before
   public void setUp() {
@@ -55,11 +54,9 @@ public class LoadTestCommandTest extends CommandTestCase<LoadTestCommand> {
         .put("contactInfos", 1)
         .put("runSeconds", 4600)
         .build();
-    verify(connection).send(
-        eq("/_dr/loadtest"),
-        eq(parms),
-        eq(MediaType.PLAIN_TEXT_UTF_8),
-        eq(new byte[0]));
+    verify(connection)
+        .sendPostRequest(
+            eq("/_dr/loadtest"), eq(parms), eq(MediaType.PLAIN_TEXT_UTF_8), eq(new byte[0]));
   }
 
   @Test
@@ -86,11 +83,9 @@ public class LoadTestCommandTest extends CommandTestCase<LoadTestCommand> {
         .put("contactInfos", 15)
         .put("runSeconds", 16)
         .build();
-    verify(connection).send(
-        eq("/_dr/loadtest"),
-        eq(parms),
-        eq(MediaType.PLAIN_TEXT_UTF_8),
-        eq(new byte[0]));
+    verify(connection)
+        .sendPostRequest(
+            eq("/_dr/loadtest"), eq(parms), eq(MediaType.PLAIN_TEXT_UTF_8), eq(new byte[0]));
   }
 
   @Test

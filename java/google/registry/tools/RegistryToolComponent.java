@@ -14,7 +14,6 @@
 
 package google.registry.tools;
 
-import com.google.monitoring.metrics.MetricWriter;
 import dagger.Component;
 import google.registry.bigquery.BigqueryModule;
 import google.registry.config.CredentialModule;
@@ -22,17 +21,15 @@ import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
+import google.registry.keyring.KeyringModule;
+import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.kms.KmsModule;
 import google.registry.rde.RdeModule;
-import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.DatastoreServiceModule;
-import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
-import google.registry.request.Modules.NetHttpTransportModule;
 import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
-import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
 import google.registry.util.SystemClock.SystemClockModule;
@@ -49,37 +46,30 @@ import javax.inject.Singleton;
 @Singleton
 @Component(
     modules = {
-      AppEngineConnectionFlags.FlagsModule.class,
       AppEngineServiceUtilsModule.class,
       // TODO(b/36866706): Find a way to replace this with a command-line friendly version
-      AppIdentityCredentialModule.class,
       AuthModule.class,
       BigqueryModule.class,
       ConfigModule.class,
       CredentialModule.class,
       DatastoreServiceModule.class,
-      google.registry.keyring.api.DummyKeyringModule.class,
+      DummyKeyringModule.class,
       CloudDnsWriterModule.class,
       DefaultRequestFactoryModule.class,
       DefaultRequestFactoryModule.RequestFactoryModule.class,
       DnsUpdateWriterModule.class,
-      GoogleCredentialModule.class,
       Jackson2Module.class,
       KeyModule.class,
+      KeyringModule.class,
       KmsModule.class,
-      NetHttpTransportModule.class,
       RdeModule.class,
-      RegistryToolModule.class,
       SystemClockModule.class,
       SystemSleeperModule.class,
       URLFetchServiceModule.class,
       UrlFetchTransportModule.class,
-      // TODO(b/36866706): Find a way to replace this with a command-line friendly version
-      UseAppIdentityCredentialForGoogleApisModule.class,
       UserServiceModule.class,
       VoidDnsWriterModule.class,
       WhoisModule.class,
-      MetricToolModule.class,
     })
 interface RegistryToolComponent {
   void inject(CheckDomainClaimsCommand command);
@@ -118,6 +108,4 @@ interface RegistryToolComponent {
   void inject(WhoisQueryCommand command);
 
   AppEngineConnection appEngineConnection();
-
-  MetricWriter metricWriter();
 }

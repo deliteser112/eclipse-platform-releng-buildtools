@@ -17,23 +17,21 @@ goog.setTestOnly();
 goog.require('goog.dispose');
 goog.require('goog.dom');
 goog.require('goog.dom.classlist');
-goog.require('goog.soy');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.asserts');
 goog.require('goog.testing.jsunit');
 goog.require('goog.testing.net.XhrIo');
 goog.require('registry.registrar.ConsoleTestUtil');
-goog.require('registry.soy.registrar.console');
 goog.require('registry.testing');
 goog.require('registry.util');
 
 
-var $ = goog.dom.getRequiredElement;
-var $$ = goog.dom.getRequiredElementByClass;
-var stubs = new goog.testing.PropertyReplacer();
+const $ = goog.dom.getRequiredElement;
+const $$ = goog.dom.getRequiredElementByClass;
+const stubs = new goog.testing.PropertyReplacer();
 
-var test = {
+const test = {
   testXsrfToken: '༼༎෴ ༎༽',
   testClientId: 'testClientId',
   mockControl: new goog.testing.MockControl()
@@ -43,19 +41,9 @@ var test = {
 function setUp() {
   registry.testing.addToDocument('<div id="test"/>');
   registry.testing.addToDocument('<div class="kd-butterbar"/>');
-  goog.soy.renderElement($('test'), registry.soy.registrar.console.main, {
+  registry.registrar.ConsoleTestUtil.renderConsoleMain($('test'), {
     xsrfToken: test.testXsrfToken,
-    username: 'blah',
-    logoutUrl: 'omg',
-    isAdmin: true,
     clientId: test.testClientId,
-    logoFilename: 'logo.png',
-    productName: 'Nomulus',
-    integrationEmail: 'integration@example.com',
-    supportEmail: 'support@example.com',
-    announcementsEmail: 'announcement@example.com',
-    supportPhoneNumber: '+1 (888) 555 0123',
-    technicalDocsUrl: 'http://example.com/techdocs'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   registry.registrar.ConsoleTestUtil.setup(test);
@@ -72,7 +60,7 @@ function tearDown() {
 
 /**
  * Creates test registrar.
- * @return {Object}
+ * @return {!Object}
  */
 function createTestRegistrar() {
   return {
@@ -98,19 +86,19 @@ function testView() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'whois-settings',
     xsrfToken: test.testXsrfToken,
-    testClientId: test.testClientId
+    clientId: test.testClientId
   });
-  var testRegistrar = createTestRegistrar();
+  const testRegistrar = createTestRegistrar();
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'read', args: {}},
+      {op: 'read', id: 'testClientId', args: {}},
       {
         status: 'SUCCESS',
         message: 'OK',
         results: [testRegistrar]
       });
-  var parsed = registry.util.parseForm('item');
+  const parsed = registry.util.parseForm('item');
   parsed.ianaIdentifier = parseInt(parsed.ianaIdentifier);
   registry.testing.assertObjectEqualsPretty(testRegistrar, parsed);
 }
@@ -123,13 +111,13 @@ function testEdit() {
   $('localizedAddress.street[0]').value = 'look at me i am';
   $('localizedAddress.street[1]').value = 'the mistress of the night';
   $('localizedAddress.street[2]').value = '';
-  var parsed = registry.util.parseForm('item');
+  const parsed = registry.util.parseForm('item');
   parsed.readonly = false;
   registry.testing.click($('reg-app-btn-save'));
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'update', args: parsed},
+      {op: 'update', id: 'testClientId', args: parsed},
       {
         status: 'SUCCESS',
         message: 'OK',
@@ -142,20 +130,20 @@ function testEditFieldError_insertsError() {
   testView();
   registry.testing.click($('reg-app-btn-edit'));
   $('phoneNumber').value = 'foo';
-  var parsed = registry.util.parseForm('item');
+  const parsed = registry.util.parseForm('item');
   parsed.readonly = false;
   registry.testing.click($('reg-app-btn-save'));
-  var errMsg = 'Carpe brunchus. --Pablo';
+  const errMsg = 'Carpe brunchus. --Pablo';
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'update', args: parsed},
+      {op: 'update', id: 'testClientId', args: parsed},
       {
         status: 'ERROR',
         field: 'phoneNumber',
         message: errMsg
       });
-  var msgBox = goog.dom.getNextElementSibling($('phoneNumber'));
+  const msgBox = goog.dom.getNextElementSibling($('phoneNumber'));
   assertTrue(goog.dom.classlist.contains(msgBox, 'kd-errormessage'));
   assertTrue(goog.dom.classlist.contains($('phoneNumber'), 'kd-formerror'));
   assertEquals(errMsg, goog.dom.getTextContent(msgBox));
@@ -165,15 +153,15 @@ function testEditFieldError_insertsError() {
 function testEditNonFieldError_showsButterBar() {
   testView();
   registry.testing.click($('reg-app-btn-edit'));
-  var parsed = registry.util.parseForm('item');
+  const parsed = registry.util.parseForm('item');
   parsed.readonly = false;
   registry.testing.click($('reg-app-btn-save'));
-  var errMsg = 'One must still have chaos in oneself to be able to give ' +
+  const errMsg = 'One must still have chaos in oneself to be able to give ' +
       'birth to a dancing star. --Nietzsche';
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'update', args: parsed},
+      {op: 'update', id: 'testClientId', args: parsed},
       {
         status: 'ERROR',
         message: errMsg

@@ -9,10 +9,13 @@ appEngine:
   # Globally unique App Engine project ID
   projectId: registry-project-id
 
-  # Hostname and port of the tools service for the project.
-  toolsServiceUrl:
-    hostName: localhost
-    port: 443
+  # whether to use local/test credentials when connecting to the servers
+  isLocal: true
+  # URLs of the services for the project.
+  defaultServiceUrl: https://localhost
+  backendServiceUrl: https://localhost
+  toolsServiceUrl: https://localhost
+  pubapiServiceUrl: https://localhost
 
 gSuite:
   # Publicly accessible domain name of the running G Suite instance.
@@ -102,6 +105,72 @@ registryPolicy:
     domain names or modify existing registrations; or (c) engage in or support
     unlawful behavior. We reserve the right to restrict or deny your access to
     the WHOIS database, and may modify these terms at any time.
+
+  # RDAP Terms of Service text displayed at the /rdap/help/tos endpoint.
+  rdapTos: >
+    By querying our Domain Database as part of the RDAP pilot program (RDAP
+    Domain Database), you are agreeing to comply with these terms, so please
+    read them carefully.
+
+    Any information provided is 'as is' without any guarantee of accuracy.
+
+    Please do not misuse the RDAP Domain Database. It is intended solely for
+    query-based access on an experimental basis and should not be used for or
+    relied upon for any other purpose.
+
+    Don't use the RDAP Domain Database to allow, enable, or otherwise support
+    the transmission of mass unsolicited, commercial advertising or
+    solicitations.
+
+    Don't access our RDAP Domain Database through the use of high volume,
+    automated electronic processes that send queries or data to the systems
+    of any ICANN-accredited registrar.
+
+    You may only use the information contained in the RDAP Domain Database for
+    lawful purposes.
+
+    Do not compile, repackage, disseminate, or otherwise use the information
+    contained in the RDAP Domain Database in its entirety, or in any
+    substantial portion, without our prior written permission.
+
+    We may retain certain details about queries to our RDAP Domain Database
+    for the purposes of detecting and preventing misuse.
+
+    We reserve the right to restrict or deny your access to the RDAP Domain
+    Database if we suspect that you have failed to comply with these terms.
+
+    We reserve the right to modify or discontinue our participation in the
+    RDAP pilot program and suspend or terminate access to the RDAP Domain
+    Database at any time and for any reason in our sole discretion.
+
+    We reserve the right to modify this agreement at any time.
+
+  # Body of the spec 11 email sent to registrars.
+  # Items in braces are to be replaced.
+  spec11EmailBodyTemplate: |
+    Dear registrar partner,
+
+    The registry conducts periodic technical analyses of all domains registered
+    in its TLDs. As part of this analysis, the following domains that you
+    manage were flagged for potential security concerns:
+
+    {LIST_OF_THREATS}
+
+    Please communicate these findings to the registrant and work with the
+    registrant to mitigate any security issues and have the domains delisted.
+
+    Some helpful sites for getting off a blocked list include:
+
+      - Google Search Console (https://search.google.com/search-console/about)
+        -- includes information and tools for webmasters to learn about and
+        mitigate security threats and have their websites delisted
+      - first.org -- a registry of Computer Emergency Response Teams (CERTs)
+        that may be able to assist in mitigation
+      - stopbadware.org -- a non-profit anti-malware organization that provides
+        support and information for webmasters dealing with security threats
+
+    If you have any questions regarding this notice, please contact
+    {REPLY_TO_EMAIL}.
 
 datastore:
   # Number of commit log buckets in Datastore. Lowering this after initial
@@ -266,6 +335,10 @@ misc:
   # Address we send alert summary emails to.
   alertRecipientEmailAddress: email@example.com
 
+  # Address to which the Spec 11 emails to registrars should be replied. This needs
+  # to be a deliverable email address in case the registrars want to contact us.
+  spec11ReplyToEmailAddress: reply-to@example.com
+
   # Domain for the email address we send alert summary emails from.
   alertEmailSenderDomain: appspotmail.com
 
@@ -283,14 +356,19 @@ beam:
   # The default zone to run Apache Beam (Cloud Dataflow) jobs in.
   defaultJobZone: us-east1-c
 
-kms:
-  # GCP project containing the KMS keyring. Should only be used for KMS in
-  # order to keep a simple locked down IAM configuration.
-  projectId: registry-kms-project-id
+keyring:
+  # The name of the active keyring, either "KMS" or "Dummy".
+  activeKeyring: Dummy
 
-  # The name to use for the Cloud KMS KeyRing which will store encryption keys
-  # for Nomulus secrets.
-  keyringName: nomulus
+  # Configuration options specific to Google Cloud KMS.
+  kms:
+    # GCP project containing the KMS keyring. Should only be used for KMS in
+    # order to keep a simple locked down IAM configuration.
+    projectId: registry-kms-project-id
+
+    # The name to use for the Cloud KMS KeyRing which will store encryption keys
+    # for Nomulus secrets.
+    keyringName: nomulus
 
 # Configuration options relevant to the "nomulus" registry tool.
 registryTool:

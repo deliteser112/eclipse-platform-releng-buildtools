@@ -72,17 +72,17 @@ public class TmchXmlSignatureTest {
   private final FakeClock clock = new FakeClock(DateTime.parse("2018-05-15T23:15:37.4Z"));
 
   private byte[] smdData;
-  private TmchXmlSignature tmchXmlSignature;
+  private TmchXmlSignature tmchXmlSignature =
+      new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT, clock));
 
   @Before
   public void before() {
-    inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
-    tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT));
   }
 
   @Test
   public void testWrongCertificateAuthority() {
-    tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PRODUCTION));
+    tmchXmlSignature =
+        new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PRODUCTION, clock));
     smdData = loadSmd("active/Court-Agent-Arab-Active.smd");
     CertificateSignatureException e =
         assertThrows(CertificateSignatureException.class, () -> tmchXmlSignature.verify(smdData));

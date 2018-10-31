@@ -24,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
-import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registrar.Registrar;
@@ -51,6 +50,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
             .build();
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", modified.toJsonMap()));
     // Empty whoisServer field should be set to default by server.
     modified =
@@ -61,6 +61,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response).containsEntry("status", "SUCCESS");
     assertThat(response).containsEntry("results", asList(modified.toJsonMap()));
     assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -69,9 +70,11 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     reqJson.put("clientCertificate", "BLAH");
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
+        "id", CLIENT_ID,
         "args", reqJson));
     assertThat(response).containsEntry("status", "ERROR");
     assertThat(response).containsEntry("message", "Invalid X.509 PEM certificate");
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 
   @Test
@@ -80,13 +83,14 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     jsonMap.put("clientCertificate", SAMPLE_CERT);
     jsonMap.put("failoverClientCertificate", null);
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update", "args", jsonMap));
+        "op", "update", "id", CLIENT_ID, "args", jsonMap));
     assertThat(response).containsEntry("status", "SUCCESS");
     Registrar registrar = loadRegistrar(CLIENT_ID);
     assertThat(registrar.getClientCertificate()).isEqualTo(SAMPLE_CERT);
     assertThat(registrar.getClientCertificateHash()).isEqualTo(SAMPLE_CERT_HASH);
     assertThat(registrar.getFailoverClientCertificate()).isNull();
     assertThat(registrar.getFailoverClientCertificateHash()).isNull();
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -94,11 +98,12 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     Map<String, Object> jsonMap = loadRegistrar(CLIENT_ID).toJsonMap();
     jsonMap.put("failoverClientCertificate", SAMPLE_CERT2);
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update", "args", jsonMap));
+        "op", "update", "id", CLIENT_ID, "args", jsonMap));
     assertThat(response).containsEntry("status", "SUCCESS");
     Registrar registrar = loadRegistrar(CLIENT_ID);
     assertThat(registrar.getFailoverClientCertificate()).isEqualTo(SAMPLE_CERT2);
     assertThat(registrar.getFailoverClientCertificateHash()).isEqualTo(SAMPLE_CERT2_HASH);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
@@ -110,19 +115,18 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
                 .setClientCertificate(SAMPLE_CERT, START_OF_TIME)
                 .setFailoverClientCertificate(SAMPLE_CERT2, START_OF_TIME)
                 .build());
-    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
-        .thenReturn(initialRegistrar);
     Map<String, Object> jsonMap = initialRegistrar.toJsonMap();
     jsonMap.put("clientCertificate", null);
     jsonMap.put("failoverClientCertificate", "");
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update", "args", jsonMap));
+        "op", "update", "id", CLIENT_ID, "args", jsonMap));
     assertThat(response).containsEntry("status", "SUCCESS");
     Registrar registrar = loadRegistrar(CLIENT_ID);
     assertThat(registrar.getClientCertificate()).isEqualTo(SAMPLE_CERT);
     assertThat(registrar.getClientCertificateHash()).isEqualTo(SAMPLE_CERT_HASH);
     assertThat(registrar.getFailoverClientCertificate()).isEqualTo(SAMPLE_CERT2);
     assertThat(registrar.getFailoverClientCertificateHash()).isEqualTo(SAMPLE_CERT2_HASH);
+    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test

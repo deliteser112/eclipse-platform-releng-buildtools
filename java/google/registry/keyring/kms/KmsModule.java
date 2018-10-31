@@ -19,12 +19,22 @@ import com.google.api.services.cloudkms.v1.CloudKMS;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.IntoMap;
+import dagger.multibindings.StringKey;
 import google.registry.config.CredentialModule.DefaultCredential;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.keyring.api.Keyring;
 
-/** Dagger module for Cloud KMS connection objects. */
+/** Dagger module for Cloud KMS. */
 @Module
 public abstract class KmsModule {
+
+  public static final String NAME = "KMS";
+
+  @Binds
+  @IntoMap
+  @StringKey(NAME)
+  abstract Keyring provideKeyring(KmsKeyring keyring);
 
   @Provides
   static CloudKMS provideKms(

@@ -16,22 +16,20 @@ goog.setTestOnly();
 
 goog.require('goog.dispose');
 goog.require('goog.dom');
-goog.require('goog.soy');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.asserts');
 goog.require('goog.testing.jsunit');
 goog.require('goog.testing.net.XhrIo');
 goog.require('registry.registrar.ConsoleTestUtil');
-goog.require('registry.soy.registrar.console');
 goog.require('registry.testing');
 goog.require('registry.util');
 
 
-var $ = goog.dom.getRequiredElement;
-var stubs = new goog.testing.PropertyReplacer();
+const $ = goog.dom.getRequiredElement;
+const stubs = new goog.testing.PropertyReplacer();
 
-var expectedRegistrar = {
+const expectedRegistrar = {
   ipAddressWhitelist: [],
   phonePasscode: '12345',
   clientCertificate: null,
@@ -39,7 +37,7 @@ var expectedRegistrar = {
   failoverClientCertificate: null
 };
 
-var test = {
+const test = {
   testXsrfToken: '༼༎෴ ༎༽',
   testClientId: 'testClientId',
   mockControl: new goog.testing.MockControl()
@@ -49,19 +47,9 @@ var test = {
 function setUp() {
   registry.testing.addToDocument('<div id="test"/>');
   registry.testing.addToDocument('<div class="kd-butterbar"/>');
-  goog.soy.renderElement($('test'), registry.soy.registrar.console.main, {
-    username: 'jart',
-    logoutUrl: 'https://example.com',
-    isAdmin: true,
+  registry.registrar.ConsoleTestUtil.renderConsoleMain($('test'), {
     xsrfToken: test.testXsrfToken,
     clientId: test.testClientId,
-    logoFilename: 'logo.png',
-    productName: 'Nomulus',
-    integrationEmail: 'integration@example.com',
-    supportEmail: 'support@example.com',
-    announcementsEmail: 'announcement@example.com',
-    supportPhoneNumber: '+1 (888) 555 0123',
-    technicalDocsUrl: 'http://example.com/techdocs'
   });
   stubs.setPath('goog.net.XhrIo', goog.testing.net.XhrIo);
   registry.registrar.ConsoleTestUtil.setup(test);
@@ -80,12 +68,12 @@ function testView() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'security-settings',
     xsrfToken: test.testXsrfToken,
-    testClientId: test.testClientId
+    clientId: test.testClientId
   });
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'read', args: {}},
+      {op: 'read', id: 'testClientId', args: {}},
       {
         status: 'SUCCESS',
         message: 'OK',
@@ -101,14 +89,14 @@ function testEdit() {
 
   registry.testing.click($('reg-app-btn-edit'));
 
-  var form = document.forms.namedItem('item');
+  const form = document.forms.namedItem('item');
   form.elements['newIp'].value = '1.1.1.1';
   registry.testing.click($('btn-add-ip'));
   form.elements['newIp'].value = '2.2.2.2';
   registry.testing.click($('btn-add-ip'));
 
-  var exampleCert = $('exampleCert').value;
-  var exampleCertHash = '6NKKNBnd2fKFooBINmn3V7L3JOTHh02+2lAqYHdlTgk';
+  const exampleCert = $('exampleCert').value;
+  const exampleCertHash = '6NKKNBnd2fKFooBINmn3V7L3JOTHh02+2lAqYHdlTgk';
   form.elements['clientCertificate'].value = exampleCert;
   form.elements['failoverClientCertificate'].value = 'bourgeois blues';
   registry.testing.click($('reg-app-btn-save'));
@@ -116,7 +104,7 @@ function testEdit() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'update', args: {
+      {op: 'update', id: 'testClientId', args: {
         clientCertificate: exampleCert,
         clientCertificateHash: null,
         failoverClientCertificate: 'bourgeois blues',
@@ -137,7 +125,7 @@ function testEdit() {
   registry.testing.assertReqMockRsp(
       test.testXsrfToken,
       '/registrar-settings',
-      {op: 'read', args: {}},
+      {op: 'read', id: 'testClientId', args: {}},
       {status: 'SUCCESS',
         message: 'OK',
         results: [expectedRegistrar]});

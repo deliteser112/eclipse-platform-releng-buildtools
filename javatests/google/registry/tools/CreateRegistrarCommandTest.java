@@ -34,7 +34,6 @@ import com.google.common.collect.Range;
 import com.google.common.net.MediaType;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.CertificateSamples;
-import google.registry.tools.CommandWithConnection.Connection;
 import java.io.IOException;
 import java.util.Optional;
 import org.joda.money.CurrencyUnit;
@@ -47,8 +46,7 @@ import org.mockito.Mockito;
 /** Unit tests for {@link CreateRegistrarCommand}. */
 public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarCommand> {
 
-  @Mock
-  private Connection connection;
+  @Mock private AppEngineConnection connection;
 
   @Before
   public void init() {
@@ -93,11 +91,12 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     assertThat(registrar.getPremiumPriceAckRequired()).isFalse();
     assertThat(registrar.getPoNumber()).isEmpty();
 
-    verify(connection).send(
-        eq("/_dr/admin/createGroups"),
-        eq(ImmutableMap.of("clientId", "clientz")),
-        eq(MediaType.PLAIN_TEXT_UTF_8),
-        eq(new byte[0]));
+    verify(connection)
+        .sendPostRequest(
+            eq("/_dr/admin/createGroups"),
+            eq(ImmutableMap.of("clientId", "clientz")),
+            eq(MediaType.PLAIN_TEXT_UTF_8),
+            eq(new byte[0]));
   }
 
   @Test
@@ -210,12 +209,11 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @SuppressWarnings("unchecked")
   @Test
   public void testFailure_groupCreationFails() throws Exception {
-    when(
-            connection.send(
-                Mockito.anyString(),
-                Mockito.anyMapOf(String.class, String.class),
-                Mockito.any(MediaType.class),
-                Mockito.any(byte[].class)))
+    when(connection.sendPostRequest(
+            Mockito.anyString(),
+            Mockito.anyMapOf(String.class, String.class),
+            Mockito.any(MediaType.class),
+            Mockito.any(byte[].class)))
         .thenThrow(new IOException("BAD ROBOT NO COOKIE"));
     runCommandForced(
         "--name=blobio",

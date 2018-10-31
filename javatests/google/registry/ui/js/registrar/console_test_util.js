@@ -18,9 +18,11 @@ goog.setTestOnly('registry.registrar.ConsoleTestUtil');
 goog.require('goog.History');
 goog.require('goog.asserts');
 goog.require('goog.dom.xml');
+goog.require('goog.soy');
 goog.require('goog.testing.mockmatchers');
 goog.require('registry.registrar.Console');
 goog.require('registry.registrar.EppSession');
+goog.require('registry.soy.registrar.console');
 goog.require('registry.xml');
 
 
@@ -28,7 +30,7 @@ goog.require('registry.xml');
  * Utility method that attaches mocks to a `TestCase`.  This was
  * originally in the ctor for ConsoleTest and should simply be
  * inherited but jstd_test breaks inheritance in test cases.
- * @param {Object} test the test case to configure.
+ * @param {!Object} test the test case to configure.
  */
 registry.registrar.ConsoleTestUtil.setup = function(test) {
   test.historyMock = test.mockControl.createLooseMock(goog.History, true);
@@ -42,13 +44,42 @@ registry.registrar.ConsoleTestUtil.setup = function(test) {
       .$returns(test.sessionMock);
 };
 
+/**
+ * Utility method that renders the registry.soy.registrar.console.main element.
+ *
+ * This element has a lot of parameters. We use defaults everywhere, but you can
+ * override them with 'opt_args'.
+ *
+ * @param {!Element} element the element whose content we are rendering into.
+ * @param {?Object=} opt_args override for the default values of the soy params.
+ */
+registry.registrar.ConsoleTestUtil.renderConsoleMain = function(
+    element, opt_args) {
+  const args = opt_args || {};
+  goog.soy.renderElement(element, registry.soy.registrar.console.main, {
+    xsrfToken: args.xsrfToken || 'ignore',
+    username: args.username || 'jart',
+    logoutUrl: args.logoutUrl || 'https://logout.url.com',
+    isAdmin: goog.isDefAndNotNull(args.isAdmin) ? args.isAdmin : true,
+    clientId: args.clientId || 'ignore',
+    allClientIds: args.allClientIds || ['clientId1', 'clientId2'],
+    logoFilename: args.logoFilename || 'logo.png',
+    productName: args.productName || 'Nomulus',
+    integrationEmail: args.integrationEmail || 'integration@example.com',
+    supportEmail: args.supportEmail || 'support@example.com',
+    announcementsEmail: args.announcementsEmail || 'announcement@example.com',
+    supportPhoneNumber: args.supportPhoneNumber || '+1 (888) 555 0123',
+    technicalDocsUrl: args.technicalDocsUrl || 'http://example.com/techdocs',
+  });
+};
+
 
 /**
  * Simulates visiting a page on the console.  Sets path, then mocks
  * session and calls `handleHashChange_`.
- * @param {Object} test the test case to configure.
- * @param {Object=} opt_args may include path, isEppLoggedIn.
- * @param {Function=} opt_moar extra setup after called just before
+ * @param {!Object} test the test case to configure.
+ * @param {?Object=} opt_args may include path, isEppLoggedIn.
+ * @param {?Function=} opt_moar extra setup after called just before
  *     `$replayAll`.  See memegen/3437690.
  */
 registry.registrar.ConsoleTestUtil.visit = function(
@@ -72,7 +103,7 @@ registry.registrar.ConsoleTestUtil.visit = function(
               goog.testing.mockmatchers.isFunction)
         .$does(function(args, cb) {
           // XXX: Args should be checked.
-          var xml = goog.dom.xml.loadXml(opt_args.rspXml);
+          const xml = goog.dom.xml.loadXml(opt_args.rspXml);
           goog.asserts.assert(xml != null);
           cb(registry.xml.convertToJson(xml));
         }).$anyTimes();

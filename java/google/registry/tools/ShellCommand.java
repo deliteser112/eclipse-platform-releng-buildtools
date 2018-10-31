@@ -145,6 +145,80 @@ public class ShellCommand implements Command {
     return this;
   }
 
+  private static class OutputEncapsulator {
+    private PrintStream orgStdout;
+    private PrintStream orgStderr;
+
+    private EncapsulatingOutputStream encapsulatedOutputStream = null;
+    private EncapsulatingOutputStream encapsulatedErrorStream = null;
+
+    private Exception error;
+
+    private OutputEncapsulator() {
+      orgStdout = System.out;
+      orgStderr = System.err;
+      encapsulatedOutputStream = new EncapsulatingOutputStream(System.out, "out: ");
+      encapsulatedErrorStream = new EncapsulatingOutputStream(System.out, "err: ");
+      System.setOut(new PrintStream(encapsulatedOutputStream));
+      System.setErr(new PrintStream(encapsulatedErrorStream));
+    }
+
+    void setError(Exception e) {
+      error = e;
+    }
+
+    private void restoreOriginalStreams() {
+      try {
+        encapsulatedOutputStream.dumpLastLine();
+        encapsulatedErrorStream.dumpLastLine();
+        System.setOut(orgStdout);
+        System.setErr(orgStderr);
+        if (error != null) {
+          emitFailure(error);
+        } else {
+          emitSuccess();
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    /**
+     * Emit a success command separator.
+     *
+     * <p>Dumps the last line of output prior to doing this.
+     */
+    private void emitSuccess() {
+      System.out.println(SUCCESS);
+      System.out.flush();
+    }
+
+    /**
+     * Emit a failure message obtained from the throwable.
+     *
+     * <p>Dumps the last line of output prior to doing this.
+     */
+    private void emitFailure(Throwable e) {
+      System.out.println(
+          FAILURE
+              + e.getClass().getName()
+              + " "
+              + e.getMessage().replace("\\", "\\\\").replace("\n", "\\n"));
+    }
+
+    /** Run "func" with output encapsulation. */
+    static void run(CommandRunner runner, String[] args) {
+      OutputEncapsulator encapsulator = new OutputEncapsulator();
+      try {
+        runner.run(args);
+      } catch (Exception e) {
+        encapsulator.setError(e);
+      } finally {
+        encapsulator.restoreOriginalStreams();
+      }
+    }
+  }
+
   /** Run the shell until the user presses "Ctrl-D". */
   @Override
   public void run() {
@@ -154,23 +228,6 @@ public class ShellCommand implements Command {
     String line;
     DateTime lastTime = clock.nowUtc();
     while ((line = getLine()) != null) {
-      PrintStream orgStdout = null;
-      PrintStream orgStderr = null;
-      EncapsulatingOutputStream encapsulatedOutputStream = null;
-      EncapsulatingOutputStream encapsulatedErrorStream = null;
-
-
-      // Wrap standard output and error if requested. We have to do so here in run because the flags
-      // haven't been processed in the constructor.
-      if (encapsulateOutput) {
-        orgStdout = System.out;
-        orgStderr = System.err;
-        encapsulatedOutputStream = new EncapsulatingOutputStream(System.out, "out: ");
-        encapsulatedErrorStream = new EncapsulatingOutputStream(System.out, "err: ");
-        System.setOut(new PrintStream(encapsulatedOutputStream));
-        System.setErr(new PrintStream(encapsulatedErrorStream));
-      }
-
       // Make sure we're not idle for too long. Only relevant when we're "extra careful"
       if (!dontExitOnIdle
           && beExtraCareful
@@ -184,28 +241,17 @@ public class ShellCommand implements Command {
       if (lineArgs.length == 0) {
         continue;
       }
-      Exception lastError = null;
-      try {
-        System.out.println("Barf!!!");
-        runner.run(lineArgs);
-      } catch (Exception e) {
-        lastError = e;
-        System.err.println("Got an exception:\n" + e);
-      }
-      try {
-        if (encapsulatedOutputStream != null) {
-          encapsulatedOutputStream.dumpLastLine();
-          encapsulatedErrorStream.dumpLastLine();
-          System.setOut(orgStdout);
-          System.setErr(orgStderr);
-          if (lastError == null) {
-            emitSuccess();
-          } else {
-            emitFailure(lastError);
-          }
+
+      // Wrap standard output and error if requested. We have to do so here in run because the flags
+      // haven't been processed in the constructor.
+      if (encapsulateOutput) {
+        OutputEncapsulator.run(runner, lineArgs);
+      } else {
+        try {
+          runner.run(lineArgs);
+        } catch (Exception e) {
+          System.err.println("Got an exception:\n" + e);
         }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
       }
     }
     if (!encapsulateOutput) {
@@ -242,29 +288,6 @@ public class ShellCommand implements Command {
     }
 
     return resultBuilder.build().toArray(new String[0]);
-  }
-
-  /**
-   * Emit a success command separator.
-   *
-   * <p>Dumps the last line of output prior to doing this.
-   */
-  private void emitSuccess() {
-    System.out.println(SUCCESS);
-    System.out.flush();
-  }
-
-  /**
-   * Emit a failure message obtained from the throwable.
-   *
-   * <p>Dumps the last line of output prior to doing this.
-   */
-  private void emitFailure(Throwable e) {
-    System.out.println(
-        FAILURE
-            + e.getClass().getName()
-            + " "
-            + e.getMessage().replace("\\", "\\\\").replace("\n", "\\n"));
   }
 
   @VisibleForTesting

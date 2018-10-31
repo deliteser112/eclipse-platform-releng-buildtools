@@ -32,13 +32,21 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.appengine.api.taskqueue.LeaseOptions;
+import com.google.appengine.api.taskqueue.Queue;
+import com.google.appengine.api.taskqueue.TaskHandle;
+import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.appengine.api.taskqueue.TaskOptions.Method;
+import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
+import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import google.registry.model.domain.DomainResource;
@@ -55,7 +63,9 @@ import google.registry.util.Retrier;
 import google.registry.util.TaskQueueUtils;
 import google.registry.util.UrlFetchException;
 import java.net.URL;
+import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -70,15 +80,15 @@ import org.mockito.Mock;
 @RunWith(JUnit4.class)
 public class NordnUploadActionTest {
 
-  private static final String CLAIMS_CSV = "1,2000-01-01T00:00:00.000Z,1\n"
+  private static final String CLAIMS_CSV = "1,2010-05-01T10:11:12.000Z,1\n"
       + "roid,domain-name,notice-id,registrar-id,registration-datetime,ack-datetime,"
       + "application-datetime\n"
-      + "2-TLD,claims-landrush1.tld,landrush1tcn,99999,2000-01-01T00:00:00.000Z,"
+      + "2-TLD,claims-landrush1.tld,landrush1tcn,99999,2010-05-01T10:11:12.000Z,"
       + "1969-12-31T23:00:00.000Z,1969-12-31T00:00:00.000Z\n";
 
-  private static final String SUNRISE_CSV = "1,2000-01-01T00:00:00.000Z,1\n"
+  private static final String SUNRISE_CSV = "1,2010-05-01T10:11:12.000Z,1\n"
       + "roid,domain-name,SMD-id,registrar-id,registration-datetime,application-datetime\n"
-      + "2-TLD,sunrise1.tld,my-smdid,99999,2000-01-01T00:00:00.000Z,1969-12-31T00:00:00.000Z\n";
+      + "2-TLD,sunrise1.tld,my-smdid,99999,2010-05-01T10:11:12.000Z,1969-12-31T00:00:00.000Z\n";
 
   private static final String LOCATION_URL = "http://trololol";
 
@@ -93,7 +103,7 @@ public class NordnUploadActionTest {
   @Mock private HTTPResponse httpResponse;
   @Captor private ArgumentCaptor<HTTPRequest> httpRequestCaptor;
 
-  private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
+  private final FakeClock clock = new FakeClock(DateTime.parse("2010-05-01T10:11:12Z"));
   private final LordnRequestInitializer lordnRequestInitializer = new LordnRequestInitializer();
   private final NordnUploadAction action = new NordnUploadAction();
 
@@ -115,6 +125,55 @@ public class NordnUploadActionTest {
     action.taskQueueUtils = new TaskQueueUtils(new Retrier(new FakeSleeper(clock), 3));
     action.tld = "tld";
     action.tmchMarksdbUrl = "http://127.0.0.1";
+    action.random = new Random();
+    action.retrier = new Retrier(new FakeSleeper(clock), 3);
+  }
+
+  @Test
+  public void test_convertTasksToCsv() {
+    List<TaskHandle> tasks =
+        ImmutableList.of(
+            makeTaskHandle("task1", "example", "csvLine1", "lordn-sunrise"),
+            makeTaskHandle("task2", "example", "csvLine2", "lordn-sunrise"),
+            makeTaskHandle("task3", "example", "ending", "lordn-sunrise"));
+    assertThat(NordnUploadAction.convertTasksToCsv(tasks, clock.nowUtc(), "col1,col2"))
+        .isEqualTo("1,2010-05-01T10:11:12.000Z,3\ncol1,col2\ncsvLine1\ncsvLine2\nending\n");
+  }
+
+  @Test
+  public void test_convertTasksToCsv_doesntFailOnEmptyTasks() {
+    assertThat(NordnUploadAction.convertTasksToCsv(ImmutableList.of(), clock.nowUtc(), "col1,col2"))
+        .isEqualTo("1,2010-05-01T10:11:12.000Z,0\ncol1,col2\n");
+  }
+
+  @Test
+  public void test_convertTasksToCsv_throwsNpeOnNullTasks() {
+    assertThrows(
+        NullPointerException.class,
+        () -> NordnUploadAction.convertTasksToCsv(null, clock.nowUtc(), "header"));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void test_loadAllTasks_retryLogic_thirdTrysTheCharm() {
+    Queue queue = mock(Queue.class);
+    TaskHandle task = new TaskHandle(TaskOptions.Builder.withTaskName("blah"), "blah");
+    when(queue.leaseTasks(any(LeaseOptions.class)))
+        .thenThrow(TransientFailureException.class)
+        .thenThrow(DeadlineExceededException.class)
+        .thenReturn(ImmutableList.of(task), ImmutableList.of());
+    assertThat(action.loadAllTasks(queue, "tld")).containsExactly(task);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  public void test_loadAllTasks_retryLogic_allFailures() {
+    Queue queue = mock(Queue.class);
+    when(queue.leaseTasks(any(LeaseOptions.class)))
+        .thenThrow(new TransientFailureException("some transient error"));
+    RuntimeException thrown =
+        assertThrows(TransientFailureException.class, () -> action.loadAllTasks(queue, "tld"));
+    assertThat(thrown).hasMessageThat().isEqualTo("some transient error");
   }
 
   @Test
@@ -227,5 +286,12 @@ public class NordnUploadActionTest {
         .setSmdId("my-smdid")
         .setApplicationTime(domain.getCreationTime().minusDays(1))
         .build());
+  }
+
+  private static TaskHandle makeTaskHandle(
+      String taskName, String tag, String payload, String queue) {
+    return new TaskHandle(
+        TaskOptions.Builder.withPayload(payload).method(Method.PULL).tag(tag).taskName(taskName),
+        queue);
   }
 }

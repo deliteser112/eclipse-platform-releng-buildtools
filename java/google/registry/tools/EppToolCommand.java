@@ -59,7 +59,7 @@ abstract class EppToolCommand extends ConfirmingCommand
 
   private List<XmlEppParameters> commands = new ArrayList<>();
 
-  private Connection connection;
+  private AppEngineConnection connection;
 
   static class XmlEppParameters {
     final String clientId;
@@ -95,7 +95,7 @@ abstract class EppToolCommand extends ConfirmingCommand
   }
 
   @Override
-  public void setConnection(Connection connection) {
+  public void setConnection(AppEngineConnection connection) {
     this.connection = connection;
   }
 
@@ -145,11 +145,13 @@ abstract class EppToolCommand extends ConfirmingCommand
       params.put("xml", URLEncoder.encode(command.xml, UTF_8.toString()));
       String requestBody =
           Joiner.on('&').withKeyValueSeparator("=").join(filterValues(params, Objects::nonNull));
-      responses.add(nullToEmpty(connection.send(
-          "/_dr/epptool",
-          ImmutableMap.<String, String>of(),
-          MediaType.FORM_DATA,
-          requestBody.getBytes(UTF_8))));
+      responses.add(
+          nullToEmpty(
+              connection.sendPostRequest(
+                  "/_dr/epptool",
+                  ImmutableMap.<String, String>of(),
+                  MediaType.FORM_DATA,
+                  requestBody.getBytes(UTF_8))));
     }
     return responses.build();
   }

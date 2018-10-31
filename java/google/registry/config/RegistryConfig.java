@@ -24,16 +24,20 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.net.HostAndPort;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.RegistryConfigSettings.AppEngine.ToolsServiceUrl;
+import google.registry.util.RandomStringGenerator;
+import google.registry.util.StringGenerator;
 import google.registry.util.TaskQueueUtils;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
+import java.security.ProviderException;
+import java.security.SecureRandom;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Named;
@@ -815,6 +819,7 @@ public final class RegistryConfig {
      *
      * @see google.registry.reporting.icann.ReportingEmailUtils
      * @see google.registry.reporting.billing.BillingEmailUtils
+     * @see google.registry.reporting.spec11.Spec11EmailUtils
      */
     @Provides
     @Config("alertRecipientEmailAddress")
@@ -827,13 +832,35 @@ public final class RegistryConfig {
      *
      * @see google.registry.reporting.icann.ReportingEmailUtils
      * @see google.registry.reporting.billing.BillingEmailUtils
+     * @see google.registry.reporting.spec11.Spec11EmailUtils
      */
-
     @Provides
     @Config("alertSenderEmailAddress")
     public static String provideAlertSenderEmailAddress(
         @Config("projectId") String projectId, RegistryConfigSettings config) {
-      return String.format("%s@%s", projectId, config.misc.alertEmailSenderDomain);
+      return String.format("%s-no-reply@%s", projectId, config.misc.alertEmailSenderDomain);
+    }
+
+    /**
+     * Returns the email address to which spec 11 email should be replied.
+     *
+     * @see google.registry.reporting.spec11.Spec11EmailUtils
+     */
+    @Provides
+    @Config("spec11ReplyToEmailAddress")
+    public static String provideSpec11ReplyToEmailAddress(RegistryConfigSettings config) {
+      return config.misc.spec11ReplyToEmailAddress;
+    }
+
+    /**
+     * Returns the template for the body of the spec 11 email to the registrars.
+     *
+     * @see google.registry.reporting.spec11.Spec11EmailUtils
+     */
+    @Provides
+    @Config("spec11EmailBodyTemplate")
+    public static String provideSpec11EmailBodyTemplate(RegistryConfigSettings config) {
+      return config.registryPolicy.spec11EmailBodyTemplate;
     }
 
     /**
@@ -1021,6 +1048,12 @@ public final class RegistryConfig {
       return config.registryPolicy.greetingServerId;
     }
 
+    @Provides
+    @Config("activeKeyring")
+    public static String provideKeyring(RegistryConfigSettings config) {
+      return config.keyring.activeKeyring;
+    }
+
     /**
      * The name to use for the Cloud KMS KeyRing containing encryption keys for Nomulus secrets.
      *
@@ -1030,13 +1063,13 @@ public final class RegistryConfig {
     @Provides
     @Config("cloudKmsKeyRing")
     public static String provideCloudKmsKeyRing(RegistryConfigSettings config) {
-      return config.kms.keyringName;
+      return config.keyring.kms.keyringName;
     }
 
     @Provides
     @Config("cloudKmsProjectId")
     public static String provideCloudKmsProjectId(RegistryConfigSettings config) {
-      return config.kms.projectId;
+      return config.keyring.kms.projectId;
     }
 
     @Provides
@@ -1061,7 +1094,7 @@ public final class RegistryConfig {
     @Provides
     @Config("premiumTermsExportDisclaimer")
     public static String providePremiumTermsExportDisclaimer(RegistryConfigSettings config) {
-      return formatComments(config.registryPolicy.reservedTermsExportDisclaimer);
+      return formatComments(config.registryPolicy.premiumTermsExportDisclaimer);
     }
 
     /**
@@ -1186,6 +1219,12 @@ public final class RegistryConfig {
       return config.registryTool.clientSecretFilename;
     }
 
+    @Provides
+    @Config("rdapTos")
+    public static ImmutableList<String> provideRdapTos(RegistryConfigSettings config) {
+      return ImmutableList.copyOf(Splitter.on('\n').split(config.registryPolicy.rdapTos));
+    }
+
     /**
      * Returns the help text to be used by RDAP.
      *
@@ -1195,7 +1234,8 @@ public final class RegistryConfig {
     @Singleton
     @Provides
     @Config("rdapHelpMap")
-    public static ImmutableMap<String, RdapNoticeDescriptor> provideRdapHelpMap() {
+    public static ImmutableMap<String, RdapNoticeDescriptor> provideRdapHelpMap(
+        @Config("rdapTos") ImmutableList<String> rdapTos) {
       return new ImmutableMap.Builder<String, RdapNoticeDescriptor>()
           .put("/", RdapNoticeDescriptor.builder()
               .setTitle("RDAP Help")
@@ -1216,36 +1256,50 @@ public final class RegistryConfig {
               .build())
           .put("/tos", RdapNoticeDescriptor.builder()
               .setTitle("RDAP Terms of Service")
-              .setDescription(ImmutableList.of(
-                  "By querying our Domain Database as part of the RDAP pilot program (RDAP Domain"
-                      + "Database), you are agreeing to comply with these terms, so please read"
-                      + " them carefully.",
-                  "Any information provided is 'as is' without any guarantee of accuracy.",
-                  "Please do not misuse the RDAP Domain Database. It is intended solely for"
-                      + " query-based access on an experimental basis and should not be used for or"
-                      + " relied upon for any other purpose.",
-                  "Don't use the RDAP Domain Database to allow, enable, or otherwise support the"
-                      + " transmission of mass unsolicited, commercial advertising or"
-                      + " solicitations.",
-                  "Don't access our RDAP Domain Database through the use of high volume, automated"
-                      + " electronic processes that send queries or data to the systems of any"
-                      + " ICANN-accredited registrar.",
-                  "You may only use the information contained in the RDAP Domain Database for"
-                      + " lawful purposes.",
-                  "Do not compile, repackage, disseminate, or otherwise use the information"
-                      + " contained in the RDAP Domain Database in its entirety, or in any"
-                      + " substantial portion, without our prior written permission.",
-                  "We may retain certain details about queries to our RDAP Domain Database for the"
-                      + " purposes of detecting and preventing misuse.",
-                  "We reserve the right to restrict or deny your access to the RDAP Domain Database"
-                      + " if we suspect that you have failed to comply with these terms.",
-                  "We reserve the right to modify or discontinue our participation in the RDAP"
-                      + " pilot program and suspend or terminate access to the RDAP Domain Database"
-                      + " at any time and for any reason in our sole discretion.",
-                  "We reserve the right to modify this agreement at any time."))
+              .setDescription(rdapTos)
               .setLinkValueSuffix("help/tos")
               .build())
           .build();
+    }
+
+    /**
+     * Returns a singleton insecure random number generator that is fast.
+     *
+     * <p>This binding is intentionally qualified so that any requester must explicitly acknowledge
+     * that using an insecure random number generator is fine for its use case.
+     */
+    @Singleton
+    @Provides
+    @Config("insecureRandom")
+    public static Random provideInsecureRandom() {
+      return new Random();
+    }
+
+    /** Returns a singleton secure random number generator this is slow. */
+    @Singleton
+    @Provides
+    public static SecureRandom provideSecureRandom() {
+      try {
+        return SecureRandom.getInstance("NativePRNG");
+      } catch (NoSuchAlgorithmException e) {
+        throw new ProviderException(e);
+      }
+    }
+
+    /** Returns a singleton random string generator using Base58 encoding. */
+    @Singleton
+    @Provides
+    @Config("base58StringGenerator")
+    public static StringGenerator provideBase58StringGenerator(SecureRandom secureRandom) {
+      return new RandomStringGenerator(StringGenerator.Alphabets.BASE_58, secureRandom);
+    }
+
+    /** Returns a singleton random string generator using Base58 encoding. */
+    @Singleton
+    @Provides
+    @Config("base64StringGenerator")
+    public static StringGenerator provideBase64StringGenerator(SecureRandom secureRandom) {
+      return new RandomStringGenerator(StringGenerator.Alphabets.BASE_64, secureRandom);
     }
   }
 
@@ -1295,14 +1349,44 @@ public final class RegistryConfig {
     return Duration.standardDays(30);
   }
 
+  public static boolean areServersLocal() {
+    return CONFIG_SETTINGS.get().appEngine.isLocal;
+  }
+
   /**
-   * Returns the address of the Nomulus app HTTP server.
+   * Returns the address of the Nomulus app default HTTP server.
    *
    * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
    */
-  public static HostAndPort getServer() {
-    ToolsServiceUrl url = CONFIG_SETTINGS.get().appEngine.toolsServiceUrl;
-    return HostAndPort.fromParts(url.hostName, url.port);
+  public static URL getDefaultServer() {
+    return makeUrl(CONFIG_SETTINGS.get().appEngine.defaultServiceUrl);
+  }
+
+  /**
+   * Returns the address of the Nomulus app backend HTTP server.
+   *
+   * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
+   */
+  public static URL getBackendServer() {
+    return makeUrl(CONFIG_SETTINGS.get().appEngine.backendServiceUrl);
+  }
+
+  /**
+   * Returns the address of the Nomulus app tools HTTP server.
+   *
+   * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
+   */
+  public static URL getToolsServer() {
+    return makeUrl(CONFIG_SETTINGS.get().appEngine.toolsServiceUrl);
+  }
+
+  /**
+   * Returns the address of the Nomulus app pubapi HTTP server.
+   *
+   * <p>This is used by the {@code nomulus} tool to connect to the App Engine remote API.
+   */
+  public static URL getPubapiServer() {
+    return makeUrl(CONFIG_SETTINGS.get().appEngine.pubapiServiceUrl);
   }
 
   /** Returns the amount of time a singleton should be cached, before expiring. */
@@ -1410,7 +1494,7 @@ public final class RegistryConfig {
    * change the contents of the YAML config files.
    */
   @VisibleForTesting
-  static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
+  public static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
       memoize(YamlUtils::getConfigSettings);
 
   private static String formatComments(String text) {

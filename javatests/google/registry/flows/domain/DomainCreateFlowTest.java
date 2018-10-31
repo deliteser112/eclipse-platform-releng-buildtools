@@ -52,8 +52,8 @@ import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static google.registry.tmch.LordnTask.QUEUE_CLAIMS;
-import static google.registry.tmch.LordnTask.QUEUE_SUNRISE;
+import static google.registry.tmch.LordnTaskUtils.QUEUE_CLAIMS;
+import static google.registry.tmch.LordnTaskUtils.QUEUE_SUNRISE;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
@@ -270,7 +270,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         new ImmutableSet.Builder<BillingEvent>().add(createBillingEvent).add(renewBillingEvent);
 
     // If EAP is applied, a billing event for EAP should be present.
-    if (!eapFee.isZero()) {
+    // EAP fees are bypassed for anchor tenant domains.
+    if (!isAnchorTenant && !eapFee.isZero()) {
       BillingEvent.OneTime eapBillingEvent =
           new BillingEvent.OneTime.Builder()
               .setReason(Reason.FEE_EARLY_ACCESS)
@@ -1013,6 +1014,22 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
+  public void testSuccess_anchorTenant_bypassesEapFees() throws Exception {
+    setEapForTld("tld");
+    // This XML file does not contain EAP fees.
+    setEppInput("domain_create_anchor_allocationtoken.xml");
+    persistContactsAndHosts();
+    runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
+    assertNoLordn();
+    AllocationToken reloadedToken =
+        ofy().load().key(Key.create(AllocationToken.class, "abcDEF23456")).now();
+    assertThat(reloadedToken.isRedeemed()).isTrue();
+    assertThat(reloadedToken.getRedemptionHistoryEntry())
+        .isEqualTo(Key.create(getHistoryEntries(reloadResourceByForeignKey()).get(0)));
+  }
+
+  @Test
   public void testSuccess_anchorTenant_viaAuthCode_withClaims() throws Exception {
     persistResource(
         new AllocationToken.Builder().setDomainName("example-one.tld").setToken("2fooBAR").build());
@@ -1043,7 +1060,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     runFlowAssertResponse(
         loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "resdom.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of());
+    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.RESERVED));
     assertNoLordn();
     AllocationToken reloadedToken = ofy().load().entity(token).now();
     assertThat(reloadedToken.isRedeemed()).isTrue();
@@ -1057,7 +1074,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     runFlowAssertResponse(
         CommitMode.LIVE, SUPERUSER, loadFile("domain_create_reserved_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of());
+    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.RESERVED));
   }
 
   @Test
@@ -2242,18 +2259,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFailure_eapFee_combined() {
     setEppInput("domain_create_eap_combined_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setEapFeeSchedule(
-                ImmutableSortedMap.of(
-                    START_OF_TIME,
-                    Money.of(USD, 0),
-                    clock.nowUtc().minusDays(1),
-                    Money.of(USD, 100),
-                    clock.nowUtc().plusDays(1),
-                    Money.of(USD, 0)))
-            .build());
+    setEapForTld("tld");
     EppException thrown = assertThrows(FeeDescriptionParseException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("No fee description");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -2271,18 +2277,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             "DESCRIPTION_2",
             "create"));
     persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setEapFeeSchedule(
-                ImmutableSortedMap.of(
-                    START_OF_TIME,
-                    Money.of(USD, 0),
-                    clock.nowUtc().minusDays(1),
-                    Money.of(USD, 100),
-                    clock.nowUtc().plusDays(1),
-                    Money.of(USD, 0)))
-            .build());
+    setEapForTld("tld");
     EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("CREATE");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -2302,18 +2297,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .put("FEE_3", "55")
             .build());
     persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setEapFeeSchedule(
-                ImmutableSortedMap.of(
-                    START_OF_TIME,
-                    Money.of(USD, 0),
-                    clock.nowUtc().minusDays(1),
-                    Money.of(USD, 100),
-                    clock.nowUtc().plusDays(1),
-                    Money.of(USD, 0)))
-            .build());
+    setEapForTld("tld");
     EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("expected total of USD 126.00");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -2333,18 +2317,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .put("FEE_3", "55")
             .build());
     persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setEapFeeSchedule(
-                ImmutableSortedMap.of(
-                    START_OF_TIME,
-                    Money.of(USD, 0),
-                    clock.nowUtc().minusDays(1),
-                    Money.of(USD, 100),
-                    clock.nowUtc().plusDays(1),
-                    Money.of(USD, 0)))
-            .build());
+    setEapForTld("tld");
     EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("expected fee of USD 100.00");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -2364,18 +2337,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .put("FEE_3", "45")
             .build());
     persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setEapFeeSchedule(
-                ImmutableSortedMap.of(
-                    START_OF_TIME,
-                    Money.of(USD, 0),
-                    clock.nowUtc().minusDays(1),
-                    Money.of(USD, 100),
-                    clock.nowUtc().plusDays(1),
-                    Money.of(USD, 0)))
-            .build());
+    setEapForTld("tld");
     doSuccessfulTest(
         "tld", "domain_create_response_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
   }
@@ -2392,18 +2354,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             "DESCRIPTION_2",
             "Early Access Period, fee expires: 2022-03-01T00:00:00.000Z"));
     persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setEapFeeSchedule(
-                ImmutableSortedMap.of(
-                    START_OF_TIME,
-                    Money.of(USD, 0),
-                    clock.nowUtc().minusDays(1),
-                    Money.of(USD, 100),
-                    clock.nowUtc().plusDays(1),
-                    Money.of(USD, 0)))
-            .build());
+    setEapForTld("tld");
     doSuccessfulTest(
         "tld", "domain_create_response_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
   }
@@ -2415,18 +2366,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         ImmutableMap.of(
             "FEE_VERSION", "0.6", "DESCRIPTION_1", "create", "DESCRIPTION_2", "renew transfer"));
     persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setEapFeeSchedule(
-                ImmutableSortedMap.of(
-                    START_OF_TIME,
-                    Money.of(USD, 0),
-                    clock.nowUtc().minusDays(1),
-                    Money.of(USD, 100),
-                    clock.nowUtc().plusDays(1),
-                    Money.of(USD, 0)))
-            .build());
+    setEapForTld("tld");
     EppException thrown = assertThrows(FeeDescriptionMultipleMatchesException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("RENEW, TRANSFER");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -2444,18 +2384,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             "DESCRIPTION_2",
             "Early Access Period"));
     persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setEapFeeSchedule(
-                ImmutableSortedMap.of(
-                    START_OF_TIME,
-                    Money.of(USD, 0),
-                    clock.nowUtc().minusDays(1),
-                    Money.of(USD, 100),
-                    clock.nowUtc().plusDays(1),
-                    Money.of(USD, 0)))
-            .build());
+    setEapForTld("tld");
     doSuccessfulTest(
         "tld", "domain_create_response_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
   }
@@ -2472,18 +2401,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             "DESCRIPTION_2",
             "Early Access Period"));
     persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setEapFeeSchedule(
-                ImmutableSortedMap.of(
-                    START_OF_TIME,
-                    Money.of(USD, 0),
-                    clock.nowUtc().minusDays(1),
-                    Money.of(USD, 100),
-                    clock.nowUtc().plusDays(1),
-                    Money.of(USD, 0)))
-            .build());
+    setEapForTld("tld");
     doSuccessfulTest(
         "tld", "domain_create_response_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
   }
@@ -2500,18 +2418,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             "DESCRIPTION_2",
             "Early Access Period"));
     persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setEapFeeSchedule(
-                ImmutableSortedMap.of(
-                    START_OF_TIME,
-                    Money.of(USD, 0),
-                    clock.nowUtc().minusDays(1),
-                    Money.of(USD, 100),
-                    clock.nowUtc().plusDays(1),
-                    Money.of(USD, 0)))
-            .build());
+    setEapForTld("tld");
     doSuccessfulTest(
         "tld", "domain_create_response_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
   }
@@ -2519,8 +2426,18 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testFailure_domainInEap_failsWithoutFeeExtension() {
     persistContactsAndHosts();
+    setEapForTld("tld");
+    Exception e = assertThrows(FeesRequiredDuringEarlyAccessProgramException.class, this::runFlow);
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Fees must be explicitly acknowledged when creating domains "
+                + "during the Early Access Program. The EAP fee is: USD 100.00");
+  }
+
+  private void setEapForTld(String tld) {
     persistResource(
-        Registry.get("tld")
+        Registry.get(tld)
             .asBuilder()
             .setEapFeeSchedule(
                 ImmutableSortedMap.of(
@@ -2531,12 +2448,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     clock.nowUtc().plusDays(1),
                     Money.of(USD, 0)))
             .build());
-    Exception e = assertThrows(FeesRequiredDuringEarlyAccessProgramException.class, this::runFlow);
-    assertThat(e)
-        .hasMessageThat()
-        .isEqualTo(
-            "Fees must be explicitly acknowledged when creating domains "
-                + "during the Early Access Program. The EAP fee is: USD 100.00");
   }
 
   @Test
@@ -2630,6 +2541,5 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlow();
     EppMetric eppMetric = getEppMetric();
     assertThat(eppMetric.getCommandName()).hasValue("DomainCreate");
-    assertThat(eppMetric.getAttempts()).isEqualTo(1);
   }
 }

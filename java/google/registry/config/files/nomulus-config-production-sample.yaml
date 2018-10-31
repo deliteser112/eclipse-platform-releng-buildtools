@@ -4,11 +4,14 @@
 
 appEngine:
   projectId: placeholder
-  # The "tools-dot-" prefix is used on the project ID in this URL in order to
-  # get around an issue with double-wildcard SSL certs.
-  toolsServiceUrl:
-    hostName: tools-dot-placeholder.appspot.com
-    port: 443
+  # Set to true if running against local servers (localhost)
+  isLocal: false
+  # The "<service>-dot-" prefix is used on the project ID in this URL in order
+  # to get around an issue with double-wildcard SSL certs.
+  defaultServiceUrl: https://domain-registry-placeholder.appspot.com
+  backendServiceUrl: https://backend-dot-domain-registry-placeholder.appspot.com
+  toolsServiceUrl: https://tools-dot-domain-registry-placeholder.appspot.com
+  pubapiServiceUrl: https://pubapi-dot-domain-registry-placeholder.appspot.com
 
 gSuite:
   domainName: placeholder
@@ -61,5 +64,7 @@ cloudDns:
   rootUrl: null
   servicePath: null
 
-kms:
-  projectId: placeholder
+keyring:
+  activeKeyring: KMS
+  kms:
+    projectId: placeholder

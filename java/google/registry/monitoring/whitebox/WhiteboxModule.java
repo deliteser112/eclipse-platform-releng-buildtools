@@ -14,24 +14,9 @@
 
 package google.registry.monitoring.whitebox;
 
-import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
-import static google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer.QUEUE_BIGQUERY_STREAMING_METRICS;
-import static google.registry.request.RequestParameters.extractRequiredParameter;
-
-import com.google.api.services.bigquery.model.TableFieldSchema;
-import com.google.appengine.api.taskqueue.Queue;
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
-import dagger.multibindings.IntoMap;
-import dagger.multibindings.StringKey;
-import google.registry.request.Parameter;
-import google.registry.request.RequestLogId;
 import google.registry.util.Clock;
-import java.util.UUID;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * Dagger module for injecting common settings for Whitebox tasks.
@@ -39,46 +24,14 @@ import javax.servlet.http.HttpServletRequest;
 @Module
 public class WhiteboxModule {
 
-  @Provides
-  @IntoMap
-  @StringKey(EppMetric.TABLE_ID)
-  static ImmutableList<TableFieldSchema> provideEppMetricsSchema() {
-    return EppMetric.SCHEMA_FIELDS;
-  }
-
-  @Provides
-  @Parameter("tableId")
-  static String provideTableId(HttpServletRequest req) {
-    return extractRequiredParameter(req, "tableId");
-  }
-
-  @Provides
-  @Parameter("insertId")
-  static String provideInsertId(HttpServletRequest req) {
-    return extractRequiredParameter(req, "insertId");
-  }
-
-  @Provides
-  @Named("insertIdGenerator")
-  static Supplier<String> provideInsertIdGenerator() {
-    return () -> UUID.randomUUID().toString();
-  }
-
   /** Provides an EppMetric builder with the request ID and startTimestamp already initialized. */
   @Provides
-  static EppMetric.Builder provideEppMetricBuilder(
-      @RequestLogId String requestLogId, Clock clock) {
-    return EppMetric.builderForRequest(requestLogId, clock);
+  static EppMetric.Builder provideEppMetricBuilder(Clock clock) {
+    return EppMetric.builderForRequest(clock);
   }
 
   @Provides
   static CheckApiMetric.Builder provideCheckApiMetricBuilder(Clock clock) {
     return CheckApiMetric.builder(clock);
-  }
-
-  @Provides
-  @Named(QUEUE_BIGQUERY_STREAMING_METRICS)
-  static Queue provideBigQueryStreamingMetricsQueue() {
-    return getQueue(QUEUE_BIGQUERY_STREAMING_METRICS);
   }
 }

@@ -14,19 +14,14 @@
 
 package google.registry.flows.async;
 
+import static com.google.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
+import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationResult.SUCCESS;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationType.CONTACT_AND_HOST_DELETE;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import com.google.monitoring.metrics.EventMetric;
-import com.google.monitoring.metrics.IncrementableMetric;
+import com.google.common.collect.ImmutableSet;
 import google.registry.testing.FakeClock;
-import google.registry.testing.InjectRule;
 import google.registry.testing.ShardableTestCase;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -35,26 +30,8 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class AsyncFlowMetricsTest extends ShardableTestCase {
 
-  @Rule public final InjectRule inject = new InjectRule();
-
-  private final IncrementableMetric asyncFlowOperationCounts = mock(IncrementableMetric.class);
-  private final EventMetric asyncFlowOperationProcessingTime = mock(EventMetric.class);
-  private final EventMetric asyncFlowBatchSize = mock(EventMetric.class);
-  private AsyncFlowMetrics asyncFlowMetrics;
-  private FakeClock clock;
-
-  @Before
-  public void setUp() {
-    clock = new FakeClock();
-    asyncFlowMetrics = new AsyncFlowMetrics(clock);
-    inject.setStaticField(
-        AsyncFlowMetrics.class, "asyncFlowOperationCounts", asyncFlowOperationCounts);
-    inject.setStaticField(
-        AsyncFlowMetrics.class,
-        "asyncFlowOperationProcessingTime",
-        asyncFlowOperationProcessingTime);
-    inject.setStaticField(AsyncFlowMetrics.class, "asyncFlowBatchSize", asyncFlowBatchSize);
-  }
+  private final FakeClock clock = new FakeClock();
+  private final AsyncFlowMetrics asyncFlowMetrics = new AsyncFlowMetrics(clock);
 
   @Test
   public void testRecordAsyncFlowResult_calculatesDurationMillisCorrectly() {
@@ -62,9 +39,13 @@ public class AsyncFlowMetricsTest extends ShardableTestCase {
         CONTACT_AND_HOST_DELETE,
         SUCCESS,
         clock.nowUtc().minusMinutes(10).minusSeconds(5).minusMillis(566));
-    verify(asyncFlowOperationCounts).increment("contactAndHostDelete", "success");
-    verify(asyncFlowOperationProcessingTime).record(605566.0, "contactAndHostDelete", "success");
-    verifyNoMoreInteractions(asyncFlowOperationCounts);
-    verifyNoMoreInteractions(asyncFlowOperationProcessingTime);
+    assertThat(AsyncFlowMetrics.asyncFlowOperationCounts)
+        .hasValueForLabels(1, "contactAndHostDelete", "success")
+        .and()
+        .hasNoOtherValues();
+    assertThat(AsyncFlowMetrics.asyncFlowOperationProcessingTime)
+        .hasDataSetForLabels(ImmutableSet.of(605566.0), "contactAndHostDelete", "success")
+        .and()
+        .hasNoOtherValues();
   }
 }

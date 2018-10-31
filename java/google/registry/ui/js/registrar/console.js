@@ -14,11 +14,13 @@
 
 goog.provide('registry.registrar.Console');
 
+goog.require('goog.Uri');
 goog.require('goog.dispose');
 goog.require('goog.dom');
 goog.require('goog.dom.classlist');
 goog.require('goog.net.XhrIo');
 goog.require('registry.Console');
+goog.require('registry.Resource');
 goog.require('registry.registrar.Contact');
 goog.require('registry.registrar.ContactSettings');
 goog.require('registry.registrar.ContactUs');
@@ -76,7 +78,7 @@ registry.registrar.Console = function(params) {
   /**
    * @type {!Object.<string, function(new:registry.Component,
    *                                  !registry.registrar.Console,
-   *                                  string)>}
+   *                                  !registry.Resource)>}
    */
   this.pageMap = {};
   this.pageMap['security-settings'] = registry.registrar.SecuritySettings;
@@ -136,7 +138,10 @@ registry.registrar.Console.prototype.handleHashChange = function() {
     componentCtor = this.pageMap[''];
   }
   var oldComponent = this.component_;
-  this.component_ = new componentCtor(this, this.params.xsrfToken);
+  const resource = new registry.Resource(
+      new goog.Uri('/registrar-settings'), this.params.clientId,
+      this.params.xsrfToken);
+  this.component_ = new componentCtor(this, resource);
   this.registerDisposable(this.component_);
   this.component_.basePath = type;
   this.component_.bindToDom(id);
@@ -155,7 +160,7 @@ registry.registrar.Console.prototype.changeNavStyle = function() {
   slashNdx = slashNdx == -1 ? hashToken.length : slashNdx;
   var regNavlist = goog.dom.getRequiredElement('reg-navlist');
   var path = hashToken.substring(0, slashNdx);
-  var active = regNavlist.querySelector('a[href="/registrar#' + path + '"]');
+  var active = regNavlist.querySelector('a[href="#' + path + '"]');
   if (goog.isNull(active)) {
     registry.util.log('Unknown path or path form in changeNavStyle.');
     return;

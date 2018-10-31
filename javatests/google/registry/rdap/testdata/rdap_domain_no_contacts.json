@@ -10,10 +10,10 @@
   ],
   "links": [
     {
-      "href": "https://example.com/rdap/domain/%NAME%",
+      "href": "https://example.tld/rdap/domain/%NAME%",
       "type": "application/rdap+json",
       "rel": "self",
-      "value": "https://example.com/rdap/domain/%NAME%"
+      "value": "https://example.tld/rdap/domain/%NAME%"
     }
   ],
   "events": [
@@ -44,10 +44,10 @@
       "handle": "%NAMESERVER1ROID%",
       "links": [
         {
-          "href": "https://example.com/rdap/nameserver/%NAMESERVER1NAME%",
+          "href": "https://example.tld/rdap/nameserver/%NAMESERVER1NAME%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/nameserver/%NAMESERVER1NAME%"
+          "value": "https://example.tld/rdap/nameserver/%NAMESERVER1NAME%"
         }
       ],
       "ldhName": "%NAMESERVER1NAME%",
@@ -76,10 +76,10 @@
           "roles": [ "registrar" ],
           "links": [
             {
-              "href": "https://example.com/rdap/entity/1",
+              "href": "https://example.tld/rdap/entity/1",
               "type": "application/rdap+json",
               "rel": "self",
-              "value": "https://example.com/rdap/entity/1"
+              "value": "https://example.tld/rdap/entity/1"
             }
           ],
           "vcardArray" : [
@@ -131,10 +131,10 @@
       "handle": "%NAMESERVER2ROID%",
       "links": [
         {
-          "href": "https://example.com/rdap/nameserver/%NAMESERVER2NAME%",
+          "href": "https://example.tld/rdap/nameserver/%NAMESERVER2NAME%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/nameserver/%NAMESERVER2NAME%"
+          "value": "https://example.tld/rdap/nameserver/%NAMESERVER2NAME%"
         }
       ],
       "ldhName": "%NAMESERVER2NAME%",
@@ -163,10 +163,10 @@
           "roles": [ "registrar" ],
           "links": [
             {
-              "href": "https://example.com/rdap/entity/1",
+              "href": "https://example.tld/rdap/entity/1",
               "type": "application/rdap+json",
               "rel": "self",
-              "value": "https://example.com/rdap/entity/1"
+              "value": "https://example.tld/rdap/entity/1"
             }
           ],
           "vcardArray" : [
@@ -220,9 +220,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/1",
+          "value" : "https://example.tld/rdap/entity/1",
           "rel" : "self",
-          "href" : "https://example.com/rdap/entity/1",
+          "href" : "https://example.tld/rdap/entity/1",
           "type" : "application/rdap+json"
         }
       ],

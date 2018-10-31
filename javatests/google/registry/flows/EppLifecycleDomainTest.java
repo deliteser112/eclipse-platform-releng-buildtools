@@ -440,8 +440,6 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .and()
         .hasCommandName("HostUpdate")
         .and()
-        .hasEppTarget("ns3.fakesite.example")
-        .and()
         .hasStatus(SUCCESS);
     // Delete the fakesite.example domain (which should succeed since it no longer has subords).
     assertThatCommand("domain_delete.xml", ImmutableMap.of("DOMAIN", "fakesite.example"))
@@ -454,8 +452,6 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .and()
         .hasCommandName("DomainDelete")
         .and()
-        .hasEppTarget("fakesite.example")
-        .and()
         .hasStatus(SUCCESS_WITH_ACTION_PENDING);
     // Check info on the renamed host and verify that it's still around and wasn't deleted.
     assertThatCommand("host_info_ns9000_example.xml")
@@ -465,8 +461,6 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasClientId("NewRegistrar")
         .and()
         .hasCommandName("HostInfo")
-        .and()
-        .hasEppTarget("ns9000.example.external")
         .and()
         .hasStatus(SUCCESS);
     assertThatLogoutSucceeds();
@@ -574,8 +568,6 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasClientId("NewRegistrar")
         .and()
         .hasCommandName("DomainCheck")
-        .and()
-        .hasEppTarget("rich.example")
         .and()
         .hasTld("example")
         .and()

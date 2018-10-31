@@ -8,9 +8,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/301",
+          "value" : "https://example.tld/rdap/entity/301",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/301",
+          "href": "https://example.tld/rdap/entity/301",
           "type" : "application/rdap+json"
         }
       ],
@@ -61,9 +61,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/302",
+          "value" : "https://example.tld/rdap/entity/302",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/302",
+          "href": "https://example.tld/rdap/entity/302",
           "type" : "application/rdap+json"
         }
       ],
@@ -114,9 +114,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/303",
+          "value" : "https://example.tld/rdap/entity/303",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/303",
+          "href": "https://example.tld/rdap/entity/303",
           "type" : "application/rdap+json"
         }
       ],
@@ -167,9 +167,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/304",
+          "value" : "https://example.tld/rdap/entity/304",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/304",
+          "href": "https://example.tld/rdap/entity/304",
           "type" : "application/rdap+json"
         }
       ],
@@ -235,7 +235,7 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/help/tos",
+          "value" : "https://example.tld/rdap/help/tos",
           "rel" : "alternate",
           "href" : "https://www.registry.tld/about/rdap/tos.html",
           "type" : "text/html"

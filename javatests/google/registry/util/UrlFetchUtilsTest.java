@@ -31,7 +31,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.InjectRule;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -49,13 +48,11 @@ public class UrlFetchUtilsTest {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .build();
-  @Rule
-  public final InjectRule inject = new InjectRule();
+
+  private final Random random = mock(Random.class);
 
   @Before
   public void setupRandomZeroes() {
-    Random random = mock(Random.class);
-    inject.setStaticField(UrlFetchUtils.class, "random", random);
     doAnswer(
             info -> {
               Arrays.fill((byte[]) info.getArguments()[0], (byte) 0);
@@ -69,7 +66,12 @@ public class UrlFetchUtilsTest {
   public void testSetPayloadMultipart() {
     HTTPRequest request = mock(HTTPRequest.class);
     setPayloadMultipart(
-        request, "lol", "cat", CSV_UTF_8, "The nice people at the store say hello. ヘ(◕。◕ヘ)");
+        request,
+        "lol",
+        "cat",
+        CSV_UTF_8,
+        "The nice people at the store say hello. ヘ(◕。◕ヘ)",
+        random);
     ArgumentCaptor<HTTPHeader> headerCaptor = ArgumentCaptor.forClass(HTTPHeader.class);
     verify(request, times(2)).addHeader(headerCaptor.capture());
     List<HTTPHeader> addedHeaders = headerCaptor.getAllValues();
@@ -97,7 +99,7 @@ public class UrlFetchUtilsTest {
     IllegalStateException thrown =
         assertThrows(
             IllegalStateException.class,
-            () -> setPayloadMultipart(request, "lol", "cat", CSV_UTF_8, payload));
+            () -> setPayloadMultipart(request, "lol", "cat", CSV_UTF_8, payload, random));
     assertThat(thrown)
         .hasMessageThat()
         .contains(

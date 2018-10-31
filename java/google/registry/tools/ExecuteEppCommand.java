@@ -20,10 +20,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
-import google.registry.util.NonFinalForTesting;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,14 +38,10 @@ final class ExecuteEppCommand extends MutatingEppToolCommand {
       required = true)
   String clientId;
 
-  @NonFinalForTesting
-  private static InputStream stdin = System.in;
-
   @Override
   protected void initMutatingEppToolCommand() throws IOException {
     if (mainParameters.isEmpty()) {
-      addXmlCommand(
-          clientId, CharStreams.toString(new InputStreamReader(stdin, UTF_8)));
+      addXmlCommand(clientId, CharStreams.toString(new InputStreamReader(System.in, UTF_8)));
     } else {
       for (String command : mainParameters) {
         addXmlCommand(clientId, Files.asCharSource(new File(command), UTF_8).read());

@@ -23,6 +23,7 @@
 {template .main}
   {@param xsrfToken: string} /** Security token. */
   {@param clientId: string} /** Registrar client identifier. */
+  {@param allClientIds: list<string>} /** All registrar client identifiers for the user. */
   {@param username: string} /** Arbitrary username to display. */
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param productName: string} /** Name to display for this software product. */
@@ -75,24 +76,38 @@
 
 /** Sidebar nav. Ids on each elt for testing only. */
 {template .navbar_ visibility="private"}
+  {@param clientId: string} /** Registrar client identifier. */
+  {@param allClientIds: list<string>}
+
   <div id="reg-nav" class="{css('kd-content-sidebar')}">
+    <form>
+      <select name="clientId"
+              id="select-client-id"
+              class="{css('kd-button')} {css('kd-button-submit')}"
+              onchange='this.form.submit()'>
+        <option value="">[auto select]</option>
+        {for $id in $allClientIds}
+          <option value="{$id}" {if $id == $clientId}selected{/if}>{$id}</option>
+        {/for}
+      </select>
+    </form>
     <ul id="reg-navlist">
       <li>
-        <a href="/registrar#">Home</a>
+        <a href="#">Home</a>
       <li>
-        <a href="/registrar#resources">Resources &amp; billing</a>
+        <a href="#resources">Resources &amp; billing</a>
       <li>
         <ul>
           <span class="{css('reg-navlist-sub')}">Settings</span>
           <li>
-            <a href="/registrar#whois-settings">WHOIS</a>
+            <a href="#whois-settings">WHOIS</a>
           <li>
-            <a href="/registrar#security-settings">Security</a>
+            <a href="#security-settings">Security</a>
           <li>
-            <a href="/registrar#contact-settings">Contact</a>
+            <a href="#contact-settings">Contact</a>
         </ul>
       <li>
-        <a href="/registrar#contact-us">Contact us</a>
+        <a href="#contact-us">Contact us</a>
     </ul>
   </div>
 {/template}
@@ -130,25 +145,41 @@
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param logoFilename: string}
   {@param productName: string}
+  {@param? clientId: string}
   {call registry.soy.console.header}
     {param app: 'registrar' /}
-    {param subtitle: 'Please Login' /}
+    {param subtitle: 'Not Authorized' /}
   {/call}
   <div class="{css('whoAreYou')}">
     <a class="{css('logo')}" href="/registrar">
       <img src="/assets/images/{$logoFilename}" alt="{$productName}">
     </a>
     <h1>You need permission</h1>
-    <p>
-      The account you are logged in as is not associated with {$productName}.
-      Please contact your customer service representative or
-      switch to an account associated with {$productName}.
+    {if isNonnull($clientId)} // A clientId was given - but we don't have access to it
+      <p>
+        The account you are logged in as is not associated with the registrar
+        {sp}{$clientId}. Please contact your customer service representative or
+        switch to an account associated with {$clientId}. Alternatively, click
+        {sp}<a href="?">here</a> to find a registrar associated with your
+        account.
+    {else}
+      <p>
+        The account you are logged in as is not associated with {$productName}.
+        Please contact your customer service representative or
+        switch to an account associated with {$productName}.
+    {/if}
     <p>
       You are signed in as <strong>{$username}</strong>.
     <div>
       <a href="{$logoutUrl}"
          class="{css('kd-button')} {css('kd-button-submit')}"
          tabindex="-1">Logout and switch to another account</a>
+      {if isNonnull($clientId)} // A clientId was given - but we don't have access to it
+        {sp}
+        <a href="?"
+           class="{css('kd-button')} {css('kd-button-submit')}"
+           tabindex="-1">Find registrar associated with your account</a>
+      {/if}
     </div>
   </div>
 {/template}

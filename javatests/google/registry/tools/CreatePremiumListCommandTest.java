@@ -28,7 +28,6 @@ import com.beust.jcommander.ParameterException;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.tools.CommandWithConnection.Connection;
 import google.registry.tools.server.CreatePremiumListAction;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,8 +37,7 @@ import org.mockito.Mock;
 public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
     extends CreateOrUpdatePremiumListCommandTestCase<C> {
 
-  @Mock
-  Connection connection;
+  @Mock AppEngineConnection connection;
 
   String premiumTermsPath;
   String premiumTermsCsv;
@@ -53,12 +51,12 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
             "example_premium_terms.csv",
             loadFile(CreatePremiumListCommandTest.class, "example_premium_terms.csv"));
     servletPath = "/_dr/admin/createPremiumList";
-    when(connection.send(
-        eq(CreatePremiumListAction.PATH),
-        anyMapOf(String.class, String.class),
-        any(MediaType.class),
-        any(byte[].class)))
-            .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"success\",\"lines\":[]}");
+    when(connection.sendPostRequest(
+            eq(CreatePremiumListAction.PATH),
+            anyMapOf(String.class, String.class),
+            any(MediaType.class),
+            any(byte[].class)))
+        .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"success\",\"lines\":[]}");
   }
 
   @Test
@@ -86,13 +84,12 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
   public void testRun_errorResponse() throws Exception {
     reset(connection);
     command.setConnection(connection);
-    when(connection.send(
-        eq(CreatePremiumListAction.PATH),
-        anyMapOf(String.class, String.class),
-        any(MediaType.class),
-        any(byte[].class)))
-            .thenReturn(
-                JSON_SAFETY_PREFIX + "{\"status\":\"error\",\"error\":\"foo already exists\"}");
+    when(connection.sendPostRequest(
+            eq(CreatePremiumListAction.PATH),
+            anyMapOf(String.class, String.class),
+            any(MediaType.class),
+            any(byte[].class)))
+        .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"error\",\"error\":\"foo already exists\"}");
     VerifyException thrown =
         assertThrows(
             VerifyException.class, () -> runCommandForced("-i=" + premiumTermsPath, "-n=foo"));

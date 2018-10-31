@@ -16,7 +16,6 @@ package google.registry.flows;
 
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.flows.EppXmlTransformer.marshal;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
@@ -40,7 +39,6 @@ import google.registry.model.eppoutput.EppOutput;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.eppoutput.Result.Code;
-import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -60,7 +58,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 
@@ -74,7 +71,6 @@ public class EppControllerTest extends ShardableTestCase {
   @Mock SessionMetadata sessionMetadata;
   @Mock TransportCredentials transportCredentials;
   @Mock EppMetrics eppMetrics;
-  @Mock BigQueryMetricsEnqueuer bigQueryMetricsEnqueuer;
   @Mock FlowComponent.Builder flowComponentBuilder;
   @Mock FlowComponent flowComponent;
   @Mock FlowRunner flowRunner;
@@ -111,9 +107,8 @@ public class EppControllerTest extends ShardableTestCase {
     when(result.getCode()).thenReturn(Code.SUCCESS_WITH_NO_MESSAGES);
 
     eppController = new EppController();
-    eppController.eppMetricBuilder = EppMetric.builderForRequest("request-id-1", clock);
+    eppController.eppMetricBuilder = EppMetric.builderForRequest(clock);
     when(flowRunner.run(eppController.eppMetricBuilder)).thenReturn(eppOutput);
-    eppController.bigQueryMetricsEnqueuer = bigQueryMetricsEnqueuer;
     eppController.flowComponentBuilder = flowComponentBuilder;
     eppController.eppMetrics = eppMetrics;
     eppController.serverTridProvider = new FakeServerTridProvider();
@@ -133,61 +128,16 @@ public class EppControllerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testHandleEppCommand_unmarshallableData_exportsMetric() {
-    eppController.handleEppCommand(
-        sessionMetadata,
-        transportCredentials,
-        EppRequestSource.UNIT_TEST,
-        false,
-        false,
-        new byte[0]);
-
-    ArgumentCaptor<EppMetric> metricCaptor = ArgumentCaptor.forClass(EppMetric.class);
-    verify(bigQueryMetricsEnqueuer).export(metricCaptor.capture());
-    EppMetric metric = metricCaptor.getValue();
-    assertThat(metric.getRequestId()).isEqualTo("request-id-1");
-    assertThat(metric.getStartTimestamp()).isEqualTo(START_TIME);
-    assertThat(metric.getEndTimestamp()).isEqualTo(clock.nowUtc());
-    assertThat(metric.getClientId()).hasValue("some-client");
-    assertThat(metric.getPrivilegeLevel()).hasValue("NORMAL");
-    assertThat(metric.getStatus()).hasValue(Code.SYNTAX_ERROR);
-  }
-
-  @Test
-  public void testHandleEppCommand_regularEppCommand_exportsBigQueryMetric() {
-    eppController.handleEppCommand(
-        sessionMetadata,
-        transportCredentials,
-        EppRequestSource.UNIT_TEST,
-        false,
-        true,
-        domainCreateXml.getBytes(UTF_8));
-
-    ArgumentCaptor<EppMetric> metricCaptor = ArgumentCaptor.forClass(EppMetric.class);
-    verify(bigQueryMetricsEnqueuer).export(metricCaptor.capture());
-    EppMetric metric = metricCaptor.getValue();
-    assertThat(metric.getRequestId()).isEqualTo("request-id-1");
-    assertThat(metric.getStartTimestamp()).isEqualTo(START_TIME);
-    assertThat(metric.getEndTimestamp()).isEqualTo(clock.nowUtc());
-    assertThat(metric.getClientId()).hasValue("some-client");
-    assertThat(metric.getPrivilegeLevel()).hasValue("SUPERUSER");
-    assertThat(metric.getStatus()).hasValue(Code.SUCCESS_WITH_NO_MESSAGES);
-    assertThat(metric.getEppTarget()).hasValue("example.tld");
-  }
-
-  @Test
   public void testHandleEppCommand_regularEppCommand_exportsEppMetrics() {
     createTld("tld");
     // Note that some of the EPP metric fields, like # of attempts and command name, are set in
     // FlowRunner, not EppController, and since FlowRunner is mocked out for these tests they won't
     // actually get values.
     EppMetric.Builder metricBuilder =
-        EppMetric.builderForRequest("request-id-1", clock)
+        EppMetric.builderForRequest(clock)
             .setClientId("some-client")
-            .setEppTarget("example.tld")
             .setStatus(Code.SUCCESS_WITH_NO_MESSAGES)
-            .setTld("tld")
-            .setPrivilegeLevel("SUPERUSER");
+            .setTld("tld");
     eppController.handleEppCommand(
         sessionMetadata,
         transportCredentials,
@@ -210,8 +160,6 @@ public class EppControllerTest extends ShardableTestCase {
         true,
         true,
         domainCreateXml.getBytes(UTF_8));
-
-    verifyZeroInteractions(bigQueryMetricsEnqueuer);
     verifyZeroInteractions(eppMetrics);
   }
 

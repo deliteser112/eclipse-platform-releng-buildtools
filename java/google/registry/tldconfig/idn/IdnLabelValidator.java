@@ -20,7 +20,6 @@ import static google.registry.tldconfig.idn.IdnTableEnum.JA;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.util.Idn;
-import google.registry.util.NonFinalForTesting;
 import java.util.Optional;
 
 /** Validates whether a given IDN label can be provisioned for a particular TLD. */
@@ -30,10 +29,20 @@ public final class IdnLabelValidator {
   private static final ImmutableList<IdnTableEnum> DEFAULT_IDN_TABLES =
       ImmutableList.of(EXTENDED_LATIN, JA);
 
+  private static final ImmutableMap<String, ImmutableList<IdnTableEnum>>
+      DEFAULT_IDN_TABLE_LISTS_PER_TLD =
+          ImmutableMap.of("xn--q9jyb4c", ImmutableList.of(EXTENDED_LATIN, JA));
+
   /** Some TLDs have their own IDN tables, configured here. */
-  @NonFinalForTesting
-  private static ImmutableMap<String, ImmutableList<IdnTableEnum>> idnTableListsPerTld =
-      ImmutableMap.of("xn--q9jyb4c", ImmutableList.of(EXTENDED_LATIN, JA));
+  private ImmutableMap<String, ImmutableList<IdnTableEnum>> idnTableListsPerTld;
+
+  IdnLabelValidator(ImmutableMap<String, ImmutableList<IdnTableEnum>> indTableListsPerTld) {
+    this.idnTableListsPerTld = indTableListsPerTld;
+  }
+
+  public static IdnLabelValidator createDefaultIdnLabelValidator() {
+    return new IdnLabelValidator(DEFAULT_IDN_TABLE_LISTS_PER_TLD);
+  }
 
   /**
    * Returns name of first matching {@link IdnTable} if domain label is valid for the given TLD.
@@ -41,16 +50,14 @@ public final class IdnLabelValidator {
    * <p>A label is valid if it is considered valid by at least one configured IDN table for that
    * TLD. If no match is found, an absent value is returned.
    */
-  public static Optional<String> findValidIdnTableForTld(String label, String tld) {
+  public Optional<String> findValidIdnTableForTld(String label, String tld) {
     String unicodeString = Idn.toUnicode(label);
-    for (IdnTableEnum idnTable
-        : Optional.ofNullable(idnTableListsPerTld.get(tld)).orElse(DEFAULT_IDN_TABLES)) {
+    for (IdnTableEnum idnTable :
+        Optional.ofNullable(idnTableListsPerTld.get(tld)).orElse(DEFAULT_IDN_TABLES)) {
       if (idnTable.getTable().isValidLabel(unicodeString)) {
         return Optional.of(idnTable.getTable().getName());
       }
     }
     return Optional.empty();
   }
-
-  private IdnLabelValidator() {}
 }

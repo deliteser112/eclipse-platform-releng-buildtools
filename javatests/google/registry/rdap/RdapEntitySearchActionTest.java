@@ -16,8 +16,6 @@ package google.registry.rdap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.rdap.RdapAuthorization.Role.ADMINISTRATOR;
-import static google.registry.rdap.RdapAuthorization.Role.REGISTRAR;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -30,67 +28,43 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntr
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFile;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
-import google.registry.request.Action;
-import google.registry.request.auth.AuthLevel;
-import google.registry.request.auth.AuthResult;
-import google.registry.request.auth.UserAuthInfo;
-import google.registry.testing.AppEngineRule;
-import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
-import google.registry.testing.InjectRule;
-import google.registry.ui.server.registrar.SessionUtils;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
-import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdapEntitySearchAction}. */
 @RunWith(JUnit4.class)
-public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
+public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEntitySearchAction> {
 
-  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-  @Rule public final InjectRule inject = new InjectRule();
+  public RdapEntitySearchActionTest() {
+    super(RdapEntitySearchAction.class, RdapEntitySearchAction.PATH);
+  }
 
   private enum QueryType {
     FULL_NAME,
     HANDLE
   }
-
-  private final HttpServletRequest request = mock(HttpServletRequest.class);
-  private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
-  private final SessionUtils sessionUtils = mock(SessionUtils.class);
-  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
-  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
-  private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
-  private final RdapEntitySearchAction action = new RdapEntitySearchAction();
-
-  private FakeResponse response = new FakeResponse();
 
   private Registrar registrarDeleted;
   private Registrar registrarInactive;
@@ -134,8 +108,6 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
 
   @Before
   public void setUp() {
-    inject.setStaticField(Ofy.class, "clock", clock);
-
     createTld("tld");
 
     // deleted
@@ -181,40 +153,9 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
         registrarDeleted,
         clock.nowUtc().minusMonths(6));
 
-    action.clock = clock;
-    action.request = request;
-    action.requestMethod = Action.Method.GET;
-    action.fullServletPath = "https://example.com/rdap";
-    action.requestUrl = "https://example.com/rdap/entities";
-    action.requestPath = RdapEntitySearchAction.PATH;
-    action.parameterMap = ImmutableListMultimap.of();
-    action.response = response;
-    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
-    action.rdapResultSetMaxSize = 4;
-    action.rdapWhoisServer = null;
     action.fnParam = Optional.empty();
     action.handleParam = Optional.empty();
     action.subtypeParam = Optional.empty();
-    action.registrarParam = Optional.empty();
-    action.includeDeletedParam = Optional.empty();
-    action.formatOutputParam = Optional.empty();
-    action.sessionUtils = sessionUtils;
-    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
-    action.rdapMetrics = rdapMetrics;
-    action.cursorTokenParam = Optional.empty();
-  }
-
-  private void login(String registrar) {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn(registrar);
-    metricRole = REGISTRAR;
-  }
-
-  private void loginAsAdmin() {
-    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("noregistrar");
-    metricRole = ADMINISTRATOR;
   }
 
   private Object generateExpectedJson(String expectedOutputFile) {
@@ -266,7 +207,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
     builder.put("entitySearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
     RdapTestHelper.addNonDomainBoilerplateNotices(
-        builder, RdapTestHelper.createNotices("https://example.com/rdap/"));
+        builder, RdapTestHelper.createNotices("https://example.tld/rdap/"));
     return new JSONObject(builder.build());
   }
 

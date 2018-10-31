@@ -15,8 +15,6 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.rdap.RdapAuthorization.Role.ADMINISTRATOR;
-import static google.registry.rdap.RdapAuthorization.Role.REGISTRAR;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -29,10 +27,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResourc
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFile;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -40,51 +35,31 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
-import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
-import google.registry.request.Action;
-import google.registry.request.auth.AuthLevel;
-import google.registry.request.auth.AuthResult;
-import google.registry.request.auth.UserAuthInfo;
-import google.registry.testing.AppEngineRule;
-import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
-import google.registry.testing.InjectRule;
-import google.registry.ui.server.registrar.SessionUtils;
 import java.net.URLDecoder;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
-import org.joda.time.DateTime;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdapNameserverSearchAction}. */
 @RunWith(JUnit4.class)
-public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
+public class RdapNameserverSearchActionTest
+    extends RdapSearchActionTestCase<RdapNameserverSearchAction> {
 
-  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule public final InjectRule inject = new InjectRule();
-
-  private final HttpServletRequest request = mock(HttpServletRequest.class);
-  private FakeResponse response = new FakeResponse();
-  private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
-  private final SessionUtils sessionUtils = mock(SessionUtils.class);
-  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
-  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
-  private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
-  private final RdapNameserverSearchAction action = new RdapNameserverSearchAction();
+  public RdapNameserverSearchActionTest() {
+    super(RdapNameserverSearchAction.class, RdapNameserverSearchAction.PATH);
+  }
 
   private DomainResource domainCatLol;
   private HostResource hostNs1CatLol;
@@ -177,40 +152,8 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
     persistResource(
         hostNs2CatLol.asBuilder().setSuperordinateDomain(Key.create(domainCatLol)).build());
 
-    inject.setStaticField(Ofy.class, "clock", clock);
-    action.clock = clock;
-    action.fullServletPath = "https://example.tld/rdap";
-    action.requestUrl = "https://example.tld/rdap/nameservers";
-    action.requestPath = RdapNameserverSearchAction.PATH;
-    action.parameterMap = ImmutableListMultimap.of();
-    action.request = request;
-    action.requestMethod = Action.Method.GET;
-    action.response = response;
-    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
-    action.rdapResultSetMaxSize = 4;
-    action.rdapWhoisServer = null;
     action.ipParam = Optional.empty();
     action.nameParam = Optional.empty();
-    action.registrarParam = Optional.empty();
-    action.includeDeletedParam = Optional.empty();
-    action.formatOutputParam = Optional.empty();
-    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
-    action.sessionUtils = sessionUtils;
-    action.rdapMetrics = rdapMetrics;
-    action.cursorTokenParam = Optional.empty();
-  }
-
-  private void login(String clientId) {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn(clientId);
-    metricRole = REGISTRAR;
-  }
-
-  private void loginAsAdmin() {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
-    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
-    metricRole = ADMINISTRATOR;
   }
 
   private Object generateExpectedJson(String expectedOutputFile) {

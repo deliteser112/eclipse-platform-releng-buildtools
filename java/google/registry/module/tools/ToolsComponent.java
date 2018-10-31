@@ -24,16 +24,15 @@ import google.registry.gcs.GcsServiceModule;
 import google.registry.groups.DirectoryModule;
 import google.registry.groups.GroupsModule;
 import google.registry.groups.GroupssettingsModule;
+import google.registry.keyring.KeyringModule;
+import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.kms.KmsModule;
 import google.registry.module.tools.ToolsRequestComponent.ToolsRequestComponentModule;
-import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.DatastoreServiceModule;
-import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.NetHttpTransportModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
-import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.request.auth.AuthModule;
 import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
@@ -46,21 +45,20 @@ import javax.inject.Singleton;
 @Component(
     modules = {
       AppEngineServiceUtilsModule.class,
-      AppIdentityCredentialModule.class,
       AuthModule.class,
       ConfigModule.class,
       CredentialModule.class,
       CustomLogicFactoryModule.class,
       DatastoreServiceModule.class,
       DirectoryModule.class,
-      google.registry.keyring.api.DummyKeyringModule.class,
+      DummyKeyringModule.class,
       DriveModule.class,
       GcsServiceModule.class,
-      GoogleCredentialModule.class,
       GroupsModule.class,
       GroupssettingsModule.class,
       Jackson2Module.class,
       KeyModule.class,
+      KeyringModule.class,
       KmsModule.class,
       NetHttpTransportModule.class,
       ServerTridProviderModule.class,
@@ -68,7 +66,6 @@ import javax.inject.Singleton;
       SystemSleeperModule.class,
       ToolsRequestComponentModule.class,
       UrlFetchTransportModule.class,
-      UseAppIdentityCredentialForGoogleApisModule.class,
       UserServiceModule.class,
     })
 interface ToolsComponent {

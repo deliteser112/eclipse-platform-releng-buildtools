@@ -57,19 +57,19 @@ final class RegistrarContactCommand extends MutatingCommand {
   @Parameter(
       description = "Client identifier of the registrar account.",
       required = true)
-  private List<String> mainParameters;
+  List<String> mainParameters;
 
   @Parameter(
       names = "--mode",
       description = "Type of operation you want to perform (LIST, CREATE, UPDATE, or DELETE).",
       required = true)
-  private Mode mode;
+  Mode mode;
 
   @Nullable
   @Parameter(
       names = "--name",
       description = "Contact name.")
-  private String name;
+  String name;
 
   @Nullable
   @Parameter(
@@ -82,7 +82,7 @@ final class RegistrarContactCommand extends MutatingCommand {
   @Parameter(
       names = "--email",
       description = "Contact email address.")
-  private String email;
+  String email;
 
   @Nullable
   @Parameter(
@@ -105,7 +105,7 @@ final class RegistrarContactCommand extends MutatingCommand {
       names = "--allow_console_access",
       description = "Enable or disable access to the registrar console for this contact.",
       arity = 1)
-  private Boolean allowConsoleAccess;
+  Boolean allowConsoleAccess;
 
   @Nullable
   @Parameter(
@@ -138,7 +138,7 @@ final class RegistrarContactCommand extends MutatingCommand {
       validateWith = PathParameter.OutputFile.class)
   private Path output = Paths.get("/dev/stdout");
 
-  private enum Mode { LIST, CREATE, UPDATE, DELETE }
+  enum Mode { LIST, CREATE, UPDATE, DELETE }
 
   private static final ImmutableSet<Mode> MODES_REQUIRING_CONTACT_SYNC =
       ImmutableSet.of(Mode.CREATE, Mode.UPDATE, Mode.DELETE);

@@ -211,8 +211,11 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
       checkAllowedAccessToTld(clientId, tld);
     }
     Registry registry = Registry.get(tld);
+    boolean isAnchorTenant =
+        isAnchorTenant(domainName, Optional.empty(), authInfo.getPw().getValue(), Optional.empty());
     FeesAndCredits feesAndCredits =
-        pricingLogic.getCreatePrice(registry, targetId, now, command.getPeriod().getValue());
+        pricingLogic.getCreatePrice(
+            registry, targetId, now, command.getPeriod().getValue(), isAnchorTenant);
     verifyUnitIsYears(command.getPeriod());
     int years = command.getPeriod().getValue();
     validateRegistrationPeriod(years);
@@ -220,8 +223,6 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     LaunchCreateExtension launchCreate =
         eppInput.getSingleExtension(LaunchCreateExtension.class).get();
     validateLaunchCreateExtension(launchCreate, registry, domainName, now);
-    boolean isAnchorTenant =
-        isAnchorTenant(domainName, Optional.empty(), authInfo.getPw().getValue(), Optional.empty());
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, and override blocks on registering premium domains.
     if (!isSuperuser) {

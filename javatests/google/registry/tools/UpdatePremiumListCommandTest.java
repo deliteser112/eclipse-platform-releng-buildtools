@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.tools.CommandWithConnection.Connection;
 import google.registry.tools.server.UpdatePremiumListAction;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,8 +32,7 @@ import org.mockito.Mock;
 public class UpdatePremiumListCommandTest<C extends UpdatePremiumListCommand>
     extends CreateOrUpdatePremiumListCommandTestCase<C> {
 
-  @Mock
-  Connection connection;
+  @Mock AppEngineConnection connection;
 
   String premiumTermsPath;
   String premiumTermsCsv;
@@ -48,12 +46,12 @@ public class UpdatePremiumListCommandTest<C extends UpdatePremiumListCommand>
         writeToNamedTmpFile(
             "example_premium_terms.csv",
             loadFile(UpdatePremiumListCommandTest.class, "example_premium_terms.csv"));
-    when(connection.send(
-        eq(UpdatePremiumListAction.PATH),
-        anyMapOf(String.class, String.class),
-        any(MediaType.class),
-        any(byte[].class)))
-            .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"success\",\"lines\":[]}");
+    when(connection.sendPostRequest(
+            eq(UpdatePremiumListAction.PATH),
+            anyMapOf(String.class, String.class),
+            any(MediaType.class),
+            any(byte[].class)))
+        .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"success\",\"lines\":[]}");
   }
 
   @Test

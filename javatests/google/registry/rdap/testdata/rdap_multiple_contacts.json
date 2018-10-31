@@ -8,9 +8,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/2-ROID",
+          "value" : "https://example.tld/rdap/entity/2-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/2-ROID",
+          "href": "https://example.tld/rdap/entity/2-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -55,9 +55,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/2-Registrar",
+          "value" : "https://example.tld/rdap/entity/2-Registrar",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/2-Registrar",
+          "href": "https://example.tld/rdap/entity/2-Registrar",
           "type" : "application/rdap+json"
         }
       ],
@@ -122,7 +122,7 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/help/tos",
+          "value" : "https://example.tld/rdap/help/tos",
           "rel" : "alternate",
           "href" : "https://www.registry.tld/about/rdap/tos.html",
           "type" : "text/html"

@@ -57,10 +57,10 @@ final class VerifyOteCommand implements CommandWithConnection, CommandWithRemote
       description = "Only show a summary of information")
   private boolean summarize;
 
-  private Connection connection;
+  private AppEngineConnection connection;
 
   @Override
-  public void setConnection(Connection connection) {
+  public void setConnection(AppEngineConnection connection) {
     this.connection = connection;
   }
 

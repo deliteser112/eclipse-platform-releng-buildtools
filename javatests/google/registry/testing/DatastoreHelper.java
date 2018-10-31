@@ -97,7 +97,7 @@ import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.Builder;
 import google.registry.model.transfer.TransferStatus;
-import google.registry.tmch.LordnTask;
+import google.registry.tmch.LordnTaskUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -363,9 +363,10 @@ public class DatastoreHelper {
   /** Persists a domain and enqueues a LORDN task of the appropriate type for it. */
   public static DomainResource persistDomainAndEnqueueLordn(final DomainResource domain) {
     final DomainResource persistedDomain = persistResource(domain);
-    // Calls {@link LordnTask#enqueueDomainResourceTask} wrapped in an ofy transaction so that the
+    // Calls {@link LordnTaskUtils#enqueueDomainResourceTask} wrapped in an ofy transaction so that
+    // the
     // transaction time is set correctly.
-    ofy().transactNew(() -> LordnTask.enqueueDomainResourceTask(persistedDomain));
+    ofy().transactNew(() -> LordnTaskUtils.enqueueDomainResourceTask(persistedDomain));
     return persistedDomain;
   }
 
@@ -453,7 +454,7 @@ public class DatastoreHelper {
         registrar.asBuilder().setAllowedTlds(union(registrar.getAllowedTlds(), tld)).build());
   }
 
-  private static void disallowRegistrarAccess(String clientId, String tld) {
+  public static void disallowRegistrarAccess(String clientId, String tld) {
     Registrar registrar = loadRegistrar(clientId);
     persistResource(
         registrar.asBuilder().setAllowedTlds(difference(registrar.getAllowedTlds(), tld)).build());

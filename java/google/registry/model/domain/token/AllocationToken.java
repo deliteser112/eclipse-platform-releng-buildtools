@@ -41,7 +41,7 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
   @Id String token;
 
   /** The key of the history entry for which the token was used. Null if not yet used. */
-  Key<HistoryEntry> redemptionHistoryEntry;
+  @Nullable @Index Key<HistoryEntry> redemptionHistoryEntry;
 
   /** The fully-qualified domain name that this token is limited to, if any. */
   @Nullable @Index String domainName;

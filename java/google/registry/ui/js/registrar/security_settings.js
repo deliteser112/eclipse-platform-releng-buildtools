@@ -14,7 +14,6 @@
 
 goog.provide('registry.registrar.SecuritySettings');
 
-goog.require('goog.Uri');
 goog.require('goog.array');
 goog.require('goog.dom');
 goog.require('goog.dom.classlist');
@@ -32,19 +31,15 @@ goog.forwardDeclare('registry.registrar.Console');
 /**
  * Security Settings page.
  * @param {!registry.registrar.Console} console
- * @param {string} xsrfToken Security token to pass back to the server.
+ * @param {!registry.Resource} resource the RESTful resource for the registrar.
  * @constructor
  * @extends {registry.ResourceComponent}
  * @final
  */
-registry.registrar.SecuritySettings = function(console, xsrfToken) {
+registry.registrar.SecuritySettings = function(console, resource) {
   registry.registrar.SecuritySettings.base(
-      this,
-      'constructor',
-      console,
-      new registry.Resource(new goog.Uri('/registrar-settings'), xsrfToken),
-      registry.soy.registrar.security.settings,
-      null);
+      this, 'constructor', console, resource,
+      registry.soy.registrar.security.settings, null);
 };
 goog.inherits(registry.registrar.SecuritySettings, registry.ResourceComponent);
 

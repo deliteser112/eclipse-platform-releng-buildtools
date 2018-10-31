@@ -21,7 +21,7 @@ import org.junit.runners.Suite.SuiteClasses;
 /** Convenience class to run all TMCH tests inside IDE with one keystroke. */
 @RunWith(Suite.class)
 @SuiteClasses({
-  LordnTaskTest.class,
+  LordnTaskUtilsTest.class,
   NordnUploadAction.class,
   NordnVerifyAction.class,
   SmdrlCsvParserTest.class,

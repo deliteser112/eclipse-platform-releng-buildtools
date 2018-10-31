@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.keyring.kms;
+package google.registry.keyring;
 
+
+import static com.google.common.base.Preconditions.checkState;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.Keyring;
+import java.util.Map;
 import javax.inject.Singleton;
 
 /** Dagger module for {@link Keyring} */
@@ -25,7 +29,13 @@ public final class KeyringModule {
 
   @Provides
   @Singleton
-  public static Keyring provideKeyring(KmsKeyring kmsKeyring) {
-    return kmsKeyring;
+  public static Keyring provideKeyring(
+      Map<String, Keyring> keyrings, @Config("activeKeyring") String activeKeyring) {
+    checkState(
+        keyrings.containsKey(activeKeyring),
+        "Invalid Keyring %s is configured; valid choices are %s",
+        activeKeyring,
+        keyrings.keySet());
+    return keyrings.get(activeKeyring);
   }
 }

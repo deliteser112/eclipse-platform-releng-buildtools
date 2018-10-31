@@ -50,10 +50,10 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
       arity = 1)
   boolean createGoogleGroups = true;
 
-  private Connection connection;
+  private AppEngineConnection connection;
 
   @Override
-  public void setConnection(Connection connection) {
+  public void setConnection(AppEngineConnection connection) {
     this.connection = connection;
   }
 

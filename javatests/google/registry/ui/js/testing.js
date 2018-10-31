@@ -106,11 +106,10 @@ registry.testing.assertObjectEqualsPretty = function(a, b) {
   try {
     assertObjectEquals(a, b);
   } catch (e) {
-    throw Error(e.message + '\n' +
-        'expected: ' +
-        registry.testing.pretty_.format(a) + '\n' +
-        'got: ' +
-        registry.testing.pretty_.format(b));
+    e.message = e.message + '\n' +
+        'expected: ' + registry.testing.pretty_.format(a) + '\n' +
+        'got: ' + registry.testing.pretty_.format(b);
+    throw e;
   }
 };
 

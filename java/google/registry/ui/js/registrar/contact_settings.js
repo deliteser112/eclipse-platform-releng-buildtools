@@ -14,7 +14,6 @@
 
 goog.provide('registry.registrar.ContactSettings');
 
-goog.require('goog.Uri');
 goog.require('goog.array');
 goog.require('goog.dom');
 goog.require('goog.dom.TagName');
@@ -38,18 +37,15 @@ goog.forwardDeclare('registry.registrar.Console');
  * updating only that field of the Registrar object and not
  * implementing the create action from edit_item.
  * @param {!registry.registrar.Console} console
- * @param {string} xsrfToken Security token to pass back to the server.
+ * @param {!registry.Resource} resource the RESTful resource for the registrar.
  * @constructor
  * @extends {registry.ResourceComponent}
  * @final
  */
-registry.registrar.ContactSettings = function(console, xsrfToken) {
+registry.registrar.ContactSettings = function(console, resource) {
   registry.registrar.ContactSettings.base(
-      this, 'constructor',
-      console,
-      new registry.Resource(new goog.Uri('/registrar-settings'), xsrfToken),
-      registry.soy.registrar.contacts.contact,
-      null);
+      this, 'constructor', console, resource,
+      registry.soy.registrar.contacts.contact, null);
 };
 goog.inherits(registry.registrar.ContactSettings, registry.ResourceComponent);
 

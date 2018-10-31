@@ -42,8 +42,6 @@ import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
-import google.registry.util.NonFinalForTesting;
-import google.registry.util.RandomStringGenerator;
 import google.registry.util.StringGenerator;
 import google.registry.util.XmlToEnumMapper;
 import google.registry.xjc.domain.XjcDomainContactType;
@@ -54,26 +52,11 @@ import google.registry.xjc.rdedomain.XjcRdeDomainElement;
 import google.registry.xjc.rdedomain.XjcRdeDomainTransferDataType;
 import google.registry.xjc.rgp.XjcRgpStatusType;
 import google.registry.xjc.secdns.XjcSecdnsDsDataType;
-import java.security.NoSuchAlgorithmException;
-import java.security.ProviderException;
-import java.security.SecureRandom;
 import java.util.function.Function;
 import org.joda.time.DateTime;
 
 /** Utility class that converts an {@link XjcRdeDomainElement} into a {@link DomainResource}. */
 final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
-
-  @NonFinalForTesting
-  static StringGenerator stringGenerator =
-      new RandomStringGenerator(StringGenerator.Alphabets.BASE_64, getRandom());
-
-  static SecureRandom getRandom() {
-    try {
-      return SecureRandom.getInstance("NativePRNG");
-    } catch (NoSuchAlgorithmException e) {
-      throw new ProviderException(e);
-    }
-  }
 
   private static final XmlToEnumMapper<TransferStatus> TRANSFER_STATUS_MAPPER =
       XmlToEnumMapper.create(TransferStatus.values());
@@ -152,7 +135,8 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
   static DomainResource convertDomain(
       XjcRdeDomain domain,
       BillingEvent.Recurring autoRenewBillingEvent,
-      PollMessage.Autorenew autoRenewPollMessage) {
+      PollMessage.Autorenew autoRenewPollMessage,
+      StringGenerator stringGenerator) {
     GracePeriodConverter gracePeriodConverter =
         new GracePeriodConverter(domain, Key.create(autoRenewBillingEvent));
     DomainResource.Builder builder =

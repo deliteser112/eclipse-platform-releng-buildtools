@@ -15,6 +15,9 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.newRegistry;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -22,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
+import google.registry.model.registry.Registry.TldType;
 import google.registry.tools.server.ListDomainsAction;
 import org.junit.Test;
 
@@ -56,9 +60,22 @@ public class ListDomainsCommandTest extends ListObjectsCommandTestCase<ListDomai
   public void test_bothParamsSpecified() throws Exception {
     runCommand("--tlds=foo,bar", "--limit=100");
     verify(connection)
-        .send(
+        .sendPostRequest(
             eq(getTaskPath()),
             eq(ImmutableMap.of("tlds", "foo,bar", "limit", 100)),
+            eq(MediaType.PLAIN_TEXT_UTF_8),
+            eq(new byte[0]));
+  }
+
+  @Test
+  public void test_defaultsToAllRealTlds() throws Exception {
+    createTlds("tldone", "tldtwo");
+    persistResource(newRegistry("fake", "FAKE").asBuilder().setTldType(TldType.TEST).build());
+    runCommand();
+    verify(connection)
+        .sendPostRequest(
+            eq(getTaskPath()),
+            eq(ImmutableMap.of("tlds", "tldone,tldtwo", "limit", Integer.MAX_VALUE)),
             eq(MediaType.PLAIN_TEXT_UTF_8),
             eq(new byte[0]));
   }

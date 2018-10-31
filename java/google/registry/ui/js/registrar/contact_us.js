@@ -14,7 +14,6 @@
 
 goog.provide('registry.registrar.ContactUs');
 
-goog.require('goog.Uri');
 goog.require('goog.dom');
 goog.require('registry.Resource');
 goog.require('registry.ResourceComponent');
@@ -27,19 +26,15 @@ goog.forwardDeclare('registry.registrar.Console');
 /**
  * Contact Us page.
  * @param {!registry.registrar.Console} console
- * @param {string} xsrfToken Security token to pass back to the server.
+ * @param {!registry.Resource} resource the RESTful resource for the registrar.
  * @constructor
  * @extends {registry.ResourceComponent}
  * @final
  */
-registry.registrar.ContactUs = function(console, xsrfToken) {
+registry.registrar.ContactUs = function(console, resource) {
   registry.registrar.ContactUs.base(
-      this,
-      'constructor',
-      console,
-      new registry.Resource(new goog.Uri('/registrar-settings'), xsrfToken),
-      registry.soy.registrar.console.contactUs,
-      null);
+      this, 'constructor', console, resource,
+      registry.soy.registrar.console.contactUs, null);
 };
 goog.inherits(registry.registrar.ContactUs, registry.ResourceComponent);
 

@@ -54,6 +54,7 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
+import google.registry.util.StringGenerator;
 import google.registry.util.SystemClock;
 import google.registry.xjc.JaxbFragment;
 import google.registry.xjc.rdedomain.XjcRdeDomain;
@@ -83,6 +84,7 @@ public class RdeDomainImportAction implements Runnable {
   protected final String importBucketName;
   protected final String importFileName;
   protected final Optional<Integer> mapShards;
+  protected final StringGenerator stringGenerator;
 
   @Inject
   public RdeDomainImportAction(
@@ -90,12 +92,14 @@ public class RdeDomainImportAction implements Runnable {
       Response response,
       @Config("rdeImportBucket") String importBucketName,
       @Parameter(PATH) String importFileName,
-      @Parameter(PARAM_MAP_SHARDS) Optional<Integer> mapShards) {
+      @Parameter(PARAM_MAP_SHARDS) Optional<Integer> mapShards,
+      @Config("base64StringGenerator") StringGenerator stringGenerator) {
     this.mrRunner = mrRunner;
     this.response = response;
     this.importBucketName = importBucketName;
     this.importFileName = importFileName;
     this.mapShards = mapShards;
+    this.stringGenerator = stringGenerator;
   }
 
   @Override
@@ -122,7 +126,7 @@ public class RdeDomainImportAction implements Runnable {
    * Creates a new {@link RdeDomainImportMapper}
    */
   private RdeDomainImportMapper createMapper() {
-    return new RdeDomainImportMapper(importBucketName);
+    return new RdeDomainImportMapper(importBucketName, stringGenerator);
   }
 
   /** Mapper to import domains from an escrow file. */
@@ -132,11 +136,13 @@ public class RdeDomainImportAction implements Runnable {
     private static final long serialVersionUID = -7645091075256589374L;
 
     private final String importBucketName;
+    private final StringGenerator stringGenerator;
     private transient RdeImportUtils importUtils;
     private transient DnsQueue dnsQueue;
 
-    public RdeDomainImportMapper(String importBucketName) {
+    public RdeDomainImportMapper(String importBucketName, StringGenerator stringGenerator) {
       this.importBucketName = importBucketName;
+      this.stringGenerator = stringGenerator;
     }
 
     private RdeImportUtils getImportUtils() {
@@ -196,7 +202,7 @@ public class RdeDomainImportAction implements Runnable {
           createAutoRenewPollMessageForDomainImport(xjcDomain, historyEntry);
       DomainResource domain =
           XjcToDomainResourceConverter.convertDomain(
-              xjcDomain, autorenewBillingEvent, autorenewPollMessage);
+              xjcDomain, autorenewBillingEvent, autorenewPollMessage, stringGenerator);
       getDnsQueue().addDomainRefreshTask(domain.getFullyQualifiedDomainName());
       // Keep a list of "extra objects" that need to be saved along with the domain
       // and add to it if necessary.

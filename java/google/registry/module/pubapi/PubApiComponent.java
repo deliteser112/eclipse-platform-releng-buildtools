@@ -21,16 +21,15 @@ import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.flows.ServerTridProviderModule;
 import google.registry.flows.custom.CustomLogicFactoryModule;
+import google.registry.keyring.KeyringModule;
+import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.kms.KmsModule;
 import google.registry.module.pubapi.PubApiRequestComponent.PubApiRequestComponentModule;
 import google.registry.monitoring.whitebox.StackdriverModule;
-import google.registry.request.Modules.AppIdentityCredentialModule;
-import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.NetHttpTransportModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
-import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.request.auth.AuthModule;
 import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
@@ -43,16 +42,15 @@ import javax.inject.Singleton;
 @Component(
     modules = {
       AppEngineServiceUtilsModule.class,
-      AppIdentityCredentialModule.class,
       AuthModule.class,
       ConfigModule.class,
       CredentialModule.class,
       CustomLogicFactoryModule.class,
-      google.registry.keyring.api.DummyKeyringModule.class,
+      DummyKeyringModule.class,
       PubApiRequestComponentModule.class,
-      GoogleCredentialModule.class,
       Jackson2Module.class,
       KeyModule.class,
+      KeyringModule.class,
       KmsModule.class,
       NetHttpTransportModule.class,
       ServerTridProviderModule.class,
@@ -60,7 +58,6 @@ import javax.inject.Singleton;
       SystemClockModule.class,
       SystemSleeperModule.class,
       UrlFetchTransportModule.class,
-      UseAppIdentityCredentialForGoogleApisModule.class,
       UserServiceModule.class,
     })
 interface PubApiComponent {

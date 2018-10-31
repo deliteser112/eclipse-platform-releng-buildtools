@@ -8,9 +8,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/0001-ROID",
+          "value" : "https://example.tld/rdap/entity/0001-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/0001-ROID",
+          "href": "https://example.tld/rdap/entity/0001-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -54,9 +54,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/0002-ROID",
+          "value" : "https://example.tld/rdap/entity/0002-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/0002-ROID",
+          "href": "https://example.tld/rdap/entity/0002-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -100,9 +100,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/0003-ROID",
+          "value" : "https://example.tld/rdap/entity/0003-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/0003-ROID",
+          "href": "https://example.tld/rdap/entity/0003-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -146,9 +146,9 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/301",
+          "value" : "https://example.tld/rdap/entity/301",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/301",
+          "href": "https://example.tld/rdap/entity/301",
           "type" : "application/rdap+json"
         }
       ],
@@ -210,7 +210,7 @@
       [
         {
           "type" : "application/rdap+json",
-          "href" : "https://example.com/rdap/entities?%NAME%",
+          "href" : "https://example.tld/rdap/entities?%NAME%",
           "rel" : "next"
         }
       ],
@@ -234,7 +234,7 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/help/tos",
+          "value" : "https://example.tld/rdap/help/tos",
           "rel" : "alternate",
           "href" : "https://www.registry.tld/about/rdap/tos.html",
           "type" : "text/html"

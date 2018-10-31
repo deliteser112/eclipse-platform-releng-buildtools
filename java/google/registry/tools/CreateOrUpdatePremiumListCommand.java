@@ -57,11 +57,11 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
       required = true)
   Path inputFile;
 
-  protected Connection connection;
+  protected AppEngineConnection connection;
   protected int inputLineCount;
 
   @Override
-  public void setConnection(Connection connection) {
+  public void setConnection(AppEngineConnection connection) {
     this.connection = connection;
   }
 
@@ -101,11 +101,9 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
     }
 
     // Call the server and get the response data
-    String response = connection.send(
-        getCommandPath(),
-        params.build(),
-        MediaType.FORM_DATA,
-        requestBody.getBytes(UTF_8));
+    String response =
+        connection.sendPostRequest(
+            getCommandPath(), params.build(), MediaType.FORM_DATA, requestBody.getBytes(UTF_8));
 
     return extractServerResponse(response);
   }

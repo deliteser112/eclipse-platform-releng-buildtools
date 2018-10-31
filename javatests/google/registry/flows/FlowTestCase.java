@@ -110,8 +110,6 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     ofy().saveWithoutBackup().entity(new ClaimsListSingleton()).now();
     // For transactional flows
     inject.setStaticField(Ofy.class, "clock", clock);
-    // For SignedMark signature validity
-    inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
  }
 
   protected void removeServiceExtensionUri(String uri) {
@@ -278,7 +276,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
 
   private EppOutput runFlowInternal(CommitMode commitMode, UserPrivileges userPrivileges)
       throws Exception {
-    eppMetricBuilder = EppMetric.builderForRequest("request-id-1", clock);
+    eppMetricBuilder = EppMetric.builderForRequest(clock);
     // Assert that the xml triggers the flow we expect.
     assertThat(FlowPicker.getFlowClass(eppLoader.getEpp()))
         .isEqualTo(new TypeInstantiator<F>(getClass()){}.getExactType());
@@ -286,7 +284,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     TmchXmlSignature tmchXmlSignature =
         testTmchXmlSignature != null
             ? testTmchXmlSignature
-            : new TmchXmlSignature(new TmchCertificateAuthority(tmchCaMode));
+            : new TmchXmlSignature(new TmchCertificateAuthority(tmchCaMode, clock));
     return DaggerEppTestComponent.builder()
         .fakesAndMocksModule(FakesAndMocksModule.create(clock, eppMetricBuilder, tmchXmlSignature))
         .build()

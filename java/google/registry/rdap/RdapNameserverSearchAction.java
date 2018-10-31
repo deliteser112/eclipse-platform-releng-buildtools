@@ -38,7 +38,6 @@ import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.util.Clock;
 import google.registry.util.Idn;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -66,10 +65,9 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
 
   public static final String PATH = "/rdap/nameservers";
 
-  @Inject Clock clock;
   @Inject @Parameter("name") Optional<String> nameParam;
   @Inject @Parameter("ip") Optional<String> ipParam;
-  @Inject RdapNameserverSearchAction() {}
+  @Inject public RdapNameserverSearchAction() {}
 
   @Override
   public String getHumanReadableObjectTypeName() {

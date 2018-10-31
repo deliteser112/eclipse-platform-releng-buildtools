@@ -15,7 +15,7 @@
 package google.registry.tmch;
 
 import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PILOT;
-import static google.registry.config.RegistryConfig.getSingletonCachePersistDuration;
+import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PRODUCTION;
 import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -23,17 +23,16 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.model.tmch.TmchCrl;
 import google.registry.util.Clock;
-import google.registry.util.NonFinalForTesting;
-import google.registry.util.SystemClock;
 import google.registry.util.X509Utils;
 import java.security.GeneralSecurityException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.util.concurrent.ExecutionException;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
@@ -58,9 +57,12 @@ public final class TmchCertificateAuthority {
   private static final String CRL_PILOT_FILE = "icann-tmch-pilot.crl";
 
   private final TmchCaMode tmchCaMode;
+  private final Clock clock;
 
-  public @Inject TmchCertificateAuthority(@Config("tmchCaMode") TmchCaMode tmchCaMode) {
+  @Inject
+  public TmchCertificateAuthority(@Config("tmchCaMode") TmchCaMode tmchCaMode, Clock clock) {
     this.tmchCaMode = tmchCaMode;
+    this.clock = clock;
   }
 
   /**
@@ -70,8 +72,8 @@ public final class TmchCertificateAuthority {
    * string into an X509CRL instance is expensive and should itself be cached.
    *
    * <p>Note that the stored CRL won't exist for tests, and on deployed environments will always
-   * correspond to the correct CRL for the given TMCH CA mode because {@link TmchCrlAction} can
-   * only persist the correct one for this given environment.
+   * correspond to the correct CRL for the given TMCH CA mode because {@link TmchCrlAction} can only
+   * persist the correct one for this given environment.
    */
   private static final LoadingCache<TmchCaMode, X509CRL> CRL_CACHE =
       CacheBuilder.newBuilder()
@@ -89,37 +91,28 @@ public final class TmchCertificateAuthority {
                     crlContents = storedCrl.getCrl();
                   }
                   X509CRL crl = X509Utils.loadCrl(crlContents);
-                  try {
-                    crl.verify(ROOT_CACHE.get(tmchCaMode).getPublicKey());
-                    return crl;
-                  } catch (ExecutionException e) {
-                    if (e.getCause() instanceof GeneralSecurityException) {
-                      throw (GeneralSecurityException) e.getCause();
-                    } else {
-                      throw new RuntimeException("Unexpected exception while loading CRL", e);
-                    }
-                  }
-                }});
+                  crl.verify(ROOT_CERTS.get(tmchCaMode).getPublicKey());
+                  return crl;
+                }
+              });
 
-  /** A cached function that loads the CRT from a jar resource. */
-  private static final LoadingCache<TmchCaMode, X509Certificate> ROOT_CACHE =
-      CacheBuilder.newBuilder()
-          .expireAfterWrite(getSingletonCachePersistDuration().getMillis(), MILLISECONDS)
-          .build(
-              new CacheLoader<TmchCaMode, X509Certificate>() {
-                @Override
-                public X509Certificate load(final TmchCaMode tmchCaMode)
-                    throws GeneralSecurityException {
-                  String file = (tmchCaMode == PILOT) ? ROOT_CRT_PILOT_FILE : ROOT_CRT_FILE;
-                  X509Certificate root =
-                      X509Utils.loadCertificate(
-                          readResourceUtf8(TmchCertificateAuthority.class, file));
-                  root.checkValidity(clock.nowUtc().toDate());
-                  return root;
-                }});
+  /** CRTs from a jar resource. */
+  private static final ImmutableMap<TmchCaMode, X509Certificate> ROOT_CERTS =
+      loadRootCertificates();
 
-  @NonFinalForTesting
-  private static Clock clock = new SystemClock();
+  private static ImmutableMap<TmchCaMode, X509Certificate> loadRootCertificates() {
+    try {
+      return ImmutableMap.of(
+          PILOT,
+          X509Utils.loadCertificate(
+              readResourceUtf8(TmchCertificateAuthority.class, ROOT_CRT_PILOT_FILE)),
+          PRODUCTION,
+          X509Utils.loadCertificate(
+              readResourceUtf8(TmchCertificateAuthority.class, ROOT_CRT_FILE)));
+    } catch (CertificateParsingException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
   /**
    * Check that {@code cert} is signed by the ICANN TMCH CA root and not revoked.
@@ -132,7 +125,7 @@ public final class TmchCertificateAuthority {
    */
   public void verify(X509Certificate cert) throws GeneralSecurityException {
     synchronized (TmchCertificateAuthority.class) {
-      X509Utils.verifyCertificate(getRoot(), getCrl(), cert, clock.nowUtc().toDate());
+      X509Utils.verifyCertificate(getAndValidateRoot(), getCrl(), cert, clock.nowUtc().toDate());
     }
   }
 
@@ -145,21 +138,26 @@ public final class TmchCertificateAuthority {
    * refreshes itself.
    *
    * @throws GeneralSecurityException for unsupported protocols, certs not signed by the TMCH,
-   *         incorrect keys, and for invalid, old, not-yet-valid or revoked certificates.
+   *     incorrect keys, and for invalid, old, not-yet-valid or revoked certificates.
    * @see X509Utils#verifyCrl
    */
   public void updateCrl(String asciiCrl, String url) throws GeneralSecurityException {
     X509CRL crl = X509Utils.loadCrl(asciiCrl);
-    X509Utils.verifyCrl(getRoot(), getCrl(), crl, clock.nowUtc().toDate());
+    X509Utils.verifyCrl(getAndValidateRoot(), getCrl(), crl, clock.nowUtc().toDate());
     TmchCrl.set(asciiCrl, url);
   }
 
-  public X509Certificate getRoot() throws GeneralSecurityException {
+  public X509Certificate getAndValidateRoot() throws GeneralSecurityException {
     try {
-      return ROOT_CACHE.get(tmchCaMode);
+      X509Certificate root = ROOT_CERTS.get(tmchCaMode);
+      // The current production certificate expires on 2023-07-23. Future code monkey be reminded,
+      // if you are looking at this code because the next line throws an exception, ask ICANN for a
+      // new root certificate! (preferably before the current one expires...)
+      root.checkValidity(clock.nowUtc().toDate());
+      return root;
     } catch (Exception e) {
-      if (e.getCause() instanceof GeneralSecurityException) {
-        throw (GeneralSecurityException) e.getCause();
+      if (e instanceof GeneralSecurityException) {
+        throw (GeneralSecurityException) e;
       } else if (e instanceof RuntimeException) {
         throw (RuntimeException) e;
       }

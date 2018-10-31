@@ -10,10 +10,10 @@
       "handle": "%DOMAINHANDLE1%",
       "links": [
         {
-          "href": "https://example.com/rdap/domain/%DOMAINNAME1%",
+          "href": "https://example.tld/rdap/domain/%DOMAINNAME1%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/domain/%DOMAINNAME1%"
+          "value": "https://example.tld/rdap/domain/%DOMAINNAME1%"
         }
       ],
       "ldhName": "%DOMAINNAME1%",
@@ -38,10 +38,10 @@
       "handle": "%DOMAINHANDLE2%",
       "links": [
         {
-          "href": "https://example.com/rdap/domain/%DOMAINNAME2%",
+          "href": "https://example.tld/rdap/domain/%DOMAINNAME2%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/domain/%DOMAINNAME2%"
+          "value": "https://example.tld/rdap/domain/%DOMAINNAME2%"
         }
       ],
       "ldhName": "%DOMAINNAME2%",
@@ -80,7 +80,7 @@
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/help/tos",
+          "value" : "https://example.tld/rdap/help/tos",
           "rel" : "alternate",
           "href" : "https://www.registry.tld/about/rdap/tos.html",
           "type" : "text/html"

@@ -29,7 +29,6 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
-import google.registry.util.Clock;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -44,8 +43,7 @@ public class RdapDomainAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/domain/";
 
-  @Inject Clock clock;
-  @Inject RdapDomainAction() {}
+  @Inject public RdapDomainAction() {}
 
   @Override
   public String getHumanReadableObjectTypeName() {

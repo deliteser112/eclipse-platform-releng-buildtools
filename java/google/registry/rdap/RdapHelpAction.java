@@ -23,7 +23,6 @@ import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
-import google.registry.util.Clock;
 import javax.inject.Inject;
 
 /** RDAP (new WHOIS) action for help requests. */
@@ -37,8 +36,7 @@ public class RdapHelpAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/help";
 
-  @Inject Clock clock;
-  @Inject RdapHelpAction() {}
+  @Inject public RdapHelpAction() {}
 
   @Override
   public String getHumanReadableObjectTypeName() {

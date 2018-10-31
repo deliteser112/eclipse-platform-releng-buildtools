@@ -14,7 +14,6 @@
 
 goog.provide('registry.registrar.Resources');
 
-goog.require('goog.Uri');
 goog.require('goog.dom');
 goog.require('registry.Resource');
 goog.require('registry.ResourceComponent');
@@ -27,19 +26,15 @@ goog.forwardDeclare('registry.registrar.Console');
 /**
  * Resources and billing page.
  * @param {!registry.registrar.Console} console
- * @param {string} xsrfToken Security token to pass back to the server.
+ * @param {!registry.Resource} resource the RESTful resource for the registrar.
  * @constructor
  * @extends {registry.ResourceComponent}
  * @final
  */
-registry.registrar.Resources = function(console, xsrfToken) {
+registry.registrar.Resources = function(console, resource) {
   registry.registrar.Resources.base(
-      this,
-      'constructor',
-      console,
-      new registry.Resource(new goog.Uri('/registrar-settings'), xsrfToken),
-      registry.soy.registrar.console.resources,
-      null);
+      this, 'constructor', console, resource,
+      registry.soy.registrar.console.resources, null);
 };
 goog.inherits(registry.registrar.Resources,
               registry.ResourceComponent);

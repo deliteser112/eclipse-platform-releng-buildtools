@@ -18,10 +18,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableList;
+import java.io.Serializable;
 import java.util.Collection;
 
 /** String generator. */
-public abstract class StringGenerator {
+public abstract class StringGenerator implements Serializable {
 
   public static final int DEFAULT_PASSWORD_LENGTH = 16;
 

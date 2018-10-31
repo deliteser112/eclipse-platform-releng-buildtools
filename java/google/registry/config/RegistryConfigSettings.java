@@ -34,19 +34,17 @@ public class RegistryConfigSettings {
   public Monitoring monitoring;
   public Misc misc;
   public Beam beam;
-  public Kms kms;
+  public Keyring keyring;
   public RegistryTool registryTool;
 
   /** Configuration options that apply to the entire App Engine project. */
   public static class AppEngine {
     public String projectId;
-    public ToolsServiceUrl toolsServiceUrl;
-
-    /** Configuration options for the tools service URL. */
-    public static class ToolsServiceUrl {
-      public String hostName;
-      public int port;
-    }
+    public boolean isLocal;
+    public String defaultServiceUrl;
+    public String backendServiceUrl;
+    public String toolsServiceUrl;
+    public String pubapiServiceUrl;
   }
 
   /** Configuration options for OAuth settings for authenticating users. */
@@ -81,7 +79,6 @@ public class RegistryConfigSettings {
     public String greetingServerId;
     public List<String> registrarChangesNotificationEmailAddresses;
     public String defaultRegistrarWhoisServer;
-    public String defaultRegistrarReferralUrl;
     public String tmchCaMode;
     public String tmchCrlUrl;
     public String tmchMarksDbUrl;
@@ -90,6 +87,8 @@ public class RegistryConfigSettings {
     public String premiumTermsExportDisclaimer;
     public String reservedTermsExportDisclaimer;
     public String whoisDisclaimer;
+    public String rdapTos;
+    public String spec11EmailBodyTemplate;
   }
 
   /** Configuration for Cloud Datastore. */
@@ -97,12 +96,6 @@ public class RegistryConfigSettings {
     public int commitLogBucketsNum;
     public int eppResourceIndexBucketsNum;
     public int baseOfyRetryMillis;
-  }
-
-  /** Configuration for Cloud KMS. */
-  public static class Kms {
-    public String keyringName;
-    public String projectId;
   }
 
   /** Configuration for Apache Beam (Cloud Dataflow). */
@@ -166,8 +159,21 @@ public class RegistryConfigSettings {
   public static class Misc {
     public String sheetExportId;
     public String alertRecipientEmailAddress;
+    public String spec11ReplyToEmailAddress;
     public String alertEmailSenderDomain;
     public int asyncDeleteDelaySeconds;
+  }
+
+  /** Configuration for keyrings (used to store secrets outside of source). */
+  public static class Keyring {
+    public String activeKeyring;
+    public Kms kms;
+  }
+
+  /** Configuration for Cloud KMS. */
+  public static class Kms {
+    public String keyringName;
+    public String projectId;
   }
 
   /** Configuration options for the registry tool. */

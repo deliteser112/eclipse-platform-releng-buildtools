@@ -21,6 +21,8 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 
+import com.google.auto.value.AutoValue;
+import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -30,12 +32,13 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
-import google.registry.model.registrar.RegistrarContact.Builder;
 import google.registry.model.registrar.RegistrarContact.Type;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthResult;
@@ -43,6 +46,7 @@ import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
 import google.registry.ui.server.RegistrarFormFields;
+import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role;
 import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.CollectionUtils;
 import google.registry.util.DiffUtils;
@@ -54,7 +58,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 
 /**
@@ -74,13 +77,16 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   static final String OP_PARAM = "op";
   static final String ARGS_PARAM = "args";
+  static final String ID_PARAM = "id";
 
-  @Inject HttpServletRequest request;
   @Inject JsonActionRunner jsonActionRunner;
   @Inject AppEngineServiceUtils appEngineServiceUtils;
-  @Inject AuthResult authResult;
+  @Inject RegistrarConsoleMetrics registrarConsoleMetrics;
   @Inject SendEmailUtils sendEmailUtils;
-  @Inject SessionUtils sessionUtils;
+  @Inject AuthenticatedRegistrarAccessor registrarAccessor;
+  @Inject AuthResult authResult;
+  @Inject RegistryEnvironment registryEnvironment;
+
   @Inject @Config("registrarChangesNotificationEmailAddresses") ImmutableList<String>
       registrarChangesNotificationEmailAddresses;
   @Inject RegistrarSettingsAction() {}
@@ -99,46 +105,73 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       throw new BadRequestException("Malformed JSON");
     }
 
-    Registrar initialRegistrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
+    String clientId = (String) input.get(ID_PARAM);
+    if (Strings.isNullOrEmpty(clientId)) {
+      throw new BadRequestException(String.format("Missing key for resource ID: %s", ID_PARAM));
+    }
+
     // Process the operation.  Though originally derived from a CRUD
     // handler, registrar-settings really only supports read and update.
     String op = Optional.ofNullable((String) input.get(OP_PARAM)).orElse("read");
     @SuppressWarnings("unchecked")
     Map<String, ?> args = (Map<String, Object>)
         Optional.<Object>ofNullable(input.get(ARGS_PARAM)).orElse(ImmutableMap.of());
-    logger.atInfo().log(
-        "Received request '%s' on registrar '%s' with args %s",
-        op, initialRegistrar.getClientId(), args);
+
+    logger.atInfo().log("Received request '%s' on registrar '%s' with args %s", op, clientId, args);
+    String status = "SUCCESS";
     try {
       switch (op) {
         case "update":
-          return update(args, initialRegistrar.getClientId());
+          return update(args, clientId).toJsonResponse();
         case "read":
-          return JsonResponseHelper.create(SUCCESS, "Success", initialRegistrar.toJsonMap());
+          return read(clientId).toJsonResponse();
         default:
-          return JsonResponseHelper.create(ERROR, "Unknown or unsupported operation: " + op);
+          throw new IllegalArgumentException("Unknown or unsupported operation: " + op);
       }
-    } catch (FormFieldException e) {
+    } catch (Throwable e) {
       logger.atWarning().withCause(e).log(
-          "Failed to perform operation '%s' on registrar '%s' for args %s",
-          op, initialRegistrar.getClientId(), args);
-      return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
-    } catch (FormException e) {
-      logger.atWarning().withCause(e).log(
-          "Failed to perform operation '%s' on registrar '%s' for args %s",
-          op, initialRegistrar.getClientId(), args);
-      return JsonResponseHelper.create(ERROR, e.getMessage());
+          "Failed to perform operation '%s' on registrar '%s' for args %s", op, clientId, args);
+      status = "ERROR: " + e.getClass().getSimpleName();
+      if (e instanceof FormFieldException) {
+        FormFieldException formFieldException = (FormFieldException) e;
+        return JsonResponseHelper.createFormFieldError(
+            formFieldException.getMessage(), formFieldException.getFieldName());
+      }
+      return JsonResponseHelper.create(
+          ERROR, Optional.ofNullable(e.getMessage()).orElse("Unspecified error"));
+    } finally {
+      registrarConsoleMetrics.registerSettingsRequest(
+          clientId, op, registrarAccessor.getAllClientIdWithRoles().get(clientId), status);
     }
   }
 
-  Map<String, Object> update(final Map<String, ?> args, String clientId) {
+  @AutoValue
+  abstract static class RegistrarResult {
+    abstract String message();
+
+    abstract Registrar registrar();
+
+    Map<String, Object> toJsonResponse() {
+      return JsonResponseHelper.create(SUCCESS, message(), registrar().toJsonMap());
+    }
+
+    static RegistrarResult create(String message, Registrar registrar) {
+      return new AutoValue_RegistrarSettingsAction_RegistrarResult(message, registrar);
+    }
+  }
+
+  private RegistrarResult read(String clientId) {
+    return RegistrarResult.create("Success", registrarAccessor.getRegistrar(clientId));
+  }
+
+  private RegistrarResult update(final Map<String, ?> args, String clientId) {
     return ofy()
         .transact(
             () -> {
-              // We load the registrar here rather than use the initialRegistrar above - to make
+              // We load the registrar here rather than outside of the transaction - to make
               // sure we have the latest version. This one is loaded inside the transaction, so it's
               // guaranteed to not change before we update it.
-              Registrar registrar = Registrar.loadByClientId(clientId).get();
+              Registrar registrar = registrarAccessor.getRegistrar(clientId);
               // Verify that the registrar hasn't been changed.
               // To do that - we find the latest update time (or null if the registrar has been
               // deleted) and compare to the update time from the args. The update time in the args
@@ -152,8 +185,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
                     "registrar changed since reading the data! "
                         + " Last updated at %s, but args data last updated at %s",
                     latest, latestFromArgs);
-                return JsonResponseHelper.create(
-                    ERROR, "registrar has been changed by someone else. Please reload and retry.");
+                throw new IllegalStateException(
+                    "registrar has been changed by someone else. Please reload and retry.");
               }
 
               // Keep the current contacts so we can later check that no required contact was
@@ -162,7 +195,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
               // Update the registrar from the request.
               Registrar.Builder builder = registrar.asBuilder();
-              changeRegistrarFields(registrar, builder, args);
+              Set<Role> roles = registrarAccessor.getAllClientIdWithRoles().get(clientId);
+              changeRegistrarFields(registrar, roles, builder, args);
 
               // read the contacts from the request.
               ImmutableSet<RegistrarContact> updatedContacts = readContacts(registrar, args);
@@ -185,8 +219,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
               // Email and return update.
               sendExternalUpdatesIfNecessary(
                   registrar, contacts, updatedRegistrar, updatedContacts);
-              return JsonResponseHelper.create(
-                  SUCCESS, "Saved " + clientId, updatedRegistrar.toJsonMap());
+              return RegistrarResult.create("Saved " + clientId, updatedRegistrar);
             });
   }
 
@@ -203,11 +236,12 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     return result;
   }
 
-  /**
-   * Updates a registrar builder with the supplied args from the http request;
-   */
+  /** Updates a registrar builder with the supplied args from the http request; */
   public static void changeRegistrarFields(
-      Registrar existingRegistrarObj, Registrar.Builder builder, Map<String, ?> args) {
+      Registrar existingRegistrarObj,
+      Set<Role> roles,
+      Registrar.Builder builder,
+      Map<String, ?> args) {
 
     // BILLING
     RegistrarFormFields.PREMIUM_PRICE_ACK_REQUIRED
@@ -247,6 +281,18 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
         .ifPresent(
             certificate ->
                 builder.setFailoverClientCertificate(certificate, ofy().getTransactionTime()));
+
+    // Update allowed TLDs only when it is modified
+    Set<String> updatedAllowedTlds =
+        RegistrarFormFields.ALLOWED_TLDS_FIELD.extractUntyped(args).orElse(ImmutableSet.of());
+    if (!updatedAllowedTlds.equals(existingRegistrarObj.getAllowedTlds())) {
+      // Only admin is allowed to update allowed TLDs
+      if (roles.contains(Role.ADMIN)) {
+        builder.setAllowedTlds(updatedAllowedTlds);
+      } else {
+        throw new ForbiddenException("Only admin can update allowed TLDs.");
+      }
+    }
   }
 
   /** Reads the contacts from the supplied args. */
@@ -254,7 +300,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       Registrar registrar, Map<String, ?> args) {
 
     ImmutableSet.Builder<RegistrarContact> contacts = new ImmutableSet.Builder<>();
-    Optional<List<Builder>> builders = RegistrarFormFields.CONTACTS_FIELD.extractUntyped(args);
+    Optional<List<RegistrarContact.Builder>> builders =
+        RegistrarFormFields.CONTACTS_FIELD.extractUntyped(args);
     if (builders.isPresent()) {
       builders.get().forEach(c -> contacts.add(c.setParent(registrar).build()));
     }
@@ -371,13 +418,20 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       return;
     }
     enqueueRegistrarSheetSync(appEngineServiceUtils.getCurrentVersionHostname("backend"));
-    if (!registrarChangesNotificationEmailAddresses.isEmpty()) {
-      sendEmailUtils.sendEmail(
-          registrarChangesNotificationEmailAddresses,
-          String.format("Registrar %s updated", existingRegistrar.getRegistrarName()),
-          "The following changes were made to the registrar:\n"
-              + DiffUtils.prettyPrintDiffedMap(diffs, null));
-    }
+    String environment = Ascii.toLowerCase(String.valueOf(registryEnvironment));
+    sendEmailUtils.sendEmail(
+        registrarChangesNotificationEmailAddresses,
+        String.format(
+            "Registrar %s (%s) updated in %s",
+            existingRegistrar.getRegistrarName(),
+            existingRegistrar.getClientId(),
+            environment),
+        String.format(
+            "The following changes were made on %s to the registrar %s by %s:\n\n%s",
+            environment,
+            existingRegistrar.getClientId(),
+            authResult.userIdForLogging(),
+            DiffUtils.prettyPrintDiffedMap(diffs, null)));
   }
 
   /** Thrown when a set of contacts doesn't meet certain constraints. */
