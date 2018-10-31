@@ -12,4 +12,4 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
-script: cd gradle && gradle wrapper && ./gradlew
+script: cd gradle && ./gradlew
