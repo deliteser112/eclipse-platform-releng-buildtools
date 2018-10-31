@@ -1,8 +1,10 @@
 language: java
 install: true
 jdk:
+  # Our builds fail against Oracle Java for reasons yet unknown.
   - openjdk8
 
+# Caching options suggested by a random article.
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -f $HOME/.gradle/caches/*/plugin-resolution/
@@ -13,9 +15,17 @@ cache:
     - $HOME/.gradle/wrapper/
 
 env:
+  # Disable fancy status information (looks bad on travis and exceeds logfile
+  # quota)
   TERM=dumb
 
 install:
+  # Install a specific gradle version first, default gradle can't deal with
+  # our gradle build scripts.
   - wget http://services.gradle.org/distributions/gradle-4.10.2-bin.zip && unzip gradle-4.10.2-bin.zip
 
-script: cd gradle && ../gradle-4.10.2/bin/gradle wrapper && ./gradlew build
+# Specialize gradle build to use an up-to-date gradle and the /gradle
+# directory.
+# The "travis_wait 30" lets our build spend up to 30 minutes without writing
+# output, instead of the default 10.
+script: cd gradle && ../gradle-4.10.2/bin/gradle wrapper && travis_wait 30 ./gradlew build
