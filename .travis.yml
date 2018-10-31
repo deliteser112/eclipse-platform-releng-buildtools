@@ -13,6 +13,6 @@ cache:
     - $HOME/.gradle/wrapper/
 
 install:
-  - wget gradle-4.10.2-bin.zip && unzip -l gradle-4.10.2-bin.zip
+  - wget http://services.gradle.org/distributions/gradle-4.10.2-bin.zip && unzip gradle-4.10.2-bin.zip
 
 script: cd gradle && ../gradle-4.10.2/bin/gradle wrapper && ./gradlew
