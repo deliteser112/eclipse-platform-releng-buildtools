@@ -31,6 +31,7 @@ import com.google.common.collect.Iterables;
 import google.registry.config.RegistryConfig;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.tools.params.ParameterFactory;
+import java.net.URL;
 import java.security.Security;
 import java.util.Map;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -191,7 +192,7 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
         installer = new RemoteApiInstaller();
         RemoteApiOptions options = new RemoteApiOptions();
         options.server(
-            getConnection().getServer().getHost(), getConnection().getServer().getPort());
+            getConnection().getServer().getHost(), getPort(getConnection().getServer()));
         if (RegistryConfig.areServersLocal()) {
           // Use dev credentials for localhost.
           options.useDevelopmentServerCredential();
@@ -209,6 +210,10 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     }
 
     command.run();
+  }
+
+  private int getPort(URL url) {
+    return url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
   }
 
   void setEnvironment(RegistryToolEnvironment environment) {
