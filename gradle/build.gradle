@@ -19,8 +19,9 @@ allprojects {
       'archaic-wrapper',
       // Checks for indirect dependencies with dynamic version spec. Best
       // practice calls for declaring them with specific versions.
-      'undeclared-dependency'
-      // TODO(weiminyu): enable more dependency check
+      'undeclared-dependency',
+      'unused-dependency'
+      // TODO(weiminyu): enable more dependency checks
   ]
 }
 
