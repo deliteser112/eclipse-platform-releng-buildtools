@@ -14,6 +14,7 @@ java_library(
         "//java/google/registry/keyring",
         "//java/google/registry/keyring/api",
         "//java/google/registry/keyring/kms",
+        "//java/google/registry/module",
         "//java/google/registry/monitoring/whitebox",
         "//java/google/registry/request",
         "//java/google/registry/request:modules",

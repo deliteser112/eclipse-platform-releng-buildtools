@@ -27,6 +27,7 @@ java_library(
         "//java/google/registry/keyring/kms",
         "//java/google/registry/mapreduce",
         "//java/google/registry/model",
+        "//java/google/registry/module",
         "//java/google/registry/monitoring/whitebox",
         "//java/google/registry/rde",
         "//java/google/registry/rde/imports",

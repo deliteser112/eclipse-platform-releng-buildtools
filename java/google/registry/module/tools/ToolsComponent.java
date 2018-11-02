@@ -14,7 +14,9 @@
 
 package google.registry.module.tools;
 
+import com.google.monitoring.metrics.MetricReporter;
 import dagger.Component;
+import dagger.Lazy;
 import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.export.DriveModule;
@@ -29,6 +31,7 @@ import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.kms.KmsModule;
 import google.registry.module.tools.ToolsRequestComponent.ToolsRequestComponentModule;
+import google.registry.monitoring.whitebox.StackdriverModule;
 import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.NetHttpTransportModule;
@@ -62,6 +65,7 @@ import javax.inject.Singleton;
       KmsModule.class,
       NetHttpTransportModule.class,
       ServerTridProviderModule.class,
+      StackdriverModule.class,
       SystemClockModule.class,
       SystemSleeperModule.class,
       ToolsRequestComponentModule.class,
@@ -70,4 +74,6 @@ import javax.inject.Singleton;
     })
 interface ToolsComponent {
   ToolsRequestHandler requestHandler();
+
+  Lazy<MetricReporter> metricReporter();
 }
