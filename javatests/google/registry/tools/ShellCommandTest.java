@@ -253,10 +253,11 @@ public class ShellCommandTest {
   @Test
   public void testEncapsulatedOutputStream_basicFuncionality() {
     ByteArrayOutputStream backing = new ByteArrayOutputStream();
-    PrintStream out = new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "));
-    out.println("first line");
-    out.print("second line\ntrailing data");
-    out.flush();
+    try (PrintStream out =
+        new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "))) {
+      out.println("first line");
+      out.print("second line\ntrailing data");
+    }
     assertThat(backing.toString())
         .isEqualTo("out: first line\nout: second line\nout: trailing data\n");
   }
@@ -264,8 +265,8 @@ public class ShellCommandTest {
   @Test
   public void testEncapsulatedOutputStream_emptyStream() {
     ByteArrayOutputStream backing = new ByteArrayOutputStream();
-    PrintStream out = new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "));
-    out.flush();
+    try (PrintStream out =
+        new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "))) {}
     assertThat(backing.toString()).isEqualTo("");
   }
 
@@ -288,8 +289,29 @@ public class ShellCommandTest {
     assertThat(stderr.toString()).isEmpty();
     assertThat(stdout.toString())
         .isEqualTo(
-            "out: first line\nerr: second line\nerr: surprise!\nout: fragmented line\n"
+            "RUNNING \"command1\"\n"
+                + "out: first line\nerr: second line\nerr: surprise!\nout: fragmented line\n"
                 + "SUCCESS\n");
+  }
+
+  @Test
+  public void testEncapsulatedOutput_throws() throws Exception {
+    RegistryToolEnvironment.ALPHA.setup();
+    captureOutput();
+    ShellCommand shellCommand =
+        new ShellCommand(
+            args -> {
+              System.out.println("first line");
+              throw new Exception("some error!");
+            });
+    shellCommand.encapsulateOutput = true;
+    shellCommand.run();
+    assertThat(stderr.toString()).isEmpty();
+    assertThat(stdout.toString())
+        .isEqualTo(
+            "RUNNING \"command1\"\n"
+                + "out: first line\n"
+                + "FAILURE java.lang.Exception some error!\n");
   }
 
   @Test
@@ -307,7 +329,7 @@ public class ShellCommandTest {
     shellCommand.run();
     assertThat(stderr.toString()).isEmpty();
     assertThat(stdout.toString())
-        .isEqualTo("out: first line\nSUCCESS\n");
+        .isEqualTo("RUNNING \"do\" \"something\"\nout: first line\nSUCCESS\n");
   }
 
   void captureOutput() {

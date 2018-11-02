@@ -28,6 +28,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
+import com.google.common.escape.Escaper;
+import com.google.common.escape.Escapers;
 import google.registry.util.Clock;
 import google.registry.util.SystemClock;
 import java.io.BufferedReader;
@@ -70,10 +72,25 @@ public class ShellCommand implements Command {
   private static final String ALERT_COLOR = "\u001b[1;41;97m"; // red background
   private static final Duration IDLE_THRESHOLD = Duration.standardHours(1);
   private static final String SUCCESS = "SUCCESS";
-  private static final String FAILURE = "FAILURE ";
+  private static final String FAILURE = "FAILURE";
+  private static final String RUNNING = "RUNNING";
+  private static final Escaper STRING_ESCAPER =
+      Escapers.builder()
+          .addEscape('\\', "\\\\")
+          .addEscape('"', "\\\"")
+          .addEscape('\n', "\\n")
+          .addEscape('\r', "\\r")
+          .addEscape('\t', "\\t")
+          .build();
 
+  /**
+   * The runner we received in the constructor.
+   *
+   * <p>We might want to update this runner based on flags (e.g. --encapsulate_output), but these
+   * flags aren't available in the constructor so we have to do it in the {@link #run} function.
+   */
+  private final CommandRunner originalRunner;
 
-  private final CommandRunner runner;
   private final BufferedReader lineReader;
   private final ConsoleReader consoleReader;
   private final Clock clock;
@@ -96,7 +113,7 @@ public class ShellCommand implements Command {
   boolean encapsulateOutput = false;
 
   public ShellCommand(CommandRunner runner) throws IOException {
-    this.runner = runner;
+    this.originalRunner = runner;
     InputStream in = System.in;
     if (System.console() != null) {
       consoleReader = new ConsoleReader();
@@ -114,7 +131,7 @@ public class ShellCommand implements Command {
 
   @VisibleForTesting
   ShellCommand(BufferedReader bufferedReader, Clock clock, CommandRunner runner) {
-    this.runner = runner;
+    this.originalRunner = runner;
     this.lineReader = bufferedReader;
     this.clock = clock;
     this.consoleReader = null;
@@ -145,42 +162,11 @@ public class ShellCommand implements Command {
     return this;
   }
 
-  private static class OutputEncapsulator {
-    private PrintStream orgStdout;
-    private PrintStream orgStderr;
+  private static class OutputEncapsulator implements CommandRunner {
+    private final CommandRunner runner;
 
-    private EncapsulatingOutputStream encapsulatedOutputStream = null;
-    private EncapsulatingOutputStream encapsulatedErrorStream = null;
-
-    private Exception error;
-
-    private OutputEncapsulator() {
-      orgStdout = System.out;
-      orgStderr = System.err;
-      encapsulatedOutputStream = new EncapsulatingOutputStream(System.out, "out: ");
-      encapsulatedErrorStream = new EncapsulatingOutputStream(System.out, "err: ");
-      System.setOut(new PrintStream(encapsulatedOutputStream));
-      System.setErr(new PrintStream(encapsulatedErrorStream));
-    }
-
-    void setError(Exception e) {
-      error = e;
-    }
-
-    private void restoreOriginalStreams() {
-      try {
-        encapsulatedOutputStream.dumpLastLine();
-        encapsulatedErrorStream.dumpLastLine();
-        System.setOut(orgStdout);
-        System.setErr(orgStderr);
-        if (error != null) {
-          emitFailure(error);
-        } else {
-          emitSuccess();
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+    private OutputEncapsulator(CommandRunner runner) {
+      this.runner = runner;
     }
 
     /**
@@ -188,7 +174,7 @@ public class ShellCommand implements Command {
      *
      * <p>Dumps the last line of output prior to doing this.
      */
-    private void emitSuccess() {
+    private static void emitSuccess() {
       System.out.println(SUCCESS);
       System.out.flush();
     }
@@ -198,23 +184,45 @@ public class ShellCommand implements Command {
      *
      * <p>Dumps the last line of output prior to doing this.
      */
-    private void emitFailure(Throwable e) {
-      System.out.println(
-          FAILURE
-              + e.getClass().getName()
-              + " "
-              + e.getMessage().replace("\\", "\\\\").replace("\n", "\\n"));
+    private static void emitFailure(Throwable e) {
+      System.out.format(
+          "%s %s %s\n", FAILURE, e.getClass().getName(), STRING_ESCAPER.escape(e.getMessage()));
+      System.out.flush();
+    }
+
+    private static void emitArguments(String[] args) {
+      System.out.print(RUNNING);
+      Arrays.stream(args).forEach(arg -> System.out.format(" \"%s\"", STRING_ESCAPER.escape(arg)));
+      System.out.println();
+      System.out.flush();
+    }
+
+    private void encapsulatedRun(String[] args) throws Exception {
+      PrintStream orgOut = System.out;
+      PrintStream orgErr = System.err;
+      try (PrintStream newOut =
+              new PrintStream(new EncapsulatingOutputStream(System.out, "out: "));
+          PrintStream newErr =
+              new PrintStream(new EncapsulatingOutputStream(System.out, "err: "))) {
+        System.setOut(newOut);
+        System.setErr(newErr);
+        runner.run(args);
+      } finally {
+        System.setOut(orgOut);
+        System.setErr(orgErr);
+      }
     }
 
     /** Run "func" with output encapsulation. */
-    static void run(CommandRunner runner, String[] args) {
-      OutputEncapsulator encapsulator = new OutputEncapsulator();
+    @Override
+    public void run(String[] args) {
+
       try {
-        runner.run(args);
+        emitArguments(args);
+        encapsulatedRun(args);
+        emitSuccess();
       } catch (Exception e) {
-        encapsulator.setError(e);
-      } finally {
-        encapsulator.restoreOriginalStreams();
+        emitFailure(e);
       }
     }
   }
@@ -222,6 +230,10 @@ public class ShellCommand implements Command {
   /** Run the shell until the user presses "Ctrl-D". */
   @Override
   public void run() {
+    // Wrap standard output and error if requested. We have to do so here in run because the flags
+    // haven't been processed in the constructor.
+    CommandRunner runner =
+        encapsulateOutput ? new OutputEncapsulator(originalRunner) : originalRunner;
     // On Production we want to be extra careful - to prevent accidental use.
     boolean beExtraCareful = (RegistryToolEnvironment.get() == RegistryToolEnvironment.PRODUCTION);
     setPrompt(RegistryToolEnvironment.get(), beExtraCareful);
@@ -242,16 +254,11 @@ public class ShellCommand implements Command {
         continue;
       }
 
-      // Wrap standard output and error if requested. We have to do so here in run because the flags
-      // haven't been processed in the constructor.
-      if (encapsulateOutput) {
-        OutputEncapsulator.run(runner, lineArgs);
-      } else {
-        try {
-          runner.run(lineArgs);
-        } catch (Exception e) {
-          System.err.println("Got an exception:\n" + e);
-        }
+      try {
+        runner.run(lineArgs);
+      } catch (Exception e) {
+        System.err.println("Got an exception:\n" + e);
+        e.printStackTrace();
       }
     }
     if (!encapsulateOutput) {
@@ -566,6 +573,14 @@ public class ShellCommand implements Command {
     @Override
     public void flush() throws IOException {
       dumpLastLine();
+      super.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+      dumpLastLine();
+      // We do NOT want to call super.close as that would close the original outputStream
+      // (System.out)
     }
 
     /** Dump the accumulated last line of output, if there was one. */
