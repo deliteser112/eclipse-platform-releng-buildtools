@@ -828,20 +828,6 @@ public final class RegistryConfig {
     }
 
     /**
-     * Returns the email address we send emails from.
-     *
-     * @see google.registry.reporting.icann.ReportingEmailUtils
-     * @see google.registry.reporting.billing.BillingEmailUtils
-     * @see google.registry.reporting.spec11.Spec11EmailUtils
-     */
-    @Provides
-    @Config("alertSenderEmailAddress")
-    public static String provideAlertSenderEmailAddress(
-        @Config("projectId") String projectId, RegistryConfigSettings config) {
-      return String.format("%s-no-reply@%s", projectId, config.misc.alertEmailSenderDomain);
-    }
-
-    /**
      * Returns the email address to which spec 11 email should be replied.
      *
      * @see google.registry.reporting.spec11.Spec11EmailUtils

@@ -45,7 +45,7 @@ public class Spec11EmailUtils {
 
   private final SendEmailService emailService;
   private final YearMonth yearMonth;
-  private final String alertSenderAddress;
+  private final String outgoingEmailAddress;
   private final String alertRecipientAddress;
   private final String spec11ReplyToAddress;
   private final String reportingBucket;
@@ -58,7 +58,7 @@ public class Spec11EmailUtils {
   Spec11EmailUtils(
       SendEmailService emailService,
       YearMonth yearMonth,
-      @Config("alertSenderEmailAddress") String alertSenderAddress,
+      @Config("gSuiteOutgoingEmailAddress") String outgoingEmailAddress,
       @Config("alertRecipientEmailAddress") String alertRecipientAddress,
       @Config("spec11ReplyToEmailAddress") String spec11ReplyToAddress,
       @Config("spec11EmailBodyTemplate") String spec11EmailBodyTemplate,
@@ -68,7 +68,7 @@ public class Spec11EmailUtils {
       Retrier retrier) {
     this.emailService = emailService;
     this.yearMonth = yearMonth;
-    this.alertSenderAddress = alertSenderAddress;
+    this.outgoingEmailAddress = outgoingEmailAddress;
     this.alertRecipientAddress = alertRecipientAddress;
     this.spec11ReplyToAddress = spec11ReplyToAddress;
     this.reportingBucket = reportingBucket;
@@ -135,7 +135,7 @@ public class Spec11EmailUtils {
     msg.setSubject(
         String.format("Google Registry Monthly Threat Detector [%s]", yearMonth.toString()));
     msg.setText(body.toString());
-    msg.setFrom(new InternetAddress(alertSenderAddress));
+    msg.setFrom(new InternetAddress(outgoingEmailAddress));
     msg.addRecipient(RecipientType.TO, new InternetAddress(registrarEmail));
     msg.addRecipient(RecipientType.BCC, new InternetAddress(spec11ReplyToAddress));
     emailService.sendMessage(msg);
@@ -147,7 +147,7 @@ public class Spec11EmailUtils {
       retrier.callWithRetry(
           () -> {
             Message msg = emailService.createMessage();
-            msg.setFrom(new InternetAddress(alertSenderAddress));
+            msg.setFrom(new InternetAddress(outgoingEmailAddress));
             msg.addRecipient(RecipientType.TO, new InternetAddress(alertRecipientAddress));
             msg.setSubject(subject);
             msg.setText(body);

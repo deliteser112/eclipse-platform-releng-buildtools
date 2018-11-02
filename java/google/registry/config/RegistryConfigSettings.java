@@ -161,7 +161,6 @@ public class RegistryConfigSettings {
     public String sheetExportId;
     public String alertRecipientEmailAddress;
     public String spec11ReplyToEmailAddress;
-    public String alertEmailSenderDomain;
     public int asyncDeleteDelaySeconds;
   }
 

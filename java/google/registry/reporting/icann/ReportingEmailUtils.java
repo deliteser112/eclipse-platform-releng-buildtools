@@ -25,7 +25,7 @@ import javax.mail.internet.InternetAddress;
 /** Static utils for emailing reporting results. */
 public class ReportingEmailUtils {
 
-  @Inject @Config("alertSenderEmailAddress") String sender;
+  @Inject @Config("gSuiteOutgoingEmailAddress") String sender;
   @Inject @Config("alertRecipientEmailAddress") String recipient;
   @Inject SendEmailService emailService;
   @Inject ReportingEmailUtils() {}

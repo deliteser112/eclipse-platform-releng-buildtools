@@ -44,7 +44,7 @@ class BillingEmailUtils {
 
   private final SendEmailService emailService;
   private final YearMonth yearMonth;
-  private final String alertSenderAddress;
+  private final String outgoingEmailAddress;
   private final String alertRecipientAddress;
   private final ImmutableList<String> invoiceEmailRecipients;
   private final String billingBucket;
@@ -56,7 +56,7 @@ class BillingEmailUtils {
   BillingEmailUtils(
       SendEmailService emailService,
       YearMonth yearMonth,
-      @Config("alertSenderEmailAddress") String alertSenderAddress,
+      @Config("gSuiteOutgoingEmailAddress") String outgoingEmailAddress,
       @Config("alertRecipientEmailAddress") String alertRecipientAddress,
       @Config("invoiceEmailRecipients") ImmutableList<String> invoiceEmailRecipients,
       @Config("billingBucket") String billingBucket,
@@ -65,7 +65,7 @@ class BillingEmailUtils {
       Retrier retrier) {
     this.emailService = emailService;
     this.yearMonth = yearMonth;
-    this.alertSenderAddress = alertSenderAddress;
+    this.outgoingEmailAddress = outgoingEmailAddress;
     this.alertRecipientAddress = alertRecipientAddress;
     this.invoiceEmailRecipients = invoiceEmailRecipients;
     this.billingBucket = billingBucket;
@@ -86,7 +86,7 @@ class BillingEmailUtils {
                 new GcsFilename(billingBucket, invoiceDirectoryPrefix + invoiceFile);
             try (InputStream in = gcsUtils.openInputStream(invoiceFilename)) {
               Message msg = emailService.createMessage();
-              msg.setFrom(new InternetAddress(alertSenderAddress));
+              msg.setFrom(new InternetAddress(outgoingEmailAddress));
               for (String recipient : invoiceEmailRecipients) {
                 msg.addRecipient(RecipientType.TO, new InternetAddress(recipient));
               }
@@ -126,7 +126,7 @@ class BillingEmailUtils {
       retrier.callWithRetry(
           () -> {
             Message msg = emailService.createMessage();
-            msg.setFrom(new InternetAddress(alertSenderAddress));
+            msg.setFrom(new InternetAddress(outgoingEmailAddress));
             msg.addRecipient(RecipientType.TO, new InternetAddress(alertRecipientAddress));
             msg.setSubject(String.format("Billing Pipeline Alert: %s", yearMonth.toString()));
             msg.setText(body);

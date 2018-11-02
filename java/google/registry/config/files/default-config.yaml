@@ -22,6 +22,9 @@ gSuite:
   domainName: domain-registry.example
 
   # Display name and email address used on outgoing emails through G Suite.
+  # The email address must be valid and have permission in the GAE app to send
+  # emails. For more info see:
+  # https://cloud.google.com/appengine/docs/standard/java/mail/#who_can_send_mail
   outgoingEmailDisplayName: Example Registry
   outgoingEmailAddress: noreply@project-id.appspotmail.com
 
@@ -342,9 +345,6 @@ misc:
   # Address to which the Spec 11 emails to registrars should be replied. This needs
   # to be a deliverable email address in case the registrars want to contact us.
   spec11ReplyToEmailAddress: reply-to@example.com
-
-  # Domain for the email address we send alert summary emails from.
-  alertEmailSenderDomain: appspotmail.com
 
   # How long to delay processing of asynchronous deletions. This should always
   # be longer than eppResourceCachingSeconds, to prevent deleted contacts or
