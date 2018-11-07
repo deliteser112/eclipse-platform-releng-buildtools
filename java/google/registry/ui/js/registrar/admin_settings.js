@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-goog.provide('registry.registrar.SecuritySettings');
+goog.provide('registry.registrar.AdminSettings');
 
 goog.require('goog.array');
 goog.require('goog.dom');
@@ -22,85 +22,85 @@ goog.require('goog.events.EventType');
 goog.require('goog.soy');
 goog.require('registry.Resource');
 goog.require('registry.ResourceComponent');
-goog.require('registry.soy.registrar.security');
+goog.require('registry.soy.registrar.admin');
 
 goog.forwardDeclare('registry.registrar.Console');
 
 
 
 /**
- * Security Settings page.
+ * Admin Settings page, such as allowed TLDs for this registrar.
  * @param {!registry.registrar.Console} console
  * @param {!registry.Resource} resource the RESTful resource for the registrar.
  * @constructor
  * @extends {registry.ResourceComponent}
  * @final
  */
-registry.registrar.SecuritySettings = function(console, resource) {
-  registry.registrar.SecuritySettings.base(
+registry.registrar.AdminSettings = function(console, resource) {
+  registry.registrar.AdminSettings.base(
       this, 'constructor', console, resource,
-      registry.soy.registrar.security.settings, null);
+      registry.soy.registrar.admin.settings, null);
 };
-goog.inherits(registry.registrar.SecuritySettings, registry.ResourceComponent);
+goog.inherits(registry.registrar.AdminSettings, registry.ResourceComponent);
 
 
 /** @override */
-registry.registrar.SecuritySettings.prototype.bindToDom = function(id) {
-  registry.registrar.SecuritySettings.base(this, 'bindToDom', 'fake');
+registry.registrar.AdminSettings.prototype.bindToDom = function(id) {
+  registry.registrar.AdminSettings.base(this, 'bindToDom', 'fake');
   goog.dom.removeNode(goog.dom.getRequiredElement('reg-app-btn-back'));
 };
 
 
 /** @override */
-registry.registrar.SecuritySettings.prototype.setupEditor =
+registry.registrar.AdminSettings.prototype.setupEditor =
     function(objArgs) {
-  goog.dom.classlist.add(goog.dom.getRequiredElement('ips'),
+  goog.dom.classlist.add(goog.dom.getRequiredElement('tlds'),
                          goog.getCssName('editing'));
-  var ips = goog.dom.getElementsByClass(goog.getCssName('ip'),
-                                        goog.dom.getRequiredElement('ips'));
-  goog.array.forEach(ips, function(ip) {
-    var remBtn = goog.dom.getChildren(ip)[0];
+  var tlds = goog.dom.getElementsByClass(goog.getCssName('tld'),
+                                         goog.dom.getRequiredElement('tlds'));
+  goog.array.forEach(tlds, function(tld) {
+    var remBtn = goog.dom.getChildren(tld)[0];
     goog.events.listen(remBtn,
                        goog.events.EventType.CLICK,
-                       goog.bind(this.onIpRemove_, this, remBtn));
+                       goog.bind(this.onTldRemove_, this, remBtn));
   }, this);
-  this.typeCounts['reg-ips'] = objArgs.ipAddressWhitelist ?
-      objArgs.ipAddressWhitelist.length : 0;
+  this.typeCounts['reg-tlds'] = objArgs.allowedTlds ?
+      objArgs.allowedTlds.length : 0;
 
-  goog.events.listen(goog.dom.getRequiredElement('btn-add-ip'),
+  goog.events.listen(goog.dom.getRequiredElement('btn-add-tld'),
                      goog.events.EventType.CLICK,
-                     this.onIpAdd_,
+                     this.onTldAdd_,
                      false,
                      this);
 };
 
 
 /**
- * Click handler for IP add button.
+ * Click handler for TLD add button.
  * @private
  */
-registry.registrar.SecuritySettings.prototype.onIpAdd_ = function() {
-  var ipInputElt = goog.dom.getRequiredElement('newIp');
-  var ipElt = goog.soy.renderAsFragment(registry.soy.registrar.security.ip, {
-    name: 'ipAddressWhitelist[' + this.typeCounts['reg-ips'] + ']',
-    ip: ipInputElt.value
+registry.registrar.AdminSettings.prototype.onTldAdd_ = function() {
+  const tldInputElt = goog.dom.getRequiredElement('newTld');
+  const tldElt = goog.soy.renderAsFragment(registry.soy.registrar.admin.tld, {
+    name: 'allowedTlds[' + this.typeCounts['reg-tlds'] + ']',
+    tld: tldInputElt.value,
   });
-  goog.dom.appendChild(goog.dom.getRequiredElement('ips'), ipElt);
-  var remBtn = goog.dom.getFirstElementChild(ipElt);
+  goog.dom.appendChild(goog.dom.getRequiredElement('tlds'), tldElt);
+  var remBtn = goog.dom.getFirstElementChild(tldElt);
   goog.dom.classlist.remove(remBtn, goog.getCssName('hidden'));
   goog.events.listen(remBtn, goog.events.EventType.CLICK,
-                     goog.bind(this.onIpRemove_, this, remBtn));
-  this.typeCounts['reg-ips']++;
-  ipInputElt.value = '';
+                     goog.bind(this.onTldRemove_, this, remBtn));
+  this.typeCounts['reg-tlds']++;
+  tldInputElt.value = '';
 };
 
 
 /**
- * Click handler for IP remove button.
+ * Click handler for TLD remove button.
  * @param {!Element} remBtn The remove button.
  * @private
  */
-registry.registrar.SecuritySettings.prototype.onIpRemove_ =
+registry.registrar.AdminSettings.prototype.onTldRemove_ =
     function(remBtn) {
   goog.dom.removeNode(goog.dom.getParentElement(remBtn));
 };

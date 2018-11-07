@@ -60,7 +60,7 @@ registry.registrar.ConsoleTestUtil.renderConsoleMain = function(
     xsrfToken: args.xsrfToken || 'ignore',
     username: args.username || 'jart',
     logoutUrl: args.logoutUrl || 'https://logout.url.com',
-    isAdmin: goog.isDefAndNotNull(args.isAdmin) ? args.isAdmin : true,
+    isAdmin: !!args.isAdmin,
     clientId: args.clientId || 'ignore',
     allClientIds: args.allClientIds || ['clientId1', 'clientId2'],
     logoFilename: args.logoFilename || 'logo.png',
@@ -88,6 +88,7 @@ registry.registrar.ConsoleTestUtil.visit = function(
   opt_args.path = opt_args.path || '';
   opt_args.clientId = opt_args.clientId || 'dummyRegistrarId';
   opt_args.xsrfToken = opt_args.xsrfToken || 'dummyXsrfToken';
+  opt_args.isAdmin = !!opt_args.isAdmin;
   if (opt_args.isEppLoggedIn === undefined) {
     opt_args.isEppLoggedIn = true;
   }
