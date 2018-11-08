@@ -42,4 +42,4 @@ install:
 # directory.
 # The "travis_wait 45" lets our build spend up to 45 minutes without writing
 # output, instead of the default 10.
-script: cd gradle && ../gradle-4.10.2/bin/gradle wrapper && travis_wait 45 ./gradlew build
+script: cd gradle && travis_wait 45 ../gradle-4.10.2/bin/gradle build
