@@ -1,6 +1,10 @@
 plugins {
   id 'java'
   id 'nebula.lint' version '10.1.2'
+
+  // Config helper for annotation processors such as AutoValue and Dagger.
+  // Ensures that source code is generated at an appropriate location.
+  id 'net.ltgt.apt' version '0.19'
 }
 
 allprojects {
@@ -23,6 +27,8 @@ allprojects {
       'unused-dependency'
       // TODO(weiminyu): enable more dependency checks
   ]
+
+  apply plugin: 'net.ltgt.apt'
 }
 
 project(':core') {
