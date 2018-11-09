@@ -216,6 +216,45 @@ public class DirectoryGroupsConnectionTest {
     assertThat(connection.getMembersOfGroup("nonexistent_group@fake.notreal")).isEmpty();
   }
 
+  @Test
+  public void test_isMemberOfSupportGroup_userInGroup_True() throws Exception {
+    when(members.get("support@domain-registry.example", "user@example.com")).thenReturn(membersGet);
+    when(membersGet.execute()).thenReturn(new Member());
+    assertThat(connection.isMemberOfGroup("user@example.com", "support@domain-registry.example"))
+        .isTrue();
+  }
+
+  @Test
+  public void test_isMemberOfSupportGroup_userExistButNotInGroup_returnsFalse() throws Exception {
+    when(members.get("support@domain-registry.example", "user@example.com"))
+        .thenThrow(makeResponseException(0, "Resource Not Found: memberKey"));
+    when(membersGet.execute()).thenReturn(new Member());
+    assertThat(connection.isMemberOfGroup("user@example.com", "support@domain-registry.example"))
+        .isFalse();
+  }
+
+  @Test
+  public void test_isMemberOfSupportGroup_userDoesntExist_returnsFalse() throws Exception {
+    when(members.get("support@domain-registry.example", "user@example.com"))
+        .thenThrow(makeResponseException(0, "Missing required field: memberKey"));
+    when(membersGet.execute()).thenReturn(new Member());
+    assertThat(connection.isMemberOfGroup("user@example.com", "support@domain-registry.example"))
+        .isFalse();
+  }
+
+  @Test
+  public void test_isMemberOfSupportGroup_otherError_throws() throws Exception {
+    when(members.get("support@domain-registry.example", "user@example.com"))
+        .thenThrow(makeResponseException(0, "some error"));
+    when(membersGet.execute()).thenReturn(new Member());
+    RuntimeException e =
+        assertThrows(
+            RuntimeException.class,
+            () ->
+                connection.isMemberOfGroup("user@example.com", "support@domain-registry.example"));
+    assertThat(e).hasCauseThat().isInstanceOf(GoogleJsonResponseException.class);
+  }
+
   /** Runs a full test to add a member to the group and returns the expected Member. */
   private Member runAddMemberTest() throws Exception {
     connection.addMemberToGroup("spam@example.com", "jim@example.com", Role.MEMBER);

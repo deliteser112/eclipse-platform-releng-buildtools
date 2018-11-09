@@ -393,6 +393,19 @@ public final class RegistryConfig {
     }
 
     /**
+     * Returns the email address of the group containing emails of support accounts.
+     *
+     * <p>These accounts will have "ADMIN" access to the registrar console.
+     *
+     * @see google.registry.groups.DirectoryGroupsConnection
+     */
+    @Provides
+    @Config("gSuiteSupportGroupEmailAddress")
+    public static String provideGSuiteSupportGroupEmailAddress(RegistryConfigSettings config) {
+      return config.gSuite.supportGroupEmailAddress;
+    }
+
+    /**
      * Returns the email address(es) that notifications of registrar and/or registrar contact
      * updates should be sent to, or the empty list if updates should not be sent.
      *

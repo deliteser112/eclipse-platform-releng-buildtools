@@ -32,6 +32,10 @@ gSuite:
   # logging in to perform administrative actions, not sending emails.
   adminAccountEmailAddress: admin@example.com
 
+  # Group containing the emails of the support accounts. These accounts will be
+  # given "ADMIN" role on the registrar console.
+  supportGroupEmailAddress: support@example.com
+
 registryPolicy:
   # Repository identifier (ROID) suffix for contacts and hosts.
   contactAndHostRoidSuffix: ROID

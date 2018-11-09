@@ -66,6 +66,7 @@ public class RegistryConfigSettings {
     public String outgoingEmailAddress;
     public String outgoingEmailDisplayName;
     public String adminAccountEmailAddress;
+    public String supportGroupEmailAddress;
   }
 
   /** Configuration options for registry policy. */

@@ -17,11 +17,14 @@ package google.registry.ui.server.registrar;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.users.User;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.flogger.FluentLogger;
+import dagger.Lazy;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.groups.GroupsConnection;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.request.HttpException.ForbiddenException;
@@ -61,12 +64,44 @@ public class AuthenticatedRegistrarAccessor {
    */
   private final ImmutableSetMultimap<String, Role> roleMap;
 
+  /**
+   * Overriding the injected {@link GroupsConnection} for tests.
+   *
+   * <p>{@link GroupsConnection} needs the injected DelegatedCredential GoogleCredential. However,
+   * this can't be initialized in the test environment.
+   *
+   * <p>The test server used in the javatests/google/registry/webdriver/ tests will hang if we try
+   * to instantiate the {@link GroupsConnection}. So instead we inject a {@link Lazy} version and
+   * allow tests to override the injected instace with (presumabley) a mock insteance.
+   */
+  @VisibleForTesting public static GroupsConnection overrideGroupsConnection = null;
+
   @Inject
   public AuthenticatedRegistrarAccessor(
-      AuthResult authResult, @Config("registryAdminClientId") String registryAdminClientId) {
+      AuthResult authResult,
+      @Config("registryAdminClientId") String registryAdminClientId,
+      @Config("gSuiteSupportGroupEmailAddress") String gSuiteSupportGroupEmailAddress,
+      Lazy<GroupsConnection> groupsConnection) {
+    this(
+        authResult,
+        registryAdminClientId,
+        gSuiteSupportGroupEmailAddress,
+        overrideGroupsConnection != null ? overrideGroupsConnection : groupsConnection.get());
+  }
+
+  AuthenticatedRegistrarAccessor(
+      AuthResult authResult,
+      @Config("registryAdminClientId") String registryAdminClientId,
+      @Config("gSuiteSupportGroupEmailAddress") String gSuiteSupportGroupEmailAddress,
+      GroupsConnection groupsConnection) {
     this.authResult = authResult;
     this.registryAdminClientId = registryAdminClientId;
-    this.roleMap = createRoleMap(authResult, registryAdminClientId);
+    this.roleMap =
+        createRoleMap(
+            authResult,
+            registryAdminClientId,
+            groupsConnection,
+            gSuiteSupportGroupEmailAddress);
 
     logger.atInfo().log(
         "%s has the following roles: %s", authResult.userIdForLogging(), roleMap);
@@ -156,8 +191,27 @@ public class AuthenticatedRegistrarAccessor {
     return registrar;
   }
 
+  private static boolean checkIsSupport(
+      GroupsConnection groupsConnection, String userEmail, String supportEmail) {
+    if (Strings.isNullOrEmpty(supportEmail)) {
+      return false;
+    }
+    try {
+      return groupsConnection.isMemberOfGroup(userEmail, supportEmail);
+    } catch (RuntimeException e) {
+      logger.atSevere().withCause(e).log(
+          "Error checking whether email %s belongs to support group %s."
+              + " Skipping support role check",
+          userEmail, supportEmail);
+      return false;
+    }
+  }
+
   private static ImmutableSetMultimap<String, Role> createRoleMap(
-      AuthResult authResult, String registryAdminClientId) {
+      AuthResult authResult,
+      String registryAdminClientId,
+      GroupsConnection groupsConnection,
+      String gSuiteSupportGroupEmailAddress) {
 
     if (!authResult.userAuthInfo().isPresent()) {
       return ImmutableSetMultimap.of();
@@ -165,8 +219,10 @@ public class AuthenticatedRegistrarAccessor {
 
     UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
 
-    boolean isAdmin = userAuthInfo.isUserAdmin();
     User user = userAuthInfo.user();
+    boolean isAdmin = userAuthInfo.isUserAdmin();
+    boolean isSupport =
+        checkIsSupport(groupsConnection, user.getEmail(), gSuiteSupportGroupEmailAddress);
 
     ImmutableSetMultimap.Builder<String, Role> builder = new ImmutableSetMultimap.Builder<>();
 
@@ -174,17 +230,13 @@ public class AuthenticatedRegistrarAccessor {
         .load()
         .type(RegistrarContact.class)
         .filter("gaeUserId", user.getUserId())
-        .forEach(
-            contact ->
-                builder
-                    .put(contact.getParent().getName(), Role.OWNER));
+        .forEach(contact -> builder.put(contact.getParent().getName(), Role.OWNER));
     if (isAdmin && !Strings.isNullOrEmpty(registryAdminClientId)) {
-      builder
-          .put(registryAdminClientId, Role.OWNER);
+      builder.put(registryAdminClientId, Role.OWNER);
     }
 
-    if (isAdmin) {
-      // Admins have access to all registrars
+    if (isAdmin || isSupport) {
+      // Admins and support have access to all registrars
       ofy()
           .load()
           .type(Registrar.class)

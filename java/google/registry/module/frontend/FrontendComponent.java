@@ -21,6 +21,9 @@ import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.flows.ServerTridProviderModule;
 import google.registry.flows.custom.CustomLogicFactoryModule;
+import google.registry.groups.DirectoryModule;
+import google.registry.groups.GroupsModule;
+import google.registry.groups.GroupssettingsModule;
 import google.registry.keyring.KeyringModule;
 import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
@@ -48,8 +51,11 @@ import javax.inject.Singleton;
       ConsoleConfigModule.class,
       CredentialModule.class,
       CustomLogicFactoryModule.class,
+      DirectoryModule.class,
       DummyKeyringModule.class,
       FrontendRequestComponentModule.class,
+      GroupsModule.class,
+      GroupssettingsModule.class,
       Jackson2Module.class,
       KeyModule.class,
       KeyringModule.class,

@@ -18,6 +18,7 @@ gSuite:
   outgoingEmailDisplayName: placeholder
   outgoingEmailAddress: placeholder
   adminAccountEmailAddress: placeholder
+  supportGroupEmailAddress: placeholder
 
 registryPolicy:
   contactAndHostRoidSuffix: placeholder
