@@ -25,7 +25,6 @@ java_library(
         "//java/google/registry/ui/soy:soy_java_wrappers",
         "//java/google/registry/ui/soy/registrar:soy_java_wrappers",
         "//java/google/registry/util",
-        "//third_party/java/inject_common",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_auto_value",
