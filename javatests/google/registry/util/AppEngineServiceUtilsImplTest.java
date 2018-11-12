@@ -19,6 +19,8 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.modules.ModulesService;
@@ -74,5 +76,38 @@ public class AppEngineServiceUtilsImplTest {
             IllegalArgumentException.class,
             () -> appEngineServiceUtils.getVersionHostname("servicename", null));
     assertThat(thrown).hasMessageThat().isEqualTo("Must specify the version");
+  }
+
+  @Test
+  public void test_setNumInstances_worksWithValidParameters() {
+    appEngineServiceUtils.setNumInstances("service", "version", 10L);
+    verify(modulesService, times(1)).setNumInstances("service", "version", 10L);
+  }
+
+  @Test
+  public void test_setNumInstances_throwsWhenServiceIsNull() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> appEngineServiceUtils.setNumInstances(null, "version", 10L));
+    assertThat(thrown).hasMessageThat().isEqualTo("Must specify the service");
+  }
+
+  @Test
+  public void test_setNumInstances_throwsWhenVersionIsNull() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> appEngineServiceUtils.setNumInstances("service", null, 10L));
+    assertThat(thrown).hasMessageThat().isEqualTo("Must specify the version");
+  }
+
+  @Test
+  public void test_setNumInstances_throwsWhenNumInstancesIsInvalid() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> appEngineServiceUtils.setNumInstances("service", "version", -10L));
+    assertThat(thrown).hasMessageThat().isEqualTo("Number of instances must be greater than 0");
   }
 }

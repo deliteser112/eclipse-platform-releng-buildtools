@@ -14,6 +14,7 @@
 
 package google.registry.util;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.appengine.api.modules.ModulesService;
@@ -50,6 +51,14 @@ public class AppEngineServiceUtilsImpl implements AppEngineServiceUtils {
   public String getVersionHostname(String service, String version) {
     checkArgumentNotNull(version, "Must specify the version");
     return modulesService.getVersionHostname(service, version);
+  }
+
+  @Override
+  public void setNumInstances(String service, String version, long numInstances) {
+    checkArgumentNotNull(service, "Must specify the service");
+    checkArgumentNotNull(version, "Must specify the version");
+    checkArgument(numInstances > 0, "Number of instances must be greater than 0");
+    modulesService.setNumInstances(service, version, numInstances);
   }
 
   /** Dagger module for AppEngineServiceUtils. */
