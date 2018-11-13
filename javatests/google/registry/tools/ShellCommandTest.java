@@ -27,6 +27,7 @@ import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.testing.FakeClock;
+import google.registry.testing.SystemPropertyRule;
 import google.registry.tools.ShellCommand.JCommanderCompletor;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -40,12 +41,15 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class ShellCommandTest {
+
+  @Rule public final SystemPropertyRule systemPropertyRule = new SystemPropertyRule();
 
   CommandRunner cli = mock(CommandRunner.class);
   FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
@@ -107,7 +111,7 @@ public class ShellCommandTest {
 
   @Test
   public void testNoIdleWhenInAlpha() throws Exception {
-    RegistryToolEnvironment.ALPHA.setup();
+    RegistryToolEnvironment.ALPHA.setup(systemPropertyRule);
     MockCli cli = new MockCli();
     ShellCommand shellCommand =
         createShellCommand(cli, Duration.standardDays(1), "test1 foo bar", "test2 foo bar");
@@ -116,7 +120,7 @@ public class ShellCommandTest {
 
   @Test
   public void testNoIdleWhenInSandbox() throws Exception {
-    RegistryToolEnvironment.SANDBOX.setup();
+    RegistryToolEnvironment.SANDBOX.setup(systemPropertyRule);
     MockCli cli = new MockCli();
     ShellCommand shellCommand =
         createShellCommand(cli, Duration.standardDays(1), "test1 foo bar", "test2 foo bar");
@@ -125,7 +129,7 @@ public class ShellCommandTest {
 
   @Test
   public void testIdleWhenOverHourInProduction() throws Exception {
-    RegistryToolEnvironment.PRODUCTION.setup();
+    RegistryToolEnvironment.PRODUCTION.setup(systemPropertyRule);
     MockCli cli = new MockCli();
     ShellCommand shellCommand =
         createShellCommand(cli, Duration.standardMinutes(61), "test1 foo bar", "test2 foo bar");
@@ -135,7 +139,7 @@ public class ShellCommandTest {
 
   @Test
   public void testNoIdleWhenUnderHourInProduction() throws Exception {
-    RegistryToolEnvironment.PRODUCTION.setup();
+    RegistryToolEnvironment.PRODUCTION.setup(systemPropertyRule);
     MockCli cli = new MockCli();
     ShellCommand shellCommand =
         createShellCommand(cli, Duration.standardMinutes(59), "test1 foo bar", "test2 foo bar");
@@ -155,7 +159,7 @@ public class ShellCommandTest {
   public void testMultipleCommandInvocations() throws Exception {
     try (RegistryCli cli =
         new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class))) {
-      RegistryToolEnvironment.UNITTEST.setup();
+      RegistryToolEnvironment.UNITTEST.setup(systemPropertyRule);
       cli.setEnvironment(RegistryToolEnvironment.UNITTEST);
       cli.run(new String[] {"test_command", "-x", "xval", "arg1", "arg2"});
       cli.run(new String[] {"test_command", "-x", "otherxval", "arg3"});
@@ -272,7 +276,7 @@ public class ShellCommandTest {
 
   @Test
   public void testEncapsulatedOutput_command() throws Exception {
-    RegistryToolEnvironment.ALPHA.setup();
+    RegistryToolEnvironment.ALPHA.setup(systemPropertyRule);
     captureOutput();
     ShellCommand shellCommand =
         new ShellCommand(
@@ -296,7 +300,7 @@ public class ShellCommandTest {
 
   @Test
   public void testEncapsulatedOutput_throws() throws Exception {
-    RegistryToolEnvironment.ALPHA.setup();
+    RegistryToolEnvironment.ALPHA.setup(systemPropertyRule);
     captureOutput();
     ShellCommand shellCommand =
         new ShellCommand(

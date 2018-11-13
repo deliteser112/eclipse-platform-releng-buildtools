@@ -47,11 +47,25 @@ public enum RegistryEnvironment {
    */
   UNITTEST;
 
+  /** Sets this enum as the name of the registry environment. */
+  public RegistryEnvironment setup() {
+    return setup(SystemPropertySetter.PRODUCTION_IMPL);
+  }
+
+  /**
+   * Sets this enum as the name of the registry environment using specified {@link
+   * SystemPropertySetter}.
+   */
+  public RegistryEnvironment setup(SystemPropertySetter systemPropertySetter) {
+    systemPropertySetter.setProperty(PROPERTY, name());
+    return this;
+  }
+
   /** Returns environment configured by system property {@value #PROPERTY}. */
   public static RegistryEnvironment get() {
     return valueOf(Ascii.toUpperCase(System.getProperty(PROPERTY, UNITTEST.name())));
   }
 
   /** System property for configuring which environment we should use. */
-  public static final String PROPERTY = "google.registry.environment";
+  private static final String PROPERTY = "google.registry.environment";
 }

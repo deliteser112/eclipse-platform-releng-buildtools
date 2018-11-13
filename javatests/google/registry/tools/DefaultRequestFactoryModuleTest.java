@@ -21,7 +21,9 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpRequestInitializer;
 import google.registry.config.RegistryConfig;
+import google.registry.testing.SystemPropertyRule;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -40,11 +42,13 @@ public class DefaultRequestFactoryModuleTest {
         }
       });
 
+  @Rule public final SystemPropertyRule systemPropertyRule = new SystemPropertyRule();
+
   DefaultRequestFactoryModule module = new DefaultRequestFactoryModule();
 
   @Before
   public void setUp() {
-    RegistryToolEnvironment.UNITTEST.setup();
+    RegistryToolEnvironment.UNITTEST.setup(systemPropertyRule);
   }
 
   @Test

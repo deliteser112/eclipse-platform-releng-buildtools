@@ -17,10 +17,12 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.config.RegistryEnvironment;
+import google.registry.config.SystemPropertySetter;
 
 /** Enum of production environments, used for the {@code --environment} flag. */
 enum RegistryToolEnvironment {
@@ -75,12 +77,24 @@ enum RegistryToolEnvironment {
     return instance;
   }
 
-  /** Setup execution environment. Call this method before any classes are loaded. */
+  /** Resets static class state to uninitialized state. */
+  @VisibleForTesting
+  static void reset() {
+    instance = null;
+  }
+
+  /** Sets up execution environment. Call this method before any classes are loaded. */
   void setup() {
+    setup(SystemPropertySetter.PRODUCTION_IMPL);
+  }
+
+  /** Sets up execution environment. Call this method before any classes are loaded. */
+  @VisibleForTesting
+  void setup(SystemPropertySetter systemPropertySetter) {
     instance = this;
-    System.setProperty(RegistryEnvironment.PROPERTY, actualEnvironment.name());
+    actualEnvironment.setup(systemPropertySetter);
     for (ImmutableMap.Entry<String, String> entry : extraProperties.entrySet()) {
-      System.setProperty(entry.getKey(), entry.getValue());
+      systemPropertySetter.setProperty(entry.getKey(), entry.getValue());
     }
   }
 
