@@ -161,7 +161,7 @@ def _zip_file(ctx):
                 for _, zip_path in mapped
                 if "/" in zip_path
             ],
-        )
+        ).to_list()
     ]
     cmd += [
         'ln -sf "${repo}/%s" "${tmp}/%s"' % (path, zip_path)
@@ -181,7 +181,7 @@ def _zip_file(ctx):
     ctx.file_action(output = script, content = "\n".join(cmd), executable = True)
     inputs = [ctx.file._zipper]
     inputs += [dep.zip_file for dep in ctx.attr.deps]
-    inputs += list(srcs)
+    inputs += srcs.to_list()
     ctx.action(
         inputs = inputs,
         outputs = [ctx.outputs.out],
