@@ -209,7 +209,7 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
     command.ipWhitelist = ipWhitelist;
     command.street = ImmutableList.of("e-street");
     command.city = "Neverland";
-    command.state = "ofmind";
+    command.state = "NY";
     command.countryCode = "US";
     command.zip = "55555";
     command.email = Optional.of("foo@neverland.com");
