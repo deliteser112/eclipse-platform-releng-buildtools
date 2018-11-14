@@ -455,6 +455,8 @@ public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
     };
   }
 
+  // InetAddresses.coerceToInteger() will be deprecated in the future.
+  @SuppressWarnings("deprecation")
   @Override
   public int hashCode() {
     return InetAddresses.coerceToInteger(ip);

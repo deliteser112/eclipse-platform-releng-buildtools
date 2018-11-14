@@ -90,7 +90,6 @@ public class DomainApplicationIndex extends BackupGroupRoot {
    * <p>Consequently within a transaction this method will not return any applications that are not
    * yet committed to datastore, even if called on an updated DomainApplicationIndex instance
    * storing keys to those applications.
-   *
    */
   public static ImmutableSet<DomainApplication> loadActiveApplicationsByDomainName(
       String fullyQualifiedDomainName, final DateTime now) {

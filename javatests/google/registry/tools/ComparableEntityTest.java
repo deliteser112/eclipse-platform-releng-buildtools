@@ -82,7 +82,7 @@ public final class ComparableEntityTest {
 
     EntityProto proto1 = EntityTranslator.convertToPb(entity);
 
-    entity.setProperty("moe!", 400);
+    entity.setProperty("tiger!", 400);
     EntityProto proto2 = EntityTranslator.convertToPb(entity);
 
     // Construct entity objects from the two protos.
