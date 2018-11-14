@@ -16,9 +16,11 @@ package google.registry.config;
 
 import static com.google.common.base.Suppliers.memoize;
 import static google.registry.config.ConfigUtils.makeUrl;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -29,6 +31,7 @@ import dagger.Provides;
 import google.registry.util.RandomStringGenerator;
 import google.registry.util.StringGenerator;
 import google.registry.util.TaskQueueUtils;
+import google.registry.util.YamlUtils;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
@@ -56,12 +59,32 @@ import org.joda.time.Duration;
  */
 public final class RegistryConfig {
 
+  private static final String ENVIRONMENT_CONFIG_FORMAT = "files/nomulus-config-%s.yaml";
+  private static final String YAML_CONFIG_PROD =
+      readResourceUtf8(RegistryConfig.class, "files/default-config.yaml");
+
   /** Dagger qualifier for configuration settings. */
   @Qualifier
   @Retention(RUNTIME)
   @Documented
   public @interface Config {
     String value() default "";
+  }
+
+  /**
+   * Loads the {@link RegistryConfigSettings} POJO from the YAML configuration files.
+   *
+   * <p>The {@code default-config.yaml} file in this directory is loaded first, and a fatal error is
+   * thrown if it cannot be found or if there is an error parsing it. Separately, the
+   * environment-specific config file named {@code nomulus-config-ENVIRONMENT.yaml} is also loaded
+   * and those values merged into the POJO.
+   */
+  static RegistryConfigSettings getConfigSettings() {
+    String configFilePath =
+        String.format(
+            ENVIRONMENT_CONFIG_FORMAT, Ascii.toLowerCase(RegistryEnvironment.get().name()));
+    String customYaml = readResourceUtf8(RegistryConfig.class, configFilePath);
+    return YamlUtils.getConfigSettings(YAML_CONFIG_PROD, customYaml, RegistryConfigSettings.class);
   }
 
   /** Dagger module for providing configuration settings. */
@@ -1514,7 +1537,7 @@ public final class RegistryConfig {
    */
   @VisibleForTesting
   public static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
-      memoize(YamlUtils::getConfigSettings);
+      memoize(RegistryConfig::getConfigSettings);
 
   private static String formatComments(String text) {
     return Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text).stream()

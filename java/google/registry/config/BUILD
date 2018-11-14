@@ -23,6 +23,5 @@ java_library(
         "@javax_inject",
         "@joda_time",
         "@org_joda_money",
-        "@org_yaml_snakeyaml",
     ],
 )

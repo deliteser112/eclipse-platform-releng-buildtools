@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.config;
+package google.registry.util;
 
-import static com.google.common.base.Ascii.toLowerCase;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.google.common.flogger.FluentLogger;
 import java.util.Map;
@@ -35,10 +33,6 @@ public final class YamlUtils {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private static final String ENVIRONMENT_CONFIG_FORMAT = "files/nomulus-config-%s.yaml";
-  private static final String YAML_CONFIG_PROD =
-      readResourceUtf8(RegistryConfig.class, "files/default-config.yaml");
-
   /**
    * Loads the POJO of type {@code T} from merged YAML configuration files.
    *
@@ -55,21 +49,6 @@ public final class YamlUtils {
       throw new IllegalStateException(
           "Fatal error: Environment configuration YAML file is invalid", e);
     }
-  }
-
-  /**
-   * Loads the {@link RegistryConfigSettings} POJO from the YAML configuration files.
-   *
-   * <p>The {@code default-config.yaml} file in this directory is loaded first, and a fatal error is
-   * thrown if it cannot be found or if there is an error parsing it. Separately, the
-   * environment-specific config file named {@code nomulus-config-ENVIRONMENT.yaml} is also loaded
-   * and those values merged into the POJO.
-   */
-  static RegistryConfigSettings getConfigSettings() {
-    String configFilePath =
-        String.format(ENVIRONMENT_CONFIG_FORMAT, toLowerCase(RegistryEnvironment.get().name()));
-    String customYaml = readResourceUtf8(RegistryConfig.class, configFilePath);
-    return getConfigSettings(YAML_CONFIG_PROD, customYaml, RegistryConfigSettings.class);
   }
 
   /**

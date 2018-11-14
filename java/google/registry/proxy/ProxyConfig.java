@@ -14,8 +14,8 @@
 
 package google.registry.proxy;
 
-import static google.registry.config.YamlUtils.getConfigSettings;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.util.YamlUtils.getConfigSettings;
 
 import com.google.common.base.Ascii;
 import java.util.List;

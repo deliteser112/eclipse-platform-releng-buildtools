@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.config;
+package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.config.YamlUtils.mergeYaml;
+import static google.registry.util.YamlUtils.mergeYaml;
 
 import com.google.common.base.Joiner;
 import org.junit.Test;
