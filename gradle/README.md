@@ -15,8 +15,6 @@ the existing Nomulus source tree.
 
 Dependencies are mostly the same as in Bazel, with a few exceptions:
 
-*   org.slf4j:slf4j-simple is added to provide a logging implementation in
-    tests. Bazel does not need this.
 *   com.googlecode.java-diff-utils:diffutils is not included. Bazel needs it for
     Truth's equality check, but Gradle works fine without it.
 *   jaxb 2.2.11 is used instead of 2.3 in Bazel, since the latter breaks the
@@ -27,18 +25,22 @@ Dependencies are mostly the same as in Bazel, with a few exceptions:
 
 ### Notable Issues
 
-Only single-threaded test execution is allowed, due to race condition over
-global resources, such as the local Datastore instance, or updates to the System
-properties. This is a new problem with Gradle, which does not provide as much
-test isolation as Bazel. We are exploring solutions to this problem.
-
 Test suites (RdeTestSuite and TmchTestSuite) are ignored to avoid duplicate
 execution of tests. Neither suite performs any shared test setup routine, so it
-is easier to exclude the suite classes than individual test classes.
+is easier to exclude the suite classes than individual test classes. This is the
+reason why all test tasks in the :core project contain the exclude pattern
+'"**/*TestCase.*", "**/*TestSuite.*"'
 
-Since Gradle does not support hierarchical build files, all file sets (e.g.,
-resources) must be declared at the top, in root project config or the
-sub-project configs.
+Many Nomulus tests are not hermetic: they modify global state (e.g., the shared
+local instance of Datastore) but do not clean up on completion. This becomes a
+problem with Gradle. In the beginning we forced Gradle to run every test class
+in a new process, and incurred heavy overheads. Since then, we have fixed some
+tests, and manged to divide all tests into three suites that do not have
+intra-suite conflicts. We will revisit the remaining tests soon.
+
+Note that it is unclear if all conflicting tests have been identified. More may
+be exposed if test execution order changes, e.g., when new tests are added or
+execution parallelism level changes.
 
 ## Initial Setup
 

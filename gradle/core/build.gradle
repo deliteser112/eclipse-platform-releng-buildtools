@@ -15,6 +15,46 @@ def aptGeneratedTestDir = "${project.buildDir}/generated/source/apt/test"
 // used for easy inspection.
 def generatedDir = "${project.buildDir}/generated/source/custom/main"
 
+// Tests that conflict with (mostly unidentified) members of the main test
+// suite. It is unclear if they are offenders (i.e., those that pollute global
+// state) or victims.
+// TODO(weiminyu): identify cause and fix offending tests.
+def outcastTestPatterns = [
+    "google/registry/batch/DeleteContactsAndHostsActionTest.*",
+    "google/registry/batch/RefreshDnsOnHostRenameActionTest.*",
+    "google/registry/flows/CheckApiActionTest.*",
+    "google/registry/flows/EppLifecycleHostTest.*",
+    "google/registry/flows/domain/DomainAllocateFlowTest.*",
+    "google/registry/flows/domain/DomainApplicationCreateFlowTest.*",
+    "google/registry/flows/domain/DomainApplicationUpdateFlowTest.*",
+    "google/registry/flows/domain/DomainCreateFlowTest.*",
+    "google/registry/flows/domain/DomainUpdateFlowTest.*",
+    "google/registry/tools/server/CreatePremiumListActionTest.*",
+    // Conflicts with WhoisActionTest
+    "google/registry/whois/WhoisHttpActionTest.*",
+]
+
+// Tests that conflict with members of both the main test suite and the
+// outcast suite.
+// TODO(weiminyu): identify cause and fix offending tests.
+def fragileTestPatterns = [
+    "google/registry/cron/TldFanoutActionTest.*"
+]
+
+// Test source directories shared by all test suites.
+def testSourceDirs = [
+    "${javatestsDir}",
+    "${aptGeneratedTestDir}"
+]
+
+// Test resource directories shared by all test suites.
+def testResourceDirs = [
+    "${javatestsDir}"
+]
+
+// Exclusion pattern for test source directories shared by all test suites.
+def testResourceExclude = ['**/*.java', '**/*.xsd', '**/*.xjb']
+
 sourceSets {
   main {
     java {
@@ -33,16 +73,29 @@ sourceSets {
   }
   test {
     java {
-      srcDirs = [
-          "${javatestsDir}",
-          "${aptGeneratedTestDir}"
-      ]
+      srcDirs testSourceDirs
     }
     resources {
-      srcDirs = [
-          "${javatestsDir}"
-      ]
-      exclude '**/*.java', '**/*.xsd', '**/*.xjb'
+      srcDirs testResourceDirs
+      exclude testResourceExclude
+    }
+  }
+  fragileTest {
+    java {
+      srcDirs testSourceDirs
+    }
+    resources {
+      srcDirs testResourceDirs
+      exclude testResourceExclude
+    }
+  }
+  outcastTest {
+    java {
+      srcDirs testSourceDirs
+    }
+    resources {
+      srcDirs testResourceDirs
+      exclude testResourceExclude
     }
   }
 }
@@ -398,22 +451,34 @@ compileJava.dependsOn soyToJava
 stylesheetsToJavascript.dependsOn processResources
 classes.dependsOn stylesheetsToJavascript
 
-
-test {
-  // Test exclusion patterns:
-  // - *TestCase.java are inherited by concrete test classes.
-  // - *TestSuite.java are excluded to avoid duplicate execution of suite
-  //    members. See README in this directory for more information.
+task fragileTest(type: Test) {
+  // Common exclude pattern. See README in parent directory for explanation.
   exclude "**/*TestCase.*", "**/*TestSuite.*"
+  include fragileTestPatterns
 
-  // Use a single JVM to execute all tests. See README in this directory for
-  // more information.
-  maxParallelForks 1
-
-  // Use a single thread to execute all tests in a JVM. See README in this
-  // directory for more information.
+  // Run every test class in a freshly started process.
   forkEvery 1
 
   // Uncomment to see test outputs in stdout.
   //testLogging.showStandardStreams = true
 }
+
+task outcastTest(type: Test) {
+  // Common exclude pattern. See README in parent directory for explanation.
+  exclude "**/*TestCase.*", "**/*TestSuite.*"
+  include outcastTestPatterns
+
+  // Sets the maximum number of test executors that may exist at the same time.
+  maxParallelForks 5
+}
+
+test {
+  // Common exclude pattern. See README in parent directory for explanation.
+  exclude "**/*TestCase.*", "**/*TestSuite.*"
+  exclude fragileTestPatterns
+  exclude outcastTestPatterns
+
+  // Sets the maximum number of test executors that may exist at the same time.
+  maxParallelForks 5
+}.dependsOn(fragileTest, outcastTest)
+
