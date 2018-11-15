@@ -16,7 +16,7 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.ADMIN;
+import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.ADMIN;
 import static google.registry.ui.server.registrar.RegistrarConsoleModule.PARAM_CLIENT_ID;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
@@ -36,14 +36,15 @@ import com.google.template.soy.tofu.SoyTofu;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
-import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor.RegistrarAccessDeniedException;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor.Role;
 import google.registry.security.XsrfTokenManager;
 import google.registry.ui.server.SoyTemplateUtils;
-import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role;
 import google.registry.ui.soy.registrar.ConsoleSoyInfo;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -151,7 +152,7 @@ public final class ConsoleUiAction implements Runnable {
       // because the requests come from the browser, and can easily be faked)
       Registrar registrar = registrarAccessor.getRegistrar(clientId);
       data.put("requireFeeExtension", registrar.getPremiumPriceAckRequired());
-    } catch (ForbiddenException e) {
+    } catch (RegistrarAccessDeniedException e) {
       logger.atWarning().withCause(e).log(
           "User %s doesn't have access to registrar console.", authResult.userIdForLogging());
       response.setStatus(SC_FORBIDDEN);

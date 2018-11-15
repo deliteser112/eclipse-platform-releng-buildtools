@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.ui.server.registrar;
+package google.registry.request.auth;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.users.User;
@@ -27,19 +29,16 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
-import google.registry.request.HttpException.ForbiddenException;
-import google.registry.request.auth.AuthResult;
-import google.registry.request.auth.UserAuthInfo;
 import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
 
 /**
  * Allows access only to {@link Registrar}s the current user has access to.
  *
- * <p>A user has OWNER role on a Registrar if there exists a {@link RegistrarContact} with
- * that user's gaeId and the registrar as a parent.
+ * <p>A user has OWNER role on a Registrar if there exists a {@link RegistrarContact} with that
+ * user's gaeId and the registrar as a parent.
  *
- * <p>An admin has in addition OWNER role on {@link #registryAdminClientId}.
+ * <p>An admin has in addition OWNER role on {@code #registryAdminClientId}.
  *
  * <p>An admin also has ADMIN role on ALL registrars.
  */
@@ -54,13 +53,14 @@ public class AuthenticatedRegistrarAccessor {
     ADMIN
   }
 
-  AuthResult authResult;
-  String registryAdminClientId;
+  private final String userIdForLogging;
 
   /**
    * Gives all roles a user has for a given clientId.
    *
    * <p>The order is significant, with "more specific to this user" coming first.
+   *
+   * <p>Logged out users have an empty roleMap.
    */
   private final ImmutableSetMultimap<String, Role> roleMap;
 
@@ -89,28 +89,42 @@ public class AuthenticatedRegistrarAccessor {
         overrideGroupsConnection != null ? overrideGroupsConnection : groupsConnection.get());
   }
 
+  @VisibleForTesting
   AuthenticatedRegistrarAccessor(
       AuthResult authResult,
-      @Config("registryAdminClientId") String registryAdminClientId,
-      @Config("gSuiteSupportGroupEmailAddress") String gSuiteSupportGroupEmailAddress,
+      String registryAdminClientId,
+      String gSuiteSupportGroupEmailAddress,
       GroupsConnection groupsConnection) {
-    this.authResult = authResult;
-    this.registryAdminClientId = registryAdminClientId;
-    this.roleMap =
+    this(
+        authResult.userIdForLogging(),
         createRoleMap(
-            authResult,
-            registryAdminClientId,
-            groupsConnection,
-            gSuiteSupportGroupEmailAddress);
+            authResult, registryAdminClientId, groupsConnection, gSuiteSupportGroupEmailAddress));
 
     logger.atInfo().log(
         "%s has the following roles: %s", authResult.userIdForLogging(), roleMap);
   }
 
+  private AuthenticatedRegistrarAccessor(
+      String userIdForLogging, ImmutableSetMultimap<String, Role> roleMap) {
+    this.userIdForLogging = checkNotNull(userIdForLogging);
+    this.roleMap = checkNotNull(roleMap);
+  }
+
+  /**
+   * Creates a "logged-in user" accessor with a given role map, used for tests.
+   *
+   * <p>The user's "name" in logs and exception messages is "TestUserId".
+   */
+  @VisibleForTesting
+  public static AuthenticatedRegistrarAccessor createForTesting(
+      ImmutableSetMultimap<String, Role> roleMap) {
+    return new AuthenticatedRegistrarAccessor("TestUserId", roleMap);
+  }
+
   /**
    * A map that gives all roles a user has for a given clientId.
    *
-   * <p>Throws a {@link ForbiddenException} if the user is not logged in.
+   * <p>Throws a {@link RegistrarAccessDeniedException} if the user is not logged in.
    *
    * <p>The result is ordered starting from "most specific to this user".
    *
@@ -129,7 +143,7 @@ public class AuthenticatedRegistrarAccessor {
   /**
    * "Guesses" which client ID the user wants from all those they have access to.
    *
-   * <p>If no such ClientIds exist, throws a ForbiddenException.
+   * <p>If no such ClientIds exist, throws a RegistrarAccessDeniedException.
    *
    * <p>This should be the ClientId "most likely wanted by the user".
    *
@@ -141,54 +155,57 @@ public class AuthenticatedRegistrarAccessor {
    * other clue as to the requested {@code clientId}. It is perfectly OK to get a {@code clientId}
    * from any other source, as long as the registrar is then loaded using {@link #getRegistrar}.
    */
-  public String guessClientId() {
-    verifyLoggedIn();
+  public String guessClientId() throws RegistrarAccessDeniedException {
     return getAllClientIdWithRoles().keySet().stream()
         .findFirst()
         .orElseThrow(
             () ->
-                new ForbiddenException(
-                    String.format(
-                        "%s isn't associated with any registrar",
-                        authResult.userIdForLogging())));
+                new RegistrarAccessDeniedException(
+                    String.format("%s isn't associated with any registrar", userIdForLogging)));
   }
 
   /**
    * Loads a Registrar IFF the user is authorized.
    *
-   * <p>Throws a {@link ForbiddenException} if the user is not logged in, or not authorized to
-   * access the requested registrar.
+   * <p>Throws a {@link RegistrarAccessDeniedException} if the user is not logged in, or not
+   * authorized to access the requested registrar.
    *
    * @param clientId ID of the registrar we request
    */
-  public Registrar getRegistrar(String clientId) {
-    verifyLoggedIn();
-
-    ImmutableSet<Role> roles = getAllClientIdWithRoles().get(clientId);
-
-    if (roles.isEmpty()) {
-      throw new ForbiddenException(
-          String.format(
-              "%s doesn't have access to registrar %s",
-              authResult.userIdForLogging(), clientId));
-    }
+  public Registrar getRegistrar(String clientId) throws RegistrarAccessDeniedException {
+    verifyAccess(clientId);
 
     Registrar registrar =
         Registrar.loadByClientId(clientId)
             .orElseThrow(
-                () -> new ForbiddenException(String.format("Registrar %s not found", clientId)));
+                () ->
+                    new RegistrarAccessDeniedException(
+                        String.format("Registrar %s not found", clientId)));
 
     if (!clientId.equals(registrar.getClientId())) {
       logger.atSevere().log(
           "registrarLoader.apply(clientId) returned a Registrar with a different clientId. "
               + "Requested: %s, returned: %s.",
           clientId, registrar.getClientId());
-      throw new ForbiddenException("Internal error - please check logs");
+      throw new RegistrarAccessDeniedException("Internal error - please check logs");
     }
 
-    logger.atInfo().log(
-        "%s has %s access to registrar %s.", authResult.userIdForLogging(), roles, clientId);
     return registrar;
+  }
+
+  public void verifyAccess(String clientId) throws RegistrarAccessDeniedException {
+    ImmutableSet<Role> roles = getAllClientIdWithRoles().get(clientId);
+
+    if (roles.isEmpty()) {
+      throw new RegistrarAccessDeniedException(
+          String.format("%s doesn't have access to registrar %s", userIdForLogging, clientId));
+    }
+    logger.atInfo().log("%s has %s access to registrar %s.", userIdForLogging, roles, clientId);
+  }
+
+  @Override
+  public String toString() {
+    return toStringHelper(getClass()).add("authResult", userIdForLogging).toString();
   }
 
   private static boolean checkIsSupport(
@@ -246,9 +263,10 @@ public class AuthenticatedRegistrarAccessor {
     return builder.build();
   }
 
-  private void verifyLoggedIn() {
-    if (!authResult.userAuthInfo().isPresent()) {
-      throw new ForbiddenException("Not logged in");
+  /** Exception thrown when the current user doesn't have access to the requested Registrar. */
+  public static class RegistrarAccessDeniedException extends Exception {
+    RegistrarAccessDeniedException(String message) {
+      super(message);
     }
   }
 }

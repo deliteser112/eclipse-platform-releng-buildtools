@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.ui.server.registrar;
+package google.registry.request.auth;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.ADMIN;
+import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static google.registry.testing.AppEngineRule.THE_REGISTRAR_GAE_USER_ID;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.ADMIN;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -33,10 +33,7 @@ import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.NullPointerTester;
 import com.google.common.testing.TestLogHandler;
 import google.registry.groups.GroupsConnection;
-import google.registry.request.HttpException.ForbiddenException;
-import google.registry.request.auth.AuthLevel;
-import google.registry.request.auth.AuthResult;
-import google.registry.request.auth.UserAuthInfo;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor.RegistrarAccessDeniedException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
 import java.util.logging.Level;
@@ -76,7 +73,8 @@ public class AuthenticatedRegistrarAccessorTest {
         UserAuthInfo.create(
             new User(
                 String.format(
-                    "%s_%s@gmail.com", isAuthorized ? "good" : "evil", isAdmin ? "admin" : "user"),
+                    "%s_%s@gmail.com",
+                    isAuthorized ? "auth" : "unauth", isAdmin ? "admin" : "user"),
                 "gmail.com",
                 isAuthorized ? THE_REGISTRAR_GAE_USER_ID : "badGaeUserId"),
             isAdmin));
@@ -94,12 +92,6 @@ public class AuthenticatedRegistrarAccessorTest {
     LoggerConfig.getConfig(AuthenticatedRegistrarAccessor.class).removeHandler(testLogHandler);
   }
 
-  private String formatMessage(String message, AuthResult authResult, String clientId) {
-    return message
-        .replace("{user}", authResult.userIdForLogging())
-        .replace("{clientId}", String.valueOf(clientId));
-  }
-
   /** Users only have access to the registrars they are a contact for. */
   @Test
   public void getAllClientIdWithAccess_authorizedUser() {
@@ -114,7 +106,7 @@ public class AuthenticatedRegistrarAccessorTest {
   /** Users in support group have admin access to everything. */
   @Test
   public void getAllClientIdWithAccess_authorizedUser_isSupportGroup() {
-    when(groupsConnection.isMemberOfGroup("good_user@gmail.com", SUPPORT_GROUP)).thenReturn(true);
+    when(groupsConnection.isMemberOfGroup("auth_user@gmail.com", SUPPORT_GROUP)).thenReturn(true);
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
             AUTHORIZED_USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
@@ -149,7 +141,7 @@ public class AuthenticatedRegistrarAccessorTest {
   /** Unauthorized users who are in support group have admin access. */
   @Test
   public void getAllClientIdWithAccess_unauthorizedUser_inSupportGroup() {
-    when(groupsConnection.isMemberOfGroup("evil_user@gmail.com", SUPPORT_GROUP)).thenReturn(true);
+    when(groupsConnection.isMemberOfGroup("unauth_user@gmail.com", SUPPORT_GROUP)).thenReturn(true);
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
             UNAUTHORIZED_USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
@@ -179,7 +171,7 @@ public class AuthenticatedRegistrarAccessorTest {
         new AuthenticatedRegistrarAccessor(
             AUTHORIZED_USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
 
-    verify(groupsConnection).isMemberOfGroup("good_user@gmail.com", SUPPORT_GROUP);
+    verify(groupsConnection).isMemberOfGroup("auth_user@gmail.com", SUPPORT_GROUP);
     assertThat(registrarAccessor.getAllClientIdWithRoles())
         .containsExactly(DEFAULT_CLIENT_ID, OWNER);
   }
@@ -223,34 +215,39 @@ public class AuthenticatedRegistrarAccessorTest {
     expectGetRegistrarFailure(
         DEFAULT_CLIENT_ID,
         UNAUTHORIZED_USER,
-        "{user} doesn't have access to registrar {clientId}");
+        "user unauth_user@gmail.com doesn't have access to registrar TheRegistrar");
   }
 
   /** Fail loading registrar if there's no user associated with the request. */
   @Test
   public void testGetRegistrarForUser_noUser() {
-    expectGetRegistrarFailure(DEFAULT_CLIENT_ID, NO_USER, "Not logged in");
+    expectGetRegistrarFailure(
+        DEFAULT_CLIENT_ID,
+        NO_USER,
+        "<logged-out user> doesn't have access to registrar TheRegistrar");
   }
 
   /** Succeed loading registrar if user has access to it. */
   @Test
-  public void testGetRegistrarForUser_hasAccess_isNotAdmin() {
+  public void testGetRegistrarForUser_hasAccess_isNotAdmin() throws Exception {
     expectGetRegistrarSuccess(
-        AUTHORIZED_USER, "{user} has [OWNER] access to registrar {clientId}");
+        AUTHORIZED_USER, "user auth_user@gmail.com has [OWNER] access to registrar TheRegistrar");
   }
 
   /** Succeed loading registrar if admin with access. */
   @Test
-  public void testGetRegistrarForUser_hasAccess_isAdmin() {
+  public void testGetRegistrarForUser_hasAccess_isAdmin() throws Exception {
     expectGetRegistrarSuccess(
-        AUTHORIZED_ADMIN, "{user} has [OWNER, ADMIN] access to registrar {clientId}");
+        AUTHORIZED_ADMIN,
+        "admin auth_admin@gmail.com has [OWNER, ADMIN] access to registrar TheRegistrar");
   }
 
   /** Succeed loading registrar for admin even if they aren't on the approved contacts list. */
   @Test
-  public void testGetRegistrarForUser_noAccess_isAdmin() {
+  public void testGetRegistrarForUser_noAccess_isAdmin() throws Exception {
     expectGetRegistrarSuccess(
-        UNAUTHORIZED_ADMIN, "{user} has [ADMIN] access to registrar {clientId}.");
+        UNAUTHORIZED_ADMIN,
+        "admin unauth_admin@gmail.com has [ADMIN] access to registrar TheRegistrar.");
   }
 
   /** Fail loading registrar even if admin, if registrar doesn't exist. */
@@ -259,20 +256,17 @@ public class AuthenticatedRegistrarAccessorTest {
     expectGetRegistrarFailure(
         "BadClientId",
         AUTHORIZED_ADMIN,
-        "{user} doesn't have access to registrar {clientId}");
+        "admin auth_admin@gmail.com doesn't have access to registrar BadClientId");
   }
 
-  private void expectGetRegistrarSuccess(
-      AuthResult authResult, String message) {
+  private void expectGetRegistrarSuccess(AuthResult authResult, String message) throws Exception {
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
             authResult, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
 
+    // make sure loading the registrar succeeds and returns a value
     assertThat(registrarAccessor.getRegistrar(DEFAULT_CLIENT_ID)).isNotNull();
-    assertAboutLogs()
-        .that(testLogHandler)
-        .hasLogAtLevelWithMessage(
-            Level.INFO, formatMessage(message, authResult, DEFAULT_CLIENT_ID));
+    assertAboutLogs().that(testLogHandler).hasLogAtLevelWithMessage(Level.INFO, message);
   }
 
   private void expectGetRegistrarFailure(
@@ -281,16 +275,17 @@ public class AuthenticatedRegistrarAccessorTest {
         new AuthenticatedRegistrarAccessor(
             authResult, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
 
-    ForbiddenException exception =
+    // make sure getRegistrar fails
+    RegistrarAccessDeniedException exception =
         assertThrows(
-            ForbiddenException.class, () -> registrarAccessor.getRegistrar(clientId));
+            RegistrarAccessDeniedException.class, () -> registrarAccessor.getRegistrar(clientId));
 
-    assertThat(exception).hasMessageThat().contains(formatMessage(message, authResult, clientId));
+    assertThat(exception).hasMessageThat().contains(message);
   }
 
   /** If a user has access to a registrar, we should guess that registrar. */
   @Test
-  public void testGuessClientIdForUser_hasAccess_isNotAdmin() {
+  public void testGuessClientIdForUser_hasAccess_isNotAdmin() throws Exception {
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
             AUTHORIZED_USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
@@ -301,7 +296,8 @@ public class AuthenticatedRegistrarAccessorTest {
   /** If a user doesn't have access to any registrars, guess returns nothing. */
   @Test
   public void testGuessClientIdForUser_noAccess_isNotAdmin() {
-    expectGuessRegistrarFailure(UNAUTHORIZED_USER, "{user} isn't associated with any registrar");
+    expectGuessRegistrarFailure(
+        UNAUTHORIZED_USER, "user unauth_user@gmail.com isn't associated with any registrar");
   }
 
   /**
@@ -309,7 +305,7 @@ public class AuthenticatedRegistrarAccessorTest {
    * ADMIN_CLIENT_ID).
    */
   @Test
-  public void testGuessClientIdForUser_hasAccess_isAdmin() {
+  public void testGuessClientIdForUser_hasAccess_isAdmin() throws Exception {
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
             AUTHORIZED_ADMIN, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
@@ -319,7 +315,7 @@ public class AuthenticatedRegistrarAccessorTest {
 
   /** If an admin doesn't have access to a registrar, we should guess the ADMIN_CLIENT_ID. */
   @Test
-  public void testGuessClientIdForUser_noAccess_isAdmin() {
+  public void testGuessClientIdForUser_noAccess_isAdmin() throws Exception {
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
             UNAUTHORIZED_ADMIN, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
@@ -333,7 +329,7 @@ public class AuthenticatedRegistrarAccessorTest {
    * registrars.
    */
   @Test
-  public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdEmpty() {
+  public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdEmpty() throws Exception {
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(UNAUTHORIZED_ADMIN, "", SUPPORT_GROUP, groupsConnection);
 
@@ -345,7 +341,7 @@ public class AuthenticatedRegistrarAccessorTest {
    * non-existent registrar, we still guess it (we will later fail loading the registrar).
    */
   @Test
-  public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdInvalid() {
+  public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdInvalid() throws Exception {
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
             UNAUTHORIZED_ADMIN, "NonexistentRegistrar", SUPPORT_GROUP, groupsConnection);
@@ -358,11 +354,9 @@ public class AuthenticatedRegistrarAccessorTest {
         new AuthenticatedRegistrarAccessor(
             authResult, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
 
-    ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> registrarAccessor.guessClientId());
-    assertThat(exception)
-        .hasMessageThat()
-        .contains(formatMessage(message, authResult, null));
+    RegistrarAccessDeniedException exception =
+        assertThrows(RegistrarAccessDeniedException.class, () -> registrarAccessor.guessClientId());
+    assertThat(exception).hasMessageThat().contains(message);
   }
 
   @Test

@@ -17,9 +17,8 @@ package google.registry.ui.server.registrar;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
-import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.ADMIN;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.OWNER;
+import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.ADMIN;
+import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,9 +27,9 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.net.MediaType;
-import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.security.XsrfTokenManager;
 import google.registry.testing.AppEngineRule;
@@ -56,8 +55,6 @@ public class ConsoleUiActionTest {
       .withUserService(UserInfo.create("marla.singer@example.com", "12345"))
       .build();
 
-  private final AuthenticatedRegistrarAccessor registrarAccessor =
-      mock(AuthenticatedRegistrarAccessor.class);
   private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final FakeResponse response = new FakeResponse();
   private final ConsoleUiAction action = new ConsoleUiAction();
@@ -76,24 +73,19 @@ public class ConsoleUiActionTest {
     action.req = request;
     action.response = response;
     action.registrarConsoleMetrics = new RegistrarConsoleMetrics();
-    action.registrarAccessor = registrarAccessor;
     action.userService = UserServiceFactory.getUserService();
     action.xsrfTokenManager = new XsrfTokenManager(new FakeClock(), action.userService);
     action.paramClientId = Optional.empty();
     AuthResult authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     action.authResult = authResult;
-    when(registrarAccessor.getRegistrar("TheRegistrar"))
-        .thenReturn(loadRegistrar("TheRegistrar"));
-    when(registrarAccessor.getAllClientIdWithRoles())
-        .thenReturn(
+
+    action.registrarAccessor =
+        AuthenticatedRegistrarAccessor.createForTesting(
             ImmutableSetMultimap.of(
                 "TheRegistrar", OWNER,
-                "OtherRegistrar", OWNER,
-                "OtherRegistrar", ADMIN,
+                "NewRegistrar", OWNER,
+                "NewRegistrar", ADMIN,
                 "AdminRegistrar", ADMIN));
-    when(registrarAccessor.guessClientId()).thenCallRealMethod();
-    // Used for error message in guessClientId
-    registrarAccessor.authResult = authResult;
     RegistrarConsoleMetrics.consoleRequestMetric.reset();
   }
 
@@ -146,7 +138,8 @@ public class ConsoleUiActionTest {
 
   @Test
   public void testUserDoesntHaveAccessToAnyRegistrar_showsWhoAreYouPage() {
-    when(registrarAccessor.getAllClientIdWithRoles()).thenReturn(ImmutableSetMultimap.of());
+    action.registrarAccessor =
+        AuthenticatedRegistrarAccessor.createForTesting(ImmutableSetMultimap.of());
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
     assertThat(response.getPayload()).contains("not associated with Nomulus.");
@@ -175,8 +168,6 @@ public class ConsoleUiActionTest {
   public void testSettingClientId_notAllowed_showsNeedPermissionPage() {
     // Behaves the same way if fakeRegistrar exists, but we don't have access to it
     action.paramClientId = Optional.of("fakeRegistrar");
-    when(registrarAccessor.getRegistrar("fakeRegistrar"))
-        .thenThrow(new ForbiddenException("forbidden"));
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
     assertThat(response.getPayload()).contains("not associated with the registrar fakeRegistrar.");
@@ -185,20 +176,18 @@ public class ConsoleUiActionTest {
 
   @Test
   public void testSettingClientId_allowed_showsRegistrarConsole() {
-    action.paramClientId = Optional.of("OtherRegistrar");
-    when(registrarAccessor.getRegistrar("OtherRegistrar"))
-        .thenReturn(loadRegistrar("TheRegistrar"));
+    action.paramClientId = Optional.of("NewRegistrar");
     action.run();
     assertThat(response.getPayload()).contains("Registrar Console");
     assertThat(response.getPayload()).contains("reg-content-and-footer");
-    assertMetric("OtherRegistrar", "true", "[OWNER, ADMIN]", "SUCCESS");
+    assertMetric("NewRegistrar", "true", "[OWNER, ADMIN]", "SUCCESS");
   }
 
   @Test
   public void testUserHasAccessAsTheRegistrar_showsClientIdChooser() {
     action.run();
     assertThat(response.getPayload()).contains("<option value=\"TheRegistrar\" selected>");
-    assertThat(response.getPayload()).contains("<option value=\"OtherRegistrar\">");
+    assertThat(response.getPayload()).contains("<option value=\"NewRegistrar\">");
     assertThat(response.getPayload()).contains("<option value=\"AdminRegistrar\">");
     assertMetric("TheRegistrar", "false", "[OWNER]", "SUCCESS");
   }

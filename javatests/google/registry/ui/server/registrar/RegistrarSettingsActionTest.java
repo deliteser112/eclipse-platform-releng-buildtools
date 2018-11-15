@@ -86,10 +86,11 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   public void testFailure_readRegistrarInfo_notAuthorized() {
     setUserWithoutAccess();
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of("id", CLIENT_ID));
-    assertThat(response).containsExactly(
-        "status", "ERROR",
-        "results", ImmutableList.of(),
-        "message", "forbidden test error");
+    assertThat(response)
+        .containsExactly(
+            "status", "ERROR",
+            "results", ImmutableList.of(),
+            "message", "TestUserId doesn't have access to registrar TheRegistrar");
     assertNoTasksEnqueued("sheet");
     assertMetric(CLIENT_ID, "read", "[]", "ERROR: ForbiddenException");
   }
@@ -160,10 +161,11 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "op", "update",
         "id", CLIENT_ID,
         "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
-    assertThat(response).containsExactly(
-        "status", "ERROR",
-        "results", ImmutableList.of(),
-        "message", "forbidden test error");
+    assertThat(response)
+        .containsExactly(
+            "status", "ERROR",
+            "results", ImmutableList.of(),
+            "message", "TestUserId doesn't have access to registrar TheRegistrar");
     assertNoTasksEnqueued("sheet");
     assertMetric(CLIENT_ID, "update", "[]", "ERROR: ForbiddenException");
   }

@@ -115,6 +115,10 @@ public abstract class HttpException extends RuntimeException {
       super(HttpServletResponse.SC_FORBIDDEN, message, null);
     }
 
+    public ForbiddenException(String message, Exception cause) {
+      super(HttpServletResponse.SC_FORBIDDEN, message, cause);
+    }
+
     @Override
     public String getResponseCodeString() {
       return "Forbidden";

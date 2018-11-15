@@ -42,11 +42,13 @@ import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor.RegistrarAccessDeniedException;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor.Role;
 import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
 import google.registry.ui.server.RegistrarFormFields;
-import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role;
 import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.CollectionUtils;
 import google.registry.util.DiffUtils;
@@ -161,7 +163,11 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
   }
 
   private RegistrarResult read(String clientId) {
-    return RegistrarResult.create("Success", registrarAccessor.getRegistrar(clientId));
+    try {
+      return RegistrarResult.create("Success", registrarAccessor.getRegistrar(clientId));
+    } catch (RegistrarAccessDeniedException e) {
+      throw new ForbiddenException(e.getMessage(), e);
+    }
   }
 
   private RegistrarResult update(final Map<String, ?> args, String clientId) {
@@ -171,7 +177,12 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
               // We load the registrar here rather than outside of the transaction - to make
               // sure we have the latest version. This one is loaded inside the transaction, so it's
               // guaranteed to not change before we update it.
-              Registrar registrar = registrarAccessor.getRegistrar(clientId);
+              Registrar registrar;
+              try {
+                registrar = registrarAccessor.getRegistrar(clientId);
+              } catch (RegistrarAccessDeniedException e) {
+                throw new ForbiddenException(e.getMessage(), e);
+              }
               // Verify that the registrar hasn't been changed.
               // To do that - we find the latest update time (or null if the registrar has been
               // deleted) and compare to the update time from the args. The update time in the args

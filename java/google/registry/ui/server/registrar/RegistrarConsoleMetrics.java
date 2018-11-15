@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.monitoring.metrics.IncrementableMetric;
 import com.google.monitoring.metrics.LabelDescriptor;
 import com.google.monitoring.metrics.MetricRegistryImpl;
-import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor.Role;
 import javax.inject.Inject;
 
 final class RegistrarConsoleMetrics {
