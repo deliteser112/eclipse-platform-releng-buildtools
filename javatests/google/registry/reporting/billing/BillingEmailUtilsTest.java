@@ -109,8 +109,7 @@ public class BillingEmailUtilsTest {
         .isEqualTo("Attached is the 2017-10 invoice for the domain registry.");
     assertThat(contents.getBodyPart(1)).isInstanceOf(BodyPart.class);
     BodyPart attachmentPart = contents.getBodyPart(1);
-    assertThat(attachmentPart.getContentType())
-        .isEqualTo("text/csv; charset=utf-8; name=CRR-INV-2017-10.csv");
+    assertThat(attachmentPart.getContentType()).endsWith("name=CRR-INV-2017-10.csv");
     assertThat(attachmentPart.getContent().toString()).isEqualTo("test,data\nhello,world");
   }
 
