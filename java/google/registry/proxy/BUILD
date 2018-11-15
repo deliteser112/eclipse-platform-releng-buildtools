@@ -18,7 +18,6 @@ java_library(
         "config/*.yaml",
     ]),
     deps = [
-        "//java/google/registry/config",
         "//java/google/registry/util",
         "@com_beust_jcommander",
         "@com_fasterxml_jackson_core",
