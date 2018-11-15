@@ -76,6 +76,10 @@ public class InvoicingPipeline implements Serializable {
   String billingBucketUrl;
 
   @Inject
+  @Config("invoiceFilePrefix")
+  String invoiceFilePrefix;
+
+  @Inject
   InvoicingPipeline() {}
 
   /** Custom options for running the invoicing pipeline. */
@@ -164,7 +168,7 @@ public class InvoicingPipeline implements Serializable {
                         billingBucketUrl,
                         BillingModule.INVOICES_DIRECTORY,
                         yearMonth,
-                        BillingModule.OVERALL_INVOICE_PREFIX,
+                        invoiceFilePrefix,
                         yearMonth)))
         .withHeader(InvoiceGroupingKey.invoiceHeader())
         .withoutSharding()

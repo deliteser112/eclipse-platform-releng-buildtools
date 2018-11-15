@@ -693,6 +693,18 @@ public final class RegistryConfig {
     }
 
     /**
+     * Returns the file prefix for the invoice CSV file.
+     *
+     * @see google.registry.beam.invoicing.InvoicingPipeline
+     * @see google.registry.reporting.billing.BillingEmailUtils
+     */
+    @Provides
+    @Config("invoiceFilePrefix")
+    public static String provideInvoiceFilePrefix(RegistryConfigSettings config) {
+      return config.billing.invoiceFilePrefix;
+    }
+
+    /**
      * Returns the Google Cloud Storage bucket for staging escrow deposits pending upload.
      *
      * @see google.registry.rde.RdeStagingAction

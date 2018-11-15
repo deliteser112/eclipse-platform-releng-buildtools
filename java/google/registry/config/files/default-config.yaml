@@ -293,6 +293,7 @@ icannReporting:
 
 billing:
   invoiceEmailRecipients: []
+  invoiceFilePrefix: REG-INV
 
 rde:
   # URL prefix of ICANN's server to upload RDE reports to. Nomulus adds /TLD/ID

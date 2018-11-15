@@ -131,6 +131,7 @@ public class RegistryConfigSettings {
   /** Configuration for monthly invoices. */
   public static class Billing {
     public List<String> invoiceEmailRecipients;
+    public String invoiceFilePrefix;
   }
 
   /** Configuration for Registry Data Escrow (RDE). */

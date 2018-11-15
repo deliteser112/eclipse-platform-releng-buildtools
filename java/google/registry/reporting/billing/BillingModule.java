@@ -32,8 +32,6 @@ import org.joda.time.YearMonth;
 public final class BillingModule {
 
   public static final String DETAIL_REPORT_PREFIX = "invoice_details";
-  // TODO(b/119551360): This should be configurable, not hard-coded to Charleston Road Registry.
-  public static final String OVERALL_INVOICE_PREFIX = "CRR-INV";
   public static final String INVOICES_DIRECTORY = "invoices";
 
   static final String PARAM_SHOULD_PUBLISH = "shouldPublish";

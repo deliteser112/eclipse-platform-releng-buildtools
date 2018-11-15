@@ -48,6 +48,7 @@ class BillingEmailUtils {
   private final String alertRecipientAddress;
   private final ImmutableList<String> invoiceEmailRecipients;
   private final String billingBucket;
+  private final String invoiceFilePrefix;
   private final String invoiceDirectoryPrefix;
   private final GcsUtils gcsUtils;
   private final Retrier retrier;
@@ -60,6 +61,7 @@ class BillingEmailUtils {
       @Config("alertRecipientEmailAddress") String alertRecipientAddress,
       @Config("invoiceEmailRecipients") ImmutableList<String> invoiceEmailRecipients,
       @Config("billingBucket") String billingBucket,
+      @Config("invoiceFilePrefix") String invoiceFilePrefix,
       @InvoiceDirectoryPrefix String invoiceDirectoryPrefix,
       GcsUtils gcsUtils,
       Retrier retrier) {
@@ -69,6 +71,7 @@ class BillingEmailUtils {
     this.alertRecipientAddress = alertRecipientAddress;
     this.invoiceEmailRecipients = invoiceEmailRecipients;
     this.billingBucket = billingBucket;
+    this.invoiceFilePrefix = invoiceFilePrefix;
     this.invoiceDirectoryPrefix = invoiceDirectoryPrefix;
     this.gcsUtils = gcsUtils;
     this.retrier = retrier;
@@ -80,8 +83,7 @@ class BillingEmailUtils {
       retrier.callWithRetry(
           () -> {
             String invoiceFile =
-                String.format(
-                    "%s-%s.csv", BillingModule.OVERALL_INVOICE_PREFIX, yearMonth.toString());
+                String.format("%s-%s.csv", invoiceFilePrefix, yearMonth);
             GcsFilename invoiceFilename =
                 new GcsFilename(billingBucket, invoiceDirectoryPrefix + invoiceFile);
             try (InputStream in = gcsUtils.openInputStream(invoiceFilename)) {
@@ -91,12 +93,12 @@ class BillingEmailUtils {
                 msg.addRecipient(RecipientType.TO, new InternetAddress(recipient));
               }
               msg.setSubject(
-                  String.format("Domain Registry invoice data %s", yearMonth.toString()));
+                  String.format("Domain Registry invoice data %s", yearMonth));
               Multipart multipart = new MimeMultipart();
               BodyPart textPart = new MimeBodyPart();
               textPart.setText(
                   String.format(
-                      "Attached is the %s invoice for the domain registry.", yearMonth.toString()));
+                      "Attached is the %s invoice for the domain registry.", yearMonth));
               multipart.addBodyPart(textPart);
               BodyPart invoicePart = new MimeBodyPart();
               String invoiceData = CharStreams.toString(new InputStreamReader(in, UTF_8));
@@ -128,7 +130,7 @@ class BillingEmailUtils {
             Message msg = emailService.createMessage();
             msg.setFrom(new InternetAddress(outgoingEmailAddress));
             msg.addRecipient(RecipientType.TO, new InternetAddress(alertRecipientAddress));
-            msg.setSubject(String.format("Billing Pipeline Alert: %s", yearMonth.toString()));
+            msg.setSubject(String.format("Billing Pipeline Alert: %s", yearMonth));
             msg.setText(body);
             emailService.sendMessage(msg);
             return null;

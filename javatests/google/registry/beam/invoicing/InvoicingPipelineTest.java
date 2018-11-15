@@ -62,6 +62,7 @@ public class InvoicingPipelineTest {
     invoicingPipeline.projectId = "test-project";
     File beamTempFolder = tempFolder.newFolder();
     invoicingPipeline.beamBucketUrl = beamTempFolder.getAbsolutePath();
+    invoicingPipeline.invoiceFilePrefix = "REG-INV";
     invoicingPipeline.beamStagingUrl = beamTempFolder.getAbsolutePath() + "/staging";
     invoicingPipeline.invoiceTemplateUrl =
         beamTempFolder.getAbsolutePath() + "/templates/invoicing";
@@ -196,7 +197,7 @@ public class InvoicingPipelineTest {
           .containsExactlyElementsIn(entry.getValue());
     }
 
-    ImmutableList<String> overallInvoice = resultFileContents("CRR-INV-2017-10.csv");
+    ImmutableList<String> overallInvoice = resultFileContents("REG-INV-2017-10.csv");
     assertThat(overallInvoice.get(0))
         .isEqualTo(
             "StartDate,EndDate,ProductAccountKey,Amount,AmountCurrency,BillingProductCode,"
