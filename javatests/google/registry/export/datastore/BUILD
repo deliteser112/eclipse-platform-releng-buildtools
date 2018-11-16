@@ -14,9 +14,6 @@ java_library(
     deps = [
         "//java/google/registry/export/datastore",
         "//javatests/google/registry/testing",
-        "//third_party/java/google_http_java_client:http",
-        "//third_party/java/google_http_java_client:javanet",
-        "//third_party/java/google_http_java_client:util",
         "@com_google_api_client",
         "@com_google_guava",
         "@com_google_http_client",
