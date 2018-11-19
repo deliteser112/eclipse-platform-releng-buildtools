@@ -4,7 +4,6 @@ dependencies {
   compile 'com.google.code.findbugs:jsr305:3.0.2'
   compile 'com.google.dagger:dagger:2.15'
   compile 'com.google.flogger:flogger:0.1'
-  compile 'com.google.guava:guava-jdk5:17.0'
   compile 'com.google.guava:guava:25.1-jre'
   compile 'com.google.re2j:re2j:1.1'
   compile 'com.ibm.icu:icu4j:57.1'

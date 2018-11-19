@@ -14,6 +14,7 @@ def outcastTestPatterns = [
     "google/registry/batch/DeleteContactsAndHostsActionTest.*",
     "google/registry/batch/RefreshDnsOnHostRenameActionTest.*",
     "google/registry/flows/CheckApiActionTest.*",
+    "google/registry/flows/EppLifecycleDomainTest.*",
     "google/registry/flows/EppLifecycleHostTest.*",
     "google/registry/flows/domain/DomainAllocateFlowTest.*",
     "google/registry/flows/domain/DomainApplicationCreateFlowTest.*",
@@ -213,11 +214,6 @@ dependencies {
   maybeRuntime 'org.slf4j:slf4j-api:1.7.16'
   maybeRuntime 'org.tukaani:xz:1.5'
   maybeRuntime 'org.xerial.snappy:snappy-java:1.1.4-M3'
-  maybeRuntime 'org.mortbay.jetty:jetty-util:6.1.26'
-  maybeRuntime 'org.slf4j:slf4j-api:1.7.16'
-  maybeRuntime 'org.tukaani:xz:1.5'
-  maybeRuntime 'org.xerial.snappy:snappy-java:1.1.4-M3'
-  testCompile 'org.yaml:snakeyaml:1.17'
   compile 'xerces:xmlParserAPIs:2.6.2'
   compile 'xpp3:xpp3:1.1.4c'
 

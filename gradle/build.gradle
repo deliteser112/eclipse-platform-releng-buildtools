@@ -3,6 +3,7 @@ plugins {
   // Config helper for annotation processors such as AutoValue and Dagger.
   // Ensures that source code is generated at an appropriate location.
   id 'net.ltgt.apt' version '0.19' apply false
+  id 'com.bmuschko.docker-java-application' version '4.0.4' apply false
 }
 
 // Only do linting if the build is successful.
@@ -14,6 +15,7 @@ ext.javatestsDir = "${rootDir}/../javatests"
 
 subprojects {
   repositories {
+    jcenter()
     mavenCentral()
   }
 
