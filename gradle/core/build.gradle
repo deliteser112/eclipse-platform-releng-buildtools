@@ -80,24 +80,6 @@ sourceSets {
       exclude testResourceExclude
     }
   }
-  fragileTest {
-    java {
-      srcDirs testSourceDirs
-    }
-    resources {
-      srcDirs testResourceDirs
-      exclude testResourceExclude
-    }
-  }
-  outcastTest {
-    java {
-      srcDirs testSourceDirs
-    }
-    resources {
-      srcDirs testResourceDirs
-      exclude testResourceExclude
-    }
-  }
 }
 
 configurations {
