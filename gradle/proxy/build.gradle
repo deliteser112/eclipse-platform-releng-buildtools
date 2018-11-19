@@ -1,0 +1,65 @@
+plugins {
+  id 'application'
+}
+
+sourceSets {
+  main {
+    resources {
+      exclude "${project.relativePath}/terraform/"
+      exclude "${project.relativePath}/kubernetes/"
+    }
+  }
+}
+
+mainClassName = 'google.registry.proxy.ProxyServer'
+
+dependencies {
+  compile 'com.beust:jcommander:1.48'
+  compile 'com.fasterxml.jackson.core:jackson-annotations:2.8.9'
+  compile 'com.fasterxml.jackson.core:jackson-core:2.9.6'
+  compile 'com.fasterxml.jackson.core:jackson-databind:2.8.9'
+  compile 'com.google.api-client:google-api-client:1.27.0'
+  compile 'com.google.api-client:google-api-client:1.27.0'
+  compile 'com.google.apis:google-api-services-cloudkms:v1-rev12-1.22.0'
+  compile 'com.google.apis:google-api-services-monitoring:v3-rev11-1.22.0'
+  compile 'com.google.apis:google-api-services-storage:v1-rev86-1.22.0'
+  compile 'com.google.auto.value:auto-value-annotations:1.6.2'
+  compile 'com.google.code.findbugs:jsr305:3.0.2'
+  compile 'com.google.dagger:dagger:2.15'
+  compile 'com.google.flogger:flogger:0.1'
+  compile 'com.google.guava:guava-jdk5:17.0'
+  compile 'com.google.guava:guava:27.0-jre'
+  compile 'com.google.http-client:google-http-client:1.27.0'
+  compile 'com.google.monitoring-client:metrics:1.0.4'
+  compile 'com.google.monitoring-client:stackdriver:1.0.4'
+  compile 'io.netty:netty-buffer:4.1.31.Final'
+  compile 'io.netty:netty-codec-http:4.1.31.Final'
+  compile 'io.netty:netty-codec:4.1.31.Final'
+  compile 'io.netty:netty-common:4.1.31.Final'
+  compile 'io.netty:netty-handler:4.1.31.Final'
+  compile 'io.netty:netty-transport:4.1.31.Final'
+  compile 'javax.inject:javax.inject:1'
+  compile 'joda-time:joda-time:2.3'
+  compile 'org.bouncycastle:bcpkix-jdk15on:1.52'
+  compile 'org.bouncycastle:bcprov-jdk15on:1.52'
+  compile project(':util')
+
+  runtime 'com.google.flogger:flogger-system-backend:0.1'
+  runtime 'io.netty:netty-tcnative-boringssl-static:2.0.20.Final'
+  runtime 'com.google.auto.value:auto-value:1.6.2'
+
+  testCompile 'com.google.monitoring-client:contrib:1.0.4'
+  testCompile 'com.google.truth:truth:0.42'
+  testCompile 'org.yaml:snakeyaml:1.17'
+  testCompile 'junit:junit:4.12'
+  testCompile 'org.mockito:mockito-all:1.9.5'
+  testCompile project(':third_party')
+  testCompile project(path: ':core', configuration: 'testRuntime')
+
+  // Include auto-value in compile until nebula-lint understands
+  // annotationProcessor
+  annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
+  testAnnotationProcessor 'com.google.auto.value:auto-value:1.6.2'
+  annotationProcessor 'com.google.dagger:dagger-compiler:2.15'
+  testAnnotationProcessor 'com.google.dagger:dagger-compiler:2.15'
+}

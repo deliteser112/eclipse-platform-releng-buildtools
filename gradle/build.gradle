@@ -1,6 +1,5 @@
 plugins {
   id 'nebula.lint' version '10.3.1'
-
   // Config helper for annotation processors such as AutoValue and Dagger.
   // Ensures that source code is generated at an appropriate location.
   id 'net.ltgt.apt' version '0.19' apply false
@@ -79,22 +78,22 @@ subprojects {
 
   if (project.name == 'core') return
 
-  def relativePath = "google/registry/${project.name}/"
+  ext.relativePath = "google/registry/${project.name}"
 
   sourceSets.each {
     it.java {
-      include relativePath
+      include "${project.relativePath}/"
     }
     it.resources {
-      include relativePath
+      include "${project.relativePath}/"
     }
   }
   project(':core').sourceSets.each {
     it.java {
-      exclude relativePath
+      exclude "${project.relativePath}/"
     }
     it.resources {
-      exclude relativePath
+      exclude "${project.relativePath}/"
     }
   }
 }

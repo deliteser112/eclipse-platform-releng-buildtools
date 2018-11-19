@@ -1,6 +1,6 @@
 rootProject.name = 'nomulus'
 
 include 'core'
+include 'proxy'
 include 'third_party'
 include 'util'
-
