@@ -36,43 +36,65 @@ subprojects {
       // TODO(weiminyu): enable more dependency checks
   ]
 
+  if (project.name == 'third_party') return
+
   // Path to code generated with annotation processors. Note that this path is
   // chosen by the 'net.ltgt.apt' plugin, and may change if IDE-specific plugins
   // are applied, e.g., 'idea' or 'eclipse'
   def aptGeneratedDir = "${project.buildDir}/generated/source/apt/main"
   def aptGeneratedTestDir = "${project.buildDir}/generated/source/apt/test"
 
-  if (project.name != 'third_party') {
-    sourceSets {
-      main {
-        java {
-          srcDirs = [
-              project(':').javaDir,
-              aptGeneratedDir
-          ]
-          exclude 'com/'
-        }
-        resources {
-          srcDirs = [
-              project(':').javaDir
-          ]
-          exclude 'com/', '**/*.java', '**/BUILD'
-        }
+  def commonlyExcludedResources = ['**/*.java', '**/BUILD']
+
+  sourceSets {
+    main {
+      java {
+        srcDirs = [
+            project(':').javaDir,
+            aptGeneratedDir
+        ]
       }
-      test {
-        java {
-          srcDirs = [
-              project(':').javatestsDir,
-              aptGeneratedTestDir
-          ]
-        }
-        resources {
-          srcDirs = [
-              project(':').javatestsDir,
-          ]
-          exclude '**/*.java', '**/BUILD'
-        }
+      resources {
+        srcDirs = [
+            project(':').javaDir
+        ]
+        exclude commonlyExcludedResources
       }
+    }
+    test {
+      java {
+        srcDirs = [
+            project(':').javatestsDir,
+            aptGeneratedTestDir
+        ]
+      }
+      resources {
+        srcDirs = [
+            project(':').javatestsDir,
+        ]
+        exclude commonlyExcludedResources
+      }
+    }
+  }
+
+  if (project.name == 'core') return
+
+  def relativePath = "google/registry/${project.name}/"
+
+  sourceSets.each {
+    it.java {
+      include relativePath
+    }
+    it.resources {
+      include relativePath
+    }
+  }
+  project(':core').sourceSets.each {
+    it.java {
+      exclude relativePath
+    }
+    it.resources {
+      exclude relativePath
     }
   }
 }
