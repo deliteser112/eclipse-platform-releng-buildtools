@@ -1,0 +1,43 @@
+# To run the build locally, install cloud-build-local first.
+# See: https://cloud.google.com/cloud-build/docs/build-debug-locally
+# Then run:
+# cloud-build-local --config=cloudbuild.yaml --dryrun=false --substitutions TAG_NAME=[TAG] .
+# This will create a docker image named gcr.io/[PROJECT_ID]/proxy:[TAG] locally.
+# The PROJECT_ID is the current project name that gcloud uses.
+# You can add "--push true" to have the image pushed to GCR.
+#
+# To manually trigger a build on GCB, run:
+# gcloud builds submit --config cloudbuild.yaml --substitutions TAG_NAME=[TAG] .
+#
+# To trigger a build automatically, follow the instructions below and add a tigger:
+# https://cloud.google.com/cloud-build/docs/running-builds/automate-builds
+steps:
+# Set permissions correctly. Not sure why it is necessary, but it is.
+- name: 'alpine'
+  args: ['chown', '-R', 'root:root', '.']
+- name: 'alpine'
+  args: ['chmod', '-R', '777', '.']
+# Clone the private repo, tag it, and copy its contents to the correct place.
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['source', 'repos', 'clone', 'nomulus-config']
+- name: 'gcr.io/cloud-builders/git'
+  args: ['tag', '$TAG_NAME']
+  dir: 'nomulus-config'
+- name: 'gcr.io/cloud-builders/git'
+  args: ['push', 'origin', '$TAG_NAME']
+  dir: 'nomulus-config'
+- name: 'alpine'
+  args: ['sh', '-c', 'cp -r nomulus-config/proxy/* java/google/registry/proxy/config/']
+# Build the deploy jar.
+- name: 'gradle:4.10.2'
+  args: ['gradle', 'testClasses', ':proxy:deployJar']
+  dir: 'gradle'
+# Build the docker image.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag', 'gcr.io/$PROJECT_ID/proxy:$TAG_NAME', '.']
+  dir: 'gradle/proxy'
+# Images to upload to GCR.
+images: ['gcr.io/$PROJECT_ID/proxy:$TAG_NAME']
+timeout: 3600s
+options:
+  machineType: 'N1_HIGHCPU_8'

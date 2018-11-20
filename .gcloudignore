@@ -1,0 +1,7 @@
+docs/**
+python/**
+bazel-*/**
+gradle/**/build/**
+gradle/**/WEB-INF/**
+gradle/.*/**
+gradle/gradle/**
