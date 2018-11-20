@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
@@ -298,11 +299,19 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
         RegistrarFormFields.ALLOWED_TLDS_FIELD.extractUntyped(args).orElse(ImmutableSet.of());
     if (!updatedAllowedTlds.equals(existingRegistrarObj.getAllowedTlds())) {
       // Only admin is allowed to update allowed TLDs
-      if (roles.contains(Role.ADMIN)) {
-        builder.setAllowedTlds(updatedAllowedTlds);
-      } else {
+      if (!roles.contains(Role.ADMIN)) {
         throw new ForbiddenException("Only admin can update allowed TLDs.");
       }
+      // Temporarily block anyone from removing an allowed TLD.
+      // This is so we can start having Support users use the console in production before we finish
+      // implementing configurable access control.
+      // TODO(b/119549884): remove this code once configurable access control is implemented.
+      Set<String> removedTlds =
+          Sets.difference(existingRegistrarObj.getAllowedTlds(), updatedAllowedTlds);
+      if (!removedTlds.isEmpty()) {
+        throw new ForbiddenException("Can't remove allowed TLDs using the console.");
+      }
+      builder.setAllowedTlds(updatedAllowedTlds);
     }
   }
 

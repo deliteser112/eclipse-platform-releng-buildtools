@@ -302,7 +302,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     setUserAdmin();
     doTestUpdate(
         Registrar::getAllowedTlds,
-        ImmutableSet.of("newtld"),
+        ImmutableSet.of("newtld", "currenttld"),
         (builder, s) -> builder.setAllowedTlds(s));
     assertMetric(CLIENT_ID, "update", "[ADMIN]", "SUCCESS");
   }
@@ -340,13 +340,35 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
                 ImmutableMap.of(
                     "lastUpdateTime", getLastUpdateTime(),
                     "emailAddress", "abc@def.com",
-                    "allowedTlds", ImmutableList.of("invalidtld"))));
+                    "allowedTlds", ImmutableList.of("invalidtld", "currenttld"))));
     assertThat(response)
         .containsExactly(
             "status", "ERROR",
             "results", ImmutableList.of(),
             "message", "TLDs do not exist: invalidtld");
     assertMetric(CLIENT_ID, "update", "[ADMIN]", "ERROR: IllegalArgumentException");
+    assertNoTasksEnqueued("sheet");
+  }
+
+  @Test
+  public void testUpdate_allowedTlds_failedWhenRemovingTld() {
+    setUserAdmin();
+    Map<String, Object> response =
+        action.handleJsonRequest(
+            ImmutableMap.of(
+                "op", "update",
+                "id", CLIENT_ID,
+                "args",
+                ImmutableMap.of(
+                    "lastUpdateTime", getLastUpdateTime(),
+                    "emailAddress", "abc@def.com",
+                    "allowedTlds", ImmutableList.of("newTld"))));
+    assertThat(response)
+        .containsExactly(
+            "status", "ERROR",
+            "results", ImmutableList.of(),
+            "message", "Can't remove allowed TLDs using the console.");
+    assertMetric(CLIENT_ID, "update", "[ADMIN]", "ERROR: ForbiddenException");
     assertNoTasksEnqueued("sheet");
   }
 
