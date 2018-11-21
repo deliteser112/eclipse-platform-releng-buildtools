@@ -14,16 +14,11 @@
 
 package google.registry.flows.session;
 
-import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.appengine.api.users.User;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import google.registry.flows.GaeUserCredentials;
-import google.registry.flows.GaeUserCredentials.BadGaeUserIdException;
-import google.registry.flows.GaeUserCredentials.UserNotLoggedInException;
-import google.registry.model.registrar.Registrar;
-import google.registry.model.registrar.RegistrarContact;
+import google.registry.flows.GaeUserCredentials.UserForbiddenException;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import org.junit.Test;
 
 /**
@@ -32,53 +27,32 @@ import org.junit.Test;
  */
 public class LoginFlowViaConsoleTest extends LoginFlowTestCase {
 
-  private static final String GAE_USER_ID1 = "12345";
-  private static final String GAE_USER_ID2 = "54321";
-
   @Test
-  public void testSuccess_withLoginAndLinkedAccount() throws Exception {
-    persistLinkedAccount("person@example.com", GAE_USER_ID1);
+  public void testSuccess_withAccess() throws Exception {
     credentials =
-        GaeUserCredentials.forTestingUser(new User("person", "example.com", GAE_USER_ID1), false);
+        new GaeUserCredentials(
+            AuthenticatedRegistrarAccessor.createForTesting(
+                ImmutableSetMultimap.of(
+                    "NewRegistrar", AuthenticatedRegistrarAccessor.Role.OWNER)));
     doSuccessfulTest("login_valid.xml");
   }
 
   @Test
-  public void testFailure_withoutLoginAndLinkedAccount() {
-    persistLinkedAccount("person@example.com", GAE_USER_ID1);
-    credentials = GaeUserCredentials.forLoggedOutUser();
-    doFailingTest("login_valid.xml", UserNotLoggedInException.class);
-  }
-
-  @Test
-  public void testFailure_withoutLoginAndWithoutLinkedAccount() {
-    credentials = GaeUserCredentials.forLoggedOutUser();
-    doFailingTest("login_valid.xml", UserNotLoggedInException.class);
-  }
-
-  @Test
-  public void testFailure_withLoginAndWithoutLinkedAccount() {
+  public void testFailure_withoutAccess() {
     credentials =
-        GaeUserCredentials.forTestingUser(new User("person", "example.com", GAE_USER_ID1), false);
-    doFailingTest("login_valid.xml", BadGaeUserIdException.class);
+        new GaeUserCredentials(
+            AuthenticatedRegistrarAccessor.createForTesting(
+                ImmutableSetMultimap.of()));
+    doFailingTest("login_valid.xml", UserForbiddenException.class);
   }
 
   @Test
-  public void testFailure_withLoginAndNoMatchingLinkedAccount() {
-    persistLinkedAccount("joe@example.com", GAE_USER_ID2);
+  public void testFailure_withAccessToDifferentRegistrar() {
     credentials =
-        GaeUserCredentials.forTestingUser(new User("person", "example.com", GAE_USER_ID1), false);
-    doFailingTest("login_valid.xml", BadGaeUserIdException.class);
-  }
-
-  private void persistLinkedAccount(String email, String gaeUserId) {
-    Registrar registrar = loadRegistrar("NewRegistrar");
-    RegistrarContact c = new RegistrarContact.Builder()
-        .setParent(registrar)
-        .setEmailAddress(email)
-        .setTypes(ImmutableSet.of(RegistrarContact.Type.ADMIN))
-        .setGaeUserId(gaeUserId)
-        .build();
-    persistResource(c);
+        new GaeUserCredentials(
+            AuthenticatedRegistrarAccessor.createForTesting(
+                ImmutableSetMultimap.of(
+                    "TheRegistrar", AuthenticatedRegistrarAccessor.Role.OWNER)));
+    doFailingTest("login_valid.xml", UserForbiddenException.class);
   }
 }

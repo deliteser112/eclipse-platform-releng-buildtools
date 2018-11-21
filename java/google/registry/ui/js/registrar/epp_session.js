@@ -33,7 +33,9 @@ goog.forwardDeclare('registry.registrar.Console');
  */
 registry.registrar.EppSession = function(console) {
   registry.registrar.EppSession.base(
-      this, 'constructor', new goog.Uri('/registrar-xhr'),
+      this, 'constructor',
+      new goog.Uri('/registrar-xhr')
+          .setParameterValue('clientId', console.params.clientId),
       console.params.xsrfToken,
       registry.Session.ContentType.EPP);
 

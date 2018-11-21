@@ -203,9 +203,13 @@ public class AuthenticatedRegistrarAccessor {
     logger.atInfo().log("%s has %s access to registrar %s.", userIdForLogging, roles, clientId);
   }
 
+  public String userIdForLogging() {
+    return userIdForLogging;
+  }
+
   @Override
   public String toString() {
-    return toStringHelper(getClass()).add("authResult", userIdForLogging).toString();
+    return toStringHelper(getClass()).add("user", userIdForLogging).toString();
   }
 
   private static boolean checkIsSupport(

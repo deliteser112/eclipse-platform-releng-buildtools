@@ -1169,8 +1169,7 @@ An EPP flow for login.
 *   2103
     *   Specified extension is not implemented.
 *   2200
-    *   GAE user id is not allowed to login as requested registrar.
-    *   User is not logged in as a GAE user.
+    *   GAE User can't access the requested registrar.
     *   Registrar certificate does not match stored certificate.
     *   Registrar IP address is not in stored whitelist.
     *   Registrar certificate not present.

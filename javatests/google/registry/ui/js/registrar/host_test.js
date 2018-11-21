@@ -102,7 +102,7 @@ function handleLogin() {
       '</epp>');
   const xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue(xhr.isActive());
-  assertEquals('/registrar-xhr', xhr.getLastUri());
+  assertEquals('/registrar-xhr?clientId=jartine', xhr.getLastUri());
   assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);
@@ -158,7 +158,7 @@ function testView() {
       '</epp>');
   const xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
-  assertEquals('/registrar-xhr', xhr.getLastUri());
+  assertEquals('/registrar-xhr?clientId=jartine', xhr.getLastUri());
   assertEquals('application/epp+xml',
                xhr.getLastRequestHeaders()['Content-Type']);
   assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
@@ -227,7 +227,7 @@ function testEditFirstAddr_ignoreSecond_addThird() {
       '</epp>');
   let xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
-  assertEquals('/registrar-xhr', xhr.getLastUri());
+  assertEquals('/registrar-xhr?clientId=jartine', xhr.getLastUri());
   assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);
@@ -273,7 +273,7 @@ function testEditFirstAddr_ignoreSecond_addThird() {
       '</epp>');
   xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
-  assertEquals('/registrar-xhr', xhr.getLastUri());
+  assertEquals('/registrar-xhr?clientId=jartine', xhr.getLastUri());
   assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);
@@ -349,7 +349,7 @@ function testCreate() {
       '</epp>');
   let xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
-  assertEquals('/registrar-xhr', xhr.getLastUri());
+  assertEquals('/registrar-xhr?clientId=jartine', xhr.getLastUri());
   assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);
@@ -398,7 +398,7 @@ function testCreate() {
       '</epp>');
   xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue('XHR is inactive.', xhr.isActive());
-  assertEquals('/registrar-xhr', xhr.getLastUri());
+  assertEquals('/registrar-xhr?clientId=jartine', xhr.getLastUri());
   assertEquals('☢', xhr.getLastRequestHeaders()['X-CSRF-Token']);
   registry.testing.assertXmlEquals(request, xhr.getLastContent());
   xhr.simulateResponse(200, response);

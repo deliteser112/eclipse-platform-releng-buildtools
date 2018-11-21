@@ -14,10 +14,9 @@
 
 package google.registry.flows;
 
-import static com.google.appengine.api.users.UserServiceFactory.getUserService;
-
+import com.google.common.collect.ImmutableSetMultimap;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.UserInfo;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,18 +30,16 @@ public class EppLoginAdminUserTest extends EppTestCase {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
-      .withUserService(UserInfo.createAdmin("someone@example.com", "12345"))
       .build();
 
   @Before
   public void initTransportCredentials() {
-    setTransportCredentials(GaeUserCredentials.forCurrentUser(getUserService()));
-  }
-
-  @Test
-  public void testNonAuthedLogin_succeedsAsAdmin() throws Exception {
-    // Login succeeds even though this user isn't listed on the registrar.
-    assertThatLoginSucceeds("TheRegistrar", "password2");
+    setTransportCredentials(
+        new GaeUserCredentials(
+            AuthenticatedRegistrarAccessor.createForTesting(
+                ImmutableSetMultimap.of(
+                    "TheRegistrar", AuthenticatedRegistrarAccessor.Role.ADMIN,
+                    "NewRegistrar", AuthenticatedRegistrarAccessor.Role.ADMIN))));
   }
 
   @Test
