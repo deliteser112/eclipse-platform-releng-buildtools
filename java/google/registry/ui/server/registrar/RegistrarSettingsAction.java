@@ -14,6 +14,7 @@
 
 package google.registry.ui.server.registrar;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.export.sheet.SyncRegistrarsSheetAction.enqueueRegistrarSheetSync;
@@ -57,6 +58,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -144,7 +146,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
           ERROR, Optional.ofNullable(e.getMessage()).orElse("Unspecified error"));
     } finally {
       registrarConsoleMetrics.registerSettingsRequest(
-          clientId, op, registrarAccessor.getAllClientIdWithRoles().get(clientId), status);
+          clientId, op, registrarAccessor.getRolesForRegistrar(clientId), status);
     }
   }
 
@@ -205,27 +207,29 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
               // removed, email the changes to the contacts
               ImmutableSet<RegistrarContact> contacts = registrar.getContacts();
 
-              // Update the registrar from the request.
-              Registrar.Builder builder = registrar.asBuilder();
-              Set<Role> roles = registrarAccessor.getAllClientIdWithRoles().get(clientId);
-              changeRegistrarFields(registrar, roles, builder, args);
+              Registrar updatedRegistrar = registrar;
+              // Do OWNER only updates to the registrar from the request.
+              updatedRegistrar = checkAndUpdateOwnerControlledFields(updatedRegistrar, args);
+              // Do ADMIN only updates to the registrar from the request.
+              updatedRegistrar = checkAndUpdateAdminControlledFields(updatedRegistrar, args);
 
               // read the contacts from the request.
               ImmutableSet<RegistrarContact> updatedContacts = readContacts(registrar, args);
-              if (!updatedContacts.isEmpty()) {
-                builder.setContactsRequireSyncing(true);
+
+              // Save the updated contacts
+              if (!updatedContacts.equals(contacts)) {
+                if (!registrarAccessor.hasRoleOnRegistrar(Role.OWNER, registrar.getClientId())) {
+                  throw new ForbiddenException("Only OWNERs can update the contacts");
+                }
+                checkContactRequirements(contacts, updatedContacts);
+                RegistrarContact.updateContacts(updatedRegistrar, updatedContacts);
+                updatedRegistrar =
+                    updatedRegistrar.asBuilder().setContactsRequireSyncing(true).build();
               }
 
               // Save the updated registrar
-              Registrar updatedRegistrar = builder.build();
               if (!updatedRegistrar.equals(registrar)) {
                 ofy().save().entity(updatedRegistrar);
-              }
-
-              // Save the updated contacts
-              if (!updatedContacts.isEmpty()) {
-                checkContactRequirements(contacts, updatedContacts);
-                RegistrarContact.updateContacts(updatedRegistrar, updatedContacts);
               }
 
               // Email and return update.
@@ -248,12 +252,15 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     return result;
   }
 
-  /** Updates a registrar builder with the supplied args from the http request; */
-  public static void changeRegistrarFields(
-      Registrar existingRegistrarObj,
-      Set<Role> roles,
-      Registrar.Builder builder,
-      Map<String, ?> args) {
+  /**
+   * Updates registrar with the OWNER-controlled args from the http request.
+   *
+   * <p>If any changes were made and the user isn't an OWNER - throws a {@link ForbiddenException}.
+   */
+  private Registrar checkAndUpdateOwnerControlledFields(
+      Registrar initialRegistrar, Map<String, ?> args) {
+
+    Registrar.Builder builder = initialRegistrar.asBuilder();
 
     // BILLING
     RegistrarFormFields.PREMIUM_PRICE_ACK_REQUIRED
@@ -261,13 +268,27 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
         .ifPresent(builder::setPremiumPriceAckRequired);
 
     // WHOIS
-    builder.setWhoisServer(
-        RegistrarFormFields.WHOIS_SERVER_FIELD.extractUntyped(args).orElse(null));
+    //
+    // Because of how whoisServer handles "default value", it's possible that setting the existing
+    // value will still change the Registrar. So we first check whether the value has changed.
+    //
+    // The problem is - if the Registrar has a "null" whoisServer value, the console gets the
+    // "default value" instead of the actual (null) value.
+    // This was done so we display the "default" value, but it also means that it always looks like
+    // the user updated the whoisServer value from "null" to the default value.
+    //
+    // TODO(b/119913848):once a null whoisServer value is sent to the console as "null", there's no
+    // need to check for equality before setting the value in the builder.
+    String updatedWhoisServer =
+        RegistrarFormFields.WHOIS_SERVER_FIELD.extractUntyped(args).orElse(null);
+    if (!Objects.equals(initialRegistrar.getWhoisServer(), updatedWhoisServer)) {
+      builder.setWhoisServer(updatedWhoisServer);
+    }
     builder.setUrl(RegistrarFormFields.URL_FIELD.extractUntyped(args).orElse(null));
 
     // If the email is already null / empty - we can keep it so. But if it's set - it's required to
     // remain set.
-    (Strings.isNullOrEmpty(existingRegistrarObj.getEmailAddress())
+    (Strings.isNullOrEmpty(initialRegistrar.getEmailAddress())
             ? RegistrarFormFields.EMAIL_ADDRESS_FIELD_OPTIONAL
             : RegistrarFormFields.EMAIL_ADDRESS_FIELD_REQUIRED)
         .extractUntyped(args)
@@ -294,25 +315,59 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
             certificate ->
                 builder.setFailoverClientCertificate(certificate, ofy().getTransactionTime()));
 
-    // Update allowed TLDs only when it is modified
+    return checkNotChangedUnlessAllowed(builder, initialRegistrar, Role.OWNER);
+  }
+
+  /**
+   * Updates a registrar with the ADMIN-controlled args from the http request.
+   *
+   * <p>If any changes were made and the user isn't an ADMIN - throws a {@link ForbiddenException}.
+   */
+  private Registrar checkAndUpdateAdminControlledFields(
+      Registrar initialRegistrar, Map<String, ?> args) {
+    Registrar.Builder builder = initialRegistrar.asBuilder();
+
     Set<String> updatedAllowedTlds =
         RegistrarFormFields.ALLOWED_TLDS_FIELD.extractUntyped(args).orElse(ImmutableSet.of());
-    if (!updatedAllowedTlds.equals(existingRegistrarObj.getAllowedTlds())) {
-      // Only admin is allowed to update allowed TLDs
-      if (!roles.contains(Role.ADMIN)) {
-        throw new ForbiddenException("Only admin can update allowed TLDs.");
-      }
-      // Temporarily block anyone from removing an allowed TLD.
-      // This is so we can start having Support users use the console in production before we finish
-      // implementing configurable access control.
-      // TODO(b/119549884): remove this code once configurable access control is implemented.
-      Set<String> removedTlds =
-          Sets.difference(existingRegistrarObj.getAllowedTlds(), updatedAllowedTlds);
-      if (!removedTlds.isEmpty()) {
-        throw new ForbiddenException("Can't remove allowed TLDs using the console.");
-      }
-      builder.setAllowedTlds(updatedAllowedTlds);
+    // Temporarily block anyone from removing an allowed TLD.
+    // This is so we can start having Support users use the console in production before we finish
+    // implementing configurable access control.
+    // TODO(b/119549884): remove this code once configurable access control is implemented.
+    if (!Sets.difference(initialRegistrar.getAllowedTlds(), updatedAllowedTlds).isEmpty()) {
+      throw new ForbiddenException("Can't remove allowed TLDs using the console.");
     }
+    builder.setAllowedTlds(updatedAllowedTlds);
+    return checkNotChangedUnlessAllowed(builder, initialRegistrar, Role.ADMIN);
+  }
+
+  /**
+   * Makes sure builder.build is different than originalRegistrar only if we have the correct role.
+   *
+   * <p>On success, returns {@code builder.build()}.
+   */
+  private Registrar checkNotChangedUnlessAllowed(
+      Registrar.Builder builder,
+      Registrar originalRegistrar,
+      Role allowedRole) {
+    Registrar updatedRegistrar =  builder.build();
+    if (updatedRegistrar.equals(originalRegistrar)) {
+      return updatedRegistrar;
+    }
+    checkArgument(
+        updatedRegistrar.getClientId().equals(originalRegistrar.getClientId()),
+        "Can't change clientId (%s -> %s)",
+        originalRegistrar.getClientId(),
+        updatedRegistrar.getClientId());
+    if (registrarAccessor.hasRoleOnRegistrar(allowedRole, originalRegistrar.getClientId())) {
+      return updatedRegistrar;
+    }
+    Map<?, ?> diffs =
+        DiffUtils.deepDiff(
+            originalRegistrar.toDiffableFieldMap(),
+            updatedRegistrar.toDiffableFieldMap(),
+            true);
+    throw new ForbiddenException(
+        String.format("Unauthorized: only %s can change fields %s", allowedRole, diffs.keySet()));
   }
 
   /** Reads the contacts from the supplied args. */

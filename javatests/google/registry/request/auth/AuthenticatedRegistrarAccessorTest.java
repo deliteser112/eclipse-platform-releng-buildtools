@@ -29,10 +29,12 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.NullPointerTester;
 import com.google.common.testing.TestLogHandler;
 import google.registry.groups.GroupsConnection;
+import google.registry.model.registrar.Registrar;
 import google.registry.request.auth.AuthenticatedRegistrarAccessor.RegistrarAccessDeniedException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
@@ -58,32 +60,57 @@ public class AuthenticatedRegistrarAccessorTest {
   private final GroupsConnection groupsConnection = mock(GroupsConnection.class);
   private final TestLogHandler testLogHandler = new TestLogHandler();
 
-  private static final AuthResult AUTHORIZED_USER = createAuthResult(true, false);
-  private static final AuthResult UNAUTHORIZED_USER = createAuthResult(false, false);
-  private static final AuthResult AUTHORIZED_ADMIN = createAuthResult(true, true);
-  private static final AuthResult UNAUTHORIZED_ADMIN = createAuthResult(false, true);
+  private static final AuthResult USER = createAuthResult(false);
+  private static final AuthResult GAE_ADMIN = createAuthResult(true);
   private static final AuthResult NO_USER = AuthResult.create(AuthLevel.NONE);
   private static final String SUPPORT_GROUP = "support@registry.example";
-  private static final String DEFAULT_CLIENT_ID = "TheRegistrar";
-  private static final String ADMIN_CLIENT_ID = "NewRegistrar";
+  /** Client ID of a REAL registrar with a RegistrarContact for USER and GAE_ADMIN. */
+  private static final String CLIENT_ID_WITH_CONTACT = "TheRegistrar";
+  /** Client ID of a REAL registrar without a RegistrarContact. */
+  private static final String REAL_CLIENT_ID_WITHOUT_CONTACT = "NewRegistrar";
+  /** Client ID of an OTE registrar without a RegistrarContact. */
+  private static final String OTE_CLIENT_ID_WITHOUT_CONTACT = "OteRegistrar";
+  /** Client ID of the Admin registrar without a RegistrarContact. */
+  private static final String ADMIN_CLIENT_ID = "AdminRegistrar";
 
-  private static AuthResult createAuthResult(boolean isAuthorized, boolean isAdmin) {
+  /**
+   * Creates an AuthResult for a fake user.
+   *
+   * The user will be a RegistrarContact for "TheRegistrar", but not for "NewRegistrar".
+   *
+   * @param isAdmin if true, the user is an administrator for the app-engine project.
+   */
+  private static AuthResult createAuthResult(boolean isAdmin) {
     return AuthResult.create(
         AuthLevel.USER,
         UserAuthInfo.create(
             new User(
                 String.format(
-                    "%s_%s@gmail.com",
-                    isAuthorized ? "auth" : "unauth", isAdmin ? "admin" : "user"),
+                    "%s@gmail.com",
+                    isAdmin ? "admin" : "user"),
                 "gmail.com",
-                isAuthorized ? THE_REGISTRAR_GAE_USER_ID : "badGaeUserId"),
+                THE_REGISTRAR_GAE_USER_ID),
             isAdmin));
   }
 
   @Before
   public void before() {
     LoggerConfig.getConfig(AuthenticatedRegistrarAccessor.class).addHandler(testLogHandler);
-    persistResource(loadRegistrar(ADMIN_CLIENT_ID));
+    // persistResource(loadRegistrar(ADMIN_CLIENT_ID));
+    persistResource(
+        loadRegistrar(REAL_CLIENT_ID_WITHOUT_CONTACT)
+            .asBuilder()
+            .setClientId(OTE_CLIENT_ID_WITHOUT_CONTACT)
+            .setType(Registrar.Type.OTE)
+            .setIanaIdentifier(null)
+            .build());
+    persistResource(
+        loadRegistrar(REAL_CLIENT_ID_WITHOUT_CONTACT)
+            .asBuilder()
+            .setClientId(ADMIN_CLIENT_ID)
+            .setType(Registrar.Type.OTE)
+            .setIanaIdentifier(null)
+            .build());
     when(groupsConnection.isMemberOfGroup(any(), any())).thenReturn(false);
   }
 
@@ -92,30 +119,15 @@ public class AuthenticatedRegistrarAccessorTest {
     LoggerConfig.getConfig(AuthenticatedRegistrarAccessor.class).removeHandler(testLogHandler);
   }
 
-  /** Users only have access to the registrars they are a contact for. */
+  /** Users are owners for registrars if and only if they are in the contacts for that registrar. */
   @Test
-  public void getAllClientIdWithAccess_authorizedUser() {
+  public void getAllClientIdWithAccess_user() {
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
-            AUTHORIZED_USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
+            USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
 
     assertThat(registrarAccessor.getAllClientIdWithRoles())
-        .containsExactly(DEFAULT_CLIENT_ID, OWNER);
-  }
-
-  /** Users in support group have admin access to everything. */
-  @Test
-  public void getAllClientIdWithAccess_authorizedUser_isSupportGroup() {
-    when(groupsConnection.isMemberOfGroup("auth_user@gmail.com", SUPPORT_GROUP)).thenReturn(true);
-    AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(
-            AUTHORIZED_USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
-
-    assertThat(registrarAccessor.getAllClientIdWithRoles())
-        .containsExactly(
-            DEFAULT_CLIENT_ID, OWNER,
-            DEFAULT_CLIENT_ID, ADMIN,
-            ADMIN_CLIENT_ID, ADMIN);
+        .containsExactly(CLIENT_ID_WITH_CONTACT, OWNER);
   }
 
   /** Logged out users don't have access to anything. */
@@ -128,39 +140,79 @@ public class AuthenticatedRegistrarAccessorTest {
     assertThat(registrarAccessor.getAllClientIdWithRoles()).isEmpty();
   }
 
-  /** Unauthorized users don't have access to anything. */
+  /**
+   * GAE admins have admin access to everything.
+   *
+   * <p>They also have OWNER access if they are in the RegistrarContacts.
+   *
+   * <p>They also have OWNER access to the Admin Registrar.
+   *
+   * <p>They also have OWNER access to non-REAL Registrars.
+   *
+   * <p>(in other words - they don't have OWNER access only to REAL registrars owned by others)
+   */
   @Test
-  public void getAllClientIdWithAccess_unauthorizedUser() {
+  public void getAllClientIdWithAccess_gaeAdmin() {
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
-            UNAUTHORIZED_USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
-
-    assertThat(registrarAccessor.getAllClientIdWithRoles()).isEmpty();
-  }
-
-  /** Unauthorized users who are in support group have admin access. */
-  @Test
-  public void getAllClientIdWithAccess_unauthorizedUser_inSupportGroup() {
-    when(groupsConnection.isMemberOfGroup("unauth_user@gmail.com", SUPPORT_GROUP)).thenReturn(true);
-    AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(
-            UNAUTHORIZED_USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
+            GAE_ADMIN, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
 
     assertThat(registrarAccessor.getAllClientIdWithRoles())
         .containsExactly(
-            DEFAULT_CLIENT_ID, ADMIN,
-            ADMIN_CLIENT_ID, ADMIN);
+            CLIENT_ID_WITH_CONTACT, ADMIN,
+            CLIENT_ID_WITH_CONTACT, OWNER,
+
+            REAL_CLIENT_ID_WITHOUT_CONTACT, ADMIN,
+
+            OTE_CLIENT_ID_WITHOUT_CONTACT, ADMIN,
+            OTE_CLIENT_ID_WITHOUT_CONTACT, OWNER,
+
+            ADMIN_CLIENT_ID, ADMIN,
+            ADMIN_CLIENT_ID, OWNER);
+  }
+
+  /**
+   * Users in support group have admin access to everything.
+   *
+   * <p>They also have OWNER access if they are in the RegistrarContacts.
+   *
+   * <p>They also have OWNER access to the Admin Registrar.
+   *
+   * <p>They also have OWNER access to non-REAL Registrars.
+   *
+   * <p>(in other words - they don't have OWNER access only to REAL registrars owned by others)
+   */
+  @Test
+  public void getAllClientIdWithAccess_userInSupportGroup() {
+    when(groupsConnection.isMemberOfGroup("user@gmail.com", SUPPORT_GROUP)).thenReturn(true);
+    AuthenticatedRegistrarAccessor registrarAccessor =
+        new AuthenticatedRegistrarAccessor(
+            USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
+
+    assertThat(registrarAccessor.getAllClientIdWithRoles())
+        .containsExactly(
+            CLIENT_ID_WITH_CONTACT, ADMIN,
+            CLIENT_ID_WITH_CONTACT, OWNER,
+
+            REAL_CLIENT_ID_WITHOUT_CONTACT, ADMIN,
+
+            OTE_CLIENT_ID_WITHOUT_CONTACT, ADMIN,
+            OTE_CLIENT_ID_WITHOUT_CONTACT, OWNER,
+
+            ADMIN_CLIENT_ID, ADMIN,
+            ADMIN_CLIENT_ID, OWNER);
   }
 
   /** Empty Support group email - skips check. */
   @Test
   public void getAllClientIdWithAccess_emptySupportEmail_works() {
     AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(AUTHORIZED_USER, ADMIN_CLIENT_ID, "", groupsConnection);
+        new AuthenticatedRegistrarAccessor(
+            USER, ADMIN_CLIENT_ID, "", groupsConnection);
 
     verifyNoMoreInteractions(groupsConnection);
     assertThat(registrarAccessor.getAllClientIdWithRoles())
-        .containsExactly(DEFAULT_CLIENT_ID, OWNER);
+        .containsExactly(CLIENT_ID_WITH_CONTACT, OWNER);
   }
 
   /** Support group check throws - continue anyway. */
@@ -169,85 +221,74 @@ public class AuthenticatedRegistrarAccessorTest {
     when(groupsConnection.isMemberOfGroup(any(), any())).thenThrow(new RuntimeException("blah"));
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
-            AUTHORIZED_USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
+            USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
 
-    verify(groupsConnection).isMemberOfGroup("auth_user@gmail.com", SUPPORT_GROUP);
+    verify(groupsConnection).isMemberOfGroup("user@gmail.com", SUPPORT_GROUP);
     assertThat(registrarAccessor.getAllClientIdWithRoles())
-        .containsExactly(DEFAULT_CLIENT_ID, OWNER);
-  }
-
-  /** Admins have read/write access to the authorized registrars, AND the admin registrar. */
-  @Test
-  public void getAllClientIdWithAccess_authorizedAdmin() {
-    AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(
-            AUTHORIZED_ADMIN, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
-
-    assertThat(registrarAccessor.getAllClientIdWithRoles())
-        .containsExactly(
-            DEFAULT_CLIENT_ID, OWNER,
-            DEFAULT_CLIENT_ID, ADMIN,
-            ADMIN_CLIENT_ID, OWNER,
-            ADMIN_CLIENT_ID, ADMIN)
-        .inOrder();
-  }
-
-  /**
-   * Unauthorized admins only have full access to the admin registrar, and read-only to the rest.
-   */
-  @Test
-  public void getAllClientIdWithAccess_unauthorizedAdmin() {
-    AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(
-            UNAUTHORIZED_ADMIN, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
-
-    assertThat(registrarAccessor.getAllClientIdWithRoles())
-        .containsExactly(
-            ADMIN_CLIENT_ID, OWNER,
-            ADMIN_CLIENT_ID, ADMIN,
-            DEFAULT_CLIENT_ID, ADMIN)
-        .inOrder();
+        .containsExactly(CLIENT_ID_WITH_CONTACT, OWNER);
   }
 
   /** Fail loading registrar if user doesn't have access to it. */
   @Test
   public void testGetRegistrarForUser_noAccess_isNotAdmin() {
     expectGetRegistrarFailure(
-        DEFAULT_CLIENT_ID,
-        UNAUTHORIZED_USER,
-        "user unauth_user@gmail.com doesn't have access to registrar TheRegistrar");
+        REAL_CLIENT_ID_WITHOUT_CONTACT,
+        USER,
+        "user user@gmail.com doesn't have access to registrar NewRegistrar");
+  }
+
+  /** Fail loading registrar if user doesn't have access to it, even if it's not REAL. */
+  @Test
+  public void testGetRegistrarForUser_noAccess_isNotAdmin_notReal() {
+    expectGetRegistrarFailure(
+        OTE_CLIENT_ID_WITHOUT_CONTACT,
+        USER,
+        "user user@gmail.com doesn't have access to registrar OteRegistrar");
   }
 
   /** Fail loading registrar if there's no user associated with the request. */
   @Test
   public void testGetRegistrarForUser_noUser() {
     expectGetRegistrarFailure(
-        DEFAULT_CLIENT_ID,
+        CLIENT_ID_WITH_CONTACT,
         NO_USER,
         "<logged-out user> doesn't have access to registrar TheRegistrar");
   }
 
   /** Succeed loading registrar if user has access to it. */
   @Test
-  public void testGetRegistrarForUser_hasAccess_isNotAdmin() throws Exception {
+  public void testGetRegistrarForUser_inContacts_isNotAdmin() throws Exception {
     expectGetRegistrarSuccess(
-        AUTHORIZED_USER, "user auth_user@gmail.com has [OWNER] access to registrar TheRegistrar");
+        CLIENT_ID_WITH_CONTACT,
+        USER,
+        "user user@gmail.com has [OWNER] access to registrar TheRegistrar");
   }
 
   /** Succeed loading registrar if admin with access. */
   @Test
-  public void testGetRegistrarForUser_hasAccess_isAdmin() throws Exception {
+  public void testGetRegistrarForUser_inContacts_isAdmin() throws Exception {
     expectGetRegistrarSuccess(
-        AUTHORIZED_ADMIN,
-        "admin auth_admin@gmail.com has [OWNER, ADMIN] access to registrar TheRegistrar");
+        CLIENT_ID_WITH_CONTACT,
+        GAE_ADMIN,
+        "admin admin@gmail.com has [OWNER, ADMIN] access to registrar TheRegistrar");
   }
 
   /** Succeed loading registrar for admin even if they aren't on the approved contacts list. */
   @Test
-  public void testGetRegistrarForUser_noAccess_isAdmin() throws Exception {
+  public void testGetRegistrarForUser_notInContacts_isAdmin() throws Exception {
     expectGetRegistrarSuccess(
-        UNAUTHORIZED_ADMIN,
-        "admin unauth_admin@gmail.com has [ADMIN] access to registrar TheRegistrar.");
+        REAL_CLIENT_ID_WITHOUT_CONTACT,
+        GAE_ADMIN,
+        "admin admin@gmail.com has [ADMIN] access to registrar NewRegistrar.");
+  }
+
+  /** Succeed loading non-REAL registrar for admin. */
+  @Test
+  public void testGetRegistrarForUser_notInContacts_isAdmin_notReal() throws Exception {
+    expectGetRegistrarSuccess(
+        OTE_CLIENT_ID_WITHOUT_CONTACT,
+        GAE_ADMIN,
+        "admin admin@gmail.com has [OWNER, ADMIN] access to registrar OteRegistrar.");
   }
 
   /** Fail loading registrar even if admin, if registrar doesn't exist. */
@@ -255,17 +296,18 @@ public class AuthenticatedRegistrarAccessorTest {
   public void testGetRegistrarForUser_doesntExist_isAdmin() {
     expectGetRegistrarFailure(
         "BadClientId",
-        AUTHORIZED_ADMIN,
-        "admin auth_admin@gmail.com doesn't have access to registrar BadClientId");
+        GAE_ADMIN,
+        "admin admin@gmail.com doesn't have access to registrar BadClientId");
   }
 
-  private void expectGetRegistrarSuccess(AuthResult authResult, String message) throws Exception {
+  private void expectGetRegistrarSuccess(String clientId, AuthResult authResult, String message)
+      throws Exception {
     AuthenticatedRegistrarAccessor registrarAccessor =
         new AuthenticatedRegistrarAccessor(
             authResult, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
 
     // make sure loading the registrar succeeds and returns a value
-    assertThat(registrarAccessor.getRegistrar(DEFAULT_CLIENT_ID)).isNotNull();
+    assertThat(registrarAccessor.getRegistrar(clientId)).isNotNull();
     assertAboutLogs().that(testLogHandler).hasLogAtLevelWithMessage(Level.INFO, message);
   }
 
@@ -283,80 +325,28 @@ public class AuthenticatedRegistrarAccessorTest {
     assertThat(exception).hasMessageThat().contains(message);
   }
 
-  /** If a user has access to a registrar, we should guess that registrar. */
+  /** guessClientIdForUser returns the first clientId in getAllClientIdWithRoles. */
   @Test
-  public void testGuessClientIdForUser_hasAccess_isNotAdmin() throws Exception {
+  public void testGuessClientIdForUser_hasAccess_returnsFirst() throws Exception {
     AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(
-            AUTHORIZED_USER, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
+        AuthenticatedRegistrarAccessor.createForTesting(
+            ImmutableSetMultimap.of(
+                "clientId-1", OWNER,
+                "clientId-2", OWNER,
+                "clientId-2", ADMIN));
 
-    assertThat(registrarAccessor.guessClientId()).isEqualTo(DEFAULT_CLIENT_ID);
+    assertThat(registrarAccessor.guessClientId()).isEqualTo("clientId-1");
   }
 
-  /** If a user doesn't have access to any registrars, guess returns nothing. */
+  /** If a user doesn't have access to any registrars, guess fails. */
   @Test
-  public void testGuessClientIdForUser_noAccess_isNotAdmin() {
-    expectGuessRegistrarFailure(
-        UNAUTHORIZED_USER, "user unauth_user@gmail.com isn't associated with any registrar");
-  }
-
-  /**
-   * If an admin has access to a registrar, we should guess that registrar (rather than the
-   * ADMIN_CLIENT_ID).
-   */
-  @Test
-  public void testGuessClientIdForUser_hasAccess_isAdmin() throws Exception {
+  public void testGuessClientIdForUser_noAccess_fails() {
     AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(
-            AUTHORIZED_ADMIN, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
+        AuthenticatedRegistrarAccessor.createForTesting(ImmutableSetMultimap.of());
 
-    assertThat(registrarAccessor.guessClientId()).isEqualTo(DEFAULT_CLIENT_ID);
-  }
-
-  /** If an admin doesn't have access to a registrar, we should guess the ADMIN_CLIENT_ID. */
-  @Test
-  public void testGuessClientIdForUser_noAccess_isAdmin() throws Exception {
-    AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(
-            UNAUTHORIZED_ADMIN, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
-
-    assertThat(registrarAccessor.guessClientId()).isEqualTo(ADMIN_CLIENT_ID);
-  }
-
-  /**
-   * If an admin is not associated with a registrar and there is no configured adminClientId, but
-   * since it's an admin - we have read-only access to everything - return one of the existing
-   * registrars.
-   */
-  @Test
-  public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdEmpty() throws Exception {
-    AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(UNAUTHORIZED_ADMIN, "", SUPPORT_GROUP, groupsConnection);
-
-    assertThat(registrarAccessor.guessClientId()).isAnyOf(ADMIN_CLIENT_ID, DEFAULT_CLIENT_ID);
-  }
-
-  /**
-   * If an admin is not associated with a registrar and the configured adminClientId points to a
-   * non-existent registrar, we still guess it (we will later fail loading the registrar).
-   */
-  @Test
-  public void testGuessClientIdForUser_noAccess_isAdmin_adminClientIdInvalid() throws Exception {
-    AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(
-            UNAUTHORIZED_ADMIN, "NonexistentRegistrar", SUPPORT_GROUP, groupsConnection);
-
-    assertThat(registrarAccessor.guessClientId()).isEqualTo("NonexistentRegistrar");
-  }
-
-  private void expectGuessRegistrarFailure(AuthResult authResult, String message) {
-    AuthenticatedRegistrarAccessor registrarAccessor =
-        new AuthenticatedRegistrarAccessor(
-            authResult, ADMIN_CLIENT_ID, SUPPORT_GROUP, groupsConnection);
-
-    RegistrarAccessDeniedException exception =
-        assertThrows(RegistrarAccessDeniedException.class, () -> registrarAccessor.guessClientId());
-    assertThat(exception).hasMessageThat().contains(message);
+    assertThat(assertThrows(RegistrarAccessDeniedException.class, registrarAccessor::guessClientId))
+        .hasMessageThat()
+        .isEqualTo("TestUserId isn't associated with any registrar");
   }
 
   @Test

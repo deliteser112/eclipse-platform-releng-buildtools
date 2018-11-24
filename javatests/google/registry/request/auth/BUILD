@@ -13,6 +13,7 @@ java_library(
     resources = glob(["testdata/*"]),
     deps = [
         "//java/google/registry/groups",
+        "//java/google/registry/model",
         "//java/google/registry/request/auth",
         "//java/google/registry/security",
         "//javatests/google/registry/testing",

@@ -38,9 +38,13 @@ import javax.inject.Inject;
  * <p>A user has OWNER role on a Registrar if there exists a {@link RegistrarContact} with that
  * user's gaeId and the registrar as a parent.
  *
- * <p>An admin has in addition OWNER role on {@code #registryAdminClientId}.
+ * <p>An "admin" has in addition OWNER role on {@code #registryAdminClientId} and to all non-{@code
+ * REAL} registrars (see {@link Registrar#getType}).
  *
- * <p>An admin also has ADMIN role on ALL registrars.
+ * <p>An "admin" also has ADMIN role on ALL registrars.
+ *
+ * <p>A user is an "admin" if they are a GAE-admin, or if their email is in the "Support" G-Suite
+ * group.
  */
 @Immutable
 public class AuthenticatedRegistrarAccessor {
@@ -138,6 +142,24 @@ public class AuthenticatedRegistrarAccessor {
    */
   public ImmutableSetMultimap<String, Role> getAllClientIdWithRoles() {
     return roleMap;
+  }
+
+  /**
+   * Returns all the roles the current user has on the given registrar.
+   *
+   * <p>This is syntactic sugar for {@code getAllClientIdWithRoles().get(clientId)}.
+   */
+  public ImmutableSet<Role> getRolesForRegistrar(String clientId) {
+    return getAllClientIdWithRoles().get(clientId);
+  }
+
+  /**
+   * Checks if we have a given role for a given registrar.
+   *
+   * <p>This is syntactic sugar for {@code getAllClientIdWithRoles().containsEntry(clientId, role)}.
+   */
+  public boolean hasRoleOnRegistrar(Role role, String clientId) {
+    return getAllClientIdWithRoles().containsEntry(clientId, role);
   }
 
   /**
@@ -257,11 +279,17 @@ public class AuthenticatedRegistrarAccessor {
     }
 
     if (isAdmin || isSupport) {
-      // Admins and support have access to all registrars
+      // Admins and support have ADMIN access to all registrars, and OWNER access to all non-REAL
+      // registrars
       ofy()
           .load()
           .type(Registrar.class)
-          .forEach(registrar -> builder.put(registrar.getClientId(), Role.ADMIN));
+          .forEach(registrar -> {
+            if (!Registrar.Type.REAL.equals(registrar.getType())) {
+              builder.put(registrar.getClientId(), Role.OWNER);
+            }
+            builder.put(registrar.getClientId(), Role.ADMIN);
+          });
     }
 
     return builder.build();
