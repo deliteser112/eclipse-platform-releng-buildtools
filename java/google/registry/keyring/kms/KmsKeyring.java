@@ -155,9 +155,26 @@ public class KmsKeyring implements Keyring {
     return getString(StringKeyLabel.JSON_CREDENTIAL_STRING);
   }
 
+  @Override
+  public String getEncryptedData(String keyName) {
+    KmsSecret secret = getSecret(keyName);
+    return ofy().load().key(secret.getLatestRevision()).now().getEncryptedValue();
+  }
+
+  private String getEncryptedData(KmsSecret secret) {
+    return ofy().load().key(secret.getLatestRevision()).now().getEncryptedValue();
+  }
+
   /** No persistent resources are maintained for this Keyring implementation. */
   @Override
   public void close() {}
+
+  private KmsSecret getSecret(String keyName) {
+    KmsSecret secret =
+        ofy().load().key(Key.create(getCrossTldKey(), KmsSecret.class, keyName)).now();
+    checkState(secret != null, "Requested secret '%s' does not exist.", keyName);
+    return secret;
+  }
 
   private String getString(StringKeyLabel keyLabel) {
     return KeySerializer.deserializeString(getDecryptedData(keyLabel.getLabel()));
@@ -185,11 +202,8 @@ public class KmsKeyring implements Keyring {
   }
 
   private byte[] getDecryptedData(String keyName) {
-    KmsSecret secret =
-        ofy().load().key(Key.create(getCrossTldKey(), KmsSecret.class, keyName)).now();
-    checkState(secret != null, "Requested secret '%s' does not exist.", keyName);
-    String encryptedData = ofy().load().key(secret.getLatestRevision()).now().getEncryptedValue();
-
+    KmsSecret secret = getSecret(keyName);
+    String encryptedData = getEncryptedData(secret);
     try {
       return kmsConnection.decrypt(secret.getName(), encryptedData);
     } catch (Exception e) {

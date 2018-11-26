@@ -156,6 +156,12 @@ public interface Keyring extends AutoCloseable {
    */
   String getJsonCredential();
 
+  /**
+   * Returns the encrypted data for the given key name. Only use this method when decryption is not
+   * required.
+   */
+  String getEncryptedData(String keyName);
+
   // Don't throw so try-with-resources works better.
   @Override
   void close();
