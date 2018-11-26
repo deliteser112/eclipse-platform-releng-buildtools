@@ -41,29 +41,32 @@ import org.bouncycastle.openpgp.PGPPublicKey;
  */
 public class KmsKeyring implements Keyring {
 
-  enum PrivateKeyLabel {
+  /** Key labels for private key secrets. */
+  public enum PrivateKeyLabel {
     BRDA_SIGNING_PRIVATE,
     RDE_SIGNING_PRIVATE,
     RDE_STAGING_PRIVATE;
 
-    String getLabel() {
+    public String getLabel() {
       return UPPER_UNDERSCORE.to(LOWER_HYPHEN, name());
     }
   }
 
-  enum PublicKeyLabel {
+  /** Key labels for public key secrets. */
+  public enum PublicKeyLabel {
     BRDA_RECEIVER_PUBLIC,
     BRDA_SIGNING_PUBLIC,
     RDE_RECEIVER_PUBLIC,
     RDE_SIGNING_PUBLIC,
     RDE_STAGING_PUBLIC;
 
-    String getLabel() {
+    public String getLabel() {
       return UPPER_UNDERSCORE.to(LOWER_HYPHEN, name());
     }
   }
 
-  enum StringKeyLabel {
+  /** Key labels for string secrets. */
+  public enum StringKeyLabel {
     SAFE_BROWSING_API_KEY,
     ICANN_REPORTING_PASSWORD_STRING,
     JSON_CREDENTIAL_STRING,
@@ -73,7 +76,7 @@ public class KmsKeyring implements Keyring {
     RDE_SSH_CLIENT_PRIVATE_STRING,
     RDE_SSH_CLIENT_PUBLIC_STRING;
 
-    String getLabel() {
+    public String getLabel() {
       return UPPER_UNDERSCORE.to(LOWER_HYPHEN, name());
     }
   }

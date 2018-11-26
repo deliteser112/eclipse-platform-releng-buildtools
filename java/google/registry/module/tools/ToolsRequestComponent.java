@@ -32,6 +32,7 @@ import google.registry.request.RequestScope;
 import google.registry.tools.server.CreateGroupsAction;
 import google.registry.tools.server.CreatePremiumListAction;
 import google.registry.tools.server.DeleteEntityAction;
+import google.registry.tools.server.DownloadServiceAccountCredentialAction;
 import google.registry.tools.server.GenerateZoneFilesAction;
 import google.registry.tools.server.KillAllCommitLogsAction;
 import google.registry.tools.server.KillAllEppResourcesAction;
@@ -64,6 +65,7 @@ import google.registry.tools.server.VerifyOteAction;
 interface ToolsRequestComponent {
   CreateGroupsAction createGroupsAction();
   CreatePremiumListAction createPremiumListAction();
+  DownloadServiceAccountCredentialAction downloadServiceAccountCredentialAction();
   DeleteEntityAction deleteEntityAction();
   EppToolAction eppToolAction();
   FlowComponent.Builder flowComponentBuilder();

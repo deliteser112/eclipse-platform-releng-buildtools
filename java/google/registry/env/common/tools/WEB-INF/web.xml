@@ -48,6 +48,11 @@
     <url-pattern>/_dr/loadtest</url-pattern>
   </servlet-mapping>
 
+   <servlet-mapping>
+    <servlet-name>tools-servlet</servlet-name>
+    <url-pattern>/_dr/admin/downloadCredential</url-pattern>
+  </servlet-mapping>
+
   <!-- The nomulus command line tool uses this endpoint to write to Datastore. -->
   <servlet>
     <display-name>Remote API Servlet</display-name>
