@@ -35,7 +35,7 @@ public final class JsonActionRunner {
     Map<String, ?> handleJsonRequest(Map<String, ?> json);
   }
 
-  @JsonPayload Map<String, Object> payload;
+  Map<String, Object> payload;
   JsonResponse response;
 
   @Inject public JsonActionRunner(@JsonPayload Map<String, Object> payload, JsonResponse response) {
