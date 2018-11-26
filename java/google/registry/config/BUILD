@@ -12,6 +12,7 @@ java_library(
         "//java/google/registry/keyring/api",
         "//java/google/registry/util",
         "@com_google_api_client",
+        "@com_google_api_client_appengine",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",

@@ -39,6 +39,7 @@ java_library(
         "//third_party/objectify:objectify-v4_1",
         "@com_beust_jcommander",
         "@com_google_api_client",
+        "@com_google_apis_google_api_services_appengine",
         "@com_google_apis_google_api_services_dns",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_remote_api",

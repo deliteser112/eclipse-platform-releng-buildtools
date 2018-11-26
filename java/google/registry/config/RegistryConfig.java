@@ -1229,6 +1229,14 @@ public final class RegistryConfig {
       return ImmutableList.copyOf(config.credentialOAuth.delegatedCredentialOauthScopes);
     }
 
+    /** Provides the OAuth scopes required for access to App Engine Admin API. */
+    @Provides
+    @Config("appEngineAdminApiCredentialOauthScopes")
+    public static ImmutableList<String> provideAppEngineAdminApiCredentialOauthScopes(
+        RegistryConfigSettings config) {
+      return ImmutableList.copyOf(config.credentialOAuth.appEngineAdminApiCredentialOauthScopes);
+    }
+
     /**
      * Returns the help path for the RDAP terms of service.
      *

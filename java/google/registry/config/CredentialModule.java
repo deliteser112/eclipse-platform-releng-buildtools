@@ -17,6 +17,7 @@ package google.registry.config;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.googleapis.util.Utils;
 import com.google.common.collect.ImmutableList;
@@ -107,6 +108,20 @@ public abstract class CredentialModule {
         .build();
   }
 
+  /**
+   * Provides a {@link AppIdentityCredential} with access for App Engine Admin API.
+   *
+   * <p>{@link AppIdentityCredential} is an OAuth 2.0 credential in which a client Google App Engine
+   * application needs to access data that it owns.
+   */
+  @AppEngineAdminApiCredential
+  @Provides
+  @Singleton
+  public static AppIdentityCredential provideAppEngineAdminApiCredential(
+      @Config("appEngineAdminApiCredentialOauthScopes") ImmutableList<String> requiredScopes) {
+    return new AppIdentityCredential(requiredScopes);
+  }
+
   /** Dagger qualifier for the Application Default Credential. */
   @Qualifier
   public @interface DefaultCredential {}
@@ -124,4 +139,8 @@ public abstract class CredentialModule {
    */
   @Qualifier
   public @interface DelegatedCredential {}
+
+  /** Dagger qualifier for a credential with access for App Engine Admin API. */
+  @Qualifier
+  public @interface AppEngineAdminApiCredential {}
 }

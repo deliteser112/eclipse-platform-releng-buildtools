@@ -282,6 +282,11 @@ credentialOAuth:
     - https://www.googleapis.com/auth/admin.directory.group
     # View and manage group settings in Group Settings API.
     - https://www.googleapis.com/auth/apps.groups.settings
+  # OAuth scopes required for accessing App Engine Admin API using the
+  # AppIdentityCredential.
+  appEngineAdminApiCredentialOauthScopes:
+    # View and manage your applications deployed on Google App Engine
+    - https://www.googleapis.com/auth/appengine.admin
 
 
 icannReporting:

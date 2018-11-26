@@ -46,6 +46,7 @@ import javax.inject.Singleton;
 @Singleton
 @Component(
     modules = {
+      AppEngineAdminApiModule.class,
       AppEngineServiceUtilsModule.class,
       // TODO(b/36866706): Find a way to replace this with a command-line friendly version
       AuthModule.class,
