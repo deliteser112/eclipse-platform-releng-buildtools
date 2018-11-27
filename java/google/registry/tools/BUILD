@@ -33,6 +33,12 @@ java_library(
         "resources/client_secret*.json",
     ]),
     visibility = [":allowed-tools"],
+    runtime_deps = [
+        "//java/google/registry/module/backend",
+        "//java/google/registry/module/frontend",
+        "//java/google/registry/module/pubapi",
+        "//java/google/registry/module/tools",
+    ],
     deps = [
         "//java/google/registry/backup",
         "//java/google/registry/beam/invoicing",
