@@ -155,6 +155,11 @@ public final class InMemoryKeyring implements Keyring {
         "In-memory keyring does not support the retrieval of encrypted data.");
   }
 
+  @Override
+  public byte[] getDecryptedData(String keyName, String encryptedData) {
+    throw new RuntimeException("In-memory keyring does not support decrypting of supplied data.");
+  }
+
   /** Does nothing. */
   @Override
   public void close() {}

@@ -16,7 +16,7 @@ package google.registry.keyring.kms;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.persistResources;
-import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.BaseEncoding;
@@ -26,7 +26,6 @@ import google.registry.model.server.KmsSecretRevision;
 import google.registry.model.server.KmsSecretRevision.Builder;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
-import java.io.UnsupportedEncodingException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
@@ -179,14 +178,26 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getEncryptedJsonCredential() throws UnsupportedEncodingException {
+  public void test_getEncryptedJsonCredential() {
     saveCleartextSecret("json-credential-string");
 
     String encryptedJsonCredential = keyring.getEncryptedData("json-credential-string");
 
     assertThat(
             new String(
-                Arrays.reverse(BaseEncoding.base64().decode(encryptedJsonCredential)), US_ASCII))
+                Arrays.reverse(BaseEncoding.base64().decode(encryptedJsonCredential)), UTF_8))
+        .isEqualTo("json-credential-stringmoo");
+  }
+
+  @Test
+  public void test_decryptJsonCredential() {
+    saveCleartextSecret("json-credential-string");
+
+    String encryptedJsonCredential = keyring.getEncryptedData("json-credential-string");
+
+    assertThat(
+            new String(
+                keyring.getDecryptedData("json-credential-string", encryptedJsonCredential), UTF_8))
         .isEqualTo("json-credential-stringmoo");
   }
 

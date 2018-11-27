@@ -205,13 +205,27 @@ public class KmsKeyring implements Keyring {
   }
 
   private byte[] getDecryptedData(String keyName) {
-    KmsSecret secret = getSecret(keyName);
+    String encryptedData = getEncryptedData(keyName);
+    return getDecryptedData(keyName, encryptedData);
+  }
+
+  private byte[] getDecryptedData(KmsSecret secret) {
     String encryptedData = getEncryptedData(secret);
+    return getDecryptedData(secret, encryptedData);
+  }
+
+  private byte[] getDecryptedData(KmsSecret secret, String encryptedData) {
     try {
       return kmsConnection.decrypt(secret.getName(), encryptedData);
     } catch (Exception e) {
       throw new KeyringException(
-          String.format("CloudKMS decrypt operation failed for secret %s", keyName), e);
+          String.format("CloudKMS decrypt operation failed for secret %s", secret.getName()), e);
     }
+  }
+
+  @Override
+  public byte[] getDecryptedData(String keyName, String encryptedData) {
+    KmsSecret secret = getSecret(keyName);
+    return getDecryptedData(secret);
   }
 }
