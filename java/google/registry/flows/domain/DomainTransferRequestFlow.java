@@ -23,6 +23,7 @@ import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToT
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistrarIsActive;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.flows.domain.DomainTransferUtils.createLosingTransferPollMessage;
 import static google.registry.flows.domain.DomainTransferUtils.createPendingTransferData;
@@ -107,6 +108,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
+ * @error {@link DomainFlowUtils.RegistrarMustBeActiveForThisOperationException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  */
 @ReportingSpec(ActivityReportField.DOMAIN_TRANSFER_REQUEST)
@@ -139,6 +141,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
         MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(gainingClientId);
+    verifyRegistrarIsActive(gainingClientId);
     DateTime now = ofy().getTransactionTime();
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     Optional<DomainTransferRequestSuperuserExtension> superuserExtension =

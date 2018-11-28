@@ -892,13 +892,14 @@ public class DomainFlowUtils {
   /**
    * Check that the registrar with the given client ID is active.
    *
-   * <p>Non-active registrars are not allowed to create domain applications or domain resources.
+   * <p>Non-active registrars are not allowed to run operations that cost money, like domain creates
+   * or renews.
    */
   static void verifyRegistrarIsActive(String clientId)
-      throws RegistrarMustBeActiveToCreateDomainsException {
+      throws RegistrarMustBeActiveForThisOperationException {
     Registrar registrar = Registrar.loadByClientIdCached(clientId).get();
     if (registrar.getState() != State.ACTIVE) {
-      throw new RegistrarMustBeActiveToCreateDomainsException();
+      throw new RegistrarMustBeActiveForThisOperationException();
     }
   }
 
@@ -1606,10 +1607,10 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Registrar must be active in order to create domains or applications. */
-  static class RegistrarMustBeActiveToCreateDomainsException extends AuthorizationErrorException {
-    public RegistrarMustBeActiveToCreateDomainsException() {
-      super("Registrar must be active in order to create domains or applications");
+  /** Registrar must be active in order to perform this operation. */
+  static class RegistrarMustBeActiveForThisOperationException extends AuthorizationErrorException {
+    public RegistrarMustBeActiveForThisOperationException() {
+      super("Registrar must be active in order to perform this operation");
     }
   }
 }

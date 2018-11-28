@@ -25,6 +25,7 @@ import static google.registry.flows.domain.DomainFlowUtils.newAutorenewPollMessa
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistrarIsActive;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
@@ -101,6 +102,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
+ * @error {@link DomainFlowUtils.RegistrarMustBeActiveForThisOperationException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainRestoreRequestFlow.DomainNotEligibleForRestoreException}
  * @error {@link DomainRestoreRequestFlow.RestoreCommandIncludesChangesException}
@@ -129,6 +131,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         RgpUpdateExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    verifyRegistrarIsActive(clientId);
     Update command = (Update) resourceCommand;
     DateTime now = ofy().getTransactionTime();
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);

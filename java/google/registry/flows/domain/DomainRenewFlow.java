@@ -26,6 +26,7 @@ import static google.registry.flows.domain.DomainFlowUtils.newAutorenewPollMessa
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.validateRegistrationPeriod;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistrarIsActive;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
@@ -101,6 +102,7 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.FeesMismatchException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link DomainFlowUtils.RegistrarMustBeActiveForThisOperationException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainRenewFlow.IncorrectCurrentExpirationDateException}
  */
@@ -133,6 +135,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
     flowCustomLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    verifyRegistrarIsActive(clientId);
     DateTime now = ofy().getTransactionTime();
     Renew command = (Renew) resourceCommand;
     // Loads the target resource if it exists

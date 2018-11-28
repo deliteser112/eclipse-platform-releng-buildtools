@@ -98,6 +98,8 @@ import org.joda.time.Duration;
 /**
  * An EPP flow that allocates a new domain resource from a domain application.
  *
+ * <p>Note that this flow is only run by superusers.
+ *
  * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
  * @error {@link DomainAllocateFlow.HasFinalStatusException}
  * @error {@link DomainAllocateFlow.MissingApplicationException}

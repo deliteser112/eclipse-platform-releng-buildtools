@@ -179,7 +179,7 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
- * @error {@link DomainFlowUtils.RegistrarMustBeActiveToCreateDomainsException}
+ * @error {@link DomainFlowUtils.RegistrarMustBeActiveForThisOperationException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
  * @error {@link DomainFlowUtils.TooManyDsRecordsException}
  * @error {@link DomainFlowUtils.TooManyNameserversException}
