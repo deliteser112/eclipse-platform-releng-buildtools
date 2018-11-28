@@ -138,7 +138,7 @@ public class UpdateSnapshotViewAction implements Runnable {
           .update(ref.getProjectId(), ref.getDatasetId(), ref.getTableId(), table)
           .execute();
     } catch (GoogleJsonResponseException e) {
-      if (e.getDetails().getCode() == 404) {
+      if (e.getDetails() != null && e.getDetails().getCode() == 404) {
         bigquery.tables().insert(ref.getProjectId(), ref.getDatasetId(), table).execute();
       } else {
         logger.atWarning().withCause(e).log(

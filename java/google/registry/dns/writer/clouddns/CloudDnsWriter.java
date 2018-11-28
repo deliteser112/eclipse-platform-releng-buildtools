@@ -19,7 +19,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.util.DomainNameUtils.getSecondLevelDomain;
 
-import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo;
+import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.Change;
@@ -390,12 +390,12 @@ public class CloudDnsWriter extends BaseDnsWriter {
     try {
       dnsConnection.changes().create(projectId, zoneName, change).execute();
     } catch (GoogleJsonResponseException e) {
-      List<ErrorInfo> errors = e.getDetails().getErrors();
+      GoogleJsonError err = e.getDetails();
       // We did something really wrong here, just give up and re-throw
-      if (errors.size() > 1) {
+      if (err == null || err.getErrors().size() > 1) {
         throw new RuntimeException(e);
       }
-      String errorReason = errors.get(0).getReason();
+      String errorReason = err.getErrors().get(0).getReason();
 
       if (RETRYABLE_EXCEPTION_REASONS.contains(errorReason)) {
         throw new ZoneStateException(errorReason);

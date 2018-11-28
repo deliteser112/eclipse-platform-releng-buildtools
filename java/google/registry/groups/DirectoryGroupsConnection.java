@@ -95,7 +95,9 @@ public class DirectoryGroupsConnection implements GroupsConnection {
       // If the member is already in the group, ignore the error, get the existing member, and
       // return it.
       GoogleJsonError err = e.getDetails();
-      if (err.getCode() == SC_NOT_FOUND && err.getMessage().equals(GROUP_NOT_FOUND_MSG)) {
+      if (err == null) {
+        throw e;
+      } else if (err.getCode() == SC_NOT_FOUND && err.getMessage().equals(GROUP_NOT_FOUND_MSG)) {
         logger.atInfo().withCause(e).log(
             "Creating group %s during addition of member %s because the group doesn't exist.",
             groupKey, email);
@@ -169,7 +171,8 @@ public class DirectoryGroupsConnection implements GroupsConnection {
       return createdGroup;
     } catch (GoogleJsonResponseException e) {
       // Ignore the error thrown if the group already exists.
-      if (e.getDetails().getCode() == SC_CONFLICT
+      if (e.getDetails() != null
+          && e.getDetails().getCode() == SC_CONFLICT
           && e.getDetails().getMessage().equals("Entity already exists.")) {
         logger.atInfo().withCause(e).log(
             "Could not create group %s because it already exists.", groupKey);
@@ -204,7 +207,8 @@ public class DirectoryGroupsConnection implements GroupsConnection {
           "%s is a member of the group %s. Got reply: %s", memberEmail, groupKey, getReply);
       return true;
     } catch (GoogleJsonResponseException e) {
-      if (ERROR_MESSAGES_MEMBER_NOT_FOUND.contains(e.getDetails().getMessage())) {
+      if (e.getDetails() != null
+          && ERROR_MESSAGES_MEMBER_NOT_FOUND.contains(e.getDetails().getMessage())) {
         // This means the "get" request failed because the email wasn't part of the group.
         // This is expected behavior for any visitor that isn't a support group member.
         logger.atInfo().log(

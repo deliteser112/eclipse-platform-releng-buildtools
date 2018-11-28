@@ -30,15 +30,20 @@ public final class BigqueryJobFailureException extends RuntimeException {
   /** Delegate {@link IOException} errors, checking for {@link GoogleJsonResponseException} */
   public static BigqueryJobFailureException create(IOException cause) {
     if (cause instanceof GoogleJsonResponseException) {
-      return create(((GoogleJsonResponseException) cause).getDetails());
+        return create((GoogleJsonResponseException) cause);
     } else {
       return new BigqueryJobFailureException(cause.getMessage(), cause, null, null);
     }
   }
 
   /** Create an error for JSON server response errors. */
-  public static BigqueryJobFailureException create(GoogleJsonError error) {
-    return new BigqueryJobFailureException(error.getMessage(), null, null, error);
+  public static BigqueryJobFailureException create(GoogleJsonResponseException cause) {
+    GoogleJsonError err = cause.getDetails();
+    if (err != null) {
+      return new BigqueryJobFailureException(err.getMessage(), null, null, err);
+    } else {
+      return new BigqueryJobFailureException(cause.getMessage(), cause, null, null);
+    }
   }
 
   /** Create an error from a failed job. */
