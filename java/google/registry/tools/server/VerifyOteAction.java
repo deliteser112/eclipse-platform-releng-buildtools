@@ -28,6 +28,8 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.cmd.Query;
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainCommand;
 import google.registry.model.domain.fee.FeeCreateCommandExtension;
@@ -44,12 +46,14 @@ import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
 import google.registry.request.auth.Auth;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
@@ -242,18 +246,30 @@ public class VerifyOteAction implements Runnable, JsonAction {
     /**
      * Records data in the passed historyEntryStats object on what actions have been performed by
      * the four numbered OT&amp;E variants of the registrar name.
+     *
+     * <p>Stops when it notices that all tests have passed.
      */
     HistoryEntryStats recordRegistrarHistory(String registrarName) {
-      ImmutableList.Builder<String> clientIds = new ImmutableList.Builder<>();
-      for (int i = 1; i <= 4; i++) {
-        clientIds.add(String.format("%s-%d", registrarName, i));
-      }
-      for (HistoryEntry historyEntry :
-          ofy().load().type(HistoryEntry.class).filter("clientId in", clientIds.build()).list()) {
+      ImmutableList<String> clientIds =
+          IntStream.rangeClosed(1, 4)
+              .mapToObj(i -> String.format("%s-%d", registrarName, i))
+              .collect(toImmutableList());
+
+      Query<HistoryEntry> query =
+          ofy()
+              .load()
+              .type(HistoryEntry.class)
+              .filter("clientId in", clientIds)
+              .order("modificationTime");
+      for (HistoryEntry historyEntry : query) {
         try {
           record(historyEntry);
         } catch (EppException e) {
-          throw new RuntimeException(e);
+          throw new RuntimeException("Couldn't parse history entry " + Key.create(historyEntry), e);
+        }
+        // Break out early if all tests were passed.
+        if (wereAllTestsPassed()) {
+          break;
         }
       }
       return this;
@@ -264,16 +280,17 @@ public class VerifyOteAction implements Runnable, JsonAction {
       byte[] xmlBytes = historyEntry.getXmlBytes();
       // xmlBytes can be null on contact create and update for safe-harbor compliance.
       final Optional<EppInput> eppInput =
-          (xmlBytes == null)
-              ? Optional.empty()
-              : Optional.of(unmarshal(EppInput.class, xmlBytes));
+          (xmlBytes == null) ? Optional.empty() : Optional.of(unmarshal(EppInput.class, xmlBytes));
       if (!statCounts.addAll(
-          EnumSet.allOf(StatType.class)
-              .stream()
+          EnumSet.allOf(StatType.class).stream()
               .filter(statType -> statType.matches(historyEntry.getType(), eppInput))
               .collect(toImmutableList()))) {
         statCounts.add(StatType.UNCLASSIFIED_FLOWS);
       }
+    }
+
+    boolean wereAllTestsPassed() {
+      return Arrays.stream(StatType.values()).allMatch(s -> statCounts.count(s) >= s.requirement);
     }
 
     /**

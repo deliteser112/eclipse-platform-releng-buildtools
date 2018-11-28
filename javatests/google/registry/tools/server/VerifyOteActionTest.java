@@ -17,9 +17,11 @@ package google.registry.tools.server;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import google.registry.model.eppcommon.Trid;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.HistoryEntry.Type;
 import google.registry.testing.AppEngineRule;
@@ -40,9 +42,9 @@ public class VerifyOteActionTest {
 
   private final VerifyOteAction action = new VerifyOteAction();
 
-  HistoryEntry hostDeleteHistoryEntry;
-  HistoryEntry domainCreateHistoryEntry;
-  HistoryEntry domainRestoreHistoryEntry;
+  private HistoryEntry hostDeleteHistoryEntry;
+  private HistoryEntry domainCreateHistoryEntry;
+  private HistoryEntry domainRestoreHistoryEntry;
 
   @Before
   public void init() throws Exception {
@@ -137,12 +139,19 @@ public class VerifyOteActionTest {
                 .setType(Type.HOST_DELETE)
                 .setXmlBytes(ToolsTestData.loadBytes("host_delete.xml").read())
                 .build());
-    persistResource(
-        new HistoryEntry.Builder()
-            .setClientId("blobio-1")
-            .setType(Type.HOST_UPDATE)
-            .setXmlBytes(ToolsTestData.loadBytes("host_update.xml").read())
-            .build());
+    // Persist 10 host updates for a total of 25 history entries. Since these also sort last by
+    // modification time, when these cause all tests to pass, only the first will be recorded and
+    // the rest will be skipped.
+    for (int i = 0; i < 10; i++) {
+      persistResource(
+          new HistoryEntry.Builder()
+              .setClientId("blobio-1")
+              .setType(Type.HOST_UPDATE)
+              .setXmlBytes(ToolsTestData.loadBytes("host_update.xml").read())
+              .setTrid(Trid.create(null, String.format("blahtrid-%d", i)))
+              .setModificationTime(END_OF_TIME)
+              .build());
+    }
   }
 
   @Test
@@ -165,7 +174,7 @@ public class VerifyOteActionTest {
             ImmutableMap.of("summarize", "true", "registrars", ImmutableList.of("blobio")));
     assertThat(response)
         .containsExactly(
-            "blobio", "# actions:   26 - Reqs: [-.-----.------.-] 13/16 - Overall: FAIL");
+            "blobio", "# actions:   35 - Reqs: [-.-----.------.-] 13/16 - Overall: FAIL");
   }
 
   @Test
@@ -235,7 +244,7 @@ public class VerifyOteActionTest {
               + ".*"
               + "host creates subordinate: 1\n"
               + "host deletes: 0\n"
-              + "host updates: 1\n"
+              + "host updates: 10\n"
               + ".*"
               + "Requirements passed: 15/16\n"
               + "Overall OT&E status: FAIL\n";

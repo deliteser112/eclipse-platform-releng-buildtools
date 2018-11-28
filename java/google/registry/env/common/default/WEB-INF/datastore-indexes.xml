@@ -69,8 +69,12 @@
     <property name="clientId" direction="asc"/>
     <property name="eventTime" direction="asc"/>
   </datastore-index>
-  <!-- For the history viewer. -->
+  <!-- For querying HistoryEntries. -->
   <datastore-index kind="HistoryEntry" ancestor="true" source="manual">
+    <property name="modificationTime" direction="asc"/>
+  </datastore-index>
+  <datastore-index kind="HistoryEntry" ancestor="false" source="manual">
+    <property name="clientId" direction="asc"/>
     <property name="modificationTime" direction="asc"/>
   </datastore-index>
   <!-- For RDAP. -->
