@@ -47,31 +47,6 @@ public class EppLifecycleDomainApplicationTest extends EppTestCase {
         START_OF_GA, TldState.GENERAL_AVAILABILITY));
   }
 
-  /** Create the two administrative contacts and two hosts. */
-  void createContactsAndHosts() throws Exception {
-    DateTime startTime = DateTime.parse("2000-06-01T00:00:00Z");
-    assertThatCommand("contact_create_sh8013.xml")
-        .atTime(startTime)
-        .hasResponse(
-            "contact_create_response_sh8013.xml",
-            ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"));
-    assertThatCommand("contact_create_jd1234.xml")
-        .atTime(startTime.plusMinutes(1))
-        .hasResponse("contact_create_response_jd1234.xml");
-    assertThatCommand("host_create.xml", ImmutableMap.of("HOSTNAME", "ns1.example.external"))
-        .atTime(startTime.plusMinutes(2))
-        .hasResponse(
-            "host_create_response.xml",
-            ImmutableMap.of(
-                "HOSTNAME", "ns1.example.external", "CRDATE", startTime.plusMinutes(2).toString()));
-    assertThatCommand("host_create.xml", ImmutableMap.of("HOSTNAME", "ns2.example.external"))
-        .atTime(startTime.plusMinutes(3))
-        .hasResponse(
-            "host_create_response.xml",
-            ImmutableMap.of(
-                "HOSTNAME", "ns2.example.external", "CRDATE", startTime.plusMinutes(3).toString()));
-  }
-
   @Test
   public void testApplicationDuringSunrise_doesntCreateDomainWithoutAllocation() throws Exception {
     assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");

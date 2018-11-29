@@ -75,7 +75,7 @@ public class EppTestCase extends ShardableTestCase {
     this.isSuperuser = isSuperuser;
   }
 
-  class CommandAsserter {
+  public class CommandAsserter {
     private final String inputFilename;
     private @Nullable final Map<String, String> inputSubstitutions;
     private DateTime now;
@@ -87,44 +87,44 @@ public class EppTestCase extends ShardableTestCase {
       this.now = DateTime.now(UTC);
     }
 
-    CommandAsserter atTime(DateTime now) {
+    public CommandAsserter atTime(DateTime now) {
       this.now = now;
       return this;
     }
 
-    CommandAsserter atTime(String now) {
+    public CommandAsserter atTime(String now) {
       return atTime(DateTime.parse(now));
     }
 
-    String hasResponse(String outputFilename) throws Exception {
+    public String hasResponse(String outputFilename) throws Exception {
       return hasResponse(outputFilename, null);
     }
 
-    String hasResponse(String outputFilename, @Nullable Map<String, String> outputSubstitutions)
-        throws Exception {
+    public String hasResponse(
+        String outputFilename, @Nullable Map<String, String> outputSubstitutions) throws Exception {
       return assertCommandAndResponse(
           inputFilename, inputSubstitutions, outputFilename, outputSubstitutions, now);
     }
   }
 
-  CommandAsserter assertThatCommand(String inputFilename) {
+  protected CommandAsserter assertThatCommand(String inputFilename) {
     return assertThatCommand(inputFilename, null);
   }
 
-  CommandAsserter assertThatCommand(
+  protected CommandAsserter assertThatCommand(
       String inputFilename, @Nullable Map<String, String> inputSubstitutions) {
     return new CommandAsserter(inputFilename, inputSubstitutions);
   }
 
-  CommandAsserter assertThatLogin(String clientId, String password) {
+  protected CommandAsserter assertThatLogin(String clientId, String password) {
     return assertThatCommand("login.xml", ImmutableMap.of("CLID", clientId, "PW", password));
   }
 
-  void assertThatLoginSucceeds(String clientId, String password) throws Exception {
+  protected void assertThatLoginSucceeds(String clientId, String password) throws Exception {
     assertThatLogin(clientId, password).hasResponse("generic_success_response.xml");
   }
 
-  void assertThatLogoutSucceeds() throws Exception {
+  protected void assertThatLogoutSucceeds() throws Exception {
     assertThatCommand("logout.xml").hasResponse("logout_response.xml");
   }
 
@@ -136,8 +136,8 @@ public class EppTestCase extends ShardableTestCase {
       DateTime now)
       throws Exception {
     clock.setTo(now);
-    String input = loadFile(getClass(), inputFilename, inputSubstitutions);
-    String expectedOutput = loadFile(getClass(), outputFilename, outputSubstitutions);
+    String input = loadFile(EppTestCase.class, inputFilename, inputSubstitutions);
+    String expectedOutput = loadFile(EppTestCase.class, outputFilename, outputSubstitutions);
     if (sessionMetadata == null) {
       sessionMetadata =
           new HttpSessionMetadata(new FakeHttpSession()) {
@@ -187,5 +187,73 @@ public class EppTestCase extends ShardableTestCase {
 
   protected EppMetric getRecordedEppMetric() {
     return eppMetricBuilder.build();
+  }
+
+  /** Create the two administrative contacts and two hosts. */
+  protected void createContactsAndHosts() throws Exception {
+    DateTime createTime = DateTime.parse("2000-06-01T00:00:00Z");
+    createContacts(createTime);
+    assertThatCommand("host_create.xml", ImmutableMap.of("HOSTNAME", "ns1.example.external"))
+        .atTime(createTime.plusMinutes(2))
+        .hasResponse(
+            "host_create_response.xml",
+            ImmutableMap.of(
+                "HOSTNAME", "ns1.example.external",
+                "CRDATE", createTime.plusMinutes(2).toString()));
+    assertThatCommand("host_create.xml", ImmutableMap.of("HOSTNAME", "ns2.example.external"))
+        .atTime(createTime.plusMinutes(3))
+        .hasResponse(
+            "host_create_response.xml",
+            ImmutableMap.of(
+                "HOSTNAME", "ns2.example.external",
+                "CRDATE", createTime.plusMinutes(3).toString()));
+  }
+
+  protected void createContacts(DateTime createTime) throws Exception {
+    assertThatCommand("contact_create_sh8013.xml")
+        .atTime(createTime)
+        .hasResponse(
+            "contact_create_response_sh8013.xml", ImmutableMap.of("CRDATE", createTime.toString()));
+    assertThatCommand("contact_create_jd1234.xml")
+        .atTime(createTime.plusMinutes(1))
+        .hasResponse(
+            "contact_create_response_jd1234.xml",
+            ImmutableMap.of("CRDATE", createTime.plusMinutes(1).toString()));
+  }
+
+  /** Creates the domain fakesite.example with two nameservers on it. */
+  protected void createFakesite() throws Exception {
+    createContactsAndHosts();
+    assertThatCommand("domain_create_fakesite.xml")
+        .atTime("2000-06-01T00:04:00Z")
+        .hasResponse(
+            "domain_create_response.xml",
+            ImmutableMap.of(
+                "DOMAIN", "fakesite.example",
+                "CRDATE", "2000-06-01T00:04:00.0Z",
+                "EXDATE", "2002-06-01T00:04:00.0Z"));
+    assertThatCommand("domain_info_fakesite.xml")
+        .atTime("2000-06-06T00:00:00Z")
+        .hasResponse("domain_info_response_fakesite_ok.xml");
+  }
+
+  /** Creates ns3.fakesite.example as a host, then adds it to fakesite. */
+  protected void createSubordinateHost() throws Exception {
+    // Add the fakesite nameserver (requires that domain is already created).
+    assertThatCommand("host_create_fakesite.xml")
+        .atTime("2000-06-06T00:01:00Z")
+        .hasResponse("host_create_response_fakesite.xml");
+    // Add new nameserver to domain.
+    assertThatCommand("domain_update_add_nameserver_fakesite.xml")
+        .atTime("2000-06-08T00:00:00Z")
+        .hasResponse("generic_success_response.xml");
+    // Verify new nameserver was added.
+    assertThatCommand("domain_info_fakesite.xml")
+        .atTime("2000-06-08T00:01:00Z")
+        .hasResponse("domain_info_response_fakesite_3_nameservers.xml");
+    // Verify that nameserver's data was set correctly.
+    assertThatCommand("host_info_fakesite.xml")
+        .atTime("2000-06-08T00:02:00Z")
+        .hasResponse("host_info_response_fakesite_linked.xml");
   }
 }
