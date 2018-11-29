@@ -1,3 +1,14 @@
+buildscript {
+  repositories {
+    jcenter()
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath 'com.google.cloud.tools:appengine-gradle-plugin:1.3.3'
+  }
+}
+
 plugins {
   id 'nebula.lint' version '10.3.1'
   // Config helper for annotation processors such as AutoValue and Dagger.
@@ -18,6 +29,9 @@ subprojects {
     jcenter()
     mavenCentral()
   }
+
+  // Exclude all of the module deployment projects.
+  if (project.name in ['default', 'backend', 'tools', 'pubapi']) return
 
   apply plugin: 'java'
   apply plugin: 'nebula.lint'
