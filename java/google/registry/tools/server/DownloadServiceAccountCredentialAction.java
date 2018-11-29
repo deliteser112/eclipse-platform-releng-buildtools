@@ -38,7 +38,7 @@ import javax.inject.Named;
 @Action(
     path = DownloadServiceAccountCredentialAction.PATH,
     method = {GET},
-    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class DownloadServiceAccountCredentialAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
