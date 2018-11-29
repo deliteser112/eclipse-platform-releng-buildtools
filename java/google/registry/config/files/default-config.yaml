@@ -197,13 +197,14 @@ datastore:
   baseOfyRetryMillis: 100
 
 cloudDns:
+  # Set both properties to null in Production.
   # The root url for the Cloud DNS API.  Set this to a non-null value to
   # override the default API server used by the googleapis library.
-  rootUrl: null
+  rootUrl: https://staging-www.sandbox.googleapis.com
 
   # The service endpoint path for the Cloud DNS API.  Set this to a non-null
   # value to override the default API path used by the googleapis library.
-  servicePath: null
+  servicePath: dns/v2beta1_staging/projects/
 
 caching:
   # Length of time that a singleton should be cached before expiring.
@@ -360,11 +361,6 @@ misc:
   # be longer than eppResourceCachingSeconds, to prevent deleted contacts or
   # hosts from being used on domains.
   asyncDeleteDelaySeconds: 90
-
-cloudDns:
-  # CloudDns testing config. Set both properties to null in Production.
-  rootUrl: https://staging-www.sandbox.googleapis.com
-  servicePath: dns/v2beta1_staging/projects/
 
 beam:
   # The default zone to run Apache Beam (Cloud Dataflow) jobs in.
