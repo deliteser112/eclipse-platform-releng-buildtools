@@ -14,11 +14,15 @@
 
 package google.registry.tools;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.converters.IParameterSplitter;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
@@ -50,6 +54,7 @@ class CurlCommand implements CommandWithConnection {
 
   @Parameter(
       names = {"-t", "--content-type"},
+      converter = MediaTypeConverter.class,
       description =
           "Media type of the request body (for a POST request.  Must be combined with --body)")
   private MediaType mimeType = MediaType.PLAIN_TEXT_UTF_8;
@@ -58,6 +63,7 @@ class CurlCommand implements CommandWithConnection {
   // GET...)
   @Parameter(
       names = {"-d", "--data"},
+      splitter = NoSplittingSplitter.class,
       description =
           "Body for a post request.  If specified, a POST request is sent.  If "
               + "absent, a GET request is sent.")
@@ -94,5 +100,21 @@ class CurlCommand implements CommandWithConnection {
                 mimeType,
                 Joiner.on("&").join(data).getBytes(UTF_8));
     System.out.println(response);
+  }
+
+  public static class MediaTypeConverter implements IStringConverter<MediaType> {
+    @Override
+    public MediaType convert(String mediaType) {
+      List<String> parts = Splitter.on('/').splitToList(mediaType);
+      checkArgument(parts.size() == 2, "invalid MediaType '%s'", mediaType);
+      return MediaType.create(parts.get(0), parts.get(1)).withCharset(UTF_8);
+    }
+  }
+
+  public static class NoSplittingSplitter implements IParameterSplitter {
+    @Override
+    public List<String> split(String value) {
+      return ImmutableList.of(value);
+    }
   }
 }

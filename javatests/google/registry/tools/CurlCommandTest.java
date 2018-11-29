@@ -80,6 +80,37 @@ public class CurlCommandTest extends CommandTestCase<CurlCommand> {
   }
 
   @Test
+  public void testPostInvocation_withContentType() throws Exception {
+    runCommand(
+        "--path=/foo/bar?a=1&b=2",
+        "--data=some data",
+        "--service=DEFAULT",
+        "--content-type=application/json");
+    verify(connection).withService(DEFAULT);
+    verifyNoMoreInteractions(connection);
+    verify(connectionForService)
+        .sendPostRequest(
+            eq("/foo/bar?a=1&b=2"),
+            eq(ImmutableMap.<String, String>of()),
+            eq(MediaType.JSON_UTF_8),
+            eq("some data".getBytes(UTF_8)));
+  }
+
+  @Test
+  public void testPostInvocation_badContentType() throws Exception {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--path=/foo/bar?a=1&b=2",
+                "--data=some data",
+                "--service=DEFAULT",
+                "--content-type=bad"));
+    verifyNoMoreInteractions(connection);
+    verifyNoMoreInteractions(connectionForService);
+  }
+
+  @Test
   public void testMultiDataPost() throws Exception {
     runCommand(
         "--path=/foo/bar?a=1&b=2", "--data=first=100", "-d", "second=200", "--service=PUBAPI");
@@ -91,6 +122,20 @@ public class CurlCommandTest extends CommandTestCase<CurlCommand> {
             eq(ImmutableMap.<String, String>of()),
             eq(MediaType.PLAIN_TEXT_UTF_8),
             eq("first=100&second=200".getBytes(UTF_8)));
+  }
+
+  @Test
+  public void testDataDoesntSplit() throws Exception {
+    runCommand(
+        "--path=/foo/bar?a=1&b=2", "--data=one,two", "--service=PUBAPI");
+    verify(connection).withService(PUBAPI);
+    verifyNoMoreInteractions(connection);
+    verify(connectionForService)
+        .sendPostRequest(
+            eq("/foo/bar?a=1&b=2"),
+            eq(ImmutableMap.<String, String>of()),
+            eq(MediaType.PLAIN_TEXT_UTF_8),
+            eq("one,two".getBytes(UTF_8)));
   }
 
   @Test
