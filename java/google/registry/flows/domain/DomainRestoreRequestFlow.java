@@ -161,7 +161,8 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         .setParent(historyEntry)
         .build();
     DomainResource newDomain =
-        performRestore(existingDomain, newExpirationTime, autorenewEvent, autorenewPollMessage);
+        performRestore(
+            existingDomain, newExpirationTime, autorenewEvent, autorenewPollMessage, now, clientId);
     updateForeignKeyIndexDeletionTime(newDomain);
     entitiesToSave.add(newDomain, historyEntry, autorenewEvent, autorenewPollMessage);
     ofy().save().entities(entitiesToSave.build());
@@ -227,8 +228,11 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
       DomainResource existingDomain,
       DateTime newExpirationTime,
       BillingEvent.Recurring autorenewEvent,
-      PollMessage.Autorenew autorenewPollMessage) {
-    return existingDomain.asBuilder()
+      PollMessage.Autorenew autorenewPollMessage,
+      DateTime now,
+      String clientId) {
+    return existingDomain
+        .asBuilder()
         .setRegistrationExpirationTime(newExpirationTime)
         .setDeletionTime(END_OF_TIME)
         .setStatusValues(null)
@@ -236,6 +240,8 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         .setDeletePollMessage(null)
         .setAutorenewBillingEvent(Key.create(autorenewEvent))
         .setAutorenewPollMessage(Key.create(autorenewPollMessage))
+        .setLastEppUpdateTime(now)
+        .setLastEppUpdateClientId(clientId)
         .build();
   }
 

@@ -98,7 +98,7 @@ public final class DomainTransferCancelFlow implements TransactionalFlow {
     Registry registry = Registry.get(existingDomain.getTld());
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, registry, now);
     DomainResource newDomain =
-        denyPendingTransfer(existingDomain, TransferStatus.CLIENT_CANCELLED, now);
+        denyPendingTransfer(existingDomain, TransferStatus.CLIENT_CANCELLED, now, clientId);
     ofy().save().<ImmutableObject>entities(
         newDomain,
         historyEntry,

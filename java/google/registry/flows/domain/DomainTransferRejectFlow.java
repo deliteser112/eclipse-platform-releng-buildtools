@@ -100,7 +100,7 @@ public final class DomainTransferRejectFlow implements TransactionalFlow {
       checkAllowedAccessToTld(clientId, existingDomain.getTld());
     }
     DomainResource newDomain =
-        denyPendingTransfer(existingDomain, TransferStatus.CLIENT_REJECTED, now);
+        denyPendingTransfer(existingDomain, TransferStatus.CLIENT_REJECTED, now, clientId);
     ofy().save().<ImmutableObject>entities(
         newDomain,
         historyEntry,

@@ -102,7 +102,11 @@ public class DomainTransferRejectFlowTest
         .hasLastTransferTimeNotEqualTo(clock.nowUtc())
         .and()
         .hasOneHistoryEntryEachOfTypes(
-            DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST, DOMAIN_TRANSFER_REJECT);
+            DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST, DOMAIN_TRANSFER_REJECT)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("TheRegistrar");
     final HistoryEntry historyEntryTransferRejected =
         getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REJECT);
     assertAboutHistoryEntries().that(historyEntryTransferRejected).hasOtherClientId("NewRegistrar");

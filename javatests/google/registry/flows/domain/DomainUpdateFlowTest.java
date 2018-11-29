@@ -160,7 +160,11 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         .hasAuthInfoPwd("2BARfoo")
         .and()
         .hasOneHistoryEntryEachOfTypes(
-            HistoryEntry.Type.DOMAIN_CREATE, HistoryEntry.Type.DOMAIN_UPDATE);
+            HistoryEntry.Type.DOMAIN_CREATE, HistoryEntry.Type.DOMAIN_UPDATE)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("TheRegistrar");
     assertNoBillingEvents();
     assertDnsTasksEnqueued("example.tld");
   }

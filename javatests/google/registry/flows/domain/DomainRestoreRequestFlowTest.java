@@ -151,7 +151,11 @@ public class DomainRestoreRequestFlowTest
         .hasDeletionTime(END_OF_TIME)
         .and()
         .hasOneHistoryEntryEachOfTypes(
-            HistoryEntry.Type.DOMAIN_DELETE, HistoryEntry.Type.DOMAIN_RESTORE);
+            HistoryEntry.Type.DOMAIN_DELETE, HistoryEntry.Type.DOMAIN_RESTORE)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("TheRegistrar");
     assertThat(domain.getGracePeriods()).isEmpty();
     assertDnsTasksEnqueued("example.tld");
     // The poll message for the delete should now be gone. The only poll message should be the new

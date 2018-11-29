@@ -80,7 +80,7 @@ public final class ContactTransferCancelFlow implements TransactionalFlow {
     verifyHasPendingTransfer(existingContact);
     verifyTransferInitiator(clientId, existingContact);
     ContactResource newContact =
-        denyPendingTransfer(existingContact, TransferStatus.CLIENT_CANCELLED, now);
+        denyPendingTransfer(existingContact, TransferStatus.CLIENT_CANCELLED, now, clientId);
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.CONTACT_TRANSFER_CANCEL)
         .setModificationTime(now)

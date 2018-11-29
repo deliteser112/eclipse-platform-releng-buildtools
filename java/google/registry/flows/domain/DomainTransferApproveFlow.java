@@ -181,7 +181,9 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
             // Update the transferredRegistrationExpirationTime here since approvePendingTransfer()
             // doesn't know what to set it to and leaves it null.
             .setTransferData(
-                partiallyApprovedDomain.getTransferData().asBuilder()
+                partiallyApprovedDomain
+                    .getTransferData()
+                    .asBuilder()
                     .setTransferredRegistrationExpirationTime(newExpirationTime)
                     .build())
             .setRegistrationExpirationTime(newExpirationTime)
@@ -193,6 +195,8 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
                     ? ImmutableSet.of(
                         GracePeriod.forBillingEvent(GracePeriodStatus.TRANSFER, billingEvent.get()))
                     : ImmutableSet.of())
+            .setLastEppUpdateTime(now)
+            .setLastEppUpdateClientId(clientId)
             .build();
     // Create a poll message for the gaining client.
     PollMessage gainingClientPollMessage = createGainingTransferPollMessage(

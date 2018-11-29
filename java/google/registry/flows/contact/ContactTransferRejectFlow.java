@@ -78,7 +78,7 @@ public final class ContactTransferRejectFlow implements TransactionalFlow {
     verifyHasPendingTransfer(existingContact);
     verifyResourceOwnership(clientId, existingContact);
     ContactResource newContact =
-        denyPendingTransfer(existingContact, TransferStatus.CLIENT_REJECTED, now);
+        denyPendingTransfer(existingContact, TransferStatus.CLIENT_REJECTED, now, clientId);
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.CONTACT_TRANSFER_REJECT)
         .setModificationTime(now)

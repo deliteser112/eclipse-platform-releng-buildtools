@@ -39,6 +39,7 @@ import static google.registry.model.reporting.HistoryEntry.Type.CONTACT_DELETE;
 import static google.registry.model.reporting.HistoryEntry.Type.CONTACT_DELETE_FAILURE;
 import static google.registry.model.reporting.HistoryEntry.Type.HOST_DELETE;
 import static google.registry.model.reporting.HistoryEntry.Type.HOST_DELETE_FAILURE;
+import static google.registry.model.transfer.TransferStatus.SERVER_CANCELLED;
 import static google.registry.util.PipelineUtils.createJobPath;
 import static java.math.RoundingMode.CEILING;
 import static java.util.concurrent.TimeUnit.DAYS;
@@ -85,7 +86,6 @@ import google.registry.model.poll.PendingActionNotificationResponse.HostPendingA
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.server.Lock;
-import google.registry.model.transfer.TransferStatus;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
@@ -394,7 +394,9 @@ public class DeleteContactsAndHostsAction implements Runnable {
           ContactResource contact = (ContactResource) resource;
           // Handle pending transfers on contact deletion.
           if (contact.getStatusValues().contains(StatusValue.PENDING_TRANSFER)) {
-            contact = denyPendingTransfer(contact, TransferStatus.SERVER_CANCELLED, now);
+            contact =
+                denyPendingTransfer(
+                    contact, SERVER_CANCELLED, now, deletionRequest.requestingClientId());
           }
           // Wipe out PII on contact deletion.
           resourceToSaveBuilder = contact.asBuilder().wipeOut();

@@ -175,12 +175,17 @@ public final class DomainRenewFlow implements TransactionalFlow {
         .build();
     // End the old autorenew billing event and poll message now. This may delete the poll message.
     updateAutorenewRecurrenceEndTime(existingDomain, now);
-    DomainResource newDomain = existingDomain.asBuilder()
-        .setRegistrationExpirationTime(newExpirationTime)
-        .setAutorenewBillingEvent(Key.create(newAutorenewEvent))
-        .setAutorenewPollMessage(Key.create(newAutorenewPollMessage))
-        .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.RENEW, explicitRenewEvent))
-        .build();
+    DomainResource newDomain =
+        existingDomain
+            .asBuilder()
+            .setLastEppUpdateTime(now)
+            .setLastEppUpdateClientId(clientId)
+            .setRegistrationExpirationTime(newExpirationTime)
+            .setAutorenewBillingEvent(Key.create(newAutorenewEvent))
+            .setAutorenewPollMessage(Key.create(newAutorenewPollMessage))
+            .addGracePeriod(
+                GracePeriod.forBillingEvent(GracePeriodStatus.RENEW, explicitRenewEvent))
+            .build();
     EntityChanges entityChanges =
         flowCustomLogic.beforeSave(
             BeforeSaveParameters.newBuilder()

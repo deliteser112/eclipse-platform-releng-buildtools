@@ -834,7 +834,11 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     runFlow();
     assertAboutDomains()
         .that(reloadResourceByForeignKey())
-        .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_DELETE);
+        .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_DELETE)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("TheRegistrar");
     assertAboutHistoryEntries()
         .that(getOnlyHistoryEntryOfType(domain, DOMAIN_DELETE))
         .hasType(DOMAIN_DELETE)

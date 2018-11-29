@@ -153,7 +153,11 @@ public class DomainTransferRequestFlowTest
         .that(domain)
         .hasCurrentSponsorClientId("TheRegistrar")
         .and()
-        .hasStatusValue(StatusValue.PENDING_TRANSFER);
+        .hasStatusValue(StatusValue.PENDING_TRANSFER)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("NewRegistrar");
     Trid expectedTrid =
         Trid.create(
             getClientTrid(),
