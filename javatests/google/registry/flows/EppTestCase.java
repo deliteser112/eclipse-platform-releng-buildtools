@@ -16,6 +16,8 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
+import static google.registry.testing.DatastoreHelper.stripBillingEventId;
 import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.xml.XmlTestUtils.assertXmlEqualsWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -23,9 +25,19 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
+import com.google.common.truth.Truth8;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Flag;
+import google.registry.model.billing.BillingEvent.OneTime;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
+import google.registry.model.registry.Registry;
+import google.registry.model.reporting.HistoryEntry.Type;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeHttpSession;
@@ -33,7 +45,10 @@ import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.testing.ShardableTestCase;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import javax.annotation.Nullable;
+import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,7 +61,7 @@ public class EppTestCase extends ShardableTestCase {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  private final FakeClock clock = new FakeClock();
+  protected final FakeClock clock = new FakeClock();
 
   private SessionMetadata sessionMetadata;
   private TransportCredentials credentials = new PasswordOnlyTransportCredentials();
@@ -255,5 +270,76 @@ public class EppTestCase extends ShardableTestCase {
     assertThatCommand("host_info_fakesite.xml")
         .atTime("2000-06-08T00:02:00Z")
         .hasResponse("host_info_response_fakesite_linked.xml");
+  }
+
+  /** Makes a one-time billing event corresponding to the given domain's creation. */
+  protected static BillingEvent.OneTime makeOneTimeCreateBillingEvent(
+      DomainResource domain, DateTime createTime) {
+    return new BillingEvent.OneTime.Builder()
+        .setReason(Reason.CREATE)
+        .setTargetId(domain.getFullyQualifiedDomainName())
+        .setClientId(domain.getCurrentSponsorClientId())
+        .setCost(Money.parse("USD 26.00"))
+        .setPeriodYears(2)
+        .setEventTime(createTime)
+        .setBillingTime(createTime.plus(Registry.get(domain.getTld()).getRenewGracePeriodLength()))
+        .setParent(getOnlyHistoryEntryOfType(domain, Type.DOMAIN_CREATE))
+        .build();
+  }
+
+  /** Makes a recurring billing event corresponding to the given domain's creation. */
+  protected static BillingEvent.Recurring makeRecurringCreateBillingEvent(
+      DomainResource domain, DateTime createTime, DateTime endTime) {
+    return new BillingEvent.Recurring.Builder()
+        .setReason(Reason.RENEW)
+        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
+        .setTargetId(domain.getFullyQualifiedDomainName())
+        .setClientId(domain.getCurrentSponsorClientId())
+        .setEventTime(createTime.plusYears(2))
+        .setRecurrenceEndTime(endTime)
+        .setParent(getOnlyHistoryEntryOfType(domain, Type.DOMAIN_CREATE))
+        .build();
+  }
+
+  /** Makes a cancellation billing event cancelling out the given domain create billing event. */
+  protected static BillingEvent.Cancellation makeCancellationBillingEventFor(
+      DomainResource domain,
+      OneTime billingEventToCancel,
+      DateTime createTime,
+      DateTime deleteTime) {
+    return new BillingEvent.Cancellation.Builder()
+        .setTargetId(domain.getFullyQualifiedDomainName())
+        .setClientId(domain.getCurrentSponsorClientId())
+        .setEventTime(deleteTime)
+        .setOneTimeEventKey(findKeyToActualOneTimeBillingEvent(billingEventToCancel))
+        .setBillingTime(createTime.plus(Registry.get(domain.getTld()).getRenewGracePeriodLength()))
+        .setReason(Reason.CREATE)
+        .setParent(getOnlyHistoryEntryOfType(domain, Type.DOMAIN_DELETE))
+        .build();
+  }
+
+  /**
+   * Finds the Key to the actual one-time create billing event associated with a domain's creation.
+   *
+   * <p>This is used in the situation where we have created an expected billing event associated
+   * with the domain's creation (which is passed as the parameter here), then need to locate the key
+   * to the actual billing event in Datastore that would be seen on a Cancellation billing event.
+   * This is necessary because the ID will be different even though all the rest of the fields are
+   * the same.
+   */
+  protected static Key<OneTime> findKeyToActualOneTimeBillingEvent(OneTime expectedBillingEvent) {
+    Optional<OneTime> actualCreateBillingEvent =
+        ofy()
+            .load()
+            .type(BillingEvent.OneTime.class)
+            .list()
+            .stream()
+            .filter(
+                b ->
+                    Objects.equals(
+                        stripBillingEventId(b), stripBillingEventId(expectedBillingEvent)))
+            .findFirst();
+    Truth8.assertThat(actualCreateBillingEvent).isPresent();
+    return Key.create(actualCreateBillingEvent.get());
   }
 }
