@@ -34,7 +34,7 @@ goog.forwardDeclare('registry.registrar.Console');
 registry.registrar.ContactUs = function(console, resource) {
   registry.registrar.ContactUs.base(
       this, 'constructor', console, resource,
-      registry.soy.registrar.console.contactUs, null);
+      registry.soy.registrar.console.contactUs, console.params.isOwner, null);
 };
 goog.inherits(registry.registrar.ContactUs, registry.ResourceComponent);
 

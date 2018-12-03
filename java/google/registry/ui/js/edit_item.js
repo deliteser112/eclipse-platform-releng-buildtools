@@ -31,10 +31,11 @@ goog.forwardDeclare('registry.Console');
  * An editable item, with Edit and Save/Cancel buttons in the appbar.
  * @param {!registry.Console} cons
  * @param {function()} itemTmpl
+ * @param {boolean} isEditable
  * @constructor
  * @extends {registry.Component}
  */
-registry.EditItem = function(cons, itemTmpl) {
+registry.EditItem = function(cons, itemTmpl, isEditable) {
   registry.EditItem.base(this, 'constructor', cons);
 
   /**
@@ -47,6 +48,12 @@ registry.EditItem = function(cons, itemTmpl) {
    * @type {?string}
    */
   this.id = null;
+
+  /**
+   * Should the "edit" button be enabled?
+   * @type {boolean}
+   */
+  this.isEditable = isEditable;
 
   /**
    * Transitional id for next resource during create.
@@ -68,7 +75,7 @@ registry.EditItem.prototype.bindToDom = function(id) {
 
 /** Setup appbar save/edit buttons. */
 registry.EditItem.prototype.setupAppbar = function() {
-  goog.soy.renderElement(goog.dom.getRequiredElement('reg-appbar'),
+  goog.soy.renderElement(goog.dom.getRequiredElement('reg-app-buttons'),
                          registry.soy.console.appbarButtons);
   goog.events.listen(goog.dom.getRequiredElement('reg-app-btn-add'),
       goog.events.EventType.CLICK,
@@ -85,11 +92,11 @@ registry.EditItem.prototype.setupAppbar = function() {
   goog.events.listen(goog.dom.getRequiredElement('reg-app-btn-back'),
       goog.events.EventType.CLICK,
       goog.bind(this.back, this));
-  if (this.id) {
-    registry.util.setVisible('reg-app-btns-edit', true);
-  } else {
-    registry.util.setVisible('reg-app-btn-add', true);
-  }
+  // Show the add/edit buttons only if isEditable.
+  // "edit" is shown if we have an item's ID
+  // "add" is shown if we don't have an item's ID
+  registry.util.setVisible('reg-app-btns-edit', this.isEditable && !!this.id);
+  registry.util.setVisible('reg-app-btn-add', this.isEditable && !this.id);
 };
 
 

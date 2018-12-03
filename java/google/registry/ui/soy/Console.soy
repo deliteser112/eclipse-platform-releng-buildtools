@@ -102,27 +102,25 @@
 
 /** Appbar add/back, edit/cancel appbar. */
 {template .appbarButtons}
-  <div id="reg-app-buttons" class="{css('kd-buttonbar')} {css('left')}">
-    <button id="reg-app-btn-add"
+  <button id="reg-app-btn-add"
+          type="button"
+          class="{css('kd-button')} {css('kd-button-submit')} {css('hidden')}">
+    Add</button>
+  <div id="reg-app-btns-edit" class="{css('hidden')}">
+    <button id="reg-app-btn-edit"
             type="button"
-            class="{css('kd-button')} {css('kd-button-submit')} {css('hidden')}">
-      Add</button>
-    <div id="reg-app-btns-edit" class="{css('hidden')}">
-      <button id="reg-app-btn-edit"
-              type="button"
-              class="{css('kd-button')} {css('kd-button-submit')}">
-        Edit</button>
-      <button id="reg-app-btn-back" type="button" class="{css('kd-button')}">
-        Back</button>
-    </div>
-    <div id="reg-app-btns-save" class="{css('hidden')}">
-      <button id="reg-app-btn-save"
-              type="button"
-              class="{css('kd-button')} {css('kd-button-submit')}">
-        Save</button>
-      <button id="reg-app-btn-cancel" type="button" class="{css('kd-button')}">
-        Cancel</button>
-    </div>
+            class="{css('kd-button')} {css('kd-button-submit')}">
+      Edit</button>
+    <button id="reg-app-btn-back" type="button" class="{css('kd-button')}">
+      Back</button>
+  </div>
+  <div id="reg-app-btns-save" class="{css('hidden')}">
+    <button id="reg-app-btn-save"
+            type="button"
+            class="{css('kd-button')} {css('kd-button-submit')}">
+      Save</button>
+    <button id="reg-app-btn-cancel" type="button" class="{css('kd-button')}">
+      Cancel</button>
   </div>
 {/template}
 

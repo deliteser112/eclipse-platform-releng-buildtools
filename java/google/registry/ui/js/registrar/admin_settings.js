@@ -39,7 +39,7 @@ goog.forwardDeclare('registry.registrar.Console');
 registry.registrar.AdminSettings = function(console, resource) {
   registry.registrar.AdminSettings.base(
       this, 'constructor', console, resource,
-      registry.soy.registrar.admin.settings, null);
+      registry.soy.registrar.admin.settings, console.params.isAdmin, null);
 };
 goog.inherits(registry.registrar.AdminSettings, registry.ResourceComponent);
 

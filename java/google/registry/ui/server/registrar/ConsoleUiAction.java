@@ -17,6 +17,7 @@ package google.registry.ui.server.registrar;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
 import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.ADMIN;
+import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static google.registry.ui.server.registrar.RegistrarConsoleModule.PARAM_CLIENT_ID;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
@@ -141,6 +142,7 @@ public final class ConsoleUiAction implements Runnable {
     try {
       clientId = paramClientId.orElse(registrarAccessor.guessClientId());
       data.put("clientId", clientId);
+      data.put("isOwner", roleMap.containsEntry(clientId, OWNER));
       data.put("isAdmin", roleMap.containsEntry(clientId, ADMIN));
 
       // We want to load the registrar even if we won't use it later (even if we remove the

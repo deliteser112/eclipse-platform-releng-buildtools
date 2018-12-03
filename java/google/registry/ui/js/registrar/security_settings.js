@@ -39,7 +39,7 @@ goog.forwardDeclare('registry.registrar.Console');
 registry.registrar.SecuritySettings = function(console, resource) {
   registry.registrar.SecuritySettings.base(
       this, 'constructor', console, resource,
-      registry.soy.registrar.security.settings, null);
+      registry.soy.registrar.security.settings, console.params.isOwner, null);
 };
 goog.inherits(registry.registrar.SecuritySettings, registry.ResourceComponent);
 
