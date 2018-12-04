@@ -23,19 +23,20 @@ steps:
 - name: 'gcr.io/cloud-builders/git'
   args: ['tag', '$TAG_NAME']
   dir: 'nomulus-config'
-- name: 'gcr.io/cloud-builders/git'
-  args: ['push', 'origin', '$TAG_NAME']
-  dir: 'nomulus-config'
 - name: 'alpine'
   args: ['sh', '-c', 'cp -r nomulus-config/proxy/* java/google/registry/proxy/config/']
 # Build the deploy jar.
-- name: 'gradle:4.10.2'
-  args: ['gradle', 'testClasses', ':proxy:deployJar']
+- name: 'openjdk:8-slim'
+  args: ['./gradlew', 'testClasses', ':proxy:deployJar']
   dir: 'gradle'
 # Build the docker image.
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag', 'gcr.io/$PROJECT_ID/proxy:$TAG_NAME', '.']
   dir: 'gradle/proxy'
+# Push the tag to the private repo after a successful build.
+- name: 'gcr.io/cloud-builders/git'
+  args: ['push', 'origin', '$TAG_NAME']
+  dir: 'nomulus-config'
 # Images to upload to GCR.
 images: ['gcr.io/$PROJECT_ID/proxy:$TAG_NAME']
 timeout: 3600s
