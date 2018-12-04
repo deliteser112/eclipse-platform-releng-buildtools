@@ -149,17 +149,6 @@ public final class InMemoryKeyring implements Keyring {
     return jsonCredential;
   }
 
-  @Override
-  public String getEncryptedData(String keyName) {
-    throw new RuntimeException(
-        "In-memory keyring does not support the retrieval of encrypted data.");
-  }
-
-  @Override
-  public byte[] getDecryptedData(String keyName, String encryptedData) {
-    throw new RuntimeException("In-memory keyring does not support decrypting of supplied data.");
-  }
-
   /** Does nothing. */
   @Override
   public void close() {}

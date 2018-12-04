@@ -20,9 +20,6 @@ import dagger.Module;
 import dagger.Provides;
 import java.lang.annotation.Documented;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import javax.inject.Named;
 import javax.inject.Qualifier;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
@@ -128,17 +125,5 @@ public final class KeyModule {
   @Key("jsonCredential")
   static String provideJsonCredential(Keyring keyring) {
     return keyring.getJsonCredential();
-  }
-
-  @Provides
-  @Named("encryptedDataRetriever")
-  static Function<String, String> provideEncryptedDataRetriever(Keyring keyring) {
-    return keyring::getEncryptedData;
-  }
-
-  @Provides
-  @Named("keyringDecrypter")
-  static BiFunction<String, String, byte[]> provideKeyringDecrypter(Keyring keyring) {
-    return keyring::getDecryptedData;
   }
 }

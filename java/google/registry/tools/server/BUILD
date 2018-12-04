@@ -14,7 +14,6 @@ java_library(
         "//java/google/registry/flows",
         "//java/google/registry/gcs",
         "//java/google/registry/groups",
-        "//java/google/registry/keyring/kms",
         "//java/google/registry/mapreduce",
         "//java/google/registry/mapreduce/inputs",
         "//java/google/registry/model",

@@ -151,17 +151,6 @@ public final class FakeKeyringModule {
       }
 
       @Override
-      public String getEncryptedData(String keyName) {
-        throw new RuntimeException(
-            "Fake keyring does not support the retrieval of encrypted data.");
-      }
-
-      @Override
-      public byte[] getDecryptedData(String keyName, String encryptedData) {
-        throw new RuntimeException("Fake keyring does not support decrypting of supplied data.");
-      }
-
-      @Override
       public void close() {}
     };
   }

@@ -42,31 +42,31 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 public class KmsKeyring implements Keyring {
 
   /** Key labels for private key secrets. */
-  public enum PrivateKeyLabel {
+  enum PrivateKeyLabel {
     BRDA_SIGNING_PRIVATE,
     RDE_SIGNING_PRIVATE,
     RDE_STAGING_PRIVATE;
 
-    public String getLabel() {
+    String getLabel() {
       return UPPER_UNDERSCORE.to(LOWER_HYPHEN, name());
     }
   }
 
   /** Key labels for public key secrets. */
-  public enum PublicKeyLabel {
+  enum PublicKeyLabel {
     BRDA_RECEIVER_PUBLIC,
     BRDA_SIGNING_PUBLIC,
     RDE_RECEIVER_PUBLIC,
     RDE_SIGNING_PUBLIC,
     RDE_STAGING_PUBLIC;
 
-    public String getLabel() {
+    String getLabel() {
       return UPPER_UNDERSCORE.to(LOWER_HYPHEN, name());
     }
   }
 
   /** Key labels for string secrets. */
-  public enum StringKeyLabel {
+  enum StringKeyLabel {
     SAFE_BROWSING_API_KEY,
     ICANN_REPORTING_PASSWORD_STRING,
     JSON_CREDENTIAL_STRING,
@@ -76,7 +76,7 @@ public class KmsKeyring implements Keyring {
     RDE_SSH_CLIENT_PRIVATE_STRING,
     RDE_SSH_CLIENT_PUBLIC_STRING;
 
-    public String getLabel() {
+    String getLabel() {
       return UPPER_UNDERSCORE.to(LOWER_HYPHEN, name());
     }
   }
@@ -158,26 +158,9 @@ public class KmsKeyring implements Keyring {
     return getString(StringKeyLabel.JSON_CREDENTIAL_STRING);
   }
 
-  @Override
-  public String getEncryptedData(String keyName) {
-    KmsSecret secret = getSecret(keyName);
-    return ofy().load().key(secret.getLatestRevision()).now().getEncryptedValue();
-  }
-
-  private String getEncryptedData(KmsSecret secret) {
-    return ofy().load().key(secret.getLatestRevision()).now().getEncryptedValue();
-  }
-
   /** No persistent resources are maintained for this Keyring implementation. */
   @Override
   public void close() {}
-
-  private KmsSecret getSecret(String keyName) {
-    KmsSecret secret =
-        ofy().load().key(Key.create(getCrossTldKey(), KmsSecret.class, keyName)).now();
-    checkState(secret != null, "Requested secret '%s' does not exist.", keyName);
-    return secret;
-  }
 
   private String getString(StringKeyLabel keyLabel) {
     return KeySerializer.deserializeString(getDecryptedData(keyLabel.getLabel()));
@@ -205,27 +188,16 @@ public class KmsKeyring implements Keyring {
   }
 
   private byte[] getDecryptedData(String keyName) {
-    String encryptedData = getEncryptedData(keyName);
-    return getDecryptedData(keyName, encryptedData);
-  }
+    KmsSecret secret =
+        ofy().load().key(Key.create(getCrossTldKey(), KmsSecret.class, keyName)).now();
+    checkState(secret != null, "Requested secret '%s' does not exist.", keyName);
+    String encryptedData = ofy().load().key(secret.getLatestRevision()).now().getEncryptedValue();
 
-  private byte[] getDecryptedData(KmsSecret secret) {
-    String encryptedData = getEncryptedData(secret);
-    return getDecryptedData(secret, encryptedData);
-  }
-
-  private byte[] getDecryptedData(KmsSecret secret, String encryptedData) {
     try {
       return kmsConnection.decrypt(secret.getName(), encryptedData);
     } catch (Exception e) {
       throw new KeyringException(
-          String.format("CloudKMS decrypt operation failed for secret %s", secret.getName()), e);
+          String.format("CloudKMS decrypt operation failed for secret %s", keyName), e);
     }
-  }
-
-  @Override
-  public byte[] getDecryptedData(String keyName, String encryptedData) {
-    KmsSecret secret = getSecret(keyName);
-    return getDecryptedData(secret);
   }
 }
