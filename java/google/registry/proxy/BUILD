@@ -19,10 +19,8 @@ java_library(
     ]),
     deps = [
         "//java/google/registry/util",
+        "//third_party/java/jackson2:jackson2-databind",
         "@com_beust_jcommander",
-        "@com_fasterxml_jackson_core",
-        "@com_fasterxml_jackson_core_jackson_annotations",
-        "@com_fasterxml_jackson_core_jackson_databind",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_cloudkms",
         "@com_google_apis_google_api_services_monitoring",
