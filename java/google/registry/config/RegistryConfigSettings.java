@@ -182,6 +182,7 @@ public class RegistryConfigSettings {
 
   /** Configuration options for the registry tool. */
   public static class RegistryTool {
-    public String clientSecretFilename;
+    public String clientId;
+    public String clientSecret;
   }
 }

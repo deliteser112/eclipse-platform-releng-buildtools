@@ -46,8 +46,6 @@ import org.junit.runners.JUnit4;
 /** Unit tests for {@link AuthModule}. */
 @RunWith(JUnit4.class)
 public class AuthModuleTest {
-  private static final String TEST_CLIENT_SECRET_FILENAME =
-      "/google/registry/tools/resources/client_secret_UNITTEST.json";
 
   private static final String CLIENT_ID = "UNITTEST-CLIENT-ID";
   private static final String CLIENT_SECRET = "UNITTEST-CLIENT-SECRET";
@@ -89,8 +87,7 @@ public class AuthModuleTest {
   @Before
   public void setUp() throws Exception {
     fakeCredential.setRefreshToken(REFRESH_TOKEN);
-    when(dataStore.get(CLIENT_ID + " scope1"))
-        .thenReturn(new StoredCredential(fakeCredential));
+    when(dataStore.get(CLIENT_ID + " scope1")).thenReturn(new StoredCredential(fakeCredential));
   }
 
   @Test
@@ -151,7 +148,11 @@ public class AuthModuleTest {
   }
 
   private GoogleClientSecrets getSecrets() {
-    return AuthModule.provideClientSecrets(TEST_CLIENT_SECRET_FILENAME, new JacksonFactory());
+    return new GoogleClientSecrets()
+        .setInstalled(
+            AuthModule.provideDefaultInstalledDetails()
+                .setClientId(CLIENT_ID)
+                .setClientSecret(CLIENT_SECRET));
   }
 
   @Test
@@ -174,8 +175,8 @@ public class AuthModuleTest {
     Credential cred = getCredential();
     assertThat(cred.getAccessToken()).isEqualTo(fakeCredential.getAccessToken());
     assertThat(cred.getRefreshToken()).isEqualTo(fakeCredential.getRefreshToken());
-    assertThat(cred.getExpirationTimeMilliseconds()).isEqualTo(
-        fakeCredential.getExpirationTimeMilliseconds());
+    assertThat(cred.getExpirationTimeMilliseconds())
+        .isEqualTo(fakeCredential.getExpirationTimeMilliseconds());
   }
 
   @Test

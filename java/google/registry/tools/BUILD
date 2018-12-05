@@ -26,11 +26,6 @@ java_library(
     resources = glob([
         "*.properties",
         "sql/*.sql",
-
-        # These are example client secret files.  You'll need to obtain your
-        # own for every environment you use and install them in this
-        # directory.
-        "resources/client_secret*.json",
     ]),
     visibility = [":allowed-tools"],
     runtime_deps = [

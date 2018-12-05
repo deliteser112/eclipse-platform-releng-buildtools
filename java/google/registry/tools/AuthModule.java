@@ -21,6 +21,7 @@ import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInsta
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
@@ -38,7 +39,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -92,19 +92,20 @@ public class AuthModule {
   }
 
   @Provides
+  static Details provideDefaultInstalledDetails() {
+    return new Details()
+        .setAuthUri("https://accounts.google.com/o/oauth2/auth")
+        .setTokenUri("https://accounts.google.com/o/oauth2/token")
+        .setRedirectUris(ImmutableList.of("urn:ietf:wg:oauth:2.0:oob", "http://localhost"));
+  }
+
+  @Provides
   public static GoogleClientSecrets provideClientSecrets(
-      @Config("clientSecretFilename") String clientSecretFilename, JsonFactory jsonFactory) {
-    try {
-      // Load the client secrets file.
-      InputStream secretResourceStream = AuthModule.class.getResourceAsStream(clientSecretFilename);
-      if (secretResourceStream == null) {
-        throw new RuntimeException("No client secret file found: " + clientSecretFilename);
-      }
-      return GoogleClientSecrets.load(jsonFactory,
-          new InputStreamReader(secretResourceStream, UTF_8));
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
+      @Config("toolsClientId") String clientId,
+      @Config("toolsClientSecret") String clientSecret,
+      Details details) {
+    return new GoogleClientSecrets()
+        .setInstalled(details.setClientId(clientId).setClientSecret(clientSecret));
   }
 
   @Provides

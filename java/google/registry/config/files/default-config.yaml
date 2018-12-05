@@ -257,8 +257,8 @@ oAuth:
     - https://www.googleapis.com/auth/userinfo.email
 
   # OAuth client IDs that are allowed to authenticate and communicate with
-  # backend services, e. g. nomulus tool, EPP proxy, etc. All client_id values
-  # used in client_secret.json files for associated tooling should be included
+  # backend services, e. g. nomulus tool, EPP proxy, etc. The client_id value
+  # used in registryTool.clientId field for associated tooling should be included
   # in this list. Client IDs are typically of the format
   # numbers-alphanumerics.apps.googleusercontent.com
   allowedOauthClientIds: []
@@ -388,5 +388,7 @@ keyring:
 
 # Configuration options relevant to the "nomulus" registry tool.
 registryTool:
-  # Name of the client secret file used for authenticating with App Engine.
-  clientSecretFilename: /google/registry/tools/resources/client_secret.json
+  # OAuth client Id used by the tool.
+  clientId: YOUR_CLIENT_ID
+  # OAuth client secret used by the tool.
+  clientSecret: YOUR_CLIENT_SECRET

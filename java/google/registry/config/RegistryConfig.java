@@ -1258,15 +1258,18 @@ public final class RegistryConfig {
       return "/tos";
     }
 
-    /**
-     * Returns the name of the OAuth2 client secrets file.
-     *
-     * <p>This is the name of a resource relative to the root of the class tree.
-     */
+    /** OAuth client ID used by the nomulus tool. */
     @Provides
-    @Config("clientSecretFilename")
-    public static String provideClientSecretFilename(RegistryConfigSettings config) {
-      return config.registryTool.clientSecretFilename;
+    @Config("toolsClientId")
+    public static String provideToolsClientId(RegistryConfigSettings config) {
+      return config.registryTool.clientId;
+    }
+
+    /** OAuth client secret used by the nomulus tool. */
+    @Provides
+    @Config("toolsClientSecret")
+    public static String provideToolsClientSecret(RegistryConfigSettings config) {
+      return config.registryTool.clientSecret;
     }
 
     @Provides
@@ -1549,12 +1552,6 @@ public final class RegistryConfig {
   /** Returns the global automatic transfer length for contacts. */
   public static Duration getContactAutomaticTransferLength() {
     return Duration.standardDays(CONFIG_SETTINGS.get().registryPolicy.contactAutomaticTransferDays);
-  }
-
-  /** Provided for testing. */
-  @VisibleForTesting
-  public static String getClientSecretFilename() {
-    return CONFIG_SETTINGS.get().registryTool.clientSecretFilename;
   }
 
   /**
