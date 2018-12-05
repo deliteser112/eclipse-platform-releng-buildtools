@@ -1229,6 +1229,14 @@ public final class RegistryConfig {
       return ImmutableList.copyOf(config.credentialOAuth.delegatedCredentialOauthScopes);
     }
 
+    /** Provides the OAuth scopes required for credentials created locally for the nomulus tool. */
+    @Provides
+    @Config("localCredentialOauthScopes")
+    public static ImmutableList<String> provideLocalCredentialOauthScopes(
+        RegistryConfigSettings config) {
+      return ImmutableList.copyOf(config.credentialOAuth.localCredentialOauthScopes);
+    }
+
     /** Provides the OAuth scopes required for access to App Engine Admin API. */
     @Provides
     @Config("appEngineAdminApiCredentialOauthScopes")

@@ -117,6 +117,7 @@ dependencies {
   maybeRuntime 'com.google.auth:google-auth-library-oauth2-http:0.7.1'
   maybeRuntime 'com.google.auto:auto-common:0.8'
   maybeRuntime 'com.google.auto.factory:auto-factory:1.0-beta3'
+  compile 'com.google.code.gson:gson:2.8.5'
   compile 'com.google.auto.value:auto-value-annotations:1.6.2'
   maybeRuntime 'com.google.cloud.bigdataoss:gcsio:1.4.5'
   maybeRuntime 'com.google.cloud.bigdataoss:util:1.4.5'

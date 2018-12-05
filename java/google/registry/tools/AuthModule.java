@@ -26,11 +26,15 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
+import com.google.gson.Gson;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,9 +55,8 @@ public class AuthModule {
       new File(System.getProperty("user.home"), ".config/nomulus/credentials");
 
   @Provides
-  public Credential provideCredential(
-      GoogleAuthorizationCodeFlow flow,
-      @ClientScopeQualifier String clientScopeQualifier) {
+  public static Credential provideCredential(
+      GoogleAuthorizationCodeFlow flow, @ClientScopeQualifier String clientScopeQualifier) {
     try {
       // Try to load the credentials, throw an exception if we fail.
       Credential credential = flow.loadCredential(clientScopeQualifier);
@@ -67,10 +70,10 @@ public class AuthModule {
   }
 
   @Provides
-  GoogleAuthorizationCodeFlow provideAuthorizationCodeFlow(
+  public static GoogleAuthorizationCodeFlow provideAuthorizationCodeFlow(
       JsonFactory jsonFactory,
       GoogleClientSecrets clientSecrets,
-      @Config("requiredOauthScopes") ImmutableSet<String> requiredOauthScopes,
+      @Config("localCredentialOauthScopes") ImmutableList<String> requiredOauthScopes,
       AbstractDataStoreFactory dataStoreFactory) {
     try {
       return new GoogleAuthorizationCodeFlow.Builder(
@@ -83,17 +86,17 @@ public class AuthModule {
   }
 
   @Provides
-  AuthorizationCodeInstalledApp provideAuthorizationCodeInstalledApp(
+  public static AuthorizationCodeInstalledApp provideAuthorizationCodeInstalledApp(
       GoogleAuthorizationCodeFlow flow) {
     return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver());
   }
 
   @Provides
-  GoogleClientSecrets provideClientSecrets(
+  public static GoogleClientSecrets provideClientSecrets(
       @Config("clientSecretFilename") String clientSecretFilename, JsonFactory jsonFactory) {
     try {
       // Load the client secrets file.
-      InputStream secretResourceStream = getClass().getResourceAsStream(clientSecretFilename);
+      InputStream secretResourceStream = AuthModule.class.getResourceAsStream(clientSecretFilename);
       if (secretResourceStream == null) {
         throw new RuntimeException("No client secret file found: " + clientSecretFilename);
       }
@@ -105,19 +108,39 @@ public class AuthModule {
   }
 
   @Provides
-  @OAuthClientId String provideClientId(GoogleClientSecrets clientSecrets) {
+  @LocalCredentialStream
+  public static Supplier<InputStream> provideLocalCredentialStream(
+      GoogleClientSecrets clientSecrets, Credential credential) {
+    String json =
+        new Gson()
+            .toJson(
+                ImmutableMap.<String, String>builder()
+                    .put("type", "authorized_user")
+                    .put("client_id", clientSecrets.getDetails().getClientId())
+                    .put("client_secret", clientSecrets.getDetails().getClientSecret())
+                    .put("refresh_token", credential.getRefreshToken())
+                    .build());
+    // A supplier is provided so that each binding gets a fresh stream, to avoid contention.
+    return () -> new ByteArrayInputStream(json.getBytes(UTF_8));
+  }
+
+  @Provides
+  @OAuthClientId
+  static String provideClientId(GoogleClientSecrets clientSecrets) {
     return clientSecrets.getDetails().getClientId();
   }
 
   @Provides
-  @ClientScopeQualifier String provideClientScopeQualifier(
-      @OAuthClientId String clientId, @Config("requiredOauthScopes") ImmutableSet<String> scopes) {
+  @ClientScopeQualifier
+  static String provideClientScopeQualifier(
+      @OAuthClientId String clientId,
+      @Config("localCredentialOauthScopes") ImmutableList<String> scopes) {
     return clientId + " " + Joiner.on(" ").join(Ordering.natural().sortedCopy(scopes));
   }
 
   @Provides
   @Singleton
-  public AbstractDataStoreFactory provideDataStoreFactory() {
+  public static AbstractDataStoreFactory provideDataStoreFactory() {
     try {
       return new FileDataStoreFactory(DATA_STORE_DIR);
     } catch (IOException ex) {
@@ -125,31 +148,26 @@ public class AuthModule {
     }
   }
 
-  /** Wrapper class to hold the login() function. */
-  public static class Authorizer {
-    /** Initiate the login flow. */
-    public static void login(
-        GoogleAuthorizationCodeFlow flow,
-        @ClientScopeQualifier String clientScopeQualifier) throws IOException {
-      new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver())
-          .authorize(clientScopeQualifier);
-    }
+  /** Raised when we need a user login. */
+  static class LoginRequiredException extends RuntimeException {
+    LoginRequiredException() {}
   }
 
-  /** Raised when we need a user login. */
-  public static class LoginRequiredException extends RuntimeException {
-    public LoginRequiredException() {}
-  }
+  /** Dagger qualifier for the JSON stream used to create the local credential. */
+  @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface LocalCredentialStream {}
 
   /** Dagger qualifier for the credential qualifier consisting of client and scopes. */
   @Qualifier
   @Documented
   @Retention(RetentionPolicy.RUNTIME)
-  public @interface ClientScopeQualifier {}
+  @interface ClientScopeQualifier {}
 
   /** Dagger qualifier for the OAuth2 client id. */
   @Qualifier
   @Documented
   @Retention(RetentionPolicy.RUNTIME)
-  public @interface OAuthClientId {}
+  @interface OAuthClientId {}
 }

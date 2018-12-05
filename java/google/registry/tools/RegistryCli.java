@@ -197,7 +197,8 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
           // Use dev credentials for localhost.
           options.useDevelopmentServerCredential();
         } else {
-          options.useApplicationDefaultCredential();
+          RemoteApiOptionsUtil.useGoogleCredentialStream(options, component
+          .googleCredentialStream().get());
         }
         installer.install(options);
       }
