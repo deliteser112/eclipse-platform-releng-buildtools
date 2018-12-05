@@ -17,7 +17,6 @@ package google.registry.tools;
 import com.google.common.base.Supplier;
 import dagger.Component;
 import google.registry.bigquery.BigqueryModule;
-import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
@@ -32,6 +31,7 @@ import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UserServiceModule;
+import google.registry.tools.AuthModule.LocalCredentialModule;
 import google.registry.tools.AuthModule.LocalCredentialStream;
 import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
 import google.registry.util.SystemClock.SystemClockModule;
@@ -51,22 +51,20 @@ import javax.inject.Singleton;
     modules = {
       AppEngineAdminApiModule.class,
       AppEngineServiceUtilsModule.class,
-      // TODO(b/36866706): Find a way to replace this with a command-line friendly version
       AuthModule.class,
       BigqueryModule.class,
       ConfigModule.class,
-      CredentialModule.class,
+      CloudDnsWriterModule.class,
       DatastoreServiceModule.class,
       DummyKeyringModule.class,
-      CloudDnsWriterModule.class,
-      DefaultRequestFactoryModule.class,
-      DefaultRequestFactoryModule.RequestFactoryModule.class,
       DnsUpdateWriterModule.class,
       Jackson2Module.class,
       KeyModule.class,
       KeyringModule.class,
       KmsModule.class,
+      LocalCredentialModule.class,
       RdeModule.class,
+      RequestFactoryModule.class,
       SystemClockModule.class,
       SystemSleeperModule.class,
       URLFetchServiceModule.class,
@@ -117,3 +115,4 @@ interface RegistryToolComponent {
   @LocalCredentialStream
   Supplier<InputStream> googleCredentialStream();
 }
+

@@ -285,16 +285,14 @@ credentialOAuth:
     - https://www.googleapis.com/auth/apps.groups.settings
   # OAuth scopes required to create a credential locally in for the nomulus tool.
   localCredentialOauthScopes:
-    # Call App Engine APIs.
+    # View and manage data in all Google Cloud APIs.
+    - https://www.googleapis.com/auth/cloud-platform
+    # Call App Engine APIs locally.
     - https://www.googleapis.com/auth/appengine.apis
     # View your email address.
     - https://www.googleapis.com/auth/userinfo.email
-  # OAuth scopes required for accessing App Engine Admin API using the
-  # AppIdentityCredential.
-  appEngineAdminApiCredentialOauthScopes:
     # View and manage your applications deployed on Google App Engine
     - https://www.googleapis.com/auth/appengine.admin
-
 
 icannReporting:
   # URL we PUT monthly ICANN transactions reports to.

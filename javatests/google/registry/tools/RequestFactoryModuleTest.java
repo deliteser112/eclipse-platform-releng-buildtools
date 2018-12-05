@@ -15,9 +15,9 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.http.HttpRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpRequestInitializer;
 import google.registry.config.RegistryConfig;
@@ -29,22 +29,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class DefaultRequestFactoryModuleTest {
+public class RequestFactoryModuleTest {
 
-  private static final Credential FAKE_CREDENTIAL = new Credential(
-      new Credential.AccessMethod() {
-        @Override
-        public void intercept(HttpRequest request, String accessToken) {}
-
-        @Override
-        public String getAccessTokenFromRequest(HttpRequest request) {
-          return "MockAccessToken";
-        }
-      });
+  private final GoogleCredential googleCredential = mock(GoogleCredential.class);
 
   @Rule public final SystemPropertyRule systemPropertyRule = new SystemPropertyRule();
-
-  DefaultRequestFactoryModule module = new DefaultRequestFactoryModule();
 
   @Before
   public void setUp() {
@@ -55,17 +44,17 @@ public class DefaultRequestFactoryModuleTest {
   public void test_provideHttpRequestFactory_localhost() {
     // Make sure that localhost creates a request factory with an initializer.
     RegistryConfig.CONFIG_SETTINGS.get().appEngine.isLocal = true;
-    HttpRequestFactory factory = module.provideHttpRequestFactory(() -> FAKE_CREDENTIAL);
+    HttpRequestFactory factory = RequestFactoryModule.provideHttpRequestFactory(googleCredential);
     HttpRequestInitializer initializer = factory.getInitializer();
     assertThat(initializer).isNotNull();
-    assertThat(initializer).isNotSameAs(FAKE_CREDENTIAL);
+    assertThat(initializer).isNotSameAs(googleCredential);
   }
 
   @Test
   public void test_provideHttpRequestFactory_remote() {
     // Make sure that example.com creates a request factory with the UNITTEST client id but no
     RegistryConfig.CONFIG_SETTINGS.get().appEngine.isLocal = false;
-    HttpRequestFactory factory = module.provideHttpRequestFactory(() -> FAKE_CREDENTIAL);
-    assertThat(factory.getInitializer()).isSameAs(FAKE_CREDENTIAL);
+    HttpRequestFactory factory = RequestFactoryModule.provideHttpRequestFactory(googleCredential);
+    assertThat(factory.getInitializer()).isSameAs(googleCredential);
   }
 }

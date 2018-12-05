@@ -22,6 +22,7 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
@@ -32,8 +33,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
 import com.google.gson.Gson;
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.CredentialModule.DefaultCredential;
 import google.registry.config.RegistryConfig.Config;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -54,8 +57,17 @@ public class AuthModule {
   private static final File DATA_STORE_DIR =
       new File(System.getProperty("user.home"), ".config/nomulus/credentials");
 
+  @Module
+  abstract static class LocalCredentialModule {
+    @Binds
+    @DefaultCredential
+    abstract GoogleCredential provideLocalCredentialAsDefaultCredential(
+        @LocalCredential GoogleCredential credential);
+  }
+
   @Provides
-  public static Credential provideCredential(
+  @StoredCredential
+  static Credential provideCredential(
       GoogleAuthorizationCodeFlow flow, @ClientScopeQualifier String clientScopeQualifier) {
     try {
       // Try to load the credentials, throw an exception if we fail.
@@ -66,6 +78,17 @@ public class AuthModule {
       return credential;
     } catch (IOException ex) {
       throw new RuntimeException(ex);
+    }
+  }
+
+  @Provides
+  @LocalCredential
+  public static GoogleCredential provideLocalCredential(
+      @LocalCredentialStream Supplier<InputStream> credentialStream) {
+    try {
+      return GoogleCredential.fromStream(credentialStream.get());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -111,7 +134,7 @@ public class AuthModule {
   @Provides
   @LocalCredentialStream
   public static Supplier<InputStream> provideLocalCredentialStream(
-      GoogleClientSecrets clientSecrets, Credential credential) {
+      GoogleClientSecrets clientSecrets, @StoredCredential Credential credential) {
     String json =
         new Gson()
             .toJson(
@@ -153,6 +176,24 @@ public class AuthModule {
   static class LoginRequiredException extends RuntimeException {
     LoginRequiredException() {}
   }
+
+  /**
+   * Dagger qualifier for the {@link Credential} constructed from the data stored on disk.
+   *
+   * <p>This {@link Credential} should not be used in another module, hence the private qualifier.
+   * It's only use is to build a {@link GoogleCredential}, which is used in injection sites
+   * elsewhere.
+   */
+  @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  private @interface StoredCredential {}
+
+  /** Dagger qualifier for the local credential used in the nomulus tool. */
+  @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface LocalCredential {}
 
   /** Dagger qualifier for the JSON stream used to create the local credential. */
   @Qualifier

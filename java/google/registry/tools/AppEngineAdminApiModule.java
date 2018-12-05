@@ -14,13 +14,13 @@
 
 package google.registry.tools;
 
-import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.util.Utils;
 import com.google.api.services.appengine.v1.Appengine;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.CredentialModule.AppEngineAdminApiCredential;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.tools.AuthModule.LocalCredential;
 import javax.inject.Singleton;
 
 /** Module providing the instance of {@link Appengine} to access App Engine Admin Api. */
@@ -30,10 +30,9 @@ public abstract class AppEngineAdminApiModule {
   @Provides
   @Singleton
   public static Appengine provideAppengine(
-      @AppEngineAdminApiCredential AppIdentityCredential appIdentityCredential,
-      @Config("projectId") String projectId) {
+      @LocalCredential GoogleCredential credential, @Config("projectId") String projectId) {
     return new Appengine.Builder(
-            Utils.getDefaultTransport(), Utils.getDefaultJsonFactory(), appIdentityCredential)
+            Utils.getDefaultTransport(), Utils.getDefaultJsonFactory(), credential)
         .setApplicationName(projectId)
         .build();
   }

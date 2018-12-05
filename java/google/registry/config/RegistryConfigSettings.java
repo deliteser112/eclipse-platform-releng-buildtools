@@ -59,7 +59,6 @@ public class RegistryConfigSettings {
     public List<String> defaultCredentialOauthScopes;
     public List<String> delegatedCredentialOauthScopes;
     public List<String> localCredentialOauthScopes;
-    public List<String> appEngineAdminApiCredentialOauthScopes;
   }
 
   /** Configuration options for the G Suite account used by Nomulus. */
