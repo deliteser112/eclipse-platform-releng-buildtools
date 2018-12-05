@@ -17,7 +17,6 @@ package google.registry.config;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.googleapis.util.Utils;
 import com.google.common.collect.ImmutableList;
@@ -27,6 +26,9 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.security.GeneralSecurityException;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
@@ -108,22 +110,10 @@ public abstract class CredentialModule {
         .build();
   }
 
-  /**
-   * Provides a {@link AppIdentityCredential} with access for App Engine Admin API.
-   *
-   * <p>{@link AppIdentityCredential} is an OAuth 2.0 credential in which a client Google App Engine
-   * application needs to access data that it owns.
-   */
-  @AppEngineAdminApiCredential
-  @Provides
-  @Singleton
-  public static AppIdentityCredential provideAppEngineAdminApiCredential(
-      @Config("appEngineAdminApiCredentialOauthScopes") ImmutableList<String> requiredScopes) {
-    return new AppIdentityCredential(requiredScopes);
-  }
-
   /** Dagger qualifier for the Application Default Credential. */
   @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
   public @interface DefaultCredential {}
 
   /**
@@ -131,6 +121,8 @@ public abstract class CredentialModule {
    * threads.
    */
   @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
   public @interface JsonCredential {}
 
   /**
@@ -138,9 +130,19 @@ public abstract class CredentialModule {
    * Suite).
    */
   @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
   public @interface DelegatedCredential {}
 
-  /** Dagger qualifier for a credential with access for App Engine Admin API. */
+  /** Dagger qualifier for the local credential used in the nomulus tool. */
   @Qualifier
-  public @interface AppEngineAdminApiCredential {}
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface LocalCredential {}
+
+  /** Dagger qualifier for the JSON string used to create the local credential. */
+  @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface LocalCredentialJson {}
 }

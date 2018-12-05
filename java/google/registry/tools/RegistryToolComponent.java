@@ -14,9 +14,9 @@
 
 package google.registry.tools;
 
-import com.google.common.base.Supplier;
 import dagger.Component;
 import google.registry.bigquery.BigqueryModule;
+import google.registry.config.CredentialModule.LocalCredentialJson;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
@@ -32,12 +32,10 @@ import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.tools.AuthModule.LocalCredentialModule;
-import google.registry.tools.AuthModule.LocalCredentialStream;
 import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
 import google.registry.whois.WhoisModule;
-import java.io.InputStream;
 import javax.inject.Singleton;
 
 /**
@@ -112,7 +110,7 @@ interface RegistryToolComponent {
 
   AppEngineConnection appEngineConnection();
 
-  @LocalCredentialStream
-  Supplier<InputStream> googleCredentialStream();
+  @LocalCredentialJson
+  String googleCredentialJson();
 }
 

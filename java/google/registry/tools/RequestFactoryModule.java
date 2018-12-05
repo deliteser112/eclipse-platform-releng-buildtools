@@ -19,8 +19,8 @@ import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.CredentialModule.LocalCredential;
 import google.registry.config.RegistryConfig;
-import google.registry.tools.AuthModule.LocalCredential;
 
 /**
  * Module for providing the HttpRequestFactory.

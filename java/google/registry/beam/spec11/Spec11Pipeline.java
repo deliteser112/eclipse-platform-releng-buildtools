@@ -15,11 +15,16 @@
 package google.registry.beam.spec11;
 
 import static google.registry.beam.BeamUtils.getQueryFromFile;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.auth.oauth2.GoogleCredentials;
 import google.registry.beam.spec11.SafeBrowsingTransforms.EvaluateSafeBrowsingFn;
+import google.registry.config.CredentialModule.LocalCredentialJson;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.util.Retrier;
 import google.registry.util.SqlTemplate;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import javax.inject.Inject;
 import org.apache.beam.runners.dataflow.DataflowRunner;
@@ -89,6 +94,8 @@ public class Spec11Pipeline implements Serializable {
   @Inject
   Retrier retrier;
 
+  @Inject @LocalCredentialJson String credentialJson;
+
   @Inject
   Spec11Pipeline() {}
 
@@ -123,6 +130,12 @@ public class Spec11Pipeline implements Serializable {
   public void deploy() {
     // We can't store options as a member variable due to serialization concerns.
     Spec11PipelineOptions options = PipelineOptionsFactory.as(Spec11PipelineOptions.class);
+    try {
+      options.setGcpCredential(
+          GoogleCredentials.fromStream(new ByteArrayInputStream(credentialJson.getBytes(UTF_8))));
+    } catch (IOException e) {
+      throw new RuntimeException("Cannot obtain local credential to deploy the spec11 pipeline", e);
+    }
     options.setProject(projectId);
     options.setRunner(DataflowRunner.class);
     // This causes p.run() to stage the pipeline as a template on GCS, as opposed to running it.

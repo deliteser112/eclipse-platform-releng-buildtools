@@ -28,7 +28,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.common.base.Joiner;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
@@ -37,11 +36,12 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.CredentialModule.DefaultCredential;
+import google.registry.config.CredentialModule.LocalCredential;
+import google.registry.config.CredentialModule.LocalCredentialJson;
 import google.registry.config.RegistryConfig.Config;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -84,9 +84,9 @@ public class AuthModule {
   @Provides
   @LocalCredential
   public static GoogleCredential provideLocalCredential(
-      @LocalCredentialStream Supplier<InputStream> credentialStream) {
+      @LocalCredentialJson String credentialJson) {
     try {
-      return GoogleCredential.fromStream(credentialStream.get());
+      return GoogleCredential.fromStream(new ByteArrayInputStream(credentialJson.getBytes(UTF_8)));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -132,20 +132,17 @@ public class AuthModule {
   }
 
   @Provides
-  @LocalCredentialStream
-  public static Supplier<InputStream> provideLocalCredentialStream(
+  @LocalCredentialJson
+  public static String provideLocalCredentialJson(
       GoogleClientSecrets clientSecrets, @StoredCredential Credential credential) {
-    String json =
-        new Gson()
-            .toJson(
-                ImmutableMap.<String, String>builder()
-                    .put("type", "authorized_user")
-                    .put("client_id", clientSecrets.getDetails().getClientId())
-                    .put("client_secret", clientSecrets.getDetails().getClientSecret())
-                    .put("refresh_token", credential.getRefreshToken())
-                    .build());
-    // A supplier is provided so that each binding gets a fresh stream, to avoid contention.
-    return () -> new ByteArrayInputStream(json.getBytes(UTF_8));
+    return new Gson()
+        .toJson(
+            ImmutableMap.<String, String>builder()
+                .put("type", "authorized_user")
+                .put("client_id", clientSecrets.getDetails().getClientId())
+                .put("client_secret", clientSecrets.getDetails().getClientSecret())
+                .put("refresh_token", credential.getRefreshToken())
+                .build());
   }
 
   @Provides
@@ -188,18 +185,6 @@ public class AuthModule {
   @Documented
   @Retention(RetentionPolicy.RUNTIME)
   private @interface StoredCredential {}
-
-  /** Dagger qualifier for the local credential used in the nomulus tool. */
-  @Qualifier
-  @Documented
-  @Retention(RetentionPolicy.RUNTIME)
-  @interface LocalCredential {}
-
-  /** Dagger qualifier for the JSON stream used to create the local credential. */
-  @Qualifier
-  @Documented
-  @Retention(RetentionPolicy.RUNTIME)
-  @interface LocalCredentialStream {}
 
   /** Dagger qualifier for the credential qualifier consisting of client and scopes. */
   @Qualifier

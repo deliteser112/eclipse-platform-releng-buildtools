@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.tools.Injector.injectReflectively;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -32,6 +33,7 @@ import google.registry.config.RegistryConfig;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.tools.AuthModule.LoginRequiredException;
 import google.registry.tools.params.ParameterFactory;
+import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.security.Security;
 import java.util.Map;
@@ -211,7 +213,7 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
           options.useDevelopmentServerCredential();
         } else {
           RemoteApiOptionsUtil.useGoogleCredentialStream(
-              options, component.googleCredentialStream().get());
+              options, new ByteArrayInputStream(component.googleCredentialJson().getBytes(UTF_8)));
         }
         installer.install(options);
       }

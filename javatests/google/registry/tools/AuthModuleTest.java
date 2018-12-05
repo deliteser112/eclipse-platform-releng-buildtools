@@ -16,7 +16,6 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,8 +33,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.Map;
 import org.junit.Before;
@@ -156,14 +153,10 @@ public class AuthModuleTest {
   }
 
   @Test
-  public void test_provideLocalCredentialStream() {
-    InputStream jsonStream =
-        AuthModule.provideLocalCredentialStream(getSecrets(), getCredential()).get();
+  public void test_provideLocalCredentialJson() {
+    String credentialJson = AuthModule.provideLocalCredentialJson(getSecrets(), getCredential());
     Map<String, String> jsonMap =
-        new Gson()
-            .fromJson(
-                new InputStreamReader(jsonStream, UTF_8),
-                new TypeToken<Map<String, String>>() {}.getType());
+        new Gson().fromJson(credentialJson, new TypeToken<Map<String, String>>() {}.getType());
     assertThat(jsonMap.get("type")).isEqualTo("authorized_user");
     assertThat(jsonMap.get("client_secret")).isEqualTo(CLIENT_SECRET);
     assertThat(jsonMap.get("client_id")).isEqualTo(CLIENT_ID);

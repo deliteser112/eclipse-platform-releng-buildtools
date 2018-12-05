@@ -19,8 +19,8 @@ import com.google.api.client.googleapis.util.Utils;
 import com.google.api.services.appengine.v1.Appengine;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.CredentialModule.LocalCredential;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.tools.AuthModule.LocalCredential;
 import javax.inject.Singleton;
 
 /** Module providing the instance of {@link Appengine} to access App Engine Admin Api. */
