@@ -37,4 +37,4 @@ env:
 # directory.
 # The "travis_wait 45" lets our build spend up to 45 minutes without writing
 # output, instead of the default 10.
-script: cd gradle && travis_wait 45 ./gradlew build
+script: cd gradle && chmod 755 ./gradlew && travis_wait 45 ./gradlew build
