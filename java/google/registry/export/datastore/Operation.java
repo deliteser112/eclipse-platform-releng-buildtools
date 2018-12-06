@@ -20,10 +20,20 @@ import com.google.api.client.json.GenericJson;
 import com.google.api.client.util.Key;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import google.registry.export.datastore.DatastoreAdmin.Get;
+import google.registry.util.Clock;
 import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nullable;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
-/** Model object that describes the details of an export or import operation in Cloud Datastore. */
+/**
+ * Model object that describes the details of an export or import operation in Cloud Datastore.
+ *
+ * <p>{@link Operation} instances are parsed from the JSON payload in Datastore response messages.
+ */
 public class Operation extends GenericJson {
 
   private static final String STATE_SUCCESS = "SUCCESSFUL";
@@ -46,24 +56,78 @@ public class Operation extends GenericJson {
     return done;
   }
 
-  public String getState() {
-    checkState(metadata != null, "Response metadata missing.");
-    return metadata.getCommonMetadata().getState();
+  private String getState() {
+    return getMetadata().getCommonMetadata().getState();
   }
 
   public boolean isSuccessful() {
-    checkState(metadata != null, "Response metadata missing.");
     return getState().equals(STATE_SUCCESS);
   }
 
   public boolean isProcessing() {
-    checkState(metadata != null, "Response metadata missing.");
     return getState().equals(STATE_PROCESSING);
+  }
+
+  public Duration getRunningTime(Clock clock) {
+    return new Duration(
+        getStartTime(), getMetadata().getCommonMetadata().getEndTime().orElse(clock.nowUtc()));
+  }
+
+  public DateTime getStartTime() {
+    return getMetadata().getCommonMetadata().getStartTime();
+  }
+
+  public ImmutableSet<String> getKinds() {
+    return ImmutableSet.copyOf(getMetadata().getEntityFilter().getKinds());
+  }
+
+  /**
+   * Returns the URL to the GCS folder that holds the exported data. This folder is created by
+   * Datastore and is under the {@code outputUrlPrefix} set to {@linkplain
+   * DatastoreAdmin#export(String, List) the export request}.
+   */
+  public String getExportFolderUrl() {
+    return getMetadata().getOutputUrlPrefix();
+  }
+
+  /**
+   * Returns the last segment of the {@linkplain #getExportFolderUrl() export folder URL} which can
+   * be used as unique identifier of this export operation. This is a better ID than the {@linkplain
+   * #getName() operation name}, which is opaque.
+   */
+  public String getExportId() {
+    String exportFolderUrl = getExportFolderUrl();
+    return exportFolderUrl.substring(exportFolderUrl.lastIndexOf('/') + 1);
+  }
+
+  public String getProgress() {
+    StringBuilder result = new StringBuilder();
+    Progress progress = getMetadata().getProgressBytes();
+    if (progress != null) {
+      result.append(
+          String.format(" [%s/%s bytes]", progress.workCompleted, progress.workEstimated));
+    }
+    progress = getMetadata().getProgressEntities();
+    if (progress != null) {
+      result.append(
+          String.format(" [%s/%s entities]", progress.workCompleted, progress.workEstimated));
+    }
+    if (result.length() == 0) {
+      return "Progress: N/A";
+    }
+    return "Progress:" + result;
+  }
+
+  private Metadata getMetadata() {
+    checkState(metadata != null, "Response metadata missing.");
+    return metadata;
   }
 
   /** Models the common metadata properties of all operations. */
   public static class CommonMetadata extends GenericJson {
 
+    @Key private String startTime;
+    @Key @Nullable private String endTime;
     @Key private String operationType;
     @Key private String state;
 
@@ -77,6 +141,15 @@ public class Operation extends GenericJson {
     String getState() {
       checkState(!Strings.isNullOrEmpty(state), "state may not be null or empty");
       return state;
+    }
+
+    DateTime getStartTime() {
+      checkState(startTime != null, "StartTime missing.");
+      return DateTime.parse(startTime);
+    }
+
+    Optional<DateTime> getEndTime() {
+      return Optional.ofNullable(endTime).map(DateTime::parse);
     }
   }
 
@@ -110,6 +183,7 @@ public class Operation extends GenericJson {
     }
 
     public String getOutputUrlPrefix() {
+      checkState(!Strings.isNullOrEmpty(outputUrlPrefix), "outputUrlPrefix");
       return outputUrlPrefix;
     }
   }

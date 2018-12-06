@@ -13,6 +13,7 @@ java_library(
     resources = glob(["**/testdata/*.json"]),
     deps = [
         "//java/google/registry/export/datastore",
+        "//java/google/registry/util",
         "//javatests/google/registry/testing",
         "@com_google_api_client",
         "@com_google_guava",
@@ -20,6 +21,7 @@ java_library(
         "@com_google_http_client_jackson2",
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",
+        "@joda_time",
         "@junit",
         "@org_mockito_all",
     ],

@@ -134,6 +134,23 @@ public class DatastoreAdminTest {
     assertThat(getAccessToken(httpRequest)).hasValue(ACCESS_TOKEN);
   }
 
+  @Test
+  public void testListOperations_filterByState() throws IOException {
+    // TODO(weiminyu): consider adding a method to DatastoreAdmin to support query by state.
+    DatastoreAdmin.ListOperations listOperations =
+        datastoreAdmin.list("metadata.common.state=PROCESSING");
+    HttpRequest httpRequest = listOperations.buildHttpRequest();
+    assertThat(httpRequest.getUrl().toString())
+        .isEqualTo(
+            "https://datastore.googleapis.com/v1/projects/MyCloudProject/operations"
+                + "?filter=metadata.common.state%3DPROCESSING");
+    assertThat(httpRequest.getRequestMethod()).isEqualTo("GET");
+    assertThat(httpRequest.getContent()).isNull();
+
+    simulateSendRequest(httpRequest);
+    assertThat(getAccessToken(httpRequest)).hasValue(ACCESS_TOKEN);
+  }
+
   private static HttpRequest simulateSendRequest(HttpRequest httpRequest) {
     try {
       httpRequest.setUrl(new GenericUrl("https://localhost:65537")).execute();

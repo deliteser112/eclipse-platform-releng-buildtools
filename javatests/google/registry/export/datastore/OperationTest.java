@@ -15,14 +15,19 @@
 package google.registry.export.datastore;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import google.registry.export.datastore.Operation.CommonMetadata;
 import google.registry.export.datastore.Operation.Metadata;
 import google.registry.export.datastore.Operation.Progress;
+import google.registry.testing.FakeClock;
 import google.registry.testing.TestDataHelper;
+import google.registry.util.Clock;
 import java.io.IOException;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -37,6 +42,9 @@ public class OperationTest {
     CommonMetadata commonMetadata = loadJson("common_metadata.json", CommonMetadata.class);
     assertThat(commonMetadata.getState()).isEqualTo("SUCCESSFUL");
     assertThat(commonMetadata.getOperationType()).isEqualTo("EXPORT_ENTITIES");
+    assertThat(commonMetadata.getStartTime())
+        .isEqualTo(DateTime.parse("2018-10-29T16:01:04.645299Z"));
+    assertThat(commonMetadata.getEndTime()).isEmpty();
   }
 
   @Test
@@ -51,6 +59,12 @@ public class OperationTest {
     Metadata metadata = loadJson("metadata.json", Metadata.class);
     assertThat(metadata.getCommonMetadata().getOperationType()).isEqualTo("EXPORT_ENTITIES");
     assertThat(metadata.getCommonMetadata().getState()).isEqualTo("SUCCESSFUL");
+    assertThat(metadata.getCommonMetadata().getStartTime())
+        .isEqualTo(DateTime.parse("2018-10-29T16:01:04.645299Z"));
+    assertThat(metadata.getCommonMetadata().getEndTime())
+        .hasValue(DateTime.parse("2018-10-29T16:02:19.009859Z"));
+    assertThat(metadata.getOutputUrlPrefix())
+        .isEqualTo("gs://domain-registry-alpha-datastore-export-test/2018-10-29T16:01:04_99364");
   }
 
   @Test
@@ -61,6 +75,15 @@ public class OperationTest {
     assertThat(operation.isProcessing()).isTrue();
     assertThat(operation.isSuccessful()).isFalse();
     assertThat(operation.isDone()).isFalse();
+    assertThat(operation.getStartTime()).isEqualTo(DateTime.parse("2018-10-29T16:01:04.645299Z"));
+    assertThat(operation.getExportFolderUrl())
+        .isEqualTo("gs://domain-registry-alpha-datastore-export-test/2018-10-29T16:01:04_99364");
+    assertThat(operation.getExportId()).isEqualTo("2018-10-29T16:01:04_99364");
+    assertThat(operation.getKinds()).containsExactly("Registry", "Registrar", "DomainBase");
+    assertThat(operation.toPrettyString())
+        .isEqualTo(
+            TestDataHelper.loadFile(OperationTest.class, "prettyprinted_operation.json").trim());
+    assertThat(operation.getProgress()).isEqualTo("Progress: N/A");
   }
 
   @Test
@@ -68,6 +91,16 @@ public class OperationTest {
     Operation.OperationList operationList =
         loadJson("operation_list.json", Operation.OperationList.class);
     assertThat(operationList.toList()).hasSize(2);
+    Clock clock = new FakeClock(DateTime.parse("2018-10-29T16:01:04.645299Z"));
+    ((FakeClock) clock).advanceOneMilli();
+    assertThat(operationList.toList().get(0).getRunningTime(clock)).isEqualTo(Duration.millis(1));
+    assertThat(operationList.toList().get(0).getProgress())
+        .isEqualTo("Progress: [51797/54513 entities]");
+    assertThat(operationList.toList().get(1).getRunningTime(clock))
+        .isEqualTo(Duration.standardMinutes(1));
+    // Work completed may exceed work estimated
+    assertThat(operationList.toList().get(1).getProgress())
+        .isEqualTo("Progress: [96908367/73773755 bytes] [51797/54513 entities]");
   }
 
   private static <T> T loadJson(String fileName, Class<T> type) throws IOException {
