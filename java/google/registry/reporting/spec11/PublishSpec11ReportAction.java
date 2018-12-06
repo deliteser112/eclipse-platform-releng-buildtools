@@ -31,8 +31,8 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
+import java.time.LocalDate;
 import javax.inject.Inject;
-import org.joda.time.YearMonth;
 
 /**
  * Retries until a {@code Dataflow} job with a given {@code jobId} completes, continuing the Spec11
@@ -55,7 +55,7 @@ public class PublishSpec11ReportAction implements Runnable {
   private final Spec11EmailUtils emailUtils;
   private final Dataflow dataflow;
   private final Response response;
-  private final YearMonth yearMonth;
+  private final LocalDate date;
 
   @Inject
   PublishSpec11ReportAction(
@@ -64,13 +64,13 @@ public class PublishSpec11ReportAction implements Runnable {
       Spec11EmailUtils emailUtils,
       Dataflow dataflow,
       Response response,
-      YearMonth yearMonth) {
+      LocalDate date) {
     this.projectId = projectId;
     this.jobId = jobId;
     this.emailUtils = emailUtils;
     this.dataflow = dataflow;
     this.response = response;
-    this.yearMonth = yearMonth;
+    this.date = date;
   }
 
   @Override
@@ -81,17 +81,19 @@ public class PublishSpec11ReportAction implements Runnable {
       String state = job.getCurrentState();
       switch (state) {
         case JOB_DONE:
-          logger.atInfo().log("Dataflow job %s finished successfully, publishing results.", jobId);
+          logger.atInfo().log(
+              "Dataflow job %s finished successfully, publishing results if appropriate.", jobId);
           response.setStatus(SC_OK);
-          emailUtils.emailSpec11Reports();
+          if (shouldSendSpec11Email()) {
+            emailUtils.emailSpec11Reports();
+          }
           break;
         case JOB_FAILED:
           logger.atSevere().log("Dataflow job %s finished unsuccessfully.", jobId);
           response.setStatus(SC_NO_CONTENT);
           emailUtils.sendAlertEmail(
-              String.format("Spec11 Dataflow Pipeline Failure %s", yearMonth.toString()),
-              String.format(
-                  "Spec11 %s job %s ended in status failure.", yearMonth.toString(), jobId));
+              String.format("Spec11 Dataflow Pipeline Failure %s", date),
+              String.format("Spec11 %s job %s ended in status failure.", date, jobId));
           break;
         default:
           logger.atInfo().log("Job in non-terminal state %s, retrying:", state);
@@ -101,12 +103,16 @@ public class PublishSpec11ReportAction implements Runnable {
     } catch (IOException e) {
       logger.atSevere().withCause(e).log("Failed to publish Spec11 reports.");
       emailUtils.sendAlertEmail(
-          String.format("Spec11 Publish Failure %s", yearMonth.toString()),
-          String.format(
-              "Spec11 %s publish action failed due to %s", yearMonth.toString(), e.getMessage()));
+          String.format("Spec11 Publish Failure %s", date),
+          String.format("Spec11 %s publish action failed due to %s", date, e.getMessage()));
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
       response.setPayload(String.format("Template launch failed: %s", e.getMessage()));
     }
+  }
+
+  private boolean shouldSendSpec11Email() {
+    // TODO(b/120496893): send emails every day with the diff content
+    return date.getDayOfMonth() == 2;
   }
 }

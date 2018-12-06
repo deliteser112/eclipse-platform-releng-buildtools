@@ -28,11 +28,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.reporting.ReportingModule;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
+import java.util.Map;
 import javax.inject.Inject;
 import org.joda.time.YearMonth;
 
@@ -105,7 +107,13 @@ public class GenerateInvoicesAction implements Runnable {
       logger.atInfo().log("Got response: %s", launchResponse.getJob().toPrettyString());
       String jobId = launchResponse.getJob().getId();
       if (shouldPublish) {
-        enqueueBeamReportingTask(PublishInvoicesAction.PATH, jobId, yearMonth);
+        Map<String, String> beamTaskParameters =
+            ImmutableMap.of(
+                ReportingModule.PARAM_JOB_ID,
+                jobId,
+                ReportingModule.PARAM_YEAR_MONTH,
+                yearMonth.toString());
+        enqueueBeamReportingTask(PublishInvoicesAction.PATH, beamTaskParameters);
       }
     } catch (IOException e) {
       logger.atWarning().withCause(e).log("Template Launch failed");

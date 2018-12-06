@@ -132,7 +132,7 @@ public class Spec11PipelineTest {
 
     // Apply input and evaluation transforms
     PCollection<Subdomain> input = p.apply(Create.of(inputRows));
-    spec11Pipeline.evaluateUrlHealth(input, evalFn, StaticValueProvider.of("2018-06"));
+    spec11Pipeline.evaluateUrlHealth(input, evalFn, StaticValueProvider.of("2018-06-01"));
     p.run();
 
     // Verify header and 3 threat matches for 2 registrars are found
@@ -277,7 +277,7 @@ public class Spec11PipelineTest {
     File resultFile =
         new File(
             String.format(
-                "%s/icann/spec11/2018-06/SPEC11_MONTHLY_REPORT",
+                "%s/icann/spec11/2018-06/SPEC11_MONTHLY_REPORT_2018-06-01",
                 tempFolder.getRoot().getAbsolutePath()));
     return ImmutableList.copyOf(
         ResourceUtils.readResourceUtf8(resultFile.toURI().toURL()).split("\n"));

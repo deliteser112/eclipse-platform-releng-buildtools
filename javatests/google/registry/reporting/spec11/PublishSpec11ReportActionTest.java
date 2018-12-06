@@ -32,7 +32,7 @@ import com.google.api.services.dataflow.model.Job;
 import com.google.common.net.MediaType;
 import google.registry.testing.FakeResponse;
 import java.io.IOException;
-import org.joda.time.YearMonth;
+import java.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,12 +67,15 @@ public class PublishSpec11ReportActionTest {
     response = new FakeResponse();
     publishAction =
         new PublishSpec11ReportAction(
-            "test-project", "12345", emailUtils, dataflow, response, new YearMonth(2018, 6));
+            "test-project", "12345", emailUtils, dataflow, response, LocalDate.of(2018, 6, 5));
   }
 
   @Test
-  public void testJobDone_emailsResults() {
+  public void testJobDone_emailsResultsOnSecondOfMonth() {
     expectedJob.setCurrentState("JOB_STATE_DONE");
+    publishAction =
+        new PublishSpec11ReportAction(
+            "test-project", "12345", emailUtils, dataflow, response, LocalDate.of(2018, 6, 2));
     publishAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
     verify(emailUtils).emailSpec11Reports();
@@ -85,8 +88,8 @@ public class PublishSpec11ReportActionTest {
     assertThat(response.getStatus()).isEqualTo(SC_NO_CONTENT);
     verify(emailUtils)
         .sendAlertEmail(
-            "Spec11 Dataflow Pipeline Failure 2018-06",
-            "Spec11 2018-06 job 12345 ended in status failure.");
+            "Spec11 Dataflow Pipeline Failure 2018-06-05",
+            "Spec11 2018-06-05 job 12345 ended in status failure.");
   }
 
   @Test
@@ -106,7 +109,15 @@ public class PublishSpec11ReportActionTest {
     assertThat(response.getPayload()).isEqualTo("Template launch failed: expected");
     verify(emailUtils)
         .sendAlertEmail(
-            "Spec11 Publish Failure 2018-06",
-            "Spec11 2018-06 publish action failed due to expected");
+            "Spec11 Publish Failure 2018-06-05",
+            "Spec11 2018-06-05 publish action failed due to expected");
+  }
+
+  @Test
+  public void testJobDone_doesNotEmailResults() {
+    expectedJob.setCurrentState("JOB_STATE_DONE");
+    publishAction.run();
+    assertThat(response.getStatus()).isEqualTo(SC_OK);
+    verifyNoMoreInteractions(emailUtils);
   }
 }

@@ -15,30 +15,19 @@
 package google.registry.reporting.spec11;
 
 import static com.google.common.base.Throwables.getRootCause;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.CharStreams;
-import google.registry.beam.spec11.Spec11Pipeline;
 import google.registry.beam.spec11.ThreatMatch;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.gcs.GcsUtils;
-import google.registry.reporting.spec11.Spec11Module.Spec11ReportDirectory;
 import google.registry.util.Retrier;
 import google.registry.util.SendEmailService;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import org.joda.time.YearMonth;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /** Provides e-mail functionality for Spec11 tasks, such as sending Spec11 reports to registrars. */
 public class Spec11EmailUtils {
@@ -48,10 +37,8 @@ public class Spec11EmailUtils {
   private final String outgoingEmailAddress;
   private final String alertRecipientAddress;
   private final String spec11ReplyToAddress;
-  private final String reportingBucket;
-  private final String spec11ReportDirectory;
   private final String spec11EmailBodyTemplate;
-  private final GcsUtils gcsUtils;
+  private final Spec11RegistrarThreatMatchesParser spec11RegistrarThreatMatchesParser;
   private final Retrier retrier;
 
   @Inject
@@ -62,19 +49,15 @@ public class Spec11EmailUtils {
       @Config("alertRecipientEmailAddress") String alertRecipientAddress,
       @Config("spec11ReplyToEmailAddress") String spec11ReplyToAddress,
       @Config("spec11EmailBodyTemplate") String spec11EmailBodyTemplate,
-      @Config("reportingBucket") String reportingBucket,
-      @Spec11ReportDirectory String spec11ReportDirectory,
-      GcsUtils gcsUtils,
+      Spec11RegistrarThreatMatchesParser spec11RegistrarThreatMatchesParser,
       Retrier retrier) {
     this.emailService = emailService;
     this.yearMonth = yearMonth;
     this.outgoingEmailAddress = outgoingEmailAddress;
     this.alertRecipientAddress = alertRecipientAddress;
     this.spec11ReplyToAddress = spec11ReplyToAddress;
-    this.reportingBucket = reportingBucket;
-    this.spec11ReportDirectory = spec11ReportDirectory;
+    this.spec11RegistrarThreatMatchesParser = spec11RegistrarThreatMatchesParser;
     this.spec11EmailBodyTemplate = spec11EmailBodyTemplate;
-    this.gcsUtils = gcsUtils;
     this.retrier = retrier;
   }
 
@@ -86,17 +69,10 @@ public class Spec11EmailUtils {
     try {
       retrier.callWithRetry(
           () -> {
-            // Grab the file as an inputstream
-            GcsFilename spec11ReportFilename =
-                new GcsFilename(reportingBucket, spec11ReportDirectory);
-            try (InputStream in = gcsUtils.openInputStream(spec11ReportFilename)) {
-              ImmutableList<String> reportLines =
-                  ImmutableList.copyOf(
-                      CharStreams.toString(new InputStreamReader(in, UTF_8)).split("\n"));
-              // Iterate from 1 to size() to skip the header at line 0.
-              for (int i = 1; i < reportLines.size(); i++) {
-                emailRegistrar(reportLines.get(i));
-              }
+            ImmutableList<RegistrarThreatMatches> registrarThreatMatchesList =
+                spec11RegistrarThreatMatchesParser.getRegistrarThreatMatches();
+            for (RegistrarThreatMatches registrarThreatMatches : registrarThreatMatchesList) {
+              emailRegistrar(registrarThreatMatches);
             }
           },
           IOException.class,
@@ -105,9 +81,7 @@ public class Spec11EmailUtils {
       // Send an alert with the root cause, unwrapping the retrier's RuntimeException
       sendAlertEmail(
           String.format("Spec11 Emailing Failure %s", yearMonth.toString()),
-          String.format(
-              "Emailing spec11 reports failed due to %s",
-              getRootCause(e).getMessage()));
+          String.format("Emailing spec11 reports failed due to %s", getRootCause(e).getMessage()));
       throw new RuntimeException("Emailing spec11 report failed", e);
     }
     sendAlertEmail(
@@ -115,14 +89,11 @@ public class Spec11EmailUtils {
         "Spec11 reporting completed successfully.");
   }
 
-  private void emailRegistrar(String line) throws MessagingException, JSONException {
-    // Parse the Spec11 report JSON
-    JSONObject reportJSON = new JSONObject(line);
-    String registrarEmail = reportJSON.getString(Spec11Pipeline.REGISTRAR_EMAIL_FIELD);
-    JSONArray threatMatches = reportJSON.getJSONArray(Spec11Pipeline.THREAT_MATCHES_FIELD);
+  private void emailRegistrar(RegistrarThreatMatches registrarThreatMatches)
+      throws MessagingException {
+    String registrarEmail = registrarThreatMatches.registrarEmailAddress();
     StringBuilder threatList = new StringBuilder();
-    for (int i = 0; i < threatMatches.length(); i++) {
-      ThreatMatch threatMatch = ThreatMatch.fromJSON(threatMatches.getJSONObject(i));
+    for (ThreatMatch threatMatch : registrarThreatMatches.threatMatches()) {
       threatList.append(
           String.format(
               "%s - %s\n", threatMatch.fullyQualifiedDomainName(), threatMatch.threatType()));
@@ -134,7 +105,7 @@ public class Spec11EmailUtils {
     Message msg = emailService.createMessage();
     msg.setSubject(
         String.format("Google Registry Monthly Threat Detector [%s]", yearMonth.toString()));
-    msg.setText(body.toString());
+    msg.setText(body);
     msg.setFrom(new InternetAddress(outgoingEmailAddress));
     msg.addRecipient(RecipientType.TO, new InternetAddress(registrarEmail));
     msg.addRecipient(RecipientType.BCC, new InternetAddress(spec11ReplyToAddress));

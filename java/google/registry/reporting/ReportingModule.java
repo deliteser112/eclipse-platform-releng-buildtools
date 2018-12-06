@@ -26,8 +26,11 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
 import org.joda.time.YearMonth;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -37,11 +40,20 @@ import org.joda.time.format.DateTimeFormatter;
 public class ReportingModule {
 
   public static final String BEAM_QUEUE = "beam-reporting";
+
   /**
    * The request parameter name used by reporting actions that takes a year/month parameter, which
    * defaults to the last month.
    */
+  // TODO(b/120497263): remove this and replace with the date
   public static final String PARAM_YEAR_MONTH = "yearMonth";
+
+  /**
+   * The request parameter name used by reporting actions that take a local date as a parameter,
+   * which defaults to the current date.
+   */
+  public static final String PARAM_DATE = "date";
+
   /** The request parameter specifying the jobId for a running Dataflow pipeline. */
   public static final String PARAM_JOB_ID = "jobId";
 
@@ -74,18 +86,49 @@ public class ReportingModule {
    */
   @Provides
   static YearMonth provideYearMonth(
-      @Parameter(PARAM_YEAR_MONTH) Optional<YearMonth> yearMonthOptional, Clock clock) {
-    return yearMonthOptional.orElseGet(() -> new YearMonth(clock.nowUtc().minusMonths(1)));
+      @Parameter(PARAM_YEAR_MONTH) Optional<YearMonth> yearMonthOptional, LocalDate date) {
+    return yearMonthOptional.orElseGet(
+        () -> new YearMonth(date.getYear(), date.getMonthValue() - 1));
+  }
+
+  /** Extracts an optional date in yyyy-MM-dd format from the request. */
+  @Provides
+  @Parameter(PARAM_DATE)
+  static Optional<LocalDate> provideDateOptional(HttpServletRequest req) {
+    java.time.format.DateTimeFormatter formatter =
+        java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+    Optional<String> optionalDateString = extractOptionalParameter(req, PARAM_DATE);
+    try {
+      return optionalDateString.map(s -> LocalDate.parse(s, formatter));
+    } catch (DateTimeParseException e) {
+      throw new BadRequestException(
+          String.format(
+              "date must be in yyyy-MM-dd format, got %s instead",
+              optionalDateString.orElse("UNSPECIFIED LOCAL DATE")),
+          e);
+    }
+  }
+
+  /**
+   * Provides the local date in yyyy-MM-dd format, if not specified in the request, defaults to the
+   * current date.
+   */
+  @Provides
+  static LocalDate provideDate(
+      @Parameter(PARAM_DATE) Optional<LocalDate> dateOptional, Clock clock) {
+    return dateOptional.orElseGet(
+        () -> {
+          DateTime now = clock.nowUtc();
+          return LocalDate.of(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth());
+        });
   }
 
   /** Constructs a {@link Dataflow} API client with default settings. */
   @Provides
   static Dataflow provideDataflow(
       @DefaultCredential GoogleCredential credential, @Config("projectId") String projectId) {
-
     return new Dataflow.Builder(credential.getTransport(), credential.getJsonFactory(), credential)
         .setApplicationName(String.format("%s billing", projectId))
         .build();
   }
-
 }

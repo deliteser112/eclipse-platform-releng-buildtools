@@ -289,13 +289,12 @@
   <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/generateSpec11&runInEmpty]]></url>
     <description>
-      Starts the beam/spec11/Spec11Pipeline Dataflow template, which creates last month's Spec11
-      report. This report is stored in gs://[PROJECT-ID]-reporting/icann/spec11/yyyy-MM.
-      Upon Dataflow job completion, sends an e-mail to all registrars with domain registrations
-      flagged by the SafeBrowsing API.
+      Starts the beam/spec11/Spec11Pipeline Dataflow template, which creates today's Spec11
+      report. This report is stored in gs://[PROJECT-ID]-reporting/icann/spec11/yyyy-MM/.
+      This job will only send email notifications on the second of every month.
       See GenerateSpec11ReportAction for more details.
     </description>
-    <schedule>2 of month 15:00</schedule>
+    <schedule>every day 15:00</schedule>
     <target>backend</target>
   </cron>
 </cronentries>
