@@ -81,6 +81,15 @@ public class ProxyProtocolHandler extends ByteToMessageDecoder {
           remoteIP = headerArray[2];
           logger.atFine().log(
               "Header parsed, using %s as remote IP for channel %s", remoteIP, ctx.channel());
+          // If the header is "PROXY UNKNOWN"
+          // (see https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt), likely when the
+          // remote connection to the external load balancer is through special means, make it
+          // 0.0.0.0 so that it can be treated accordingly by the relevant quota configs.
+        } else if (headerArray.length == 2 && headerArray[1].equals("UNKNOWN")) {
+          logger.atFine().log(
+              "Header parsed, source IP unknown, using 0.0.0.0 as remote IP for channel %s",
+              ctx.channel());
+          remoteIP = "0.0.0.0";
         } else {
           logger.atFine().log(
               "Cannot parse the header, using source IP as remote IP for channel %s",
