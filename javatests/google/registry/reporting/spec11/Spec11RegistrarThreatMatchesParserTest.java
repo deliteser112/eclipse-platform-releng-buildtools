@@ -26,8 +26,8 @@ import google.registry.gcs.GcsUtils;
 import google.registry.testing.TestDataHelper;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.util.List;
+import org.joda.time.LocalDate;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -41,7 +41,7 @@ public class Spec11RegistrarThreatMatchesParserTest {
 
   private final GcsUtils gcsUtils = mock(GcsUtils.class);
   private final Spec11RegistrarThreatMatchesParser parser =
-      new Spec11RegistrarThreatMatchesParser(LocalDate.of(2018, 7, 21), gcsUtils, "test-bucket");
+      new Spec11RegistrarThreatMatchesParser(new LocalDate(2018, 7, 21), gcsUtils, "test-bucket");
 
   @Before
   public void setUp() {

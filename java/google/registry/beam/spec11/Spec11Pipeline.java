@@ -21,8 +21,6 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.util.Retrier;
 import google.registry.util.SqlTemplate;
 import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.YearMonth;
 import javax.inject.Inject;
 import org.apache.beam.runners.dataflow.DataflowRunner;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
@@ -41,6 +39,8 @@ import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TypeDescriptor;
 import org.apache.beam.sdk.values.TypeDescriptors;
+import org.joda.time.LocalDate;
+import org.joda.time.YearMonth;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,7 +64,7 @@ public class Spec11Pipeline implements Serializable {
    * @see google.registry.reporting.spec11.Spec11EmailUtils
    */
   public static String getSpec11ReportFilePath(LocalDate localDate) {
-    YearMonth yearMonth = YearMonth.of(localDate.getYear(), localDate.getMonth());
+    YearMonth yearMonth = new YearMonth(localDate);
     return String.format("icann/spec11/%s/SPEC11_MONTHLY_REPORT_%s", yearMonth, localDate);
   }
 

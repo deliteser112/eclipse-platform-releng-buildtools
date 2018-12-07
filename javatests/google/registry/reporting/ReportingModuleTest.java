@@ -23,10 +23,10 @@ import com.google.common.truth.Truth8;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.testing.FakeClock;
 import google.registry.util.Clock;
-import java.time.LocalDate;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,15 +71,15 @@ public class ReportingModuleTest {
 
   @Test
   public void testEmptyYearMonth_returnsLastMonth() {
-    assertThat(ReportingModule.provideYearMonth(Optional.empty(), LocalDate.of(2017, 7, 6)))
-        .isEqualTo(new YearMonth(2017, 6));
+    assertThat(ReportingModule.provideYearMonth(Optional.empty(), new LocalDate(2017, 1, 6)))
+        .isEqualTo(new YearMonth(2016, 12));
   }
 
   @Test
   public void testGivenYearMonth_returnsThatMonth() {
     assertThat(
             ReportingModule.provideYearMonth(
-                Optional.of(new YearMonth(2017, 5)), LocalDate.of(2017, 7, 6)))
+                Optional.of(new YearMonth(2017, 5)), new LocalDate(2017, 7, 6)))
         .isEqualTo(new YearMonth(2017, 5));
   }
 
@@ -93,7 +93,7 @@ public class ReportingModuleTest {
   public void testValidDateParameter_returnsThatDate() {
     when(req.getParameter("date")).thenReturn("2017-05-13");
     Truth8.assertThat(ReportingModule.provideDateOptional(req))
-        .hasValue(LocalDate.of(2017, 5, 13));
+        .hasValue(new LocalDate(2017, 5, 13));
   }
 
   @Test
@@ -109,12 +109,12 @@ public class ReportingModuleTest {
   @Test
   public void testEmptyDate_returnsToday() {
     assertThat(ReportingModule.provideDate(Optional.empty(), clock))
-        .isEqualTo(LocalDate.of(2017, 7, 1));
+        .isEqualTo(new LocalDate(2017, 7, 1));
   }
 
   @Test
   public void testGivenDate_returnsThatDate() {
-    assertThat(ReportingModule.provideDate(Optional.of(LocalDate.of(2017, 7, 2)), clock))
-        .isEqualTo(LocalDate.of(2017, 7, 2));
+    assertThat(ReportingModule.provideDate(Optional.of(new LocalDate(2017, 7, 2)), clock))
+        .isEqualTo(new LocalDate(2017, 7, 2));
   }
 }

@@ -31,8 +31,8 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
-import java.time.LocalDate;
 import javax.inject.Inject;
+import org.joda.time.LocalDate;
 
 /**
  * Retries until a {@code Dataflow} job with a given {@code jobId} completes, continuing the Spec11

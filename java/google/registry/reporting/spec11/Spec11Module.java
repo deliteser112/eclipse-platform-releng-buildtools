@@ -21,8 +21,8 @@ import dagger.Provides;
 import google.registry.beam.spec11.Spec11Pipeline;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
-import java.time.LocalDate;
 import javax.inject.Qualifier;
+import org.joda.time.LocalDate;
 
 /** Module for dependencies required by Spec11 reporting. */
 @Module

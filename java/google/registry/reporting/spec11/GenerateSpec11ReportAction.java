@@ -33,9 +33,9 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.Map;
 import javax.inject.Inject;
+import org.joda.time.LocalDate;
 
 /**
  * Invokes the {@code Spec11Pipeline} Beam template via the REST api.

@@ -32,7 +32,7 @@ import com.google.api.services.dataflow.model.Job;
 import com.google.common.net.MediaType;
 import google.registry.testing.FakeResponse;
 import java.io.IOException;
-import java.time.LocalDate;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,7 +67,7 @@ public class PublishSpec11ReportActionTest {
     response = new FakeResponse();
     publishAction =
         new PublishSpec11ReportAction(
-            "test-project", "12345", emailUtils, dataflow, response, LocalDate.of(2018, 6, 5));
+            "test-project", "12345", emailUtils, dataflow, response, new LocalDate(2018, 6, 5));
   }
 
   @Test
@@ -75,7 +75,7 @@ public class PublishSpec11ReportActionTest {
     expectedJob.setCurrentState("JOB_STATE_DONE");
     publishAction =
         new PublishSpec11ReportAction(
-            "test-project", "12345", emailUtils, dataflow, response, LocalDate.of(2018, 6, 2));
+            "test-project", "12345", emailUtils, dataflow, response, new LocalDate(2018, 6, 2));
     publishAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
     verify(emailUtils).emailSpec11Reports();

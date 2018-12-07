@@ -35,7 +35,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.io.IOException;
-import java.time.LocalDate;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -87,7 +87,7 @@ public class GenerateSpec11ReportActionTest {
             "gs://template",
             "us-east1-c",
             "api_key/a",
-            LocalDate.parse("2018-06-11"),
+            new LocalDate(2018, 6, 11),
             response,
             dataflow);
     action.run();
