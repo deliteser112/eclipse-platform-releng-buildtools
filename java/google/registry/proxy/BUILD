@@ -19,7 +19,6 @@ java_library(
     ]),
     deps = [
         "//java/google/registry/util",
-        "//third_party/java/jackson2:jackson2-databind",
         "@com_beust_jcommander",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_cloudkms",
@@ -27,6 +26,7 @@ java_library(
         "@com_google_apis_google_api_services_storage",
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
+        "@com_google_code_gson",
         "@com_google_dagger",
         "@com_google_flogger",
         "@com_google_flogger_system_backend",

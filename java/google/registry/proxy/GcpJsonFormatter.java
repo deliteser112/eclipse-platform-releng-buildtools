@@ -14,10 +14,8 @@
 
 package google.registry.proxy;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.logging.Formatter;
@@ -41,98 +39,89 @@ import java.util.logging.LogRecord;
  */
 class GcpJsonFormatter extends Formatter {
 
-  private static final ObjectMapper MAPPER = new ObjectMapper();
+  /** JSON field that determines the log level. */
+  private static final String SEVERITY = "severity";
+
+  /**
+   * JSON field that stores the calling class and function when the log occurs.
+   *
+   * <p>This field is not used by Stackdriver, but it is useful and can be found when the log
+   * entries are expanded
+   */
+  private static final String SOURCE = "source";
+
+  /** JSON field that contains the content, this will show up as the main entry in a log. */
+  private static final String MESSAGE = "message";
+
+  private static final Gson gson = new Gson();
 
   @Override
   public String format(LogRecord record) {
-    try {
-      return MAPPER.writeValueAsString(LogEvent.create(record)) + "\n";
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
+    // Add an extra newline before the message. Stackdriver does not show newlines correctly, and
+    // treats them as whitespace. If you want to see correctly formatted log message, expand the
+    // log and look for the jsonPayload.message field. This newline makes sure that the entire
+    // message starts on its own line, so that indentation within the message is correct.
+
+    String message = "\n" + record.getMessage();
+    String severity = severityFor(record.getLevel());
+
+    // The rest is mostly lifted from java.util.logging.SimpleFormatter.
+    String stacktrace = "";
+    if (record.getThrown() != null) {
+      StringWriter sw = new StringWriter();
+      try (PrintWriter pw = new PrintWriter(sw)) {
+        pw.println();
+        record.getThrown().printStackTrace(pw);
+      }
+      stacktrace = sw.toString();
     }
+
+    String source;
+    if (record.getSourceClassName() != null) {
+      source = record.getSourceClassName();
+      if (record.getSourceMethodName() != null) {
+        source += " " + record.getSourceMethodName();
+      }
+    } else {
+      source = record.getLoggerName();
+    }
+
+    return gson.toJson(
+            ImmutableMap.of(SEVERITY, severity, SOURCE, source, MESSAGE, message + stacktrace))
+        + '\n';
   }
 
-  @AutoValue
-  abstract static class LogEvent {
-
-    /** Field that determines the log level. */
-    @JsonProperty("severity")
-    abstract String severity();
-
-    /**
-     * Field that stores the calling class and function when the log occurs.
-     *
-     * <p>This field is not used by Stackdriver, but it is useful and can be found when the log
-     * entries are expanded
-     */
-    @JsonProperty("source")
-    abstract String source();
-
-    /** Field that contains the content, this will show up as the main entry in a log. */
-    @JsonProperty("message")
-    abstract String message();
-
-    static LogEvent create(LogRecord record) {
-      // Add an extra newline before the message. Stackdriver does not show newlines correctly, and
-      // treats them as whitespace. If you want to see correctly formatted log message, expand the
-      // log and look for the jsonPayload.message field. This newline makes sure that the entire
-      // message starts on its own line, so that indentation within the message is correct.
-
-      String message = "\n" + record.getMessage();
-      Level level = record.getLevel();
-      // See
-      // https://github.com/GoogleCloudPlatform/google-cloud-java/blob/master/google-cloud-logging/src/main/java/com/google/cloud/logging/Severity.java
-      // on how {@code Level} is mapped to severity.
-      String severity;
-      switch (level.intValue()) {
-          // FINEST
-        case 300:
-          // FINER
-        case 400:
-          // FINE
-        case 500:
-          severity = "DEBUG";
-          break;
-          // CONFIG
-        case 700:
-          // INFO
-        case 800:
-          severity = "INFO";
-          break;
-          // WARNING
-        case 900:
-          severity = "WARNING";
-          break;
-          // SEVERE
-        case 1000:
-          severity = "ERROR";
-          break;
-        default:
-          severity = "DEFAULT";
-      }
-
-      // The rest is mostly lifted from java.util.logging.SimpleFormatter.
-      String stacktrace = "";
-      if (record.getThrown() != null) {
-        StringWriter sw = new StringWriter();
-        try (PrintWriter pw = new PrintWriter(sw)) {
-          pw.println();
-          record.getThrown().printStackTrace(pw);
-        }
-        stacktrace = sw.toString();
-      }
-
-      String source;
-      if (record.getSourceClassName() != null) {
-        source = record.getSourceClassName();
-        if (record.getSourceMethodName() != null) {
-          source += " " + record.getSourceMethodName();
-        }
-      } else {
-        source = record.getLoggerName();
-      }
-
-      return new AutoValue_GcpJsonFormatter_LogEvent(severity, source, message + stacktrace);
+  /**
+   * Map {@link Level} to a severity string that Stackdriver understands.
+   *
+   * @see <a
+   *     href="https://github.com/googleapis/google-cloud-java/blob/master/google-cloud-clients/google-cloud-logging/src/main/java/com/google/cloud/logging/LoggingHandler.java#L325">{@code LoggingHandler}</a>
+   */
+  private static String severityFor(Level level) {
+    switch (level.intValue()) {
+        // FINEST
+      case 300:
+        return "DEBUG";
+        // FINER
+      case 400:
+        return "DEBUG";
+        // FINE
+      case 500:
+        return "DEBUG";
+        // CONFIG
+      case 700:
+        return "INFO";
+        // INFO
+      case 800:
+        return "INFO";
+        // WARNING
+      case 900:
+        return "WARNING";
+        // SEVERE
+      case 1000:
+        return "ERROR";
+      default:
+        return "DEFAULT";
     }
   }
 }

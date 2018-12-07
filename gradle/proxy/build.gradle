@@ -45,9 +45,6 @@ task deployJar(type: Jar) {
 
 dependencies {
   compile 'com.beust:jcommander:1.48'
-  compile 'com.fasterxml.jackson.core:jackson-annotations:2.8.9'
-  compile 'com.fasterxml.jackson.core:jackson-core:2.9.6'
-  compile 'com.fasterxml.jackson.core:jackson-databind:2.8.9'
   compile 'com.google.api-client:google-api-client:1.27.0'
   compile 'com.google.api-client:google-api-client:1.27.0'
   compile 'com.google.apis:google-api-services-cloudkms:v1-rev12-1.22.0'
@@ -55,6 +52,7 @@ dependencies {
   compile 'com.google.apis:google-api-services-storage:v1-rev86-1.22.0'
   compile 'com.google.auto.value:auto-value-annotations:1.6.2'
   compile 'com.google.code.findbugs:jsr305:3.0.2'
+  compile 'com.google.code.gson:gson:2.8.5'
   compile 'com.google.dagger:dagger:2.15'
   compile 'com.google.flogger:flogger:0.1'
   compile 'com.google.guava:guava:27.0-jre'
