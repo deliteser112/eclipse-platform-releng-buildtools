@@ -16,6 +16,7 @@ package google.registry.model.tmch;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Throwables.throwIfUnchecked;
 import static com.google.common.base.Verify.verify;
 import static google.registry.model.CacheUtils.memoizeWithShortExpiration;
 import static google.registry.model.ofy.ObjectifyService.allocateId;
@@ -25,6 +26,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Entity;
@@ -102,20 +104,31 @@ public class ClaimsListShard extends ImmutableObject {
           final List<Key<ClaimsListShard>> shardKeys =
               ofy().load().type(ClaimsListShard.class).ancestor(revisionKey).keys().list();
 
-          // Load all of the shards concurrently, each in a separate transaction.
-          List<ClaimsListShard> shards =
-              Concurrent.transform(
-                  shardKeys,
-                  (final Key<ClaimsListShard> key) ->
-                      ofy()
-                          .transactNewReadOnly(
-                              () -> {
-                                ClaimsListShard claimsListShard = ofy().load().key(key).now();
-                                checkState(
-                                    claimsListShard != null,
-                                    "Key not found when loading claims list shards.");
-                                return claimsListShard;
-                              }));
+          List<ClaimsListShard> shards;
+          try {
+            // Load all of the shards concurrently, each in a separate transaction.
+            shards =
+                Concurrent.transform(
+                    shardKeys,
+                    key ->
+                        ofy()
+                            .transactNewReadOnly(
+                                () -> {
+                                  ClaimsListShard claimsListShard = ofy().load().key(key).now();
+                                  checkState(
+                                      claimsListShard != null,
+                                      "Key not found when loading claims list shards.");
+                                  return claimsListShard;
+                                }));
+          } catch (UncheckedExecutionException e) {
+            // We retry on IllegalStateException. However, there's a checkState inside the
+            // Concurrent.transform, so if it's thrown it'll be wrapped in an
+            // UncheckedExecutionException. We want to unwrap it so it's caught by the retrier.
+            if (e.getCause() != null) {
+              throwIfUnchecked(e.getCause());
+            }
+            throw e;
+          }
 
           // Combine the shards together and return the concatenated ClaimsList.
           if (!shards.isEmpty()) {
