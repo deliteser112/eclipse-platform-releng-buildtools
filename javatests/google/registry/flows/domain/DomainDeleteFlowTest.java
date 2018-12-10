@@ -328,6 +328,30 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   @Test
+  public void testSuccess_updatedEppUpdateTimeAfterPendingRedemption() throws Exception {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setRedemptionGracePeriodLength(standardDays(3))
+            .setPendingDeleteLength(standardDays(2))
+            .build());
+    setClientIdForFlow("TheRegistrar");
+    setUpSuccessfulTest();
+    clock.advanceOneMilli();
+
+    runFlowAssertResponse(loadFile("domain_delete_response_pending.xml"));
+
+    DomainResource domain = reloadResourceByForeignKey();
+    DateTime redemptionEndTime = domain.getLastEppUpdateTime().plusDays(3);
+    DomainResource domainAtRedemptionTime = domain.cloneProjectedAtTime(redemptionEndTime);
+    assertAboutDomains()
+        .that(domainAtRedemptionTime)
+        .hasLastEppUpdateClientId("TheRegistrar")
+        .and()
+        .hasLastEppUpdateTime(redemptionEndTime);
+  }
+
+  @Test
   public void testSuccess_addGracePeriodResultsInImmediateDelete() throws Exception {
     sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
     doImmediateDeleteTest(GracePeriodStatus.ADD, "generic_success_response.xml");

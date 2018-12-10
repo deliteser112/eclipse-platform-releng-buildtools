@@ -48,11 +48,14 @@ import com.google.common.net.InetAddresses;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
+import google.registry.model.transfer.TransferData;
+import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
@@ -79,7 +82,7 @@ public class WhoisActionTest {
   @Rule public final InjectRule inject = new InjectRule();
 
   private final FakeResponse response = new FakeResponse();
-  private final FakeClock clock = new FakeClock(DateTime.parse("2009-06-29T20:13:00Z"));
+  private FakeClock clock;
 
   private WhoisAction newWhoisAction(String input) {
     WhoisAction whoisAction = new WhoisAction();
@@ -97,6 +100,7 @@ public class WhoisActionTest {
 
   @Before
   public void setUp() {
+    clock = new FakeClock(DateTime.parse("2009-06-29T20:13:00Z"));
     createTlds("lol", "xn--q9jyb4c", "1.test");
     inject.setStaticField(Ofy.class, "clock", clock);
 
@@ -112,19 +116,22 @@ public class WhoisActionTest {
     assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_no_command.txt"));
   }
 
+  private DomainResource makeDomainResourceWithRegistrar(Registrar registrar) {
+    return makeDomainResource(
+        "cat.lol",
+        persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
+        persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol")),
+        persistResource(makeContactResource("5372808-TRL", "The Raven", "bog@cat.lol")),
+        persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
+        persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
+        registrar);
+  }
+
   @Test
   public void testRun_domainQuery_works() {
     Registrar registrar =
         persistResource(makeRegistrar("evilregistrar", "Yes Virginia", ACTIVE));
-    persistResource(
-        makeDomainResource(
-            "cat.lol",
-            persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
-            persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol")),
-            persistResource(makeContactResource("5372808-TRL", "The Raven", "bog@cat.lol")),
-            persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
-            persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
-            registrar));
+    persistResource(makeDomainResourceWithRegistrar(registrar));
     persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisAction("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -135,15 +142,7 @@ public class WhoisActionTest {
   public void testRun_domainQuery_usesCache() {
     Registrar registrar =
         persistResource(makeRegistrar("evilregistrar", "Yes Virginia", ACTIVE));
-    persistResource(
-        makeDomainResource(
-            "cat.lol",
-            persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
-            persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol")),
-            persistResource(makeContactResource("5372808-TRL", "The Raven", "bog@cat.lol")),
-            persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
-            persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
-            registrar));
+    persistResource(makeDomainResourceWithRegistrar(registrar));
     persistSimpleResources(makeRegistrarContacts(registrar));
     // Populate the cache for both the domain and contact.
     DomainResource domain =
@@ -165,6 +164,31 @@ public class WhoisActionTest {
     newWhoisAction("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_domain.txt"));
+  }
+
+  @Test
+  public void testRun_domainAfterTransfer_hasUpdatedEppTimeAndClientId() {
+    Registrar registrar = persistResource(makeRegistrar("TheRegistrar", "Yes Virginia", ACTIVE));
+    persistResource(
+        makeDomainResourceWithRegistrar(registrar)
+            .asBuilder()
+            .setTransferData(
+                new TransferData.Builder()
+                    .setGainingClientId("TheRegistrar")
+                    .setLosingClientId("NewRegistrar")
+                    .setTransferRequestTime(DateTime.parse("2009-05-29T20:13:00Z"))
+                    .setPendingTransferExpirationTime(DateTime.parse("2010-03-01T00:00:00Z"))
+                    .setTransferStatus(TransferStatus.PENDING)
+                    .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))
+                    .build())
+            .build());
+    persistSimpleResources(makeRegistrarContacts(registrar));
+    clock.setTo(DateTime.parse("2011-01-01T00:00:00Z"));
+
+    newWhoisAction("domain cat.lol\r\n").run();
+
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_transferred_domain.txt"));
   }
 
   @Test

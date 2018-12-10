@@ -421,7 +421,11 @@ public class DomainTransferRequestFlowTest
     assertTransferApproved(domainAfterAutomaticTransfer, implicitTransferTime, expectedPeriod);
     assertAboutDomains()
         .that(domainAfterAutomaticTransfer)
-        .hasRegistrationExpirationTime(expectedExpirationTime);
+        .hasRegistrationExpirationTime(expectedExpirationTime)
+        .and()
+        .hasLastEppUpdateTime(implicitTransferTime)
+        .and()
+        .hasLastEppUpdateClientId("NewRegistrar");
     assertThat(
             ofy()
                 .load()

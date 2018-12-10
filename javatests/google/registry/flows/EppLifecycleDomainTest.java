@@ -171,7 +171,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertThatCommand("domain_info.xml", ImmutableMap.of("DOMAIN", "example.tld"))
         .atTime("2000-08-08T00:00:00Z")
         .hasResponse(
-            "domain_info_response_wildcard.xml", ImmutableMap.of("STATUS", "pendingDelete"));
+            "domain_info_response_wildcard_after_redemption.xml",
+            ImmutableMap.of("STATUS", "pendingDelete"));
 
     // Verify that the domain is non-existent (available for registration) later.
     assertThatCommand("domain_info.xml", ImmutableMap.of("DOMAIN", "example.tld"))
