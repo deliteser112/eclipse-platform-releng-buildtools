@@ -39,7 +39,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import org.joda.time.YearMonth;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,18 +73,19 @@ public class Spec11EmailUtilsTest {
     emailUtils =
         new Spec11EmailUtils(
             emailService,
-            new YearMonth(2018, 7),
+            new LocalDate(2018, 7, 15),
             "my-sender@test.com",
             "my-receiver@test.com",
             "my-reply-to@test.com",
-            "{LIST_OF_THREATS}\n{REPLY_TO_EMAIL}",
-            parser,
             new Retrier(new FakeSleeper(new FakeClock()), RETRY_COUNT));
   }
 
   @Test
-  public void testSuccess_emailSpec11Reports() throws MessagingException, IOException {
-    emailUtils.emailSpec11Reports();
+  public void testSuccess_emailSpec11Reports() throws Exception {
+    emailUtils.emailSpec11Reports(
+        "{LIST_OF_THREATS}\n{REPLY_TO_EMAIL}",
+        "Google Registry Monthly Threat Detector [2018-07-15]",
+        sampleThreatMatches());
     // We inspect individual parameters because Message doesn't implement equals().
     verify(emailService, times(3)).sendMessage(gotMessage.capture());
     List<Message> capturedMessages = gotMessage.getAllValues();
@@ -93,21 +94,21 @@ public class Spec11EmailUtilsTest {
         "my-sender@test.com",
         "a@fake.com",
         "my-reply-to@test.com",
-        "Google Registry Monthly Threat Detector [2018-07]",
+        "Google Registry Monthly Threat Detector [2018-07-15]",
         "a.com - MALWARE\n\nmy-reply-to@test.com");
     validateMessage(
         capturedMessages.get(1),
         "my-sender@test.com",
         "b@fake.com",
         "my-reply-to@test.com",
-        "Google Registry Monthly Threat Detector [2018-07]",
+        "Google Registry Monthly Threat Detector [2018-07-15]",
         "b.com - MALWARE\nc.com - MALWARE\n\nmy-reply-to@test.com");
     validateMessage(
         capturedMessages.get(2),
         "my-sender@test.com",
         "my-receiver@test.com",
         null,
-        "Spec11 Pipeline Success 2018-07",
+        "Spec11 Pipeline Success 2018-07-15",
         "Spec11 reporting completed successfully.");
   }
 
@@ -136,7 +137,9 @@ public class Spec11EmailUtilsTest {
               }
             });
     RuntimeException thrown =
-        assertThrows(RuntimeException.class, () -> emailUtils.emailSpec11Reports());
+        assertThrows(
+            RuntimeException.class,
+            () -> emailUtils.emailSpec11Reports("foo", "bar", sampleThreatMatches()));
     assertThat(thrown).hasMessageThat().isEqualTo("Emailing spec11 report failed");
     assertThat(thrown)
         .hasCauseThat()
@@ -151,7 +154,7 @@ public class Spec11EmailUtilsTest {
         "my-sender@test.com",
         "my-receiver@test.com",
         null,
-        "Spec11 Emailing Failure 2018-07",
+        "Spec11 Emailing Failure 2018-07-15",
         "Emailing spec11 reports failed due to expected");
   }
 

@@ -22,6 +22,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.services.dataflow.Dataflow;
 import com.google.api.services.dataflow.model.Job;
+import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
@@ -31,15 +32,17 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
+import java.util.List;
 import javax.inject.Inject;
 import org.joda.time.LocalDate;
+import org.json.JSONException;
 
 /**
  * Retries until a {@code Dataflow} job with a given {@code jobId} completes, continuing the Spec11
  * pipeline accordingly.
  *
- * <p>This calls {@link Spec11EmailUtils#emailSpec11Reports()} on success or {@link
- * Spec11EmailUtils#sendAlertEmail(String, String)} on failure.
+ * <p>This calls {@link Spec11EmailUtils#emailSpec11Reports(String, String, List)} ()} on success or
+ * {@link Spec11EmailUtils#sendAlertEmail(String, String)} on failure.
  */
 @Action(path = PublishSpec11ReportAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class PublishSpec11ReportAction implements Runnable {
@@ -51,8 +54,10 @@ public class PublishSpec11ReportAction implements Runnable {
   private static final String JOB_FAILED = "JOB_STATE_FAILED";
 
   private final String projectId;
+  private final String spec11EmailBodyTemplate;
   private final String jobId;
   private final Spec11EmailUtils emailUtils;
+  private final Spec11RegistrarThreatMatchesParser spec11RegistrarThreatMatchesParser;
   private final Dataflow dataflow;
   private final Response response;
   private final LocalDate date;
@@ -60,14 +65,18 @@ public class PublishSpec11ReportAction implements Runnable {
   @Inject
   PublishSpec11ReportAction(
       @Config("projectId") String projectId,
+      @Config("spec11EmailBodyTemplate") String spec11EmailBodyTemplate,
       @Parameter(ReportingModule.PARAM_JOB_ID) String jobId,
       Spec11EmailUtils emailUtils,
+      Spec11RegistrarThreatMatchesParser spec11RegistrarThreatMatchesParser,
       Dataflow dataflow,
       Response response,
       LocalDate date) {
     this.projectId = projectId;
+    this.spec11EmailBodyTemplate = spec11EmailBodyTemplate;
     this.jobId = jobId;
     this.emailUtils = emailUtils;
+    this.spec11RegistrarThreatMatchesParser = spec11RegistrarThreatMatchesParser;
     this.dataflow = dataflow;
     this.response = response;
     this.date = date;
@@ -85,7 +94,10 @@ public class PublishSpec11ReportAction implements Runnable {
               "Dataflow job %s finished successfully, publishing results if appropriate.", jobId);
           response.setStatus(SC_OK);
           if (shouldSendSpec11Email()) {
-            emailUtils.emailSpec11Reports();
+            ImmutableList<RegistrarThreatMatches> matchesList =
+                spec11RegistrarThreatMatchesParser.getRegistrarThreatMatches();
+            String subject = String.format("Google Registry Monthly Threat Detector [%s]", date);
+            emailUtils.emailSpec11Reports(spec11EmailBodyTemplate, subject, matchesList);
           }
           break;
         case JOB_FAILED:
@@ -100,7 +112,7 @@ public class PublishSpec11ReportAction implements Runnable {
           response.setStatus(SC_NOT_MODIFIED);
           break;
       }
-    } catch (IOException e) {
+    } catch (IOException | JSONException e) {
       logger.atSevere().withCause(e).log("Failed to publish Spec11 reports.");
       emailUtils.sendAlertEmail(
           String.format("Spec11 Publish Failure %s", date),
