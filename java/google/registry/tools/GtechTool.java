@@ -64,6 +64,7 @@ public final class GtechTool {
       "setup_ote",
       "uniform_rapid_suspension",
       "unlock_domain",
+      "unrenew_domain",
       "update_domain",
       "update_registrar",
       "update_sandbox_tld",

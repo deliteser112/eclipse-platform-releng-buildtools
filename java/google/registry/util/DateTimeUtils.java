@@ -77,4 +77,13 @@ public class DateTimeUtils {
     checkArgument(years >= 0);
     return years == 0 ? now : now.plusYears(1).plusYears(years - 1);
   }
+
+  /**
+   * Subtracts years from a date, in the {@code Duration} sense of semantic years. Use this instead
+   * of {@link DateTime#minusYears} to ensure that we never end up on February 29.
+   */
+  public static DateTime leapSafeSubtractYears(DateTime now, int years) {
+    checkArgument(years >= 0);
+    return years == 0 ? now : now.minusYears(1).minusYears(years - 1);
+  }
 }

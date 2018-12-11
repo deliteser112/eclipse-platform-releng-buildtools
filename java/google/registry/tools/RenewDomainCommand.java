@@ -37,7 +37,7 @@ import org.joda.time.format.DateTimeFormatter;
 final class RenewDomainCommand extends MutatingEppToolCommand {
 
   @Parameter(
-      names = "--period",
+      names = {"-p", "--period"},
       description = "Number of years to renew the registration for (defaults to 1).")
   private int period = 1;
 

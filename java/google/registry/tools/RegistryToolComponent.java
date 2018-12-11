@@ -101,6 +101,7 @@ interface RegistryToolComponent {
   void inject(SetNumInstancesCommand command);
   void inject(SetupOteCommand command);
   void inject(UnlockDomainCommand command);
+  void inject(UnrenewDomainCommand command);
   void inject(UpdateCursorsCommand command);
   void inject(UpdateDomainCommand command);
   void inject(UpdateKmsKeyringCommand command);

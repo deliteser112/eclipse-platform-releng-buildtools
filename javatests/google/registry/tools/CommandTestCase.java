@@ -191,6 +191,10 @@ public abstract class CommandTestCase<C extends Command> {
     assertThat(getStdoutAsString()).doesNotContain(expected);
   }
 
+  protected void assertNotInStderr(String expected) {
+    assertThat(getStderrAsString()).doesNotContain(expected);
+  }
+
   protected String getStdoutAsString() {
     return new String(stdout.toByteArray(), UTF_8);
   }

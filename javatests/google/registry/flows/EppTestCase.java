@@ -37,6 +37,7 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
+import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.HistoryEntry.Type;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.FakeClock;
@@ -289,15 +290,22 @@ public class EppTestCase extends ShardableTestCase {
 
   /** Makes a recurring billing event corresponding to the given domain's creation. */
   protected static BillingEvent.Recurring makeRecurringCreateBillingEvent(
-      DomainResource domain, DateTime createTime, DateTime endTime) {
+      DomainResource domain, DateTime eventTime, DateTime endTime) {
+    return makeRecurringCreateBillingEvent(
+        domain, getOnlyHistoryEntryOfType(domain, Type.DOMAIN_CREATE), eventTime, endTime);
+  }
+
+  /** Makes a recurring billing event corresponding to the given history entry. */
+  protected static BillingEvent.Recurring makeRecurringCreateBillingEvent(
+      DomainResource domain, HistoryEntry historyEntry, DateTime eventTime, DateTime endTime) {
     return new BillingEvent.Recurring.Builder()
         .setReason(Reason.RENEW)
         .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
         .setTargetId(domain.getFullyQualifiedDomainName())
         .setClientId(domain.getCurrentSponsorClientId())
-        .setEventTime(createTime.plusYears(2))
+        .setEventTime(eventTime)
         .setRecurrenceEndTime(endTime)
-        .setParent(getOnlyHistoryEntryOfType(domain, Type.DOMAIN_CREATE))
+        .setParent(historyEntry)
         .build();
   }
 

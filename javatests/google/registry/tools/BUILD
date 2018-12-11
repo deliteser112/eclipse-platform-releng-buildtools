@@ -30,6 +30,7 @@ java_library(
         "//java/google/registry/tools/server",
         "//java/google/registry/util",
         "//java/google/registry/xml",
+        "//javatests/google/registry/flows",
         "//javatests/google/registry/rde",
         "//javatests/google/registry/testing",
         "//javatests/google/registry/tmch",

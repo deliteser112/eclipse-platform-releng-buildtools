@@ -560,7 +560,7 @@ public class DatastoreHelper {
     String domainName = String.format("%s.%s", label, tld);
     DomainResource domain =
         new DomainResource.Builder()
-            .setRepoId("1-".concat(Ascii.toUpperCase(tld)))
+            .setRepoId(generateNewDomainRoid(tld))
             .setFullyQualifiedDomainName(domainName)
             .setPersistedCurrentSponsorClientId("TheRegistrar")
             .setCreationClientId("TheRegistrar")

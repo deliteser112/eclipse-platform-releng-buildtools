@@ -130,7 +130,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         domain,
         // Check the existence of the expected create one-time billing event.
         oneTimeCreateBillingEvent,
-        makeRecurringCreateBillingEvent(domain, createTime, deleteTime),
+        makeRecurringCreateBillingEvent(domain, createTime.plusYears(2), deleteTime),
         // Check for the existence of a cancellation for the given one-time billing event.
         makeCancellationBillingEventFor(
             domain, oneTimeCreateBillingEvent, createTime, deleteTime));
@@ -189,7 +189,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertBillingEventsForResource(
         domain,
         makeOneTimeCreateBillingEvent(domain, createTime),
-        makeRecurringCreateBillingEvent(domain, createTime, deleteTime));
+        makeRecurringCreateBillingEvent(domain, createTime.plusYears(2), deleteTime));
 
     assertThatLogoutSucceeds();
   }
@@ -248,7 +248,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         expectedOneTimeCreateBillingEvent,
         // ... and the expected one-time EAP fee billing event ...
         expectedCreateEapBillingEvent,
-        makeRecurringCreateBillingEvent(domain, createTime, deleteTime),
+        makeRecurringCreateBillingEvent(domain, createTime.plusYears(2), deleteTime),
         // ... and verify that the create one-time billing event was canceled ...
         makeCancellationBillingEventFor(
             domain, expectedOneTimeCreateBillingEvent, createTime, deleteTime));
