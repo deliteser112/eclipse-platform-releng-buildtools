@@ -574,6 +574,17 @@ public final class RegistryConfig {
     }
 
     /**
+     * Returns whether an SSL certificate hash is required to log in via EPP and run flows.
+     *
+     * @see google.registry.flows.TlsCredentials
+     */
+    @Provides
+    @Config("requireSslCertificates")
+    public static boolean provideRequireSslCertificates(RegistryConfigSettings config) {
+      return config.registryPolicy.requireSslCertificates;
+    }
+
+    /**
      * Returns the default job zone to run Apache Beam (Cloud Dataflow) jobs in.
      *
      * @see google.registry.reporting.billing.GenerateInvoicesAction

@@ -152,7 +152,7 @@ public class FlowRunnerTest extends ShardableTestCase {
 
   @Test
   public void testRun_loggingStatement_tlsCredentials() throws Exception {
-    flowRunner.credentials = new TlsCredentials("abc123def", Optional.of("127.0.0.1"));
+    flowRunner.credentials = new TlsCredentials(true, "abc123def", Optional.of("127.0.0.1"));
     flowRunner.run(eppMetricBuilder);
     assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
         .contains("TlsCredentials{clientCertificateHash=abc123def, clientAddress=/127.0.0.1}");

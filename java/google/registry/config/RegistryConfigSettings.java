@@ -92,6 +92,7 @@ public class RegistryConfigSettings {
     public String rdapTos;
     public String rdapTosStaticUrl;
     public String spec11EmailBodyTemplate;
+    public boolean requireSslCertificates;
   }
 
   /** Configuration for Cloud Datastore. */

@@ -33,15 +33,11 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class EppLoginTlsTest extends EppTestCase {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
-
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   void setClientCertificateHash(String clientCertificateHash) {
     setTransportCredentials(
-        new TlsCredentials(clientCertificateHash, Optional.of("192.168.1.100:54321")));
+        new TlsCredentials(true, clientCertificateHash, Optional.of("192.168.1.100:54321")));
   }
 
   @Before
@@ -160,7 +156,7 @@ public class EppLoginTlsTest extends EppTestCase {
   }
 
   @Test
-  public void testRegistrarHasNoCertificatesOnFile_disablesCertChecking() throws Exception {
+  public void testRegistrarHasNoCertificatesOnFile_fails() throws Exception {
     setClientCertificateHash("laffo");
     DateTime now = DateTime.now(UTC);
     persistResource(
@@ -169,6 +165,9 @@ public class EppLoginTlsTest extends EppTestCase {
             .setClientCertificate(null, now)
             .setFailoverClientCertificate(null, now)
             .build());
-    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatLogin("NewRegistrar", "foo-BAR2")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of("CODE", "2200", "MSG", "Registrar certificate is not configured"));
   }
 }

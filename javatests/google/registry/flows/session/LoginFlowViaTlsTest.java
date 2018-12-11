@@ -49,7 +49,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
   @Test
   public void testSuccess_withGoodCredentials() throws Exception {
     persistResource(getRegistrarBuilder().build());
-    credentials = new TlsCredentials(GOOD_CERT, GOOD_IP);
+    credentials = new TlsCredentials(true, GOOD_CERT, GOOD_IP);
     doSuccessfulTest("login_valid.xml");
   }
 
@@ -60,7 +60,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
             .setIpAddressWhitelist(ImmutableList.of(
                 CidrAddressBlock.create("2001:db8:0:0:0:0:1:1/32")))
             .build());
-    credentials = new TlsCredentials(GOOD_CERT, GOOD_IPV6);
+    credentials = new TlsCredentials(true, GOOD_CERT, GOOD_IPV6);
     doSuccessfulTest("login_valid.xml");
   }
 
@@ -71,7 +71,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
             .setIpAddressWhitelist(ImmutableList.of(
                 CidrAddressBlock.create("2001:db8:0:0:0:0:1:1/32")))
             .build());
-    credentials = new TlsCredentials(GOOD_CERT, GOOD_IPV6);
+    credentials = new TlsCredentials(true, GOOD_CERT, GOOD_IPV6);
     doSuccessfulTest("login_valid.xml");
   }
 
@@ -82,21 +82,21 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
             .setIpAddressWhitelist(ImmutableList.of(
                 CidrAddressBlock.create("192.168.1.255/24")))
             .build());
-    credentials = new TlsCredentials(GOOD_CERT, GOOD_IP);
+    credentials = new TlsCredentials(true, GOOD_CERT, GOOD_IP);
     doSuccessfulTest("login_valid.xml");
   }
 
   @Test
   public void testFailure_incorrectClientCertificateHash() {
     persistResource(getRegistrarBuilder().build());
-    credentials = new TlsCredentials(BAD_CERT, GOOD_IP);
+    credentials = new TlsCredentials(true, BAD_CERT, GOOD_IP);
     doFailingTest("login_valid.xml", BadRegistrarCertificateException.class);
   }
 
   @Test
   public void testFailure_missingClientCertificateHash() {
     persistResource(getRegistrarBuilder().build());
-    credentials = new TlsCredentials(null, GOOD_IP);
+    credentials = new TlsCredentials(true, null, GOOD_IP);
     doFailingTest("login_valid.xml", MissingRegistrarCertificateException.class);
   }
 
@@ -108,7 +108,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create(InetAddresses.forString("192.168.1.1"), 32),
                 CidrAddressBlock.create(InetAddresses.forString("2001:db8::1"), 128)))
             .build());
-    credentials = new TlsCredentials(GOOD_CERT, Optional.empty());
+    credentials = new TlsCredentials(true, GOOD_CERT, Optional.empty());
     doFailingTest("login_valid.xml", BadRegistrarIpAddressException.class);
   }
 
@@ -120,7 +120,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create(InetAddresses.forString("192.168.1.1"), 32),
                 CidrAddressBlock.create(InetAddresses.forString("2001:db8::1"), 128)))
             .build());
-    credentials = new TlsCredentials(GOOD_CERT, BAD_IP);
+    credentials = new TlsCredentials(true, GOOD_CERT, BAD_IP);
     doFailingTest("login_valid.xml", BadRegistrarIpAddressException.class);
   }
 
@@ -132,7 +132,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create(InetAddresses.forString("192.168.1.1"), 32),
                 CidrAddressBlock.create(InetAddresses.forString("2001:db8::1"), 128)))
             .build());
-    credentials = new TlsCredentials(GOOD_CERT, BAD_IPV6);
+    credentials = new TlsCredentials(true, GOOD_CERT, BAD_IPV6);
     doFailingTest("login_valid.xml", BadRegistrarIpAddressException.class);
   }
 }

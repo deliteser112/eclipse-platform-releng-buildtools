@@ -26,6 +26,7 @@ import com.google.common.net.HostAndPort;
 import com.google.common.net.InetAddresses;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.flows.EppException.AuthenticationErrorException;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Header;
@@ -54,14 +55,17 @@ public class TlsCredentials implements TransportCredentials {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
+  private final boolean requireSslCertificates;
   private final String clientCertificateHash;
   private final InetAddress clientInetAddr;
 
   @Inject
   @VisibleForTesting
   public TlsCredentials(
+      @Config("requireSslCertificates") boolean requireSslCertificates,
       @Header("X-SSL-Certificate") String clientCertificateHash,
       @Header("X-Forwarded-For") Optional<String> clientAddress) {
+    this.requireSslCertificates = requireSslCertificates;
     this.clientCertificateHash = clientCertificateHash;
     this.clientInetAddr = clientAddress.isPresent() ? parseInetAddress(clientAddress.get()) : null;
   }
@@ -112,13 +116,17 @@ public class TlsCredentials implements TransportCredentials {
    * @throws MissingRegistrarCertificateException if frontend didn't send certificate hash header
    * @throws BadRegistrarCertificateException if registrar requires certificate and it didn't match
    */
-  private void validateCertificate(Registrar registrar) throws AuthenticationErrorException {
+  @VisibleForTesting
+  void validateCertificate(Registrar registrar) throws AuthenticationErrorException {
     if (isNullOrEmpty(registrar.getClientCertificateHash())
         && isNullOrEmpty(registrar.getFailoverClientCertificateHash())) {
-      logger.atInfo().log(
-          "Skipping SSL certificate check because %s doesn't have any certificate hashes on file",
-          registrar.getClientId());
-      return;
+      if (requireSslCertificates) {
+        throw new RegistrarCertificateNotConfiguredException();
+      } else {
+        // If the environment is configured to allow missing SSL certificate hashes and this hash is
+        // missing, then bypass the certificate hash checks.
+        return;
+      }
     }
     if (isNullOrEmpty(clientCertificateHash)) {
       logger.atInfo().log("Request did not include X-SSL-Certificate");
@@ -162,6 +170,14 @@ public class TlsCredentials implements TransportCredentials {
   public static class MissingRegistrarCertificateException extends AuthenticationErrorException {
     public MissingRegistrarCertificateException() {
       super("Registrar certificate not present");
+    }
+  }
+
+  /** Registrar certificate is not configured. */
+  public static class RegistrarCertificateNotConfiguredException
+      extends AuthenticationErrorException {
+    public RegistrarCertificateNotConfiguredException() {
+      super("Registrar certificate is not configured");
     }
   }
 

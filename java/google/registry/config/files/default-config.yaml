@@ -183,6 +183,11 @@ registryPolicy:
     If you have any questions regarding this notice, please contact
     {REPLY_TO_EMAIL}.
 
+  # Whether to require an SSL certificate hash in order to be able to log in
+  # via EPP and run commands. This can be false for testing environments but
+  # should generally be true for production environments, for added security.
+  requireSslCertificates: true
+
 datastore:
   # Number of commit log buckets in Datastore. Lowering this after initial
   # install risks losing up to a days' worth of differential backups.
