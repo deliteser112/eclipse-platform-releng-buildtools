@@ -402,13 +402,5 @@ public final class EppResourceUtils {
     return queryForLinkedDomains(key, now).limit(1).count() > 0;
   }
 
-  /** Exception to throw when failing to parse a repo id. */
-  public static class InvalidRepoIdException extends Exception {
-
-    public InvalidRepoIdException(String message) {
-      super(message);
-    }
-  }
-
   private EppResourceUtils() {}
 }

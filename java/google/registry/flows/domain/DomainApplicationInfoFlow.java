@@ -15,7 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.collect.Sets.union;
-import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.flows.FlowUtils.unmarshalEpp;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
@@ -136,7 +136,7 @@ public final class DomainApplicationInfoFlow implements Flow {
     if (Boolean.TRUE.equals(launchInfo.getIncludeMark())) {  // Default to false.
       for (EncodedSignedMark encodedMark : application.getEncodedSignedMarks()) {
         try {
-          marksBuilder.add(unmarshal(SignedMark.class, encodedMark.getBytes()).getMark());
+          marksBuilder.add(unmarshalEpp(SignedMark.class, encodedMark.getBytes()).getMark());
         } catch (EppException e) {
           // This is a serious error; don't let the benign EppException propagate.
           throw new IllegalStateException("Could not decode a stored encoded signed mark", e);

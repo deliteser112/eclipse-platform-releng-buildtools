@@ -16,7 +16,7 @@ package google.registry.testing;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.flows.EppXmlTransformer.marshal;
+import static google.registry.model.eppcommon.EppXmlTransformer.marshal;
 
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;

@@ -17,8 +17,8 @@ package google.registry.flows;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.flogger.LazyArgs.lazy;
 import static com.google.common.io.BaseEncoding.base64;
-import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.flows.FlowReporter.extractTlds;
+import static google.registry.flows.FlowUtils.unmarshalEpp;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -65,7 +65,7 @@ public final class EppController {
     try {
       EppInput eppInput;
       try {
-        eppInput = unmarshal(EppInput.class, inputXmlBytes);
+        eppInput = unmarshalEpp(EppInput.class, inputXmlBytes);
       } catch (EppException e) {
         // Log the unmarshalling error, with the raw bytes (in base64) to help with debugging.
         logger.atInfo().withCause(e).log(

@@ -35,7 +35,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
-import google.registry.flows.EppXmlTransformer.IpAddressVersionMismatchException;
+import google.registry.flows.FlowUtils.IpAddressVersionMismatchException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.host.HostCreateFlow.SubordinateHostMustHaveIpException;

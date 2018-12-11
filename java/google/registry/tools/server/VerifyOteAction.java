@@ -17,7 +17,7 @@ package google.registry.tools.server;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Maps.toMap;
-import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.model.eppcommon.EppXmlTransformer.unmarshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
-import google.registry.flows.EppException;
 import google.registry.model.domain.DomainCommand;
 import google.registry.model.domain.fee.FeeCreateCommandExtension;
 import google.registry.model.domain.launch.LaunchCreateExtension;
@@ -45,6 +44,7 @@ import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
 import google.registry.request.auth.Auth;
+import google.registry.xml.XmlException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -264,7 +264,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
       for (HistoryEntry historyEntry : query) {
         try {
           record(historyEntry);
-        } catch (EppException e) {
+        } catch (XmlException e) {
           throw new RuntimeException("Couldn't parse history entry " + Key.create(historyEntry), e);
         }
         // Break out early if all tests were passed.
@@ -276,7 +276,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
     }
 
     /** Interprets the data in the provided HistoryEntry and increments counters. */
-    void record(final HistoryEntry historyEntry) throws EppException {
+    void record(final HistoryEntry historyEntry) throws XmlException {
       byte[] xmlBytes = historyEntry.getXmlBytes();
       // xmlBytes can be null on contact create and update for safe-harbor compliance.
       final Optional<EppInput> eppInput =

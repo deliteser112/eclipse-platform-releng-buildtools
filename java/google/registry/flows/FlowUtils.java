@@ -14,13 +14,31 @@
 
 package google.registry.flows;
 
+import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.xml.ValidationMode.LENIENT;
+import static google.registry.xml.ValidationMode.STRICT;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.base.Throwables;
+import com.google.common.flogger.FluentLogger;
 import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.EppException.ParameterValueRangeErrorException;
+import google.registry.flows.EppException.SyntaxErrorException;
+import google.registry.flows.EppException.UnimplementedProtocolVersionException;
 import google.registry.flows.custom.EntityChanges;
+import google.registry.model.eppcommon.EppXmlTransformer;
+import google.registry.model.eppinput.EppInput.WrongProtocolVersionException;
+import google.registry.model.eppoutput.EppOutput;
+import google.registry.model.host.InetAddressAdapter.IpVersionMismatchException;
+import google.registry.model.translators.CurrencyUnitAdapter.UnknownCurrencyException;
+import google.registry.xml.XmlException;
+import java.util.List;
 
 /** Static utility functions for flows. */
 public final class FlowUtils {
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private FlowUtils() {}
 
@@ -37,10 +55,75 @@ public final class FlowUtils {
     ofy().delete().keys(entityChanges.getDeletes());
   }
 
+  /**
+   * Unmarshal bytes into Epp classes. Does the same as {@link EppXmlTransformer#unmarshal(Class,
+   * byte[])} but with exception-handling logic to throw {@link EppException} instead.
+   */
+  public static <T> T unmarshalEpp(Class<T> clazz, byte[] bytes) throws EppException {
+    try {
+      return EppXmlTransformer.unmarshal(clazz, bytes);
+    } catch (XmlException e) {
+      // If this XmlException is wrapping a known type find it. If not, it's a syntax error.
+      List<Throwable> causalChain = Throwables.getCausalChain(e);
+      if (causalChain.stream().anyMatch(IpVersionMismatchException.class::isInstance)) {
+        throw new IpAddressVersionMismatchException();
+      }
+      if (causalChain.stream().anyMatch(WrongProtocolVersionException.class::isInstance)) {
+        throw new UnimplementedProtocolVersionException();
+      }
+      if (causalChain.stream().anyMatch(UnknownCurrencyException.class::isInstance)) {
+        throw new UnknownCurrencyEppException();
+      }
+      throw new GenericXmlSyntaxErrorException(e.getMessage());
+    }
+  }
+
+  public static byte[] marshalWithLenientRetry(EppOutput eppOutput) {
+    checkState(eppOutput != null);
+    // We need to marshal to a string instead of writing the response directly to the servlet's
+    // response writer, so that partial results don't get written on failure.
+    try {
+      return EppXmlTransformer.marshal(eppOutput, STRICT);
+    } catch (XmlException e) {
+      // We failed to marshal with validation. This is very bad, but we can potentially still send
+      // back slightly invalid xml, so try again without validation.
+      try {
+        byte[] lenient = EppXmlTransformer.marshal(eppOutput, LENIENT);
+        // Marshaling worked even though the results didn't validate against the schema.
+        logger.atSevere().withCause(e).log(
+            "Result marshaled but did not validate: %s", new String(lenient, UTF_8));
+        return lenient;
+      } catch (XmlException e2) {
+        throw new RuntimeException(e2); // Failing to marshal at all is not recoverable.
+      }
+    }
+  }
+
   /** Registrar is not logged in. */
   public static class NotLoggedInException extends CommandUseErrorException {
     public NotLoggedInException() {
       super("Registrar is not logged in.");
+    }
+  }
+
+  /** IP address version mismatch. */
+  public static class IpAddressVersionMismatchException extends ParameterValueRangeErrorException {
+    public IpAddressVersionMismatchException() {
+      super("IP adddress version mismatch");
+    }
+  }
+
+  /** Unknown currency. */
+  static class UnknownCurrencyEppException extends ParameterValueRangeErrorException {
+    public UnknownCurrencyEppException() {
+      super("Unknown currency.");
+    }
+  }
+
+  /** Generic XML syntax error that can be thrown by any flow. */
+  public static class GenericXmlSyntaxErrorException extends SyntaxErrorException {
+    public GenericXmlSyntaxErrorException(String message) {
+      super(message);
     }
   }
 }

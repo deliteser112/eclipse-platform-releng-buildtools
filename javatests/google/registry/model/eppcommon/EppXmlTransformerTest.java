@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-package google.registry.flows;
+package google.registry.model.eppcommon;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.model.eppcommon.EppXmlTransformer.unmarshal;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TestDataHelper.loadBytes;
 
@@ -41,8 +40,6 @@ public class EppXmlTransformerTest extends ShardableTestCase {
   public void testUnmarshalingWrongClassThrows() {
     assertThrows(
         ClassCastException.class,
-        () ->
-            EppXmlTransformer.unmarshal(
-                EppOutput.class, loadBytes(getClass(), "contact_info.xml").read()));
+        () -> unmarshal(EppOutput.class, loadBytes(getClass(), "contact_info.xml").read()));
   }
 }

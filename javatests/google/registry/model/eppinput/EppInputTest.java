@@ -16,15 +16,15 @@ package google.registry.model.eppinput;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
-import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.model.eppcommon.EppXmlTransformer.unmarshal;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TestDataHelper.loadBytes;
 
-import google.registry.flows.EppException.SyntaxErrorException;
 import google.registry.model.contact.ContactResourceTest;
 import google.registry.model.domain.DomainResourceTest;
 import google.registry.model.eppinput.EppInput.InnerCommand;
 import google.registry.model.eppinput.EppInput.Login;
+import google.registry.xml.XmlException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -83,7 +83,7 @@ public class EppInputTest {
   @Test
   public void testUnmarshalling_loginTagInWrongCase_throws() {
     assertThrows(
-        SyntaxErrorException.class,
+        XmlException.class,
         () -> unmarshal(EppInput.class, loadBytes(getClass(), "login_wrong_case.xml").read()));
   }
 }
