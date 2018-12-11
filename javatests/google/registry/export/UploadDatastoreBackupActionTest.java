@@ -16,16 +16,17 @@ package google.registry.export;
 
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.export.LoadSnapshotAction.LATEST_SNAPSHOT_VIEW_NAME;
-import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
-import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
-import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;
-import static google.registry.export.LoadSnapshotAction.PATH;
-import static google.registry.export.LoadSnapshotAction.QUEUE;
-import static google.registry.export.LoadSnapshotAction.enqueueLoadSnapshotTask;
+import static google.registry.export.UploadDatastoreBackupAction.BACKUP_DATASET;
+import static google.registry.export.UploadDatastoreBackupAction.LATEST_BACKUP_VIEW_NAME;
+import static google.registry.export.UploadDatastoreBackupAction.PATH;
+import static google.registry.export.UploadDatastoreBackupAction.QUEUE;
+import static google.registry.export.UploadDatastoreBackupAction.UPLOAD_BACKUP_FOLDER_PARAM;
+import static google.registry.export.UploadDatastoreBackupAction.UPLOAD_BACKUP_ID_PARAM;
+import static google.registry.export.UploadDatastoreBackupAction.UPLOAD_BACKUP_KINDS_PARAM;
+import static google.registry.export.UploadDatastoreBackupAction.enqueueUploadBackupTask;
+import static google.registry.export.UploadDatastoreBackupAction.getBackupInfoFileForKind;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -43,14 +44,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import google.registry.bigquery.CheckedBigquery;
 import google.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
-import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.FakeClock;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.io.IOException;
 import java.util.List;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,9 +56,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 
-/** Unit tests for {@link LoadSnapshotAction}. */
+/** Unit tests for {@link UploadDatastoreBackupAction}. */
 @RunWith(JUnit4.class)
-public class LoadSnapshotActionTest {
+public class UploadDatastoreBackupActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -74,40 +72,36 @@ public class LoadSnapshotActionTest {
   private final Bigquery.Datasets.Insert bigqueryDatasetsInsert =
       mock(Bigquery.Datasets.Insert.class);
   private final BigqueryPollJobEnqueuer bigqueryPollEnqueuer = mock(BigqueryPollJobEnqueuer.class);
-
-  private FakeClock clock = new FakeClock(new DateTime(1391096117045L, UTC));
-  private LoadSnapshotAction action;
+  private UploadDatastoreBackupAction action;
 
   @Before
   public void before() throws Exception {
-    when(checkedBigquery.ensureDataSetExists("Project-Id", "snapshots")).thenReturn(bigquery);
+    when(checkedBigquery.ensureDataSetExists("Project-Id", BACKUP_DATASET)).thenReturn(bigquery);
     when(bigquery.jobs()).thenReturn(bigqueryJobs);
     when(bigqueryJobs.insert(eq("Project-Id"), any(Job.class))).thenReturn(bigqueryJobsInsert);
     when(bigquery.datasets()).thenReturn(bigqueryDatasets);
     when(bigqueryDatasets.insert(eq("Project-Id"), any(Dataset.class)))
         .thenReturn(bigqueryDatasetsInsert);
-    action = new LoadSnapshotAction();
+    action = new UploadDatastoreBackupAction();
     action.checkedBigquery = checkedBigquery;
     action.bigqueryPollEnqueuer = bigqueryPollEnqueuer;
-    action.clock = clock;
     action.projectId = "Project-Id";
-    action.snapshotFile = "gs://bucket/snapshot.backup_info";
-    action.snapshotId = "id12345";
-    action.snapshotKinds = "one,two,three";
+    action.backupFolderUrl = "gs://bucket/path";
+    action.backupId = "2018-12-05T17:46:39_92612";
+    action.backupKinds = "one,two,three";
   }
 
   @Test
   public void testSuccess_enqueueLoadTask() {
-    enqueueLoadSnapshotTask(
-        "id12345", "gs://bucket/snapshot.backup_info", ImmutableSet.of("one", "two", "three"));
+    enqueueUploadBackupTask("id12345", "gs://bucket/path", ImmutableSet.of("one", "two", "three"));
     assertTasksEnqueued(
         QUEUE,
         new TaskMatcher()
             .url(PATH)
             .method("POST")
-            .param(LOAD_SNAPSHOT_ID_PARAM, "id12345")
-            .param(LOAD_SNAPSHOT_FILE_PARAM, "gs://bucket/snapshot.backup_info")
-            .param(LOAD_SNAPSHOT_KINDS_PARAM, "one,two,three"));
+            .param(UPLOAD_BACKUP_ID_PARAM, "id12345")
+            .param(UPLOAD_BACKUP_FOLDER_PARAM, "gs://bucket/path")
+            .param(UPLOAD_BACKUP_KINDS_PARAM, "one,two,three"));
   }
 
   @Test
@@ -116,7 +110,7 @@ public class LoadSnapshotActionTest {
 
     // Verify that checkedBigquery was called in a way that would create the dataset if it didn't
     // already exist.
-    verify(checkedBigquery).ensureDataSetExists("Project-Id", "snapshots");
+    verify(checkedBigquery).ensureDataSetExists("Project-Id", BACKUP_DATASET);
 
     // Capture the load jobs we inserted to do additional checking on them.
     ArgumentCaptor<Job> jobArgument = ArgumentCaptor.forClass(Job.class);
@@ -130,15 +124,15 @@ public class LoadSnapshotActionTest {
       JobConfigurationLoad config = job.getConfiguration().getLoad();
       assertThat(config.getSourceFormat()).isEqualTo("DATASTORE_BACKUP");
       assertThat(config.getDestinationTable().getProjectId()).isEqualTo("Project-Id");
-      assertThat(config.getDestinationTable().getDatasetId()).isEqualTo("snapshots");
+      assertThat(config.getDestinationTable().getDatasetId()).isEqualTo(BACKUP_DATASET);
     }
 
     // Check the job IDs for each load job.
     assertThat(transform(jobs, job -> job.getJobReference().getJobId()))
         .containsExactly(
-            "load-snapshot-id12345-one-1391096117045",
-            "load-snapshot-id12345-two-1391096117045",
-            "load-snapshot-id12345-three-1391096117045");
+            "load-backup-2018_12_05T17_46_39_92612-one",
+            "load-backup-2018_12_05T17_46_39_92612-two",
+            "load-backup-2018_12_05T17_46_39_92612-three");
 
     // Check the source URI for each load job.
     assertThat(
@@ -146,15 +140,18 @@ public class LoadSnapshotActionTest {
                 jobs,
                 job -> Iterables.getOnlyElement(job.getConfiguration().getLoad().getSourceUris())))
         .containsExactly(
-            "gs://bucket/snapshot.one.backup_info",
-            "gs://bucket/snapshot.two.backup_info",
-            "gs://bucket/snapshot.three.backup_info");
+            "gs://bucket/path/all_namespaces/kind_one/all_namespaces_kind_one.export_metadata",
+            "gs://bucket/path/all_namespaces/kind_two/all_namespaces_kind_two.export_metadata",
+            "gs://bucket/path/all_namespaces/kind_three/all_namespaces_kind_three.export_metadata");
 
     // Check the destination table ID for each load job.
     assertThat(
             transform(
                 jobs, job -> job.getConfiguration().getLoad().getDestinationTable().getTableId()))
-        .containsExactly("id12345_one", "id12345_two", "id12345_three");
+        .containsExactly(
+            "2018_12_05T17_46_39_92612_one",
+            "2018_12_05T17_46_39_92612_two",
+            "2018_12_05T17_46_39_92612_three");
 
     // Check that we executed the inserted jobs.
     verify(bigqueryJobsInsert, times(3)).execute();
@@ -164,35 +161,29 @@ public class LoadSnapshotActionTest {
         .enqueuePollTask(
             new JobReference()
                 .setProjectId("Project-Id")
-                .setJobId("load-snapshot-id12345-one-1391096117045"),
+                .setJobId("load-backup-2018_12_05T17_46_39_92612-one"),
             UpdateSnapshotViewAction.createViewUpdateTask(
-                "snapshots", "id12345_one", "one", LATEST_SNAPSHOT_VIEW_NAME),
+                BACKUP_DATASET, "2018_12_05T17_46_39_92612_one", "one", LATEST_BACKUP_VIEW_NAME),
             QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
     verify(bigqueryPollEnqueuer)
         .enqueuePollTask(
             new JobReference()
                 .setProjectId("Project-Id")
-                .setJobId("load-snapshot-id12345-two-1391096117045"),
+                .setJobId("load-backup-2018_12_05T17_46_39_92612-two"),
             UpdateSnapshotViewAction.createViewUpdateTask(
-                "snapshots", "id12345_two", "two", LATEST_SNAPSHOT_VIEW_NAME),
+                BACKUP_DATASET, "2018_12_05T17_46_39_92612_two", "two", LATEST_BACKUP_VIEW_NAME),
             QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
     verify(bigqueryPollEnqueuer)
         .enqueuePollTask(
             new JobReference()
                 .setProjectId("Project-Id")
-                .setJobId("load-snapshot-id12345-three-1391096117045"),
+                .setJobId("load-backup-2018_12_05T17_46_39_92612-three"),
             UpdateSnapshotViewAction.createViewUpdateTask(
-                "snapshots", "id12345_three", "three", LATEST_SNAPSHOT_VIEW_NAME),
+                BACKUP_DATASET,
+                "2018_12_05T17_46_39_92612_three",
+                "three",
+                LATEST_BACKUP_VIEW_NAME),
             QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
-  }
-
-  @Test
-  public void testFailure_doPost_badGcsFilename() {
-    action.snapshotFile = "gs://bucket/snapshot";
-    BadRequestException thrown = assertThrows(BadRequestException.class, action::run);
-    assertThat(thrown)
-        .hasMessageThat()
-        .contains("Error calling load snapshot: backup info file extension missing");
   }
 
   @Test
@@ -202,6 +193,17 @@ public class LoadSnapshotActionTest {
         assertThrows(InternalServerErrorException.class, action::run);
     assertThat(thrown)
         .hasMessageThat()
-        .contains("Error loading snapshot: The Internet has gone missing");
+        .contains("Error loading backup: The Internet has gone missing");
+  }
+
+  @Test
+  public void testgetBackupInfoFileForKind() {
+    assertThat(
+            getBackupInfoFileForKind(
+                "gs://BucketName/2018-11-11T00:00:00_12345", "AllocationToken"))
+        .isEqualTo(
+            "gs://BucketName/2018-11-11T00:00:00_12345/"
+                + "all_namespaces/kind_AllocationToken/"
+                + "all_namespaces_kind_AllocationToken.export_metadata");
   }
 }

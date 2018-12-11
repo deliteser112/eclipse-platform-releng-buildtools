@@ -1385,6 +1385,15 @@ public final class RegistryConfig {
   }
 
   /**
+   * Returns the Google Cloud Storage bucket for storing Datastore backups.
+   *
+   * @see google.registry.export.BackupDatastoreAction
+   */
+  public static String getDatastoreBackupsBucket() {
+    return "gs://" + getProjectId() + "-datastore-backups";
+  }
+
+  /**
    * Number of sharded commit log buckets.
    *
    * <p>This number is crucial for determining how much transactional throughput the system can

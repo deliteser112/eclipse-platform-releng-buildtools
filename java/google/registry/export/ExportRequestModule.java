@@ -25,6 +25,8 @@ import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARA
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
+import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_VIEWNAME_PARAM;
+import static google.registry.export.UploadDatastoreBackupAction.UPLOAD_BACKUP_FOLDER_PARAM;
 import static google.registry.request.RequestParameters.extractRequiredHeader;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
@@ -57,9 +59,21 @@ public final class ExportRequestModule {
   }
 
   @Provides
+  @Parameter(UPDATE_SNAPSHOT_VIEWNAME_PARAM)
+  static String provideUpdateSnapshotViewName(HttpServletRequest req) {
+    return extractRequiredParameter(req, UPDATE_SNAPSHOT_VIEWNAME_PARAM);
+  }
+
+  @Provides
   @Parameter(LOAD_SNAPSHOT_FILE_PARAM)
   static String provideLoadSnapshotFile(HttpServletRequest req) {
     return extractRequiredParameter(req, LOAD_SNAPSHOT_FILE_PARAM);
+  }
+
+  @Provides
+  @Parameter(UPLOAD_BACKUP_FOLDER_PARAM)
+  static String provideSnapshotUrlPrefix(HttpServletRequest req) {
+    return extractRequiredParameter(req, UPLOAD_BACKUP_FOLDER_PARAM);
   }
 
   @Provides

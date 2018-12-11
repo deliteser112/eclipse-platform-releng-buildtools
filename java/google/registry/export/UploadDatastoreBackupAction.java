@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ package google.registry.export;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.export.UpdateSnapshotViewAction.createViewUpdateTask;
 import static google.registry.request.Action.Method.POST;
 
@@ -29,6 +28,7 @@ import com.google.api.services.bigquery.model.TableReference;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -44,96 +44,103 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.util.Clock;
 import java.io.IOException;
 import javax.inject.Inject;
-import org.joda.time.DateTime;
 
-/** Action to load a Datastore snapshot from Google Cloud Storage into BigQuery. */
-@Action(
-  path = LoadSnapshotAction.PATH,
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
-public class LoadSnapshotAction implements Runnable {
+/** Action to load a Datastore backup from Google Cloud Storage into BigQuery. */
+@Action(path = UploadDatastoreBackupAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
+public class UploadDatastoreBackupAction implements Runnable {
 
   /** Parameter names for passing parameters into the servlet. */
-  static final String LOAD_SNAPSHOT_ID_PARAM = "id";
-  static final String LOAD_SNAPSHOT_FILE_PARAM = "file";
-  static final String LOAD_SNAPSHOT_KINDS_PARAM = "kinds";
+  static final String UPLOAD_BACKUP_ID_PARAM = "id";
 
-  static final String SNAPSHOTS_DATASET = "snapshots";
+  static final String UPLOAD_BACKUP_FOLDER_PARAM = "folder";
+  static final String UPLOAD_BACKUP_KINDS_PARAM = "kinds";
 
-  static final String LATEST_SNAPSHOT_VIEW_NAME = "latest_datastore_export";
+  static final String BACKUP_DATASET = "datastore_backups";
 
   /** Servlet-specific details needed for enqueuing tasks against itself. */
   static final String QUEUE = "export-snapshot";  // See queue.xml.
-  static final String PATH = "/_dr/task/loadSnapshot";  // See web.xml.
+
+  static final String LATEST_BACKUP_VIEW_NAME = "latest_datastore_backup";
+
+  static final String PATH = "/_dr/task/uploadDatastoreBackup"; // See web.xml.
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject CheckedBigquery checkedBigquery;
   @Inject BigqueryPollJobEnqueuer bigqueryPollEnqueuer;
-  @Inject Clock clock;
   @Inject @Config("projectId") String projectId;
-  @Inject @Parameter(LOAD_SNAPSHOT_FILE_PARAM) String snapshotFile;
-  @Inject @Parameter(LOAD_SNAPSHOT_ID_PARAM) String snapshotId;
-  @Inject @Parameter(LOAD_SNAPSHOT_KINDS_PARAM) String snapshotKinds;
-  @Inject LoadSnapshotAction() {}
+
+  @Inject
+  @Parameter(UPLOAD_BACKUP_FOLDER_PARAM)
+  String backupFolderUrl;
+
+  @Inject
+  @Parameter(UPLOAD_BACKUP_ID_PARAM)
+  String backupId;
+
+  @Inject
+  @Parameter(UPLOAD_BACKUP_KINDS_PARAM)
+  String backupKinds;
+
+  @Inject
+  UploadDatastoreBackupAction() {}
 
   /** Enqueue a task for starting a backup load. */
-  public static TaskHandle enqueueLoadSnapshotTask(
-      String snapshotId, String gcsFile, ImmutableSet<String> kinds) {
-    return getQueue(QUEUE).add(
-        TaskOptions.Builder.withUrl(PATH)
-            .method(Method.POST)
-            .param(LOAD_SNAPSHOT_ID_PARAM, snapshotId)
-            .param(LOAD_SNAPSHOT_FILE_PARAM, gcsFile)
-            .param(LOAD_SNAPSHOT_KINDS_PARAM, Joiner.on(',').join(kinds)));
+  public static TaskHandle enqueueUploadBackupTask(
+      String backupId, String gcsFile, ImmutableSet<String> kinds) {
+    return getQueue(QUEUE)
+        .add(
+            TaskOptions.Builder.withUrl(PATH)
+                .method(Method.POST)
+                .param(UPLOAD_BACKUP_ID_PARAM, backupId)
+                .param(UPLOAD_BACKUP_FOLDER_PARAM, gcsFile)
+                .param(UPLOAD_BACKUP_KINDS_PARAM, Joiner.on(',').join(kinds)));
   }
 
   @Override
   public void run() {
     try {
-      String message =
-          loadSnapshot(snapshotId, snapshotFile, Splitter.on(',').split(snapshotKinds));
-      logger.atInfo().log("Loaded snapshot successfully: %s", message);
+      String message = uploadBackup(backupId, backupFolderUrl, Splitter.on(',').split(backupKinds));
+      logger.atInfo().log("Loaded backup successfully: %s", message);
     } catch (Throwable e) {
-      logger.atSevere().withCause(e).log("Error loading snapshot");
+      logger.atSevere().withCause(e).log("Error loading backup");
       if (e instanceof IllegalArgumentException) {
-        throw new BadRequestException("Error calling load snapshot: " + e.getMessage(), e);
+        throw new BadRequestException("Error calling load backup: " + e.getMessage(), e);
       } else {
         throw new InternalServerErrorException(
-            "Error loading snapshot: " + firstNonNull(e.getMessage(), e.toString()));
+            "Error loading backup: " + firstNonNull(e.getMessage(), e.toString()));
       }
     }
   }
 
-  private String loadSnapshot(String snapshotId, String gcsFilename, Iterable<String> kinds)
+  private String uploadBackup(String backupId, String backupFolderUrl, Iterable<String> kinds)
       throws IOException {
-    Bigquery bigquery = checkedBigquery.ensureDataSetExists(projectId, SNAPSHOTS_DATASET);
-    DateTime now = clock.nowUtc();
+    Bigquery bigquery = checkedBigquery.ensureDataSetExists(projectId, BACKUP_DATASET);
     String loadMessage =
-        String.format("Loading Datastore snapshot %s from %s...", snapshotId, gcsFilename);
+        String.format("Loading Datastore backup %s from %s...", backupId, backupFolderUrl);
     logger.atInfo().log(loadMessage);
+
+    String sanitizedBackupId = sanitizeForBigquery(backupId);
     StringBuilder builder = new StringBuilder(loadMessage + "\n");
     builder.append("Load jobs:\n");
 
     for (String kindName : kinds) {
-      String jobId = String.format("load-snapshot-%s-%s-%d", snapshotId, kindName, now.getMillis());
+      String jobId = String.format("load-backup-%s-%s", sanitizedBackupId, kindName);
       JobReference jobRef = new JobReference().setProjectId(projectId).setJobId(jobId);
-      String sourceUri = getBackupInfoFileForKind(gcsFilename, kindName);
-      String tableId = String.format("%s_%s", snapshotId, kindName);
+      String sourceUri = getBackupInfoFileForKind(backupFolderUrl, kindName);
+      String tableId = String.format("%s_%s", sanitizedBackupId, kindName);
 
       // Launch the load job.
       Job job = makeLoadJob(jobRef, sourceUri, tableId);
       bigquery.jobs().insert(projectId, job).execute();
 
       // Enqueue a task to check on the load job's completion, and if it succeeds, to update a
-      // well-known view in BigQuery to point at the newly loaded snapshot table for this kind.
+      // well-known view in BigQuery to point at the newly loaded backup table for this kind.
       bigqueryPollEnqueuer.enqueuePollTask(
           jobRef,
-          createViewUpdateTask(SNAPSHOTS_DATASET, tableId, kindName, LATEST_SNAPSHOT_VIEW_NAME),
+          createViewUpdateTask(BACKUP_DATASET, tableId, kindName, LATEST_BACKUP_VIEW_NAME),
           getQueue(UpdateSnapshotViewAction.QUEUE));
 
       builder.append(String.format(" - %s:%s\n", projectId, jobId));
@@ -142,18 +149,26 @@ public class LoadSnapshotAction implements Runnable {
     return builder.toString();
   }
 
-  private static String getBackupInfoFileForKind(String backupInfoFile, String kindName) {
-    String extension = ".backup_info";
-    checkArgument(backupInfoFile.endsWith(extension), "backup info file extension missing");
-    String prefix = backupInfoFile.substring(0, backupInfoFile.length() - extension.length());
-    return Joiner.on('.').join(prefix, kindName, extension.substring(1));
+  static String sanitizeForBigquery(String backupId) {
+    return backupId.replaceAll("[^a-zA-Z0-9_]", "_");
+  }
+
+  @VisibleForTesting
+  static String getBackupInfoFileForKind(String backupFolderUrl, String kindName) {
+    return Joiner.on('/')
+        .join(
+            backupFolderUrl,
+            "all_namespaces",
+            String.format("kind_%s", kindName),
+            String.format("all_namespaces_kind_%s.%s", kindName, "export_metadata"));
   }
 
   private Job makeLoadJob(JobReference jobRef, String sourceUri, String tableId) {
-    TableReference tableReference = new TableReference()
-        .setProjectId(jobRef.getProjectId())
-        .setDatasetId(SNAPSHOTS_DATASET)
-        .setTableId(tableId);
+    TableReference tableReference =
+        new TableReference()
+            .setProjectId(jobRef.getProjectId())
+            .setDatasetId(BACKUP_DATASET)
+            .setTableId(tableId);
     return new Job()
         .setJobReference(jobRef)
         .setConfiguration(new JobConfiguration()

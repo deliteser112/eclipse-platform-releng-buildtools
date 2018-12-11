@@ -40,7 +40,21 @@ import javax.inject.Singleton;
 @Module
 public abstract class CredentialModule {
 
-  /** Provides the default {@link GoogleCredential} from the Google Cloud runtime. */
+  /**
+   * Provides the default {@link GoogleCredential} from the Google Cloud runtime.
+   *
+   * <p>The credential returned depends on the runtime environment:
+   *
+   * <ul>
+   *   <li>On AppEngine, returns the service account credential for
+   *       PROJECT_ID@appspot.gserviceaccount.com
+   *   <li>On Compute Engine, returns the service account credential for
+   *       PROJECT_NUMBER-compute@developer.gserviceaccount.com
+   *   <li>On end user host, this returns the credential downloaded by gcloud. Please refer to <a
+   *       href="https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login">Cloud
+   *       SDK documentation</a> for details.
+   * </ul>
+   */
   @DefaultCredential
   @Provides
   @Singleton

@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.api.client.json.GenericJson;
 import com.google.api.client.util.Key;
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -36,7 +37,7 @@ public class EntityFilter extends GenericJson {
   /** For JSON deserialization. */
   public EntityFilter() {}
 
-  EntityFilter(List<String> kinds) {
+  EntityFilter(Collection<String> kinds) {
     checkNotNull(kinds, "kinds");
     checkArgument(!kinds.isEmpty(), "kinds must not be empty");
     this.kinds = ImmutableList.copyOf(kinds);

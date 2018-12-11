@@ -25,7 +25,7 @@ import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.Key;
 import com.google.common.base.Strings;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -75,7 +75,7 @@ public class DatastoreAdmin extends AbstractGoogleJsonClient {
    * @param outputUrlPrefix the full resource URL of the external storage location
    * @param kinds the datastore 'kinds' to be exported
    */
-  public Export export(String outputUrlPrefix, List<String> kinds) {
+  public Export export(String outputUrlPrefix, Collection<String> kinds) {
     return new Export(new ExportRequest(outputUrlPrefix, kinds));
   }
 
@@ -214,7 +214,7 @@ public class DatastoreAdmin extends AbstractGoogleJsonClient {
     @Key private final String outputUrlPrefix;
     @Key private final EntityFilter entityFilter;
 
-    ExportRequest(String outputUrlPrefix, List<String> kinds) {
+    ExportRequest(String outputUrlPrefix, Collection<String> kinds) {
       checkNotNull(outputUrlPrefix, "outputUrlPrefix");
       this.outputUrlPrefix = outputUrlPrefix;
       this.entityFilter = new EntityFilter(kinds);

@@ -18,6 +18,7 @@ java_library(
         "//java/google/registry/dns/writer/clouddns",
         "//java/google/registry/dns/writer/dnsupdate",
         "//java/google/registry/export",
+        "//java/google/registry/export/datastore",
         "//java/google/registry/export/sheet",
         "//java/google/registry/flows",
         "//java/google/registry/gcs",

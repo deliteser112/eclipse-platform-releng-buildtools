@@ -68,6 +68,10 @@ public class Operation extends GenericJson {
     return getState().equals(STATE_PROCESSING);
   }
 
+  /**
+   * Returns the elapsed time since starting if this operation is still running, or the total
+   * running time if this operation has completed.
+   */
   public Duration getRunningTime(Clock clock) {
     return new Duration(
         getStartTime(), getMetadata().getCommonMetadata().getEndTime().orElse(clock.nowUtc()));

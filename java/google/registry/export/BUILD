@@ -10,6 +10,7 @@ java_library(
     deps = [
         "//java/google/registry/bigquery",
         "//java/google/registry/config",
+        "//java/google/registry/export/datastore",
         "//java/google/registry/gcs",
         "//java/google/registry/groups",
         "//java/google/registry/mapreduce",
