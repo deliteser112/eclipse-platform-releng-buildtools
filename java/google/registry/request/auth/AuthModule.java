@@ -30,8 +30,7 @@ public class AuthModule {
   @Provides
   ImmutableList<AuthenticationMechanism> provideApiAuthenticationMechanisms(
       OAuthAuthenticationMechanism oauthAuthenticationMechanism) {
-    return ImmutableList.of(
-        oauthAuthenticationMechanism);
+    return ImmutableList.of(oauthAuthenticationMechanism);
   }
 
   /** Provides the OAuthService instance. */
