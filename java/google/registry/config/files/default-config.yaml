@@ -55,6 +55,10 @@ registryPolicy:
   # See flows/domain/token/AllocationTokenCustomLogic.java
   allocationTokenCustomLogicClass: google.registry.flows.domain.token.AllocationTokenCustomLogic
 
+  # Custom logic class for handling DNS query count reporting for ICANN.
+  # See reporting/icann/DnsCountQueryCoordinator.java
+  dnsCountQueryCoordinatorClass: google.registry.reporting.icann.BasicDnsCountQueryCoordinator
+
   # Length of time after which contact transfers automatically conclude.
   contactAutomaticTransferDays: 5
 

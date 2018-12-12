@@ -62,6 +62,7 @@ public class IcannReportingStagerTest {
     ActivityReportingQueryBuilder activityBuilder = new ActivityReportingQueryBuilder();
     activityBuilder.projectId = "test-project";
     activityBuilder.yearMonth = new YearMonth(2017, 6);
+    activityBuilder.dnsCountQueryCoordinator = new BasicDnsCountQueryCoordinator(null);
     action.activityQueryBuilder = activityBuilder;
     TransactionsReportingQueryBuilder transactionsBuilder = new TransactionsReportingQueryBuilder();
     transactionsBuilder.projectId = "test-project";

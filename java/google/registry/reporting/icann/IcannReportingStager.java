@@ -83,6 +83,10 @@ public class IcannReportingStager {
     QueryBuilder queryBuilder =
         (reportType == ReportType.ACTIVITY) ? activityQueryBuilder : transactionsQueryBuilder;
 
+    if (reportType == ReportType.ACTIVITY) {
+      // Prepare for the DNS count query, which may have special needs.
+      activityQueryBuilder.prepareForQuery();
+    }
 
     ImmutableMap<String, String> viewQueryMap = queryBuilder.getViewQueryMap();
     // Generate intermediary views

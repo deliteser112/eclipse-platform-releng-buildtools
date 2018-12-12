@@ -57,6 +57,22 @@ public class TypeUtils {
   }
 
   /**
+   * Instantiate a class with the specified constructor argument.
+   *
+   * <p>Because we use arg1's type to lookup the constructor, this only works if arg1's class is
+   * exactly the same type as the constructor argument. Subtypes are not allowed.
+   */
+  public static <T, U> T instantiate(Class<? extends T> clazz, U arg1) {
+    checkArgument(Modifier.isPublic(clazz.getModifiers()),
+        "AppEngine's custom security manager won't let us reflectively access non-public types");
+    try {
+      return clazz.getConstructor(arg1.getClass()).newInstance(arg1);
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Returns the class referred to by a fully qualified class name string.
    *
    * <p>Throws an error if the loaded class is not assignable from the expected super type class.

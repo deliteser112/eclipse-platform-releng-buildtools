@@ -1135,6 +1135,12 @@ public final class RegistryConfig {
       return config.registryPolicy.allocationTokenCustomLogicClass;
     }
 
+    @Provides
+    @Config("dnsCountQueryCoordinatorClass")
+    public static String dnsCountQueryCoordinatorClass(RegistryConfigSettings config) {
+      return config.registryPolicy.dnsCountQueryCoordinatorClass;
+    }
+
     /** Returns the disclaimer text for the exported premium terms. */
     @Provides
     @Config("premiumTermsExportDisclaimer")

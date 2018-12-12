@@ -52,4 +52,22 @@ public class TypeUtilsTest {
         .hasMessageThat()
         .contains("Failed to load class com.fake.company.nonexistent.Class");
   }
+
+  public static class ExampleClass {
+    String val;
+
+    public ExampleClass(String val) {
+      this.val = val;
+    }
+  }
+
+  @Test
+  public void test_instantiateWithArg() {
+    Class<ExampleClass> clazz =
+        TypeUtils.getClassFromString(
+            "google.registry.util.TypeUtilsTest$ExampleClass", ExampleClass.class);
+
+    ExampleClass result = TypeUtils.instantiate(clazz, "test");
+    assertThat(result.val).isEqualTo("test");
+  }
 }
