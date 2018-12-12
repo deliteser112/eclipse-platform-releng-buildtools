@@ -21,7 +21,7 @@ goog.require('goog.dom.classlist');
 goog.require('goog.dom.xml');
 goog.require('goog.events.EventType');
 goog.require('goog.format.JsonPrettyPrinter');
-goog.require('goog.html.legacyconversions');
+goog.require('goog.html.testing');
 goog.require('goog.json');
 goog.require('goog.testing.asserts');
 goog.require('goog.testing.events');
@@ -36,7 +36,7 @@ goog.require('goog.testing.net.XhrIo');
 registry.testing.addToDocument = function(html) {
   goog.global.document.body.appendChild(
       goog.dom.safeHtmlToNode(
-          goog.html.legacyconversions.safeHtmlFromString(html)));
+          goog.html.testing.newSafeHtmlForTest(html)));
 };
 
 
