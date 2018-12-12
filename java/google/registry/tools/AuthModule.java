@@ -118,8 +118,7 @@ public class AuthModule {
   static Details provideDefaultInstalledDetails() {
     return new Details()
         .setAuthUri("https://accounts.google.com/o/oauth2/auth")
-        .setTokenUri("https://accounts.google.com/o/oauth2/token")
-        .setRedirectUris(ImmutableList.of("urn:ietf:wg:oauth:2.0:oob", "http://localhost"));
+        .setTokenUri("https://accounts.google.com/o/oauth2/token");
   }
 
   @Provides

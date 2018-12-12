@@ -84,7 +84,7 @@ dependencies {
   maybeRuntime 'com.google.api-client:google-api-client-jackson2:1.20.0'
   compile 'com.google.monitoring-client:metrics:1.0.4'
   compile 'com.google.monitoring-client:stackdriver:1.0.4'
-  maybeRuntime 'com.google.api-client:google-api-client-java6:1.20.0'
+  compile 'com.google.api-client:google-api-client-java6:1.27.0'
   maybeRuntime 'com.google.api-client:google-api-client-servlet:1.22.0'
   compile 'com.google.apis:google-api-services-admin-directory:directory_v1-rev72-1.22.0'
   compile 'com.google.apis:google-api-services-appengine:v1-rev85-1.25.0'
@@ -136,7 +136,7 @@ dependencies {
   compile 'com.google.http-client:google-http-client-jackson2:1.25.0'
   compile 'com.google.oauth-client:google-oauth-client:1.25.0'
   maybeRuntime 'com.google.oauth-client:google-oauth-client-appengine:1.22.0'
-  compile 'com.google.oauth-client:google-oauth-client-java6:1.22.0'
+  compile 'com.google.oauth-client:google-oauth-client-java6:1.27.0'
   compile 'com.google.oauth-client:google-oauth-client-jetty:1.22.0'
   maybeRuntime 'com.google.oauth-client:google-oauth-client-servlet:1.22.0'
   maybeRuntime 'com.google.protobuf:protobuf-java:2.6.0'
@@ -245,6 +245,7 @@ dependencies {
   // dependencies should go after all other compile and testCompile
   // dependencies to avoid overriding them accidentally.
   compile 'javax.servlet:javax.servlet-api:3.1.0' // google-api-client-appeng
+  compile 'com.google.oauth-client:google-oauth-client-java6:1.20.0'
 
   // Dependencies needed for jaxb compilation.
   // Use jaxb 2.2.11 because 2.3 is known to break the Ant task we use.

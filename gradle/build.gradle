@@ -10,7 +10,7 @@ buildscript {
 }
 
 plugins {
-  id 'nebula.lint' version '10.3.1'
+  id 'nebula.lint' version '10.3.5'
   // Config helper for annotation processors such as AutoValue and Dagger.
   // Ensures that source code is generated at an appropriate location.
   id 'net.ltgt.apt' version '0.19' apply false

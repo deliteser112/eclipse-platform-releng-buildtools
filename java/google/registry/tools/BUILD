@@ -70,6 +70,7 @@ java_library(
         "@com_beust_jcommander",
         "@com_google_api_client",
         "@com_google_api_client_appengine",
+        "@com_google_api_client_java6",
         "@com_google_apis_google_api_services_appengine",
         "@com_google_apis_google_api_services_bigquery",
         "@com_google_apis_google_api_services_dns",

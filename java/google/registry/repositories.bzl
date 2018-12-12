@@ -510,10 +510,10 @@ def com_google_api_client():
     java_import_external(
         name = "com_google_api_client",
         licenses = ["notice"],  # The Apache Software License, Version 2.0
-        jar_sha256 = "24e1a69d6c04e6e72e3e16757d46d32daa7dd43cb32c3895f832f25358be1402",
+        jar_sha256 = "fd1f06bc8cea64cd6e85e7a29dd632ba05c4e4ec2daae9a7115b6dbc9004fcd9",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client/1.25.0/google-api-client-1.25.0.jar",
-            "http://repo1.maven.org/maven2/com/google/api-client/google-api-client/1.25.0/google-api-client-1.25.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client/1.27.0/google-api-client-1.27.0.jar",
+            "http://repo1.maven.org/maven2/com/google/api-client/google-api-client/1.27.0/google-api-client-1.27.0.jar",
         ],
         deps = [
             "@com_google_oauth_client",
@@ -609,10 +609,10 @@ def com_google_api_client_java6():
     java_import_external(
         name = "com_google_api_client_java6",
         licenses = ["notice"],  # The Apache Software License, Version 2.0
-        jar_sha256 = "df4f423f33f467d248e51deb555404771f7bc41430b2d4d1e49966c79c0b207b",
+        jar_sha256 = "056ef35bafebd2e2b27817be00aa08e79d24fd4ba1c7c70c2407fd2ec9582cb5",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-java6/1.20.0/google-api-client-java6-1.20.0.jar",
-            "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-java6/1.20.0/google-api-client-java6-1.20.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-java6/1.27.0/google-api-client-java6-1.27.0.jar",
+            "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-java6/1.27.0/google-api-client-java6-1.27.0.jar",
         ],
         deps = [
             "@com_google_api_client",
@@ -1487,10 +1487,10 @@ def com_google_oauth_client_java6():
     java_import_external(
         name = "com_google_oauth_client_java6",
         licenses = ["notice"],  # The Apache Software License, Version 2.0
-        jar_sha256 = "c8d61bbb65f6721b85c38a88e4cb2a1782e04b8055589036705391361b658197",
+        jar_sha256 = "1065d7ec93a9ca93005e85d73f23f71353dd731f5c5f0310d66735ad81a16c33",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.22.0/google-oauth-client-java6-1.22.0.jar",
-            "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.22.0/google-oauth-client-java6-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.27.0/google-oauth-client-java6-1.27.0.jar",
+            "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.27.0/google-oauth-client-java6-1.27.0.jar",
         ],
         deps = ["@com_google_oauth_client"],
     )
