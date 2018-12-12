@@ -37,7 +37,7 @@ public class GoldenFileTestHelper {
   String goldenFileDescription = null;
 
   private static final String UPDATE_COMMAND =
-      "google.registry.tools.RegistryTool -e localhost %1$s > %2$s";
+      "nomulus -e localhost %1$s > %2$s";
 
   private static final String UPDATE_INSTRUCTIONS =
       Joiner.on('\n')
