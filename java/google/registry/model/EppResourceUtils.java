@@ -44,6 +44,7 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -94,7 +95,7 @@ public final class EppResourceUtils {
   @Nullable
   public static <T extends EppResource> T loadByForeignKey(
       Class<T> clazz, String foreignKey, DateTime now) {
-    return loadByForeignKeyHelper(clazz, foreignKey, now, false);
+    return loadByForeignKeyHelper(clazz, foreignKey, now, false).orElse(null);
   }
 
   /**
@@ -120,15 +121,13 @@ public final class EppResourceUtils {
    * @param foreignKey id to match
    * @param now the current logical time to project resources at
    */
-  @Nullable
-  public static <T extends EppResource> T loadByForeignKeyCached(
+  public static <T extends EppResource> Optional<T> loadByForeignKeyCached(
       Class<T> clazz, String foreignKey, DateTime now) {
     return loadByForeignKeyHelper(
         clazz, foreignKey, now, RegistryConfig.isEppResourceCachingEnabled());
   }
 
-  @Nullable
-  private static <T extends EppResource> T loadByForeignKeyHelper(
+  private static <T extends EppResource> Optional<T> loadByForeignKeyHelper(
       Class<T> clazz, String foreignKey, DateTime now, boolean useCache) {
     checkArgument(
         ForeignKeyedEppResource.class.isAssignableFrom(clazz),
@@ -140,14 +139,14 @@ public final class EppResourceUtils {
             : ofy().load().type(ForeignKeyIndex.mapToFkiClass(clazz)).id(foreignKey).now();
     // The value of fki.getResourceKey() might be null for hard-deleted prober data.
     if (fki == null || isAtOrAfter(now, fki.getDeletionTime()) || fki.getResourceKey() == null) {
-      return null;
+      return Optional.empty();
     }
     T resource =
         useCache
             ? EppResource.loadCached(fki.getResourceKey())
             : ofy().load().key(fki.getResourceKey()).now();
     if (resource == null || isAtOrAfter(now, resource.getDeletionTime())) {
-      return null;
+      return Optional.empty();
     }
     // When setting status values based on a time, choose the greater of "now" and the resource's
     // UpdateAutoTimestamp. For non-mutating uses (info, whois, etc.), this is equivalent to rolling
@@ -155,8 +154,9 @@ public final class EppResourceUtils {
     // doesn't appear stale. For mutating flows, if we had to roll now forward then the flow will
     // fail when it tries to save anything via Ofy, since "now" is needed to be > the last update
     // time for writes.
-    return cloneProjectedAtTime(
-        resource, latestOf(now, resource.getUpdateAutoTimestamp().getTimestamp()));
+    return Optional.of(
+        cloneProjectedAtTime(
+            resource, latestOf(now, resource.getUpdateAutoTimestamp().getTimestamp())));
   }
 
   /**

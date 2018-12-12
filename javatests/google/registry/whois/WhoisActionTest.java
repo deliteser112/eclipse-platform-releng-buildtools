@@ -15,6 +15,7 @@
 package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKeyCached;
 import static google.registry.model.registrar.Registrar.State.ACTIVE;
 import static google.registry.model.registrar.Registrar.Type.PDT;
@@ -146,9 +147,9 @@ public class WhoisActionTest {
     persistSimpleResources(makeRegistrarContacts(registrar));
     // Populate the cache for both the domain and contact.
     DomainResource domain =
-        loadByForeignKeyCached(DomainResource.class, "cat.lol", clock.nowUtc());
+        loadByForeignKeyCached(DomainResource.class, "cat.lol", clock.nowUtc()).get();
     ContactResource contact =
-        loadByForeignKeyCached(ContactResource.class, "5372808-ERL", clock.nowUtc());
+        loadByForeignKeyCached(ContactResource.class, "5372808-ERL", clock.nowUtc()).get();
     // Make a change to the domain and contact that won't be seen because the cache will be hit.
     persistResource(domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     persistResource(
@@ -237,7 +238,7 @@ public class WhoisActionTest {
   @Test
   public void testRun_domainNotFound_usesCache() {
     // Populate the cache with the nonexistence of this domain.
-    assertThat(loadByForeignKeyCached(DomainResource.class, "cat.lol", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKeyCached(DomainResource.class, "cat.lol", clock.nowUtc())).isEmpty();
     // Add a new valid cat.lol domain that won't be found because the cache will be hit instead.
     persistActiveDomain("cat.lol");
     newWhoisAction("domain cat.lol\r\n").run();
@@ -361,7 +362,7 @@ public class WhoisActionTest {
     persistResource(makeHostResource("ns1.cat.xn--q9jyb4c", "1.2.3.4"));
     // Populate the cache.
     HostResource host =
-        loadByForeignKeyCached(HostResource.class, "ns1.cat.xn--q9jyb4c", clock.nowUtc());
+        loadByForeignKeyCached(HostResource.class, "ns1.cat.xn--q9jyb4c", clock.nowUtc()).get();
     // Make a change to the persisted host that won't be seen because the cache will be hit.
     persistResource(
         host.asBuilder()
