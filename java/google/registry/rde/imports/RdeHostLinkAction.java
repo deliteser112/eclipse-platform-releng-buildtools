@@ -195,11 +195,14 @@ public class RdeHostLinkAction implements Runnable {
               .stream()
               .skip(hostName.parts().size() - (tld.get().parts().size() + 1))
               .collect(joining("."));
-      DomainResource superordinateDomain = loadByForeignKey(DomainResource.class, domainName, now);
+      Optional<DomainResource> superordinateDomain =
+          loadByForeignKey(DomainResource.class, domainName, now);
       // Hosts can't be linked if domains import hasn't been run
       checkState(
-          superordinateDomain != null, "Superordinate domain does not exist: %s", domainName);
-      return Optional.of(superordinateDomain);
+          superordinateDomain.isPresent(),
+          "Superordinate domain does not exist or is deleted: %s",
+          domainName);
+      return superordinateDomain;
     }
   }
 
@@ -208,11 +211,5 @@ public class RdeHostLinkAction implements Runnable {
     HOST_OUT_OF_ZONE,
     SUPERORDINATE_DOMAIN_IN_PENDING_DELETE,
     HOST_LINKED;
-  }
-
-  private static class HostLinkException extends RuntimeException {
-    HostLinkException(String hostname, String xml, Throwable cause) {
-      super(String.format("Error linking host %s; xml=%s", hostname, xml), cause);
-    }
   }
 }

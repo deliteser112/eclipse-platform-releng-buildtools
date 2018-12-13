@@ -116,7 +116,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     doSuccessfulInternalTest("tld");
     HostResource host = reloadResourceByForeignKey();
     DomainResource superordinateDomain =
-        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc());
+        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc()).get();
     assertAboutHosts().that(host).hasSuperordinateDomain(Key.create(superordinateDomain));
     assertThat(superordinateDomain.getSubordinateHosts()).containsExactly("ns1.example.tld");
     assertDnsTasksEnqueued("ns1.example.tld");
@@ -145,7 +145,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     doSuccessfulInternalTest("tld");
     HostResource host = reloadResourceByForeignKey();
     DomainResource superordinateDomain =
-        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc());
+        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc()).get();
     assertAboutHosts().that(host).hasSuperordinateDomain(Key.create(superordinateDomain));
     assertThat(superordinateDomain.getSubordinateHosts()).containsExactly("ns1.example.tld");
     assertDnsTasksEnqueued("ns1.example.tld");

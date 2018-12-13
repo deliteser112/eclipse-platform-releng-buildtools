@@ -273,6 +273,18 @@ public abstract class RdapActionBase implements Runnable {
   }
 
   /**
+   * Returns true if the EPP resource should be visible.
+   *
+   * <p>This is true iff:
+   * 1. The passed in resource exists and is not deleted (deleted ones will have been projected
+   *    forward in time to empty),
+   * 2. The request did not specify a registrar to filter on, or the registrar matches.
+   */
+  boolean shouldBeVisible(Optional<? extends EppResource> eppResource, DateTime now) {
+    return eppResource.isPresent() && shouldBeVisible(eppResource.get(), now);
+  }
+
+  /**
    * Returns true if the registrar should be visible.
    *
    * <p>This is true iff:

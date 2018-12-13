@@ -17,6 +17,7 @@ package google.registry.flows;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.tmch.ClaimsListShardTest.createTestClaimsListShard;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
@@ -32,7 +33,6 @@ import com.google.common.testing.TestLogHandler;
 import com.googlecode.objectify.Key;
 import google.registry.flows.FlowUtils.NotLoggedInException;
 import google.registry.model.EppResource;
-import google.registry.model.EppResourceUtils;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationIdTargetExtension;
 import google.registry.model.eppcommon.Trid;
@@ -46,6 +46,7 @@ import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import java.util.Optional;
 import java.util.logging.Level;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.json.simple.JSONValue;
@@ -71,20 +72,22 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
     LoggerConfig.getConfig("").addHandler(logHandler);
   }
 
+  @Nullable
   protected R reloadResourceByForeignKey(DateTime now) throws Exception {
     // Force the session to be cleared so that when we read it back, we read from Datastore and not
     // from the transaction's session cache.
     ofy().clearSessionCache();
-    return loadByForeignKey(getResourceClass(), getUniqueIdFromCommand(), now);
+    return loadByForeignKey(getResourceClass(), getUniqueIdFromCommand(), now).orElse(null);
   }
 
+  @Nullable
   protected R reloadResourceByForeignKey() throws Exception {
     return reloadResourceByForeignKey(clock.nowUtc());
   }
 
   protected DomainApplication reloadDomainApplication() throws Exception {
     ofy().clearSessionCache();
-    return EppResourceUtils.loadDomainApplication(getUniqueIdFromCommand(), clock.nowUtc());
+    return loadDomainApplication(getUniqueIdFromCommand(), clock.nowUtc()).get();
   }
 
   protected <T extends EppResource> T reloadResourceAndCloneAtTime(T resource, DateTime now) {

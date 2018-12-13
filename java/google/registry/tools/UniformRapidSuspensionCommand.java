@@ -20,6 +20,7 @@ import static com.google.common.collect.Sets.difference;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
@@ -37,6 +38,7 @@ import google.registry.tools.soy.UniformRapidSuspensionSoyInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import org.joda.time.DateTime;
@@ -119,17 +121,17 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand {
     } catch (ClassCastException | ParseException e) {
       throw new IllegalArgumentException("Invalid --dsdata JSON", e);
     }
-    DomainResource domain = loadByForeignKey(DomainResource.class, domainName, now);
-    checkArgument(domain != null, "Domain '%s' does not exist", domainName);
+    Optional<DomainResource> domain = loadByForeignKey(DomainResource.class, domainName, now);
+    checkArgumentPresent(domain, "Domain '%s' does not exist or is deleted", domainName);
     Set<String> missingHosts =
         difference(newHostsSet, checkResourcesExist(HostResource.class, newHosts, now));
     checkArgument(missingHosts.isEmpty(), "Hosts do not exist: %s", missingHosts);
     checkArgument(
         locksToPreserve.isEmpty() || undo,
         "Locks can only be preserved when running with --undo");
-    existingNameservers = getExistingNameservers(domain);
-    existingLocks = getExistingLocks(domain);
-    existingDsData = getExistingDsData(domain);
+    existingNameservers = getExistingNameservers(domain.get());
+    existingLocks = getExistingLocks(domain.get());
+    existingDsData = getExistingDsData(domain.get());
     setSoyTemplate(
         UniformRapidSuspensionSoyInfo.getInstance(),
         UniformRapidSuspensionSoyInfo.UNIFORMRAPIDSUSPENSION);

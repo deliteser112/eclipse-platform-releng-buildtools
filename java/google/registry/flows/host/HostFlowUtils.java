@@ -87,16 +87,15 @@ public class HostFlowUtils {
     }
     // This is a subordinate host
     String domainName =
-        hostName
-            .parts()
-            .stream()
+        hostName.parts().stream()
             .skip(hostName.parts().size() - (tld.get().parts().size() + 1))
             .collect(joining("."));
-    DomainResource superordinateDomain = loadByForeignKey(DomainResource.class, domainName, now);
-    if (superordinateDomain == null || !isActive(superordinateDomain, now)) {
+    Optional<DomainResource> superordinateDomain =
+        loadByForeignKey(DomainResource.class, domainName, now);
+    if (!superordinateDomain.isPresent() || !isActive(superordinateDomain.get(), now)) {
       throw new SuperordinateDomainDoesNotExistException(domainName);
     }
-    return Optional.of(superordinateDomain);
+    return superordinateDomain;
   }
 
   /** Superordinate domain for this hostname does not exist. */

@@ -65,13 +65,14 @@ public final class RefreshDnsAction implements Runnable {
 
   private <T extends EppResource & ForeignKeyedEppResource>
       T loadAndVerifyExistence(Class<T> clazz, String foreignKey) {
-    T resource = loadByForeignKey(clazz, foreignKey, clock.nowUtc());
-    if (resource == null) {
-      String typeName = clazz.getAnnotation(ExternalMessagingName.class).value();
-      throw new NotFoundException(
-          String.format("%s %s not found", typeName, domainOrHostName));
-    }
-    return resource;
+    return loadByForeignKey(clazz, foreignKey, clock.nowUtc())
+        .orElseThrow(
+            () ->
+                new NotFoundException(
+                    String.format(
+                        "%s %s not found",
+                        clazz.getAnnotation(ExternalMessagingName.class).value(),
+                        domainOrHostName)));
   }
 
   private static void verifyHostIsSubordinate(HostResource host) {

@@ -141,7 +141,8 @@ public class EppLifecycleToolsTest extends EppTestCase {
     DateTime createTime = DateTime.parse("2000-06-01T00:02:00Z");
     DomainResource domain =
         loadByForeignKey(
-            DomainResource.class, "example.tld", DateTime.parse("2003-06-02T00:02:00Z"));
+                DomainResource.class, "example.tld", DateTime.parse("2003-06-02T00:02:00Z"))
+            .get();
     BillingEvent.OneTime renewBillingEvent =
         new BillingEvent.OneTime.Builder()
             .setReason(Reason.RENEW)

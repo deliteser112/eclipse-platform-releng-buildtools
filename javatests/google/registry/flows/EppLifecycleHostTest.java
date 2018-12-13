@@ -218,9 +218,9 @@ public class EppLifecycleHostTest extends EppTestCase {
     DateTime timeAfterCreates = DateTime.parse("2000-06-01T00:06:00Z");
 
     HostResource exampleBarFooTldHost =
-        loadByForeignKey(HostResource.class, "ns1.example.bar.foo.tld", timeAfterCreates);
+        loadByForeignKey(HostResource.class, "ns1.example.bar.foo.tld", timeAfterCreates).get();
     DomainResource exampleBarFooTldDomain =
-        loadByForeignKey(DomainResource.class, "example.bar.foo.tld", timeAfterCreates);
+        loadByForeignKey(DomainResource.class, "example.bar.foo.tld", timeAfterCreates).get();
     assertAboutHosts()
         .that(exampleBarFooTldHost)
         .hasSuperordinateDomain(Key.create(exampleBarFooTldDomain));
@@ -228,18 +228,18 @@ public class EppLifecycleHostTest extends EppTestCase {
         .containsExactly("ns1.example.bar.foo.tld");
 
     HostResource exampleFooTldHost =
-        loadByForeignKey(HostResource.class, "ns1.example.foo.tld", timeAfterCreates);
+        loadByForeignKey(HostResource.class, "ns1.example.foo.tld", timeAfterCreates).get();
     DomainResource exampleFooTldDomain =
-        loadByForeignKey(DomainResource.class, "example.foo.tld", timeAfterCreates);
+        loadByForeignKey(DomainResource.class, "example.foo.tld", timeAfterCreates).get();
     assertAboutHosts()
         .that(exampleFooTldHost)
         .hasSuperordinateDomain(Key.create(exampleFooTldDomain));
     assertThat(exampleFooTldDomain.getSubordinateHosts()).containsExactly("ns1.example.foo.tld");
 
     HostResource exampleTldHost =
-        loadByForeignKey(HostResource.class, "ns1.example.tld", timeAfterCreates);
+        loadByForeignKey(HostResource.class, "ns1.example.tld", timeAfterCreates).get();
     DomainResource exampleTldDomain =
-        loadByForeignKey(DomainResource.class, "example.tld", timeAfterCreates);
+        loadByForeignKey(DomainResource.class, "example.tld", timeAfterCreates).get();
     assertAboutHosts().that(exampleTldHost).hasSuperordinateDomain(Key.create(exampleTldDomain));
     assertThat(exampleTldDomain.getSubordinateHosts()).containsExactly("ns1.example.tld");
 

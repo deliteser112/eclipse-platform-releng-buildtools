@@ -193,14 +193,14 @@ public class DeleteContactsAndHostsActionTest
         false);
     runMapreduce();
     ContactResource contactUpdated =
-        loadByForeignKey(ContactResource.class, "blah8221", clock.nowUtc());
+        loadByForeignKey(ContactResource.class, "blah8221", clock.nowUtc()).get();
     assertAboutContacts()
         .that(contactUpdated)
         .doesNotHaveStatusValue(PENDING_DELETE)
         .and()
         .hasDeletionTime(END_OF_TIME);
     DomainResource domainReloaded =
-        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc());
+        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc()).get();
     assertThat(domainReloaded.getReferencedContacts()).contains(Key.create(contactUpdated));
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(contactUpdated, HistoryEntry.Type.CONTACT_DELETE_FAILURE);
@@ -268,7 +268,7 @@ public class DeleteContactsAndHostsActionTest
         Trid.create(clientTrid.orElse(null), "fakeServerTrid"),
         false);
     runMapreduce();
-    assertThat(loadByForeignKey(ContactResource.class, "jim919", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "jim919", clock.nowUtc())).isEmpty();
     ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
     assertAboutContacts()
         .that(contactAfterDeletion)
@@ -332,10 +332,10 @@ public class DeleteContactsAndHostsActionTest
         false);
     runMapreduce();
     // Check that the contact is deleted as of now.
-    assertThat(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())).isEmpty();
     // Check that it's still there (it wasn't deleted yesterday) and that it has history.
     ContactResource softDeletedContact =
-        loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc().minusDays(1));
+        loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc().minusDays(1)).get();
     assertAboutContacts()
         .that(softDeletedContact)
         .hasOneHistoryEntryEachOfTypes(CONTACT_TRANSFER_REQUEST, CONTACT_DELETE);
@@ -393,9 +393,9 @@ public class DeleteContactsAndHostsActionTest
         Trid.create("fakeClientTrid", "fakeServerTrid"),
         false);
     runMapreduce();
-    assertThat(loadByForeignKey(ContactResource.class, "blah1234", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "blah1234", clock.nowUtc())).isEmpty();
     ContactResource contactBeforeDeletion =
-        loadByForeignKey(ContactResource.class, "blah1234", clock.nowUtc().minusDays(1));
+        loadByForeignKey(ContactResource.class, "blah1234", clock.nowUtc().minusDays(1)).get();
     assertAboutContacts()
         .that(contactBeforeDeletion)
         .isNotActiveAt(clock.nowUtc())
@@ -428,7 +428,7 @@ public class DeleteContactsAndHostsActionTest
         false);
     runMapreduce();
     ContactResource contactAfter =
-        loadByForeignKey(ContactResource.class, "jane0991", clock.nowUtc());
+        loadByForeignKey(ContactResource.class, "jane0991", clock.nowUtc()).get();
     assertAboutContacts()
         .that(contactAfter)
         .doesNotHaveStatusValue(PENDING_DELETE)
@@ -455,7 +455,7 @@ public class DeleteContactsAndHostsActionTest
         Trid.create("fakeClientTrid", "fakeServerTrid"),
         true);
     runMapreduce();
-    assertThat(loadByForeignKey(ContactResource.class, "nate007", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(ContactResource.class, "nate007", clock.nowUtc())).isEmpty();
     ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
     assertAboutContacts()
         .that(contactAfterDeletion)
@@ -561,9 +561,9 @@ public class DeleteContactsAndHostsActionTest
         false);
     enqueueMapreduceOnly();
     assertThat(loadByForeignKey(ContactResource.class, "blah2222", clock.nowUtc()))
-        .isEqualTo(contact);
+        .hasValue(contact);
     assertThat(loadByForeignKey(HostResource.class, "rustles.your.jimmies", clock.nowUtc()))
-        .isEqualTo(host);
+        .hasValue(host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
     verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(2L);
     verify(action.asyncFlowMetrics)
@@ -610,13 +610,14 @@ public class DeleteContactsAndHostsActionTest
         false);
     runMapreduce();
     HostResource hostAfter =
-        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc());
+        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()).get();
     assertAboutHosts()
         .that(hostAfter)
         .doesNotHaveStatusValue(PENDING_DELETE)
         .and()
         .hasDeletionTime(END_OF_TIME);
-    DomainResource domain = loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc());
+    DomainResource domain =
+        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc()).get();
     assertThat(domain.getNameservers()).contains(Key.create(hostAfter));
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostAfter, HOST_DELETE_FAILURE);
     assertPollMessageFor(
@@ -653,9 +654,9 @@ public class DeleteContactsAndHostsActionTest
         Trid.create(clientTrid.orElse(null), "fakeServerTrid"),
         false);
     runMapreduce();
-    assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isEmpty();
     HostResource hostBeforeDeletion =
-        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc().minusDays(1));
+        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc().minusDays(1)).get();
     assertAboutHosts()
         .that(hostBeforeDeletion)
         .isNotActiveAt(clock.nowUtc())
@@ -697,9 +698,9 @@ public class DeleteContactsAndHostsActionTest
         Trid.create("fakeClientTrid", "fakeServerTrid"),
         false);
     runMapreduce();
-    assertThat(loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc())).isEmpty();
     HostResource hostBeforeDeletion =
-        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc().minusDays(1));
+        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc().minusDays(1)).get();
     assertAboutHosts()
         .that(hostBeforeDeletion)
         .isNotActiveAt(clock.nowUtc())
@@ -743,15 +744,16 @@ public class DeleteContactsAndHostsActionTest
         false);
     runMapreduce();
     // Check that the host is deleted as of now.
-    assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isEmpty();
     assertNoBillingEvents();
     assertThat(
             loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc())
+                .get()
                 .getSubordinateHosts())
         .isEmpty();
     assertDnsTasksEnqueued("ns2.example.tld");
     HostResource hostBeforeDeletion =
-        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc().minusDays(1));
+        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc().minusDays(1)).get();
     assertAboutHosts()
         .that(hostBeforeDeletion)
         .isNotActiveAt(clock.nowUtc())
@@ -782,7 +784,7 @@ public class DeleteContactsAndHostsActionTest
         false);
     runMapreduce();
     HostResource hostAfter =
-        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc());
+        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc()).get();
     assertAboutHosts()
         .that(hostAfter)
         .doesNotHaveStatusValue(PENDING_DELETE)
@@ -809,9 +811,9 @@ public class DeleteContactsAndHostsActionTest
         Trid.create("fakeClientTrid", "fakeServerTrid"),
         true);
     runMapreduce();
-    assertThat(loadByForeignKey(HostResource.class, "ns66.example.tld", clock.nowUtc())).isNull();
+    assertThat(loadByForeignKey(HostResource.class, "ns66.example.tld", clock.nowUtc())).isEmpty();
     HostResource hostBeforeDeletion =
-        loadByForeignKey(HostResource.class, "ns66.example.tld", clock.nowUtc().minusDays(1));
+        loadByForeignKey(HostResource.class, "ns66.example.tld", clock.nowUtc().minusDays(1)).get();
     assertAboutHosts()
         .that(hostBeforeDeletion)
         .isNotActiveAt(clock.nowUtc())

@@ -150,7 +150,7 @@ public class DomainAllocateFlowTest
     boolean sunrushAddGracePeriod = (nameservers == 0);
 
     // The application should be marked as allocated, with a new history entry.
-    DomainApplication application = loadDomainApplication(applicationId, clock.nowUtc());
+    DomainApplication application = loadDomainApplication(applicationId, clock.nowUtc()).get();
     assertAboutApplications().that(application)
         .hasApplicationStatus(ApplicationStatus.ALLOCATED).and()
         .hasHistoryEntryAtIndex(0)

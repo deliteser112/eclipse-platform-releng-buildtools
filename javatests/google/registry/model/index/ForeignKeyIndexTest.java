@@ -15,6 +15,8 @@
 package google.registry.model.index;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
@@ -29,7 +31,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
-import google.registry.model.EppResourceUtils;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
@@ -180,10 +181,8 @@ public class ForeignKeyIndexTest extends EntityTestCase {
     clock.advanceOneMilli();
     ForeignKeyIndex<HostResource> newFki = loadHostFki("ns1.example.com");
     assertThat(newFki).isNotEqualTo(originalFki);
-    assertThat(
-            EppResourceUtils.loadByForeignKey(
-                HostResource.class, "ns1.example.com", clock.nowUtc()))
-        .isEqualTo(modifiedHost);
+    assertThat(loadByForeignKey(HostResource.class, "ns1.example.com", clock.nowUtc()))
+        .hasValue(modifiedHost);
     assertThat(
             ForeignKeyIndex.loadCached(
                 HostResource.class, ImmutableList.of("ns1.example.com"), clock.nowUtc()))

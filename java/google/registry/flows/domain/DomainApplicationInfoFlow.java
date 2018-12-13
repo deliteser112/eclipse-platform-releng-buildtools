@@ -23,10 +23,10 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.loadForeignKeyedDesignatedContacts;
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableList;
-import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
@@ -89,13 +89,10 @@ public final class DomainApplicationInfoFlow implements Flow {
       throw new MissingApplicationIdException();
     }
     DomainApplication application =
-        ofy().load().key(Key.create(DomainApplication.class, applicationId)).now();
-    verifyExistence(
-        DomainApplication.class,
-        applicationId,
-        application != null &&  clock.nowUtc().isBefore(application.getDeletionTime())
-            ? application
-            : null);
+        verifyExistence(
+            DomainApplication.class,
+            applicationId,
+            loadDomainApplication(applicationId, clock.nowUtc()));
     verifyApplicationDomainMatchesTargetId(application, targetId);
     verifyOptionalAuthInfo(authInfo, application);
     LaunchInfoExtension launchInfo = eppInput.getSingleExtension(LaunchInfoExtension.class).get();

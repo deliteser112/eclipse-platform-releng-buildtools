@@ -692,6 +692,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     HostResource host = persistResource(newHostResource("ns1.example.tld"));
     persistResource(
         loadByForeignKey(DomainResource.class, getUniqueIdFromCommand(), clock.nowUtc())
+            .get()
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host)))
             .build());
@@ -700,7 +701,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         newDomainResource("example1.tld")
             .asBuilder()
             .setRegistrant(
-                Key.create(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))
+                Key.create(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc()).get()))
             .setNameservers(ImmutableSet.of(Key.create(host)))
             .setDeletionTime(START_OF_TIME)
             .build());

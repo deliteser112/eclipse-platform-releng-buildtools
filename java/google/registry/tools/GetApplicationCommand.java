@@ -31,9 +31,7 @@ final class GetApplicationCommand extends GetEppResourceCommand {
 
   @Override
   public void runAndPrint() {
-    for (String applicationId : mainParameters) {
-      printResource(
-          "Application", applicationId, loadDomainApplication(applicationId, readTimestamp));
-    }
+    mainParameters.forEach(
+        appId -> printResource("Application", appId, loadDomainApplication(appId, readTimestamp)));
   }
 }

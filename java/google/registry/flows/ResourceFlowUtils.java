@@ -292,11 +292,8 @@ public final class ResourceFlowUtils {
   }
 
   public static <R extends EppResource> R verifyExistence(
-      Class<R> clazz, String targetId, R resource) throws ResourceDoesNotExistException {
-    if (resource == null) {
-      throw new ResourceDoesNotExistException(clazz, targetId);
-    }
-    return resource;
+      Class<R> clazz, String targetId, Optional<R> resource) throws ResourceDoesNotExistException {
+    return resource.orElseThrow(() -> new ResourceDoesNotExistException(clazz, targetId));
   }
 
   public static <R extends EppResource> void verifyResourceDoesNotExist(

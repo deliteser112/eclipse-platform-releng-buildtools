@@ -92,7 +92,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     persistResource(
         newDomainResource("example.foobar")
             .asBuilder()
-            .addNameservers(ImmutableSet.of(Key.create(persistHostResource())))
+            .addNameserver(Key.create(persistHostResource()))
             .build());
     assertTransactionalFlow(false);
     // Check that the persisted host info was returned.

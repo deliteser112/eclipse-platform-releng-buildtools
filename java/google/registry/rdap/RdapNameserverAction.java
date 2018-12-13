@@ -29,6 +29,7 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -76,13 +77,13 @@ public class RdapNameserverAction extends RdapActionBase {
     }
     // If there are no undeleted nameservers with the given name, the foreign key should point to
     // the most recently deleted one.
-    HostResource hostResource =
+    Optional<HostResource> hostResource =
         loadByForeignKey(
             HostResource.class, pathSearchString, shouldIncludeDeleted() ? START_OF_TIME : now);
-    if ((hostResource == null) || !shouldBeVisible(hostResource, now)) {
+    if (!shouldBeVisible(hostResource, now)) {
       throw new NotFoundException(pathSearchString + " not found");
     }
     return rdapJsonFormatter.makeRdapJsonForHost(
-        hostResource, true, fullServletPath, rdapWhoisServer, now, OutputDataType.FULL);
+        hostResource.get(), true, fullServletPath, rdapWhoisServer, now, OutputDataType.FULL);
   }
 }

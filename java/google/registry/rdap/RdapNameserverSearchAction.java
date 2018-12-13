@@ -183,9 +183,9 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
    */
   private RdapSearchResults searchByNameUsingForeignKey(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
-    HostResource hostResource =
+    Optional<HostResource> hostResource =
         loadByForeignKey(HostResource.class, partialStringQuery.getInitialString(), now);
-    if ((hostResource == null) || !shouldBeVisible(hostResource, now)) {
+    if (!shouldBeVisible(hostResource, now)) {
       metricInformationBuilder.setNumHostsRetrieved(0);
       throw new NotFoundException("No nameservers found");
     }
@@ -193,15 +193,20 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
     return RdapSearchResults.create(
         ImmutableList.of(
             rdapJsonFormatter.makeRdapJsonForHost(
-                hostResource, false, fullServletPath, rdapWhoisServer, now, OutputDataType.FULL)));
+                hostResource.get(),
+                false,
+                fullServletPath,
+                rdapWhoisServer,
+                now,
+                OutputDataType.FULL)));
   }
 
   /** Searches for nameservers by name using the superordinate domain as a suffix. */
   private RdapSearchResults searchByNameUsingSuperordinateDomain(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
-    DomainResource domainResource =
+    Optional<DomainResource> domainResource =
         loadByForeignKey(DomainResource.class, partialStringQuery.getSuffix(), now);
-    if (domainResource == null) {
+    if (!domainResource.isPresent()) {
       // Don't allow wildcards with suffixes which are not domains we manage. That would risk a
       // table scan in many easily foreseeable cases. The user might ask for ns*.zombo.com,
       // forcing us to query for all hosts beginning with ns, then filter for those ending in
@@ -211,16 +216,16 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
           "A suffix after a wildcard in a nameserver lookup must be an in-bailiwick domain");
     }
     List<HostResource> hostList = new ArrayList<>();
-    for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
+    for (String fqhn : ImmutableSortedSet.copyOf(domainResource.get().getSubordinateHosts())) {
       if (cursorString.isPresent() && (fqhn.compareTo(cursorString.get()) <= 0)) {
         continue;
       }
       // We can't just check that the host name starts with the initial query string, because
       // then the query ns.exam*.example.com would match against nameserver ns.example.com.
       if (partialStringQuery.matches(fqhn)) {
-        HostResource hostResource = loadByForeignKey(HostResource.class, fqhn, now);
-        if ((hostResource != null) && shouldBeVisible(hostResource, now)) {
-          hostList.add(hostResource);
+        Optional<HostResource> hostResource = loadByForeignKey(HostResource.class, fqhn, now);
+        if (shouldBeVisible(hostResource, now)) {
+          hostList.add(hostResource.get());
           if (hostList.size() > rdapResultSetMaxSize) {
             break;
           }
@@ -230,7 +235,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
     return makeSearchResults(
         hostList,
         IncompletenessWarningType.COMPLETE,
-        domainResource.getSubordinateHosts().size(),
+        domainResource.get().getSubordinateHosts().size(),
         CursorType.NAME,
         now);
   }

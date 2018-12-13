@@ -79,10 +79,12 @@ public class UnrenewDomainCommandTest extends CommandTestCase<UnrenewDomainComma
     clock.advanceOneMilli();
     assertThat(
             loadByForeignKey(DomainResource.class, "foo.tld", clock.nowUtc())
+                .get()
                 .getRegistrationExpirationTime())
         .isEqualTo(DateTime.parse("2019-12-06T13:55:01.001Z"));
     assertThat(
             loadByForeignKey(DomainResource.class, "bar.tld", clock.nowUtc())
+                .get()
                 .getRegistrationExpirationTime())
         .isEqualTo(DateTime.parse("2018-12-06T13:55:01.002Z"));
     assertInStdout("Successfully unrenewed all domains.");
@@ -99,7 +101,7 @@ public class UnrenewDomainCommandTest extends CommandTestCase<UnrenewDomainComma
     runCommandForced("-p", "2", "foo.tld");
     DateTime unrenewTime = clock.nowUtc();
     clock.advanceOneMilli();
-    DomainResource domain = loadByForeignKey(DomainResource.class, "foo.tld", clock.nowUtc());
+    DomainResource domain = loadByForeignKey(DomainResource.class, "foo.tld", clock.nowUtc()).get();
 
     assertAboutHistoryEntries()
         .that(getOnlyHistoryEntryOfType(domain, SYNTHETIC))

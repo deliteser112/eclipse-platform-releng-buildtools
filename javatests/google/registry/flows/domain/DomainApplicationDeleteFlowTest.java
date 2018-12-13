@@ -15,8 +15,10 @@
 package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.isLinked;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -72,7 +74,7 @@ public class DomainApplicationDeleteFlowTest
     clock.advanceOneMilli();
     runFlowAssertResponse(loadFile("generic_success_response.xml"));
     // Check that the domain is fully deleted.
-    assertThat(reloadDomainApplication()).isNull();
+    assertThat(loadDomainApplication(getUniqueIdFromCommand(), clock.nowUtc())).isEmpty();
     assertNoBillingEvents();
   }
 
@@ -93,11 +95,10 @@ public class DomainApplicationDeleteFlowTest
             .asBuilder()
             .setRepoId("1-TLD")
             .setRegistrant(
-                Key.create(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))
+                Key.create(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc()).get()))
             .setNameservers(
-                ImmutableSet.of(
-                    Key.create(
-                        loadByForeignKey(HostResource.class, "ns1.example.net", clock.nowUtc()))))
+                Key.create(
+                    loadByForeignKey(HostResource.class, "ns1.example.net", clock.nowUtc()).get()))
             .build());
     doSuccessfulTest();
     for (Key<? extends EppResource> key :

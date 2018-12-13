@@ -21,6 +21,7 @@ import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
@@ -231,9 +232,18 @@ public abstract class DomainBase extends EppResource {
       return thisCastToDerived();
     }
 
-    public B setNameservers(ImmutableSet<Key<HostResource>> nameservers) {
-      getInstance().nsHosts = nameservers;
+    public B setNameservers(Key<HostResource> nameserver) {
+      getInstance().nsHosts = ImmutableSet.of(nameserver);
       return thisCastToDerived();
+    }
+
+    public B setNameservers(ImmutableSet<Key<HostResource>> nameservers) {
+      getInstance().nsHosts = forceEmptyToNull(nameservers);
+      return thisCastToDerived();
+    }
+
+    public B addNameserver(Key<HostResource> nameserver) {
+      return addNameservers(ImmutableSet.of(nameserver));
     }
 
     public B addNameservers(ImmutableSet<Key<HostResource>> nameservers) {
@@ -241,9 +251,17 @@ public abstract class DomainBase extends EppResource {
           ImmutableSet.copyOf(union(getInstance().getNameservers(), nameservers)));
     }
 
+    public B removeNameserver(Key<HostResource> nameserver) {
+      return removeNameservers(ImmutableSet.of(nameserver));
+    }
+
     public B removeNameservers(ImmutableSet<Key<HostResource>> nameservers) {
       return setNameservers(
           ImmutableSet.copyOf(difference(getInstance().getNameservers(), nameservers)));
+    }
+
+    public B setContacts(DesignatedContact contact) {
+      return setContacts(ImmutableSet.of(contact));
     }
 
     public B setContacts(ImmutableSet<DesignatedContact> contacts) {

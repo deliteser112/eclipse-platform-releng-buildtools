@@ -107,7 +107,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
                 "EXDATE", "2002-06-01T00:02:00.0Z"));
 
     DomainResource domain =
-        loadByForeignKey(DomainResource.class, "example.tld", createTime.plusHours(1));
+        loadByForeignKey(DomainResource.class, "example.tld", createTime.plusHours(1)).get();
 
     // Delete domain example.tld within the add grace period.
     DateTime deleteTime = createTime.plusDays(1);
@@ -184,7 +184,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     DomainResource domain =
         loadByForeignKey(
-            DomainResource.class, "example.tld", DateTime.parse("2000-08-01T00:02:00Z"));
+                DomainResource.class, "example.tld", DateTime.parse("2000-08-01T00:02:00Z"))
+            .get();
     // Verify that the autorenew was ended and that the one-time billing event is not canceled.
     assertBillingEventsForResource(
         domain,
@@ -218,7 +219,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     DomainResource domain =
         loadByForeignKey(
-            DomainResource.class, "example.tld", DateTime.parse("2000-06-01T00:03:00Z"));
+                DomainResource.class, "example.tld", DateTime.parse("2000-06-01T00:03:00Z"))
+            .get();
 
     // Delete domain example.tld within the add grade period.
     DateTime deleteTime = createTime.plusDays(1);

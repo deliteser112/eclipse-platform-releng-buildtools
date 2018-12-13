@@ -120,9 +120,9 @@ public class CloudDnsWriter extends BaseDnsWriter {
     // Canonicalize name
     String absoluteDomainName = getAbsoluteHostName(domainName);
 
-    // Load the target domain. Note that it can be null if this domain was just deleted.
+    // Load the target domain. Note that it can be absent if this domain was just deleted.
     Optional<DomainResource> domainResource =
-        Optional.ofNullable(loadByForeignKey(DomainResource.class, domainName, clock.nowUtc()));
+        loadByForeignKey(DomainResource.class, domainName, clock.nowUtc());
 
     // Return early if no DNS records should be published.
     // desiredRecordsBuilder is populated with an empty set to indicate that all existing records
@@ -188,11 +188,10 @@ public class CloudDnsWriter extends BaseDnsWriter {
     // Canonicalize name
     String absoluteHostName = getAbsoluteHostName(hostName);
 
-    // Load the target host. Note that it can be null if this host was just deleted.
+    // Load the target host. Note that it can be absent if this host was just deleted.
     // desiredRecords is populated with an empty set to indicate that all existing records
     // should be deleted.
-    Optional<HostResource> host =
-        Optional.ofNullable(loadByForeignKey(HostResource.class, hostName, clock.nowUtc()));
+    Optional<HostResource> host = loadByForeignKey(HostResource.class, hostName, clock.nowUtc());
 
     // Return early if the host is deleted.
     if (!host.isPresent()) {

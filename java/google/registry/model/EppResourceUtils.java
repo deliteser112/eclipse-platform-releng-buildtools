@@ -76,7 +76,7 @@ public final class EppResourceUtils {
   /**
    * Loads the last created version of an {@link EppResource} from Datastore by foreign key.
    *
-   * <p>Returns null if no resource with this foreign key was ever created, or if the most recently
+   * <p>Returns empty if no resource with this foreign key was ever created, or if the most recently
    * created resource was deleted before time "now".
    *
    * <p>Loading an {@link EppResource} by itself is not sufficient to know its current state since
@@ -92,10 +92,9 @@ public final class EppResourceUtils {
    * @param foreignKey id to match
    * @param now the current logical time to project resources at
    */
-  @Nullable
-  public static <T extends EppResource> T loadByForeignKey(
+  public static <T extends EppResource> Optional<T> loadByForeignKey(
       Class<T> clazz, String foreignKey, DateTime now) {
-    return loadByForeignKeyHelper(clazz, foreignKey, now, false).orElse(null);
+    return loadByForeignKeyHelper(clazz, foreignKey, now, false);
   }
 
   /**
@@ -160,19 +159,19 @@ public final class EppResourceUtils {
   }
 
   /**
-   * Returns the domain application with the given application id if it exists, or null if it does
+   * Returns the domain application with the given application id if it exists, or absent if it does
    * not or is soft-deleted as of the given time.
    */
-  @Nullable
-  public static DomainApplication loadDomainApplication(String applicationId, DateTime now) {
+  public static Optional<DomainApplication> loadDomainApplication(
+      String applicationId, DateTime now) {
     DomainApplication application =
         ofy().load().key(Key.create(DomainApplication.class, applicationId)).now();
     if (application == null || isAtOrAfter(now, application.getDeletionTime())) {
-      return null;
+      return Optional.empty();
     }
     // Applications don't have any speculative changes that become effective later, so no need to
     // clone forward in time.
-    return application;
+    return Optional.of(application);
   }
 
   /**

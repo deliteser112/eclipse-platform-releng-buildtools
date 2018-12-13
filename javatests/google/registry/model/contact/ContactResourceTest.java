@@ -15,6 +15,7 @@
 package google.registry.model.contact;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
@@ -112,7 +113,7 @@ public class ContactResourceTest extends EntityTestCase {
   public void testPersistence() {
     assertThat(
         loadByForeignKey(ContactResource.class, contactResource.getForeignKey(), clock.nowUtc()))
-        .isEqualTo(contactResource);
+        .hasValue(contactResource);
   }
 
   @Test

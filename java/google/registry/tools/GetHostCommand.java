@@ -32,9 +32,7 @@ final class GetHostCommand extends GetEppResourceCommand {
 
   @Override
   public void runAndPrint() {
-    for (String hostName : mainParameters) {
-      printResource(
-          "Host", hostName, loadByForeignKey(HostResource.class, hostName, readTimestamp));
-    }
+    mainParameters.forEach(
+        h -> printResource("Host", h, loadByForeignKey(HostResource.class, h, readTimestamp)));
   }
 }

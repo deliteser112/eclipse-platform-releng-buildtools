@@ -224,10 +224,9 @@ public class DomainAllocateFlow implements TransactionalFlow {
 
   private DomainApplication loadAndValidateApplication(
       String applicationRoid, DateTime now) throws EppException {
-    DomainApplication application = loadDomainApplication(applicationRoid, now);
-    if (application == null) {
-      throw new MissingApplicationException(applicationRoid);
-    }
+    DomainApplication application =
+        loadDomainApplication(applicationRoid, now)
+            .orElseThrow(() -> new MissingApplicationException(applicationRoid));
     if (application.getApplicationStatus().isFinalStatus()) {
       throw new HasFinalStatusException();
     }

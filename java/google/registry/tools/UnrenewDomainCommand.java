@@ -43,6 +43,7 @@ import google.registry.model.reporting.HistoryEntry.Type;
 import google.registry.util.Clock;
 import google.registry.util.NonFinalForTesting;
 import java.util.List;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -90,16 +91,17 @@ class UnrenewDomainCommand extends ConfirmingCommand implements CommandWithRemot
         domainsNonexistentBuilder.add(domainName);
         continue;
       }
-      DomainResource domain = loadByForeignKey(DomainResource.class, domainName, now);
-      if (domain == null || domain.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
+      Optional<DomainResource> domain = loadByForeignKey(DomainResource.class, domainName, now);
+      if (!domain.isPresent()
+          || domain.get().getStatusValues().contains(StatusValue.PENDING_DELETE)) {
         domainsDeletingBuilder.add(domainName);
         continue;
       }
       domainsWithDisallowedStatusesBuilder.putAll(
-          domainName, Sets.intersection(domain.getStatusValues(), DISALLOWED_STATUSES));
+          domainName, Sets.intersection(domain.get().getStatusValues(), DISALLOWED_STATUSES));
       if (isBeforeOrAt(
-          leapSafeSubtractYears(domain.getRegistrationExpirationTime(), period), now)) {
-        domainsExpiringTooSoonBuilder.put(domainName, domain.getRegistrationExpirationTime());
+          leapSafeSubtractYears(domain.get().getRegistrationExpirationTime(), period), now)) {
+        domainsExpiringTooSoonBuilder.put(domainName, domain.get().getRegistrationExpirationTime());
       }
     }
 
@@ -149,13 +151,16 @@ class UnrenewDomainCommand extends ConfirmingCommand implements CommandWithRemot
   private void unrenewDomain(String domainName) {
     ofy().assertInTransaction();
     DateTime now = ofy().getTransactionTime();
-    DomainResource domain = loadByForeignKey(DomainResource.class, domainName, now);
+    Optional<DomainResource> domainOptional =
+        loadByForeignKey(DomainResource.class, domainName, now);
     // Transactional sanity checks on the off chance that something changed between init() running
     // and here.
     checkState(
-        domain != null && !domain.getStatusValues().contains(StatusValue.PENDING_DELETE),
+        domainOptional.isPresent()
+            && !domainOptional.get().getStatusValues().contains(StatusValue.PENDING_DELETE),
         "Domain %s was deleted or is pending deletion",
         domainName);
+    DomainResource domain = domainOptional.get();
     checkState(
         Sets.intersection(domain.getStatusValues(), DISALLOWED_STATUSES).isEmpty(),
         "Domain %s has prohibited status values",
