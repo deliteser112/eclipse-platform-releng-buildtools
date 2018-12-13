@@ -60,6 +60,8 @@ public final class GtechTool {
       "list_registrars",
       "list_tlds",
       "lock_domain",
+      "login",
+      "logout",
       "registrar_contact",
       "setup_ote",
       "uniform_rapid_suspension",
