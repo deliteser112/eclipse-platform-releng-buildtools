@@ -15,9 +15,15 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.tools.RequestFactoryModule.REQUEST_TIMEOUT_MS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpRequestInitializer;
 import google.registry.config.RegistryConfig;
@@ -41,20 +47,29 @@ public class RequestFactoryModuleTest {
   }
 
   @Test
-  public void test_provideHttpRequestFactory_localhost() {
+  public void test_provideHttpRequestFactory_localhost() throws Exception {
     // Make sure that localhost creates a request factory with an initializer.
     RegistryConfig.CONFIG_SETTINGS.get().appEngine.isLocal = true;
     HttpRequestFactory factory = RequestFactoryModule.provideHttpRequestFactory(googleCredential);
     HttpRequestInitializer initializer = factory.getInitializer();
     assertThat(initializer).isNotNull();
-    assertThat(initializer).isNotSameAs(googleCredential);
+    HttpRequest request = factory.buildGetRequest(new GenericUrl("http://localhost"));
+    initializer.initialize(request);
+    verifyZeroInteractions(googleCredential);
   }
 
   @Test
-  public void test_provideHttpRequestFactory_remote() {
+  public void test_provideHttpRequestFactory_remote() throws Exception {
     // Make sure that example.com creates a request factory with the UNITTEST client id but no
     RegistryConfig.CONFIG_SETTINGS.get().appEngine.isLocal = false;
     HttpRequestFactory factory = RequestFactoryModule.provideHttpRequestFactory(googleCredential);
-    assertThat(factory.getInitializer()).isSameAs(googleCredential);
+    HttpRequestInitializer initializer = factory.getInitializer();
+    assertThat(initializer).isNotNull();
+    // HttpRequestFactory#buildGetRequest() calls initialize() once.
+    HttpRequest request = factory.buildGetRequest(new GenericUrl("http://localhost"));
+    verify(googleCredential).initialize(request);
+    assertThat(request.getConnectTimeout()).isEqualTo(REQUEST_TIMEOUT_MS);
+    assertThat(request.getReadTimeout()).isEqualTo(REQUEST_TIMEOUT_MS);
+    verifyNoMoreInteractions(googleCredential);
   }
 }

@@ -30,6 +30,8 @@ import google.registry.config.RegistryConfig;
  */
 @Module
 class RequestFactoryModule {
+  
+  static final int REQUEST_TIMEOUT_MS = 10 * 60 * 1000;
 
   @Provides
   static HttpRequestFactory provideHttpRequestFactory(
@@ -42,7 +44,17 @@ class RequestFactoryModule {
                       .getHeaders()
                       .setCookie("dev_appserver_login=test@example.com:true:1858047912411"));
     } else {
-      return new NetHttpTransport().createRequestFactory(credential);
+      return new NetHttpTransport()
+          .createRequestFactory(
+              request -> {
+                credential.initialize(request);
+                // GAE request times out after 10 min, so here we set the timeout to 10 min. This is
+                // needed to support some nomulus commands like updating premium lists that take
+                // a lot of time to complete.
+                // See https://developers.google.com/api-client-library/java/google-api-java-client/errors
+                request.setConnectTimeout(REQUEST_TIMEOUT_MS);
+                request.setReadTimeout(REQUEST_TIMEOUT_MS);
+              });
     }
   }
 }
