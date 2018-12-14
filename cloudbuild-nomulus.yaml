@@ -1,0 +1,52 @@
+# To run the build locally, install cloud-build-local first.
+# See: https://cloud.google.com/cloud-build/docs/build-debug-locally
+# Then run:
+# cloud-build-local --config=cloudbuild-nomulus.yaml --dryrun=false --substitutions TAG_NAME=[TAG] .
+# This will create a docker image named gcr.io/[PROJECT_ID]/proxy:[TAG] locally.
+# The PROJECT_ID is the current project name that gcloud uses.
+# You can add "--push true" to have the image pushed to GCR.
+#
+# To manually trigger a build on GCB, run:
+# gcloud builds submit --config cloudbuild-nomulus.yaml --substitutions TAG_NAME=[TAG] .
+#
+# To trigger a build automatically, follow the instructions below and add a trigger:
+# https://cloud.google.com/cloud-build/docs/running-builds/automate-builds
+steps:
+# Set permissions correctly. Not sure why it is necessary, but it is.
+- name: 'alpine'
+  args: ['chown', '-R', 'root:root', '.']
+- name: 'alpine'
+  args: ['chmod', '-R', '777', '.']
+# Clone the private repo and merge its contents.
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['source', 'repos', 'clone', 'nomulus-config']
+- name: 'alpine'
+  args: ['sh', '-c', 'cp -r nomulus-config/* .']
+# Build the war files.
+- name: 'openjdk:8-slim'
+  args: ['./gradlew', 'stage', '-x', 'autoLintGradle']
+  dir: 'gradle'
+- name: 'openjdk:8-slim'
+  args: ['jar', '-cvf', '../../../default-${TAG_NAME}.war', '.']
+  dir: 'gradle/services/default/build/exploded-default'
+- name: 'openjdk:8-slim'
+  args: ['jar', '-cvf', '../../../pubapi-${TAG_NAME}.war', '.']
+  dir: 'gradle/services/pubapi/build/exploded-pubapi'
+- name: 'openjdk:8-slim'
+  args: ['jar', '-cvf', '../../../backend-${TAG_NAME}.war', '.']
+  dir: 'gradle/services/backend/build/exploded-backend'
+- name: 'openjdk:8-slim'
+  args: ['jar', '-cvf', '../../../tools-${TAG_NAME}.war', '.']
+  dir: 'gradle/services/tools/build/exploded-tools'
+# WAR files to upload to GCS.
+artifacts:
+  objects:
+    location: 'gs://${PROJECT_ID}-war'
+    paths:
+      - 'gradle/services/default-${TAG_NAME}.war'
+      - 'gradle/services/pubapi-${TAG_NAME}.war'
+      - 'gradle/services/backend-${TAG_NAME}.war'
+      - 'gradle/services/tools-${TAG_NAME}.war'
+timeout: 3600s
+options:
+  machineType: 'N1_HIGHCPU_8'

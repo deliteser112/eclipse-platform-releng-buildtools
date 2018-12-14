@@ -84,7 +84,7 @@ subprojects {
     }
 
     rootProject.deploy.dependsOn appengineDeploy
-    rootProject.stage.dependsOn appengineStage
+    rootProject.stage.dependsOn explodeWar
 
     // Return early, do not apply the settings below.
     return
