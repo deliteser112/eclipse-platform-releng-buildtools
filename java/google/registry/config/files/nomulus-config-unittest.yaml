@@ -22,3 +22,8 @@ caching:
   staticPremiumListMaxCachedEntries: 50
   eppResourceCachingEnabled: true
   eppResourceCachingSeconds: 0
+
+# Remove the support G Suite group, because we don't want to try connecting to G Suite servers from
+# tests
+gSuite:
+  supportGroupEmailAddress:

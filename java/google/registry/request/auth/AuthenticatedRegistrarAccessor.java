@@ -29,6 +29,7 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
+import java.util.Optional;
 import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
 
@@ -43,8 +44,16 @@ import javax.inject.Inject;
  *
  * <p>An "admin" also has ADMIN role on ALL registrars.
  *
- * <p>A user is an "admin" if they are a GAE-admin, or if their email is in the "Support" G-Suite
+ * <p>A user is an "admin" if they are a GAE-admin, or if their email is in the "Support" G Suite
  * group.
+ *
+ * <p>NOTE: to check whether the user is in the "Support" G Suite group, we need a connection to
+ * G Suite. This in turn requires we have valid JsonCredentials, which not all environments have set
+ * up. This connection will be created lazily (only if needed).
+ *
+ * <p>Specifically, we don't instantiate the connection if: (a) gSuiteSupportGroupEmailAddress isn't
+ * defined, or (b) the user is logged out, or (c) the user is a GAE-admin, or (d) bypassAdminCheck
+ * is true.
  */
 @Immutable
 public class AuthenticatedRegistrarAccessor {
@@ -69,40 +78,38 @@ public class AuthenticatedRegistrarAccessor {
   private final ImmutableSetMultimap<String, Role> roleMap;
 
   /**
-   * Overriding the injected {@link GroupsConnection} for tests.
+   * Bypass the "isAdmin" check making all users NOT admins.
    *
-   * <p>{@link GroupsConnection} needs the injected DelegatedCredential GoogleCredential. However,
-   * this can't be initialized in the test environment.
+   * <p>Currently our test server doesn't let you change the user after the test server was created.
+   * This means we'd need multiple test files to test the same actions as both a "regular" user and
+   * an admin.
    *
-   * <p>The test server used in the javatests/google/registry/webdriver/ tests will hang if we try
-   * to instantiate the {@link GroupsConnection}. So instead we inject a {@link Lazy} version and
-   * allow tests to override the injected instace with (presumabley) a mock insteance.
+   * <p>To overcome this - we add a flag that lets you dynamically choose whether a user is an admin
+   * or not by creating a fake "GAE-admin" user and then bypassing the admin check if they want to
+   * fake a "regular" user.
+   *
+   * <p>The reason we don't do it the other way around (have a flag that makes anyone an admin) is
+   * that such a flag would be a security risk, especially since VisibleForTesting is unenforced
+   * (and you could set it with reflection anyway).
+   *
+   * <p>Instead of having a test flag that elevates permissions (which has security concerns) we add
+   * this flag that reduces permissions.
    */
-  @VisibleForTesting public static GroupsConnection overrideGroupsConnection = null;
+  @VisibleForTesting public static boolean bypassAdminCheck = false;
 
   @Inject
   public AuthenticatedRegistrarAccessor(
       AuthResult authResult,
       @Config("registryAdminClientId") String registryAdminClientId,
-      @Config("gSuiteSupportGroupEmailAddress") String gSuiteSupportGroupEmailAddress,
-      Lazy<GroupsConnection> groupsConnection) {
-    this(
-        authResult,
-        registryAdminClientId,
-        gSuiteSupportGroupEmailAddress,
-        overrideGroupsConnection != null ? overrideGroupsConnection : groupsConnection.get());
-  }
-
-  @VisibleForTesting
-  AuthenticatedRegistrarAccessor(
-      AuthResult authResult,
-      String registryAdminClientId,
-      String gSuiteSupportGroupEmailAddress,
-      GroupsConnection groupsConnection) {
+      @Config("gSuiteSupportGroupEmailAddress") Optional<String> gSuiteSupportGroupEmailAddress,
+      Lazy<GroupsConnection> lazyGroupsConnection) {
     this(
         authResult.userIdForLogging(),
         createRoleMap(
-            authResult, registryAdminClientId, groupsConnection, gSuiteSupportGroupEmailAddress));
+            authResult,
+            registryAdminClientId,
+            lazyGroupsConnection,
+            gSuiteSupportGroupEmailAddress));
 
     logger.atInfo().log(
         "%s has the following roles: %s", authResult.userIdForLogging(), roleMap);
@@ -235,17 +242,21 @@ public class AuthenticatedRegistrarAccessor {
   }
 
   private static boolean checkIsSupport(
-      GroupsConnection groupsConnection, String userEmail, String supportEmail) {
-    if (Strings.isNullOrEmpty(supportEmail)) {
+      Lazy<GroupsConnection> lazyGroupsConnection,
+      String userEmail,
+      Optional<String> gSuiteSupportGroupEmailAddress) {
+    if (!gSuiteSupportGroupEmailAddress.isPresent()) {
       return false;
     }
     try {
-      return groupsConnection.isMemberOfGroup(userEmail, supportEmail);
+      return lazyGroupsConnection
+          .get()
+          .isMemberOfGroup(userEmail, gSuiteSupportGroupEmailAddress.get());
     } catch (RuntimeException e) {
       logger.atSevere().withCause(e).log(
           "Error checking whether email %s belongs to support group %s."
               + " Skipping support role check",
-          userEmail, supportEmail);
+          userEmail, gSuiteSupportGroupEmailAddress);
       return false;
     }
   }
@@ -253,8 +264,8 @@ public class AuthenticatedRegistrarAccessor {
   private static ImmutableSetMultimap<String, Role> createRoleMap(
       AuthResult authResult,
       String registryAdminClientId,
-      GroupsConnection groupsConnection,
-      String gSuiteSupportGroupEmailAddress) {
+      Lazy<GroupsConnection> lazyGroupsConnection,
+      Optional<String> gSuiteSupportGroupEmailAddress) {
 
     if (!authResult.userAuthInfo().isPresent()) {
       return ImmutableSetMultimap.of();
@@ -263,9 +274,14 @@ public class AuthenticatedRegistrarAccessor {
     UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
 
     User user = userAuthInfo.user();
-    boolean isAdmin = userAuthInfo.isUserAdmin();
-    boolean isSupport =
-        checkIsSupport(groupsConnection, user.getEmail(), gSuiteSupportGroupEmailAddress);
+    // both GAE project admin and members of the gSuiteSupportGroupEmailAddress are considered
+    // admins for the RegistrarConsole.
+    boolean isAdmin =
+        bypassAdminCheck
+            ? false
+            : userAuthInfo.isUserAdmin()
+                || checkIsSupport(
+                    lazyGroupsConnection, user.getEmail(), gSuiteSupportGroupEmailAddress);
 
     ImmutableSetMultimap.Builder<String, Role> builder = new ImmutableSetMultimap.Builder<>();
 
@@ -278,9 +294,8 @@ public class AuthenticatedRegistrarAccessor {
       builder.put(registryAdminClientId, Role.OWNER);
     }
 
-    if (isAdmin || isSupport) {
-      // Admins and support have ADMIN access to all registrars, and OWNER access to all non-REAL
-      // registrars
+    if (isAdmin) {
+      // Admins have ADMIN access to all registrars, and OWNER access to all non-REAL registrars
       ofy()
           .load()
           .type(Registrar.class)

@@ -22,6 +22,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -424,8 +425,9 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("gSuiteSupportGroupEmailAddress")
-    public static String provideGSuiteSupportGroupEmailAddress(RegistryConfigSettings config) {
-      return config.gSuite.supportGroupEmailAddress;
+    public static Optional<String> provideGSuiteSupportGroupEmailAddress(
+        RegistryConfigSettings config) {
+      return Optional.ofNullable(Strings.emptyToNull(config.gSuite.supportGroupEmailAddress));
     }
 
     /**
