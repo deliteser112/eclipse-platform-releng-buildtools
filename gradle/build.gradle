@@ -6,10 +6,13 @@ buildscript {
 
   dependencies {
     classpath 'com.google.cloud.tools:appengine-gradle-plugin:1.3.3'
+    classpath 'org.sonatype.aether:aether-api:1.13.1'
+    classpath 'org.sonatype.aether:aether-impl:1.13.1'
   }
 }
 
 plugins {
+  id 'nebula.dependency-lock' version '7.1.0'
   id 'nebula.lint' version '10.3.5'
   // Config helper for annotation processors such as AutoValue and Dagger.
   // Ensures that source code is generated at an appropriate location.
@@ -88,6 +91,8 @@ subprojects {
   }
 
   apply plugin: 'java'
+  apply plugin: 'maven-publish'
+  apply plugin: 'nebula.dependency-lock'
   apply plugin: 'nebula.lint'
   apply plugin: 'net.ltgt.apt'
 
@@ -104,6 +109,100 @@ subprojects {
       'unused-dependency'
       // TODO(weiminyu): enable more dependency checks
   ]
+
+  publishing {
+    repositories {
+      maven {
+        url = project.findProperty('gcsRepo')
+      }
+    }
+  }
+
+  ext.getDistinctResolvedArtifacts = {
+    def distinctResolvedArtifacts = [:]
+
+    configurations.each {
+      if (!it.isCanBeResolved()) {
+        return
+      }
+      it.resolvedConfiguration.resolvedArtifacts.each { resolvedArtifact ->
+        if (resolvedArtifact.id.componentIdentifier.displayName in ['project :util', 'project :third_party']) {
+          return
+        }
+        distinctResolvedArtifacts[resolvedArtifact.id.toString()] = resolvedArtifact
+      }
+    }
+
+    return distinctResolvedArtifacts
+  }
+
+  ext.generateDependencyPublications = {
+    def distinctResolvedArtifacts = project.ext.getDistinctResolvedArtifacts()
+
+    distinctResolvedArtifacts.values().eachWithIndex { resolvedArtifact, n ->
+      project.publishing {
+        publications {
+          "maven${n}"(MavenPublication) {
+            artifact(resolvedArtifact.file) {
+              groupId = resolvedArtifact.moduleVersion.id.group
+              artifactId = resolvedArtifact.moduleVersion.id.name
+              version = resolvedArtifact.moduleVersion.id.version
+              classifier = resolvedArtifact.classifier
+            }
+          }
+        }
+      }
+    }
+  }
+
+  ext.urlExists = { url ->
+    def connection = (HttpURLConnection) url.openConnection()
+    connection.setRequestMethod("HEAD")
+    connection.connect()
+    if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  ext.writeMetadata = { resolvedArtifact, url, gitRepositoryPath ->
+    def groupId = resolvedArtifact.moduleVersion.id.group
+    def artifactId = resolvedArtifact.moduleVersion.id.name
+    def version = resolvedArtifact.moduleVersion.id.version
+    def relativeFileName =
+      [groupId, artifactId, 'README.domainregistry'].join('/')
+    def metadataFile = new File(gitRepositoryPath, relativeFileName)
+    metadataFile.parentFile.mkdirs()
+    def writer = metadataFile.newWriter()
+    writer << "Name: ${artifactId}\n"
+    writer << "Url: ${url}\n"
+    writer << "Version: ${version}\n"
+    writer.close()
+  }
+
+  // This task generates a metadata file for each resolved dependency artifact.
+  // The file contains the name, url and version for the artifact.
+  task generateDependencyMetadata {
+    doLast {
+      def distinctResolvedArtifacts = project.ext.getDistinctResolvedArtifacts()
+      def defaultLayout = new org.sonatype.aether.util.layout.MavenDefaultLayout()
+
+      distinctResolvedArtifacts.values().each { resolvedArtifact ->
+        def artifact = new org.sonatype.aether.util.artifact.DefaultArtifact(
+          resolvedArtifact.id.componentIdentifier.toString())
+        for (repository in project.repositories) {
+          def mavenRepository = (MavenArtifactRepository) repository
+          def repositoryUri = URI.create(mavenRepository.url.toString())
+          def artifactUri = repositoryUri.resolve(defaultLayout.getPath(artifact))
+          if (project.ext.urlExists(artifactUri.toURL())) {
+            project.ext.writeMetadata(resolvedArtifact, artifactUri.toURL(), project.findProperty('privateRepository') + "/${project.name}")
+            break
+          }
+        }
+      }
+    }
+  }
 
   if (project.name == 'third_party') return
 

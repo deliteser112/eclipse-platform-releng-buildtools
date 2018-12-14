@@ -99,3 +99,5 @@ docker {
     ports = [30000, 30001, 30002, 30011, 30012]
   }
 }
+
+ext.generateDependencyPublications()
