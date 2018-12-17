@@ -20,6 +20,13 @@ plugins {
   id 'com.bmuschko.docker-java-application' version '4.0.4' apply false
 }
 
+// Provide defaults for all of the project properties.
+
+// showAllOutput: boolean.  If true, dump all test output during the build.
+if (!project.hasProperty('showAllOutput')) {
+  ext.showAllOutput = 'false'
+}
+
 // Only do linting if the build is successful.
 gradleLint.autoLintAfterFailure = false
 
@@ -243,6 +250,10 @@ subprojects {
         exclude commonlyExcludedResources
       }
     }
+  }
+
+  test {
+      testLogging.showStandardStreams = Boolean.parseBoolean(showAllOutput)
   }
 
   if (project.name == 'core') return
