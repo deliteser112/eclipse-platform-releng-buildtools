@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 #
 # This script runs a workflow to generate dependency lock file, run a build against
 # the generated lock file, save the lock file and upload dependency JARs to a private
@@ -22,16 +21,38 @@ set -e
 
 ALL_SUBPROJECTS="core proxy util"
 SUBPROJECTS=
+REPOSITORY_URL=
 
-if [[ -z "$@" ]]; then
+while [[ $# -gt 0 ]]; do
+  KEY="$1"
+  case ${KEY} in
+    --repositoryUrl)
+      shift
+      REPOSITORY_URL="$1"
+      ;;
+    *)
+      SUBPROJECTS="${SUBPROJECTS} ${KEY}"
+      ;;
+  esac
+  shift
+done
+
+if [[ -z ${SUBPROJECTS} ]]; then
   SUBPROJECTS="${ALL_SUBPROJECTS}"
-else
-  SUBPROJECTS="$@"
 fi
 
+if [[ -z ${REPOSITORY_URL} ]]; then
+  echo "--repositoryUrl must be specified"
+  exit 1
+fi
+
+WORKING_DIR=$(dirname $0)
+
 for PROJECT in ${SUBPROJECTS}; do
-  ./gradlew ":${PROJECT}:generateLock"
-  ./gradlew -PdependencyLock.useGeneratedLock=true ":${PROJECT}:build"
-  ./gradlew ":${PROJECT}:saveLock"
-  ./gradlew ":${PROJECT}:publish"
+  ${WORKING_DIR}/gradlew ":${PROJECT}:generateLock"
+  ${WORKING_DIR}/gradlew -PdependencyLock.useGeneratedLock=true \
+    ":${PROJECT}:build"
+  ${WORKING_DIR}/gradlew ":${PROJECT}:saveLock"
+  ${WORKING_DIR}/gradlew -PrepositoryUrl="${REPOSITORY_URL}" \
+    ":${PROJECT}:publish"
 done

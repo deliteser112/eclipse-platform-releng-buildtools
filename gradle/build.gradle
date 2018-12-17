@@ -120,7 +120,7 @@ subprojects {
   publishing {
     repositories {
       maven {
-        url = project.findProperty('gcsRepo')
+        url = project.findProperty('repositoryUrl')
       }
     }
   }
@@ -133,7 +133,8 @@ subprojects {
         return
       }
       it.resolvedConfiguration.resolvedArtifacts.each { resolvedArtifact ->
-        if (resolvedArtifact.id.componentIdentifier.displayName in ['project :util', 'project :third_party']) {
+        if (resolvedArtifact.id.componentIdentifier.displayName in
+          ['project :core', 'project :proxy', 'project :util', 'project :third_party']) {
           return
         }
         distinctResolvedArtifacts[resolvedArtifact.id.toString()] = resolvedArtifact
@@ -203,7 +204,10 @@ subprojects {
           def repositoryUri = URI.create(mavenRepository.url.toString())
           def artifactUri = repositoryUri.resolve(defaultLayout.getPath(artifact))
           if (project.ext.urlExists(artifactUri.toURL())) {
-            project.ext.writeMetadata(resolvedArtifact, artifactUri.toURL(), project.findProperty('privateRepository') + "/${project.name}")
+            project.ext.writeMetadata(
+              resolvedArtifact,
+              artifactUri.toURL(),
+              project.findProperty('privateRepository') + "/${project.name}")
             break
           }
         }
