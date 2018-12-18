@@ -48,7 +48,7 @@ input[readonly], textarea[readonly] {
 }
 
 textarea {
-  margin: 1em 0;
+  margin-bottom: 1em;
   font-family: monospace;
   font-size: 13px;
   border: solid 1px #ddd;
