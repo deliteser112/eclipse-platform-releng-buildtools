@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import dagger.BindsInstance;
 import dagger.Component;
 import google.registry.bigquery.BigqueryModule;
 import google.registry.config.CredentialModule.LocalCredentialJson;
@@ -36,6 +37,8 @@ import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModul
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
 import google.registry.whois.WhoisModule;
+import javax.annotation.Nullable;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
@@ -113,5 +116,12 @@ interface RegistryToolComponent {
 
   @LocalCredentialJson
   String googleCredentialJson();
-}
 
+  @Component.Builder
+  interface Builder {
+    @BindsInstance
+    Builder credentialFilename(@Nullable @Named("credentialFileName") String credentialFilename);
+
+    RegistryToolComponent build();
+  }
+}

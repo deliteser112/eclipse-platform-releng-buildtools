@@ -58,6 +58,13 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
       description = "Returns all command names.")
   private boolean showAllCommands;
 
+  @Parameter(
+      names = {"--credential"},
+      description =
+          "Name of a JSON file containing credential information used by the tool. "
+              + "If not set, credentials saved by running `nomulus login' will be used.")
+  private String credentialJson = null;
+
   // Do not make this final - compile-time constant inlining may interfere with JCommander.
   @ParametersDelegate
   private LoggingParameters loggingParams = new LoggingParameters();
@@ -81,8 +88,6 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     this.commands = commands;
 
     Security.addProvider(new BouncyCastleProvider());
-
-    component = DaggerRegistryToolComponent.create();
   }
 
   // The <? extends Class<? extends Command>> wildcard looks a little funny, but is needed so that
@@ -145,6 +150,9 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
 
     checkState(RegistryToolEnvironment.get() == environment,
         "RegistryToolEnvironment argument pre-processing kludge failed.");
+
+    component =
+        DaggerRegistryToolComponent.builder().credentialFilename(credentialJson).build();
 
     // JCommander stores sub-commands as nested JCommander objects containing a list of user objects
     // to be populated.  Extract the subcommand by getting the JCommander wrapper and then

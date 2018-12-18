@@ -19,7 +19,7 @@ import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.CredentialModule.LocalCredential;
+import google.registry.config.CredentialModule.DefaultCredential;
 import google.registry.config.RegistryConfig;
 
 /**
@@ -35,7 +35,7 @@ class RequestFactoryModule {
 
   @Provides
   static HttpRequestFactory provideHttpRequestFactory(
-      @LocalCredential GoogleCredential credential) {
+      @DefaultCredential GoogleCredential credential) {
     if (RegistryConfig.areServersLocal()) {
       return new NetHttpTransport()
           .createRequestFactory(

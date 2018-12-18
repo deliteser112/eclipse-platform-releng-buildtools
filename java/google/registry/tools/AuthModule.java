@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
 import com.google.gson.Gson;
 import dagger.Binds;
+import dagger.Lazy;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.CredentialModule.DefaultCredential;
@@ -45,12 +46,14 @@ import java.io.IOException;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import javax.annotation.Nullable;
+import javax.inject.Named;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
 
-/**
- * Module providing the dependency graph for authorization credentials.
- */
+/** Module providing the dependency graph for authorization credentials. */
 @Module
 public class AuthModule {
 
@@ -84,9 +87,15 @@ public class AuthModule {
   @Provides
   @LocalCredential
   public static GoogleCredential provideLocalCredential(
-      @LocalCredentialJson String credentialJson) {
+      @LocalCredentialJson String credentialJson,
+      @Config("localCredentialOauthScopes") ImmutableList<String> scopes) {
     try {
-      return GoogleCredential.fromStream(new ByteArrayInputStream(credentialJson.getBytes(UTF_8)));
+      GoogleCredential credential =
+          GoogleCredential.fromStream(new ByteArrayInputStream(credentialJson.getBytes(UTF_8)));
+      if (credential.createScopedRequired()) {
+        credential = credential.createScoped(scopes);
+      }
+      return credential;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -133,15 +142,25 @@ public class AuthModule {
   @Provides
   @LocalCredentialJson
   public static String provideLocalCredentialJson(
-      GoogleClientSecrets clientSecrets, @StoredCredential Credential credential) {
-    return new Gson()
-        .toJson(
-            ImmutableMap.<String, String>builder()
-                .put("type", "authorized_user")
-                .put("client_id", clientSecrets.getDetails().getClientId())
-                .put("client_secret", clientSecrets.getDetails().getClientSecret())
-                .put("refresh_token", credential.getRefreshToken())
-                .build());
+      Lazy<GoogleClientSecrets> clientSecrets,
+      @StoredCredential Lazy<Credential> credential,
+      @Nullable @Named("credentialFileName") String credentialFilename) {
+    try {
+      if (credentialFilename != null) {
+        return new String(Files.readAllBytes(Paths.get(credentialFilename)), UTF_8);
+      } else {
+        return new Gson()
+            .toJson(
+                ImmutableMap.<String, String>builder()
+                    .put("type", "authorized_user")
+                    .put("client_id", clientSecrets.get().getDetails().getClientId())
+                    .put("client_secret", clientSecrets.get().getDetails().getClientSecret())
+                    .put("refresh_token", credential.get().getRefreshToken())
+                    .build());
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Provides

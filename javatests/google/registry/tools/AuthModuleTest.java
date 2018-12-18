@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,11 +33,15 @@ import com.google.api.client.util.store.DataStore;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
 import java.util.Map;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -48,6 +53,9 @@ public class AuthModuleTest {
   private static final String CLIENT_SECRET = "UNITTEST-CLIENT-SECRET";
   private static final String ACCESS_TOKEN = "FakeAccessToken";
   private static final String REFRESH_TOKEN = "FakeReFreshToken";
+
+  @Rule
+  public final TemporaryFolder folder = new TemporaryFolder();
 
   private final Credential fakeCredential =
       new Credential.Builder(
@@ -154,13 +162,24 @@ public class AuthModuleTest {
 
   @Test
   public void test_provideLocalCredentialJson() {
-    String credentialJson = AuthModule.provideLocalCredentialJson(getSecrets(), getCredential());
+    String credentialJson =
+        AuthModule.provideLocalCredentialJson(this::getSecrets, this::getCredential, null);
     Map<String, String> jsonMap =
         new Gson().fromJson(credentialJson, new TypeToken<Map<String, String>>() {}.getType());
     assertThat(jsonMap.get("type")).isEqualTo("authorized_user");
     assertThat(jsonMap.get("client_secret")).isEqualTo(CLIENT_SECRET);
     assertThat(jsonMap.get("client_id")).isEqualTo(CLIENT_ID);
     assertThat(jsonMap.get("refresh_token")).isEqualTo(REFRESH_TOKEN);
+  }
+
+  @Test
+  public void test_provideExternalCredentialJson() throws Exception {
+    File credentialFile = folder.newFile("credential.json");
+    Files.write(credentialFile.toPath(), "{some_field: some_value}".getBytes(UTF_8));
+    String credentialJson =
+        AuthModule.provideLocalCredentialJson(
+            this::getSecrets, this::getCredential, credentialFile.getCanonicalPath());
+    assertThat(credentialJson).isEqualTo("{some_field: some_value}");
   }
 
   @Test
