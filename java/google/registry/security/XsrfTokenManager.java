@@ -37,6 +37,9 @@ public final class XsrfTokenManager {
   /** HTTP header used for transmitting XSRF tokens. */
   public static final String X_CSRF_TOKEN = "X-CSRF-Token";
 
+  /** POST parameter used for transmitting XSRF tokens. */
+  public static final String P_CSRF_TOKEN = "xsrfToken";
+
   /** Maximum age of an acceptable XSRF token. */
   private static final Duration XSRF_VALIDITY = Duration.standardDays(1);
 

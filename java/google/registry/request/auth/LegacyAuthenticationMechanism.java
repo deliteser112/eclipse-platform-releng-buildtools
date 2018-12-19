@@ -14,9 +14,11 @@
 
 package google.registry.request.auth;
 
+import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static google.registry.request.auth.AuthLevel.NONE;
 import static google.registry.request.auth.AuthLevel.USER;
+import static google.registry.security.XsrfTokenManager.P_CSRF_TOKEN;
 import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 
 import com.google.appengine.api.users.UserService;
@@ -52,13 +54,35 @@ public class LegacyAuthenticationMechanism implements AuthenticationMechanism {
       return AuthResult.create(NONE);
     }
 
-    if (!SAFE_METHODS.contains(request.getMethod())
-        && !xsrfTokenManager.validateToken(nullToEmpty(request.getHeader(X_CSRF_TOKEN)))) {
+    if (!SAFE_METHODS.contains(request.getMethod()) && !validateXsrf(request)) {
       return AuthResult.create(NONE);
     }
 
     return AuthResult.create(
         USER,
         UserAuthInfo.create(userService.getCurrentUser(), userService.isUserAdmin()));
+  }
+
+  private boolean validateXsrf(HttpServletRequest request) {
+    String headerToken = emptyToNull(request.getHeader(X_CSRF_TOKEN));
+    if (headerToken != null) {
+      return xsrfTokenManager.validateToken(headerToken);
+    }
+    // If we got here - the header didn't have the token.
+    // It might be in the POST data - however even checking whether the POST data has this entry
+    // could break the Action!
+    //
+    // Reason: if we do request.getParameter, any Action that injects @Payload or @JsonPayload
+    // would break since it uses request.getReader - and it's an error to call both getReader and
+    // getParameter!
+    //
+    // However, in this case it's acceptable since if we got here - the POST request didn't even
+    // have the XSRF header meaning if it doesn't have POST data - it's not from a valid source at
+    // all (a valid but outdated source would have a bad header value, but getting here means we had
+    // no value at all)
+    //
+    // TODO(b/120201577): Once we know from the @Action whether we can use getParameter or not -
+    // only check getParameter if that's how this @Action uses getParameters.
+    return xsrfTokenManager.validateToken(nullToEmpty(request.getParameter(P_CSRF_TOKEN)));
   }
 }
