@@ -509,7 +509,7 @@ public final class RegistryConfig {
     /**
      * The email address that outgoing emails from the app are sent from.
      *
-     * @see google.registry.ui.server.registrar.SendEmailUtils
+     * @see google.registry.ui.server.SendEmailUtils
      */
     @Provides
     @Config("gSuiteOutgoingEmailAddress")
@@ -520,10 +520,10 @@ public final class RegistryConfig {
     /**
      * The display name that is used on outgoing emails sent by Nomulus.
      *
-     * @see google.registry.ui.server.registrar.SendEmailUtils
+     * @see google.registry.ui.server.SendEmailUtils
      */
     @Provides
-    @Config("gSuiteOutoingEmailDisplayName")
+    @Config("gSuiteOutgoingEmailDisplayName")
     public static String provideGSuiteOutgoingEmailDisplayName(RegistryConfigSettings config) {
       return config.gSuite.outgoingEmailDisplayName;
     }

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.ui.server.registrar;
+package google.registry.ui.server;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.toArray;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Streams;
+import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.util.SendEmailService;
@@ -37,30 +37,40 @@ public class SendEmailUtils {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final String gSuiteOutgoingEmailAddress;
-  private final String gSuiteOutoingEmailDisplayName;
+  private final String gSuiteOutgoingEmailDisplayName;
   private final SendEmailService emailService;
+  private final ImmutableList<String> registrarChangesNotificationEmailAddresses;
 
   @Inject
   public SendEmailUtils(
       @Config("gSuiteOutgoingEmailAddress") String gSuiteOutgoingEmailAddress,
-      @Config("gSuiteOutoingEmailDisplayName") String gSuiteOutoingEmailDisplayName,
+      @Config("gSuiteOutgoingEmailDisplayName") String gSuiteOutgoingEmailDisplayName,
+      @Config("registrarChangesNotificationEmailAddresses")
+          ImmutableList<String> registrarChangesNotificationEmailAddresses,
       SendEmailService emailService) {
     this.gSuiteOutgoingEmailAddress = gSuiteOutgoingEmailAddress;
-    this.gSuiteOutoingEmailDisplayName = gSuiteOutoingEmailDisplayName;
+    this.gSuiteOutgoingEmailDisplayName = gSuiteOutgoingEmailDisplayName;
     this.emailService = emailService;
+    this.registrarChangesNotificationEmailAddresses = registrarChangesNotificationEmailAddresses;
   }
 
   /**
-   * Sends an email from Nomulus to the specified recipient(s). Returns true iff sending was
-   * successful.
+   * Sends an email from Nomulus to the registrarChangesNotificationEmailAddresses. Returns true iff
+   * sending to at least 1 address was successful.
+   *
+   * <p>This means that if there are no recepients ({@link #hasRecepients} returns false), this will
+   * return false even thought no error happened.
+   *
+   * <p>This also means that if there are multiple recepients, it will return true even if some (but
+   * not all) of the recepients had an error.
    */
-  public boolean sendEmail(Iterable<String> addresses, final String subject, String body) {
+  public boolean sendEmail(final String subject, String body) {
     try {
       Message msg = emailService.createMessage();
       msg.setFrom(
-          new InternetAddress(gSuiteOutgoingEmailAddress, gSuiteOutoingEmailDisplayName));
+          new InternetAddress(gSuiteOutgoingEmailAddress, gSuiteOutgoingEmailDisplayName));
       List<InternetAddress> emails =
-          Streams.stream(addresses)
+          registrarChangesNotificationEmailAddresses.stream()
               .map(
                   emailAddress -> {
                     try {
@@ -85,9 +95,17 @@ public class SendEmailUtils {
     } catch (Throwable t) {
       logger.atSevere().withCause(t).log(
           "Could not email to addresses %s with subject '%s'.",
-          Joiner.on(", ").join(addresses), subject);
+          Joiner.on(", ").join(registrarChangesNotificationEmailAddresses), subject);
       return false;
     }
     return true;
+  }
+
+  /**
+   * Returns whether there are any recepients set up. {@link #sendEmail} will always return false if
+   * there are no recepients.
+   */
+  public boolean hasRecepients() {
+    return !registrarChangesNotificationEmailAddresses.isEmpty();
   }
 }

@@ -41,6 +41,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.testing.MockitoJUnitRule;
+import google.registry.ui.server.SendEmailUtils;
 import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.SendEmailService;
 import java.io.PrintWriter;
@@ -97,11 +98,12 @@ public class RegistrarSettingsActionTestCase {
     when(appEngineServiceUtils.getCurrentVersionHostname("backend")).thenReturn("backend.hostname");
     action.jsonActionRunner = new JsonActionRunner(
         ImmutableMap.of(), new JsonResponse(new ResponseImpl(rsp)));
-    action.registrarChangesNotificationEmailAddresses = ImmutableList.of(
-        "notification@test.example", "notification2@test.example");
     action.sendEmailUtils =
         new SendEmailUtils(
-            getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName(), emailService);
+            getGSuiteOutgoingEmailAddress(),
+            getGSuiteOutgoingEmailDisplayName(),
+            ImmutableList.of("notification@test.example", "notification2@test.example"),
+            emailService);
     action.registryEnvironment = RegistryEnvironment.get();
     action.registrarConsoleMetrics = new RegistrarConsoleMetrics();
     action.authResult =

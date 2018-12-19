@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.ui.server.registrar;
+package google.registry.ui.server;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddress;
-import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -51,16 +49,23 @@ public class SendEmailUtilsTest {
   public void init() {
     message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
     when(emailService.createMessage()).thenReturn(message);
+  }
+
+  private void setRecepients(ImmutableList<String> recepients) {
     sendEmailUtils =
         new SendEmailUtils(
-            getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName(), emailService);
+            "outgoing@registry.example",
+            "outgoing display name",
+            recepients,
+            emailService);
   }
 
   @Test
   public void testSuccess_sendToOneAddress() throws Exception {
+    setRecepients(ImmutableList.of("johnny@fakesite.tld"));
+    assertThat(sendEmailUtils.hasRecepients()).isTrue();
     assertThat(
             sendEmailUtils.sendEmail(
-                ImmutableList.of("johnny@fakesite.tld"),
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isTrue();
@@ -73,9 +78,10 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testSuccess_sendToMultipleAddresses() throws Exception {
+    setRecepients(ImmutableList.of("foo@example.com", "bar@example.com"));
+    assertThat(sendEmailUtils.hasRecepients()).isTrue();
     assertThat(
             sendEmailUtils.sendEmail(
-                ImmutableList.of("foo@example.com", "bar@example.com"),
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isTrue();
@@ -87,9 +93,10 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testSuccess_ignoresMalformedEmailAddress() throws Exception {
+    setRecepients(ImmutableList.of("foo@example.com", "1iñvalidemail"));
+    assertThat(sendEmailUtils.hasRecepients()).isTrue();
     assertThat(
             sendEmailUtils.sendEmail(
-                ImmutableList.of("foo@example.com", "1iñvalidemail"),
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isTrue();
@@ -99,10 +106,23 @@ public class SendEmailUtilsTest {
   }
 
   @Test
-  public void testFailure_onlyGivenMalformedAddress() throws Exception {
+  public void testFailure_noAddresses() throws Exception {
+    setRecepients(ImmutableList.of());
+    assertThat(sendEmailUtils.hasRecepients()).isFalse();
     assertThat(
             sendEmailUtils.sendEmail(
-                ImmutableList.of("1iñvalidemail"),
+                "Welcome to the Internet",
+                "It is a dark and scary place."))
+        .isFalse();
+    verify(emailService, never()).sendMessage(any(Message.class));
+  }
+
+  @Test
+  public void testFailure_onlyGivenMalformedAddress() throws Exception {
+    setRecepients(ImmutableList.of("1iñvalidemail"));
+    assertThat(sendEmailUtils.hasRecepients()).isTrue();
+    assertThat(
+            sendEmailUtils.sendEmail(
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isFalse();
@@ -111,10 +131,11 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testFailure_exceptionThrownDuringSend() throws Exception {
+    setRecepients(ImmutableList.of("foo@example.com"));
+    assertThat(sendEmailUtils.hasRecepients()).isTrue();
     doThrow(new MessagingException()).when(emailService).sendMessage(any(Message.class));
     assertThat(
             sendEmailUtils.sendEmail(
-                ImmutableList.of("foo@example.com"),
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isFalse();

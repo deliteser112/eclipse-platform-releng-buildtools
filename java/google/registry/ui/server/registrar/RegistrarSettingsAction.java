@@ -33,7 +33,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import com.google.common.flogger.FluentLogger;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
@@ -51,6 +50,7 @@ import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
 import google.registry.ui.server.RegistrarFormFields;
+import google.registry.ui.server.SendEmailUtils;
 import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.CollectionUtils;
 import google.registry.util.DiffUtils;
@@ -92,8 +92,6 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
   @Inject AuthResult authResult;
   @Inject RegistryEnvironment registryEnvironment;
 
-  @Inject @Config("registrarChangesNotificationEmailAddresses") ImmutableList<String>
-      registrarChangesNotificationEmailAddresses;
   @Inject RegistrarSettingsAction() {}
 
   private static final Predicate<RegistrarContact> HAS_PHONE =
@@ -478,7 +476,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       ImmutableSet<RegistrarContact> existingContacts,
       Registrar updatedRegistrar,
       ImmutableSet<RegistrarContact> updatedContacts) {
-    if (registrarChangesNotificationEmailAddresses.isEmpty()) {
+    if (!sendEmailUtils.hasRecepients()) {
       return;
     }
 
@@ -495,7 +493,6 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     enqueueRegistrarSheetSync(appEngineServiceUtils.getCurrentVersionHostname("backend"));
     String environment = Ascii.toLowerCase(String.valueOf(registryEnvironment));
     sendEmailUtils.sendEmail(
-        registrarChangesNotificationEmailAddresses,
         String.format(
             "Registrar %s (%s) updated in %s",
             existingRegistrar.getRegistrarName(),
