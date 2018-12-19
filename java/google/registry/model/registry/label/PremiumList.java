@@ -132,16 +132,22 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
    * <p>This is cached for a shorter duration because we need to periodically reload this entity to
    * check if a new revision has been published, and if so, then use that.
    */
-  static final LoadingCache<String, PremiumList> cachePremiumLists =
-      CacheBuilder.newBuilder()
-          .expireAfterWrite(getDomainLabelListCacheDuration().getMillis(), MILLISECONDS)
-          .build(
-              new CacheLoader<String, PremiumList>() {
-                @Override
-                public PremiumList load(final String name) {
-                  return ofy().doTransactionless(() -> loadPremiumList(name));
-                }
-              });
+  @NonFinalForTesting
+  static LoadingCache<String, PremiumList> cachePremiumLists =
+      createCachePremiumLists(getDomainLabelListCacheDuration());
+
+  @VisibleForTesting
+  static LoadingCache<String, PremiumList> createCachePremiumLists(Duration cachePersistDuration) {
+    return CacheBuilder.newBuilder()
+        .expireAfterWrite(cachePersistDuration.getMillis(), MILLISECONDS)
+        .build(
+            new CacheLoader<String, PremiumList>() {
+              @Override
+              public PremiumList load(final String name) {
+                return ofy().doTransactionless(() -> loadPremiumList(name));
+              }
+            });
+  }
 
   private static PremiumList loadPremiumList(String name) {
     return ofy().load().type(PremiumList.class).parent(getCrossTldKey()).id(name).now();
