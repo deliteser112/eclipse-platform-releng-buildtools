@@ -22,7 +22,7 @@ h1 {
 }
 
 pre {
-  font-family: monospace;
+  font-family: "Courier New", Courier, monospace;
   white-space: pre-wrap;
 }
 
@@ -49,7 +49,7 @@ input[readonly], textarea[readonly] {
 
 textarea {
   margin-bottom: 1em;
-  font-family: monospace;
+  font-family: "Courier New", Courier, monospace;
   font-size: 13px;
   border: solid 1px #ddd;
 }
