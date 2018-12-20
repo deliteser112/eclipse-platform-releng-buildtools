@@ -9,7 +9,6 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["files/*.yaml"]),
     deps = [
-        "//java/com/google/api/client/extensions/appengine/auth/oauth2",
         "//java/google/registry/keyring/api",
         "//java/google/registry/util",
         "@com_google_api_client",

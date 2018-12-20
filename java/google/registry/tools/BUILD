@@ -35,7 +35,6 @@ java_library(
         "//java/google/registry/module/tools",
     ],
     deps = [
-        "//java/com/google/api/client/extensions/appengine/auth/oauth2",
         "//java/google/registry/backup",
         "//java/google/registry/beam/invoicing",
         "//java/google/registry/beam/spec11",
