@@ -16,6 +16,7 @@ load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")
 
 closure_repositories(
     omit_com_google_auto_factory = True,
+    omit_com_google_protobuf = True,
     omit_com_google_code_findbugs_jsr305 = True,
     omit_com_google_guava = True,
     omit_com_ibm_icu_icu4j = True,

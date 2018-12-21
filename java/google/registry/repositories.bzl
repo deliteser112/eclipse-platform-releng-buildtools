@@ -15,6 +15,7 @@
 """External dependencies for Nomulus."""
 
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@io_bazel_rules_closure//closure/private:java_import_external.bzl", "java_import_external")
 
 def domain_registry_bazel_check():
@@ -86,6 +87,7 @@ def domain_registry_repositories(
         omit_com_google_oauth_client_java6 = False,
         omit_com_google_oauth_client_jetty = False,
         omit_com_google_oauth_client_servlet = False,
+        omit_com_google_protobuf = False,
         omit_com_google_protobuf_java = False,
         omit_com_google_re2j = False,
         omit_com_google_template_soy = False,
@@ -297,6 +299,8 @@ def domain_registry_repositories(
         com_google_oauth_client_jetty()
     if not omit_com_google_oauth_client_servlet:
         com_google_oauth_client_servlet()
+    if not omit_com_google_protobuf:
+        com_google_protobuf()
     if not omit_com_google_protobuf_java:
         com_google_protobuf_java()
     if not omit_com_google_re2j:
@@ -1522,6 +1526,17 @@ def com_google_oauth_client_servlet():
         deps = [
             "@com_google_oauth_client",
             "@javax_servlet_api",
+        ],
+    )
+
+def com_google_protobuf():
+    http_archive(
+        name = "com_google_protobuf",
+        strip_prefix = "protobuf-3.6.1.3",
+        sha256 = "73fdad358857e120fd0fa19e071a96e15c0f23bb25f85d3f7009abfd4f264a2a",
+        urls = [
+            "https://mirror.bazel.build/github.com/google/protobuf/archive/v3.6.1.3.tar.gz",
+            "https://github.com/protocolbuffers/protobuf/archive/v3.6.1.3.tar.gz",
         ],
     )
 
