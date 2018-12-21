@@ -91,7 +91,7 @@ subprojects {
     }
 
     rootProject.deploy.dependsOn appengineDeploy
-    rootProject.stage.dependsOn explodeWar
+    rootProject.stage.dependsOn appengineStage
 
     // Return early, do not apply the settings below.
     return
@@ -106,6 +106,8 @@ subprojects {
   version = '1.0'
   sourceCompatibility = '1.8'
   targetCompatibility = '1.8'
+
+  compileJava {options.encoding = "UTF-8"}
 
   gradleLint.rules = [
       // Checks if Gradle wrapper is up-to-date

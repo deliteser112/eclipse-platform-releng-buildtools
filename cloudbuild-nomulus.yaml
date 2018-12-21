@@ -22,31 +22,32 @@ steps:
   args: ['source', 'repos', 'clone', 'nomulus-config']
 - name: 'alpine'
   args: ['sh', '-c', 'cp -r nomulus-config/* .']
-# Build the war files.
-- name: 'openjdk:8-slim'
+# Build the deployment files.
+- name: 'google/cloud-sdk'
   args: ['./gradlew', 'stage', '-x', 'autoLintGradle']
   dir: 'gradle'
-- name: 'openjdk:8-slim'
-  args: ['jar', '-cvf', '../../../default-${TAG_NAME}.war', '.']
-  dir: 'gradle/services/default/build/exploded-default'
-- name: 'openjdk:8-slim'
-  args: ['jar', '-cvf', '../../../pubapi-${TAG_NAME}.war', '.']
-  dir: 'gradle/services/pubapi/build/exploded-pubapi'
-- name: 'openjdk:8-slim'
-  args: ['jar', '-cvf', '../../../backend-${TAG_NAME}.war', '.']
-  dir: 'gradle/services/backend/build/exploded-backend'
-- name: 'openjdk:8-slim'
-  args: ['jar', '-cvf', '../../../tools-${TAG_NAME}.war', '.']
-  dir: 'gradle/services/tools/build/exploded-tools'
-# WAR files to upload to GCS.
+# Tar the deployment files as we cannot upload directories to GCS.
+- name: 'alpine'
+  args: ['tar', 'cvf', '../../../default.tar', '.']
+  dir: 'gradle/services/default/build/staged-app'
+- name: 'alpine'
+  args: ['tar', 'cvf', '../../../pubapi.tar', '.']
+  dir: 'gradle/services/pubapi/build/staged-app'
+- name: 'alpine'
+  args: ['tar', 'cvf', '../../../backend.tar', '.']
+  dir: 'gradle/services/backend/build/staged-app'
+- name: 'alpine'
+  args: ['tar', 'cvf', '../../../tools.tar', '.']
+  dir: 'gradle/services/tools/build/staged-app'
+# Tar files to upload to GCS.
 artifacts:
   objects:
-    location: 'gs://${PROJECT_ID}-war'
+    location: 'gs://${PROJECT_ID}-deploy/${TAG_NAME}'
     paths:
-      - 'gradle/services/default-${TAG_NAME}.war'
-      - 'gradle/services/pubapi-${TAG_NAME}.war'
-      - 'gradle/services/backend-${TAG_NAME}.war'
-      - 'gradle/services/tools-${TAG_NAME}.war'
+      - 'gradle/services/default.tar'
+      - 'gradle/services/pubapi.tar'
+      - 'gradle/services/backend.tar'
+      - 'gradle/services/tools.tar'
 timeout: 3600s
 options:
   machineType: 'N1_HIGHCPU_8'
