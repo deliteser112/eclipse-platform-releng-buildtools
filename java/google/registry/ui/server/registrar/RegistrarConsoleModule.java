@@ -41,4 +41,16 @@ public final class RegistrarConsoleModule {
   static String provideClientId(HttpServletRequest req) {
     return extractRequiredParameter(req, PARAM_CLIENT_ID);
   }
+
+  @Provides
+  @Parameter("email")
+  static Optional<String> provideOptionalEmail(HttpServletRequest req) {
+    return extractOptionalParameter(req, "email");
+  }
+
+  @Provides
+  @Parameter("email")
+  static String provideEmail(HttpServletRequest req) {
+    return extractRequiredParameter(req, "email");
+  }
 }

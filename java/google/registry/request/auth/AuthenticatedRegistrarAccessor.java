@@ -69,6 +69,12 @@ public class AuthenticatedRegistrarAccessor {
   private final String userIdForLogging;
 
   /**
+   * Whether this user is an Admin, meaning either a GAE-admin or a member of the Support G Suite
+   * group.
+   */
+  private final boolean isAdmin;
+
+  /**
    * Gives all roles a user has for a given clientId.
    *
    * <p>The order is significant, with "more specific to this user" coming first.
@@ -103,33 +109,41 @@ public class AuthenticatedRegistrarAccessor {
       @Config("registryAdminClientId") String registryAdminClientId,
       @Config("gSuiteSupportGroupEmailAddress") Optional<String> gSuiteSupportGroupEmailAddress,
       Lazy<GroupsConnection> lazyGroupsConnection) {
-    this(
-        authResult.userIdForLogging(),
-        createRoleMap(
-            authResult,
-            registryAdminClientId,
-            lazyGroupsConnection,
-            gSuiteSupportGroupEmailAddress));
+    this.isAdmin = userIsAdmin(authResult, gSuiteSupportGroupEmailAddress, lazyGroupsConnection);
 
-    logger.atInfo().log(
-        "%s has the following roles: %s", authResult.userIdForLogging(), roleMap);
+    this.userIdForLogging = authResult.userIdForLogging();
+    this.roleMap = createRoleMap(authResult, this.isAdmin, registryAdminClientId);
+
+    logger.atInfo().log("%s has the following roles: %s", userIdForLogging(), roleMap);
   }
 
   private AuthenticatedRegistrarAccessor(
-      String userIdForLogging, ImmutableSetMultimap<String, Role> roleMap) {
+      String userIdForLogging, boolean isAdmin, ImmutableSetMultimap<String, Role> roleMap) {
     this.userIdForLogging = checkNotNull(userIdForLogging);
     this.roleMap = checkNotNull(roleMap);
+    this.isAdmin = isAdmin;
   }
 
   /**
    * Creates a "logged-in user" accessor with a given role map, used for tests.
+   *
+   * <p>The user will be allowed to create Registrars (and hence do OT&amp;E setup) iff they have
+   * the role of ADMIN for at least one clientId.
    *
    * <p>The user's "name" in logs and exception messages is "TestUserId".
    */
   @VisibleForTesting
   public static AuthenticatedRegistrarAccessor createForTesting(
       ImmutableSetMultimap<String, Role> roleMap) {
-    return new AuthenticatedRegistrarAccessor("TestUserId", roleMap);
+    boolean isAdmin = roleMap.values().contains(Role.ADMIN);
+    return new AuthenticatedRegistrarAccessor("TestUserId", isAdmin, roleMap);
+  }
+
+  /**
+   * Returns whether this user is allowed to create new Registrars and TLDs.
+   */
+  public boolean isAdmin() {
+    return isAdmin;
   }
 
   /**
@@ -261,11 +275,32 @@ public class AuthenticatedRegistrarAccessor {
     }
   }
 
+  private static boolean userIsAdmin(
+      AuthResult authResult,
+      Optional<String> gSuiteSupportGroupEmailAddress,
+      Lazy<GroupsConnection> lazyGroupsConnection) {
+
+    if (!authResult.userAuthInfo().isPresent()) {
+      return false;
+    }
+
+    UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
+
+    User user = userAuthInfo.user();
+
+    // both GAE project admin and members of the gSuiteSupportGroupEmailAddress are considered
+    // admins for the RegistrarConsole.
+    return bypassAdminCheck
+        ? false
+        : userAuthInfo.isUserAdmin()
+            || checkIsSupport(
+                lazyGroupsConnection, user.getEmail(), gSuiteSupportGroupEmailAddress);
+  }
+
   private static ImmutableSetMultimap<String, Role> createRoleMap(
       AuthResult authResult,
-      String registryAdminClientId,
-      Lazy<GroupsConnection> lazyGroupsConnection,
-      Optional<String> gSuiteSupportGroupEmailAddress) {
+      boolean isAdmin,
+      String registryAdminClientId) {
 
     if (!authResult.userAuthInfo().isPresent()) {
       return ImmutableSetMultimap.of();
@@ -274,16 +309,10 @@ public class AuthenticatedRegistrarAccessor {
     UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
 
     User user = userAuthInfo.user();
-    // both GAE project admin and members of the gSuiteSupportGroupEmailAddress are considered
-    // admins for the RegistrarConsole.
-    boolean isAdmin =
-        bypassAdminCheck
-            ? false
-            : userAuthInfo.isUserAdmin()
-                || checkIsSupport(
-                    lazyGroupsConnection, user.getEmail(), gSuiteSupportGroupEmailAddress);
 
     ImmutableSetMultimap.Builder<String, Role> builder = new ImmutableSetMultimap.Builder<>();
+
+    logger.atInfo().log("Checking registrar contacts for user ID %s", user.getUserId());
 
     ofy()
         .load()

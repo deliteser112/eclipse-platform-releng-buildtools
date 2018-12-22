@@ -37,6 +37,12 @@
     <url-pattern>/registrar-settings</url-pattern>
   </servlet-mapping>
 
+  <!-- OT&E creation console. -->
+  <servlet-mapping>
+    <servlet-name>frontend-servlet</servlet-name>
+    <url-pattern>/registrar-ote-setup</url-pattern>
+  </servlet-mapping>
+
   <!-- Security config -->
   <security-constraint>
     <web-resource-collection>

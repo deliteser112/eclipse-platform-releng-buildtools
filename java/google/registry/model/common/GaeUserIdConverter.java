@@ -14,6 +14,7 @@
 
 package google.registry.model.common;
 
+import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.allocateId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -24,6 +25,7 @@ import com.googlecode.objectify.annotation.Id;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.NotBackedUp.Reason;
+import java.util.List;
 
 /**
  * A helper class to convert email addresses to GAE user ids. It does so by persisting a User
@@ -46,8 +48,9 @@ public class GaeUserIdConverter extends ImmutableObject {
   public static String convertEmailAddressToGaeUserId(String emailAddress) {
     final GaeUserIdConverter gaeUserIdConverter = new GaeUserIdConverter();
     gaeUserIdConverter.id = allocateId();
-    gaeUserIdConverter.user =
-        new User(emailAddress, Splitter.on('@').splitToList(emailAddress).get(1));
+    List<String> emailParts = Splitter.on('@').splitToList(emailAddress);
+    checkState(emailParts.size() == 2, "'%s' is not a valid email address", emailAddress);
+    gaeUserIdConverter.user = new User(emailAddress, emailParts.get(1));
 
     try {
       // Perform these operations in a transactionless context to avoid enlisting in some outer
