@@ -361,7 +361,7 @@ public final class OteAccountBuilder {
   }
 
   /** Returns the ClientIds of the OT&amp;E, with the TLDs each has access to. */
-  private static ImmutableMap<String, String> createClientIdToTldMap(String baseClientId) {
+  static ImmutableMap<String, String> createClientIdToTldMap(String baseClientId) {
     checkArgument(
         REGISTRAR_PATTERN.matcher(baseClientId).matches(),
         "Invalid registrar name: %s",
