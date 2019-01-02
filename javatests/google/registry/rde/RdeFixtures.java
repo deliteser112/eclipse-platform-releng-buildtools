@@ -75,8 +75,8 @@ final class RdeFixtures {
             .setClientId("TheRegistrar")
             .setCost(Money.of(USD, 26))
             .setPeriodYears(2)
-            .setEventTime(DateTime.parse("1910-01-01T00:00:00Z"))
-            .setBillingTime(DateTime.parse("1910-01-01T00:00:00Z"))
+            .setEventTime(DateTime.parse("1990-01-01T00:00:00Z"))
+            .setBillingTime(DateTime.parse("1990-01-01T00:00:00Z"))
             .setParent(historyEntry)
             .build());
     domain = domain.asBuilder()
@@ -94,7 +94,7 @@ final class RdeFixtures {
         .setDsData(ImmutableSet.of(DelegationSignerData.create(
               123, 200, 230, base16().decode("1234567890"))))
         .setFullyQualifiedDomainName(Idn.toASCII("love." + tld))
-        .setLastTransferTime(DateTime.parse("1910-01-01T00:00:00Z"))
+        .setLastTransferTime(DateTime.parse("1990-01-01T00:00:00Z"))
         .setLastEppUpdateClientId("IntoTheTempest")
         .setLastEppUpdateTime(clock.nowUtc())
         .setIdnTableName("extended_latin")
@@ -104,7 +104,7 @@ final class RdeFixtures {
             Key.create(
                 makeHostResource(
                     clock, "ns2.cat.みんな", "bad:f00d:cafe::15:beef"))))
-        .setRegistrationExpirationTime(DateTime.parse("1930-01-01T00:00:00Z"))
+        .setRegistrationExpirationTime(DateTime.parse("1994-01-01T00:00:00Z"))
         .setGracePeriods(ImmutableSet.of(
             GracePeriod.forBillingEvent(GracePeriodStatus.RENEW,
                 persistResource(
@@ -114,12 +114,12 @@ final class RdeFixtures {
                         .setClientId("TheRegistrar")
                         .setCost(Money.of(USD, 456))
                         .setPeriodYears(2)
-                        .setEventTime(DateTime.parse("1920-01-01T00:00:00Z"))
-                        .setBillingTime(DateTime.parse("1920-01-01T00:00:00Z"))
+                        .setEventTime(DateTime.parse("1992-01-01T00:00:00Z"))
+                        .setBillingTime(DateTime.parse("1992-01-01T00:00:00Z"))
                         .setParent(historyEntry)
                         .build())),
             GracePeriod.create(
-                GracePeriodStatus.TRANSFER, DateTime.parse("1920-01-01T00:00:00Z"), "foo", null)))
+                GracePeriodStatus.TRANSFER, DateTime.parse("1992-01-01T00:00:00Z"), "foo", null)))
         .setSubordinateHosts(ImmutableSet.of("home.by.horror.haunted"))
         .setStatusValues(ImmutableSet.of(
             StatusValue.CLIENT_DELETE_PROHIBITED,
@@ -150,7 +150,7 @@ final class RdeFixtures {
         .setTransferData(new TransferData.Builder()
             .setGainingClientId("gaining")
             .setLosingClientId("losing")
-            .setPendingTransferExpirationTime(DateTime.parse("1925-04-20T00:00:00Z"))
+            .setPendingTransferExpirationTime(DateTime.parse("1993-04-20T00:00:00Z"))
             .setServerApproveBillingEvent(Key.create(billingEvent))
             .setServerApproveAutorenewEvent(
                 Key.create(persistResource(
@@ -174,7 +174,7 @@ final class RdeFixtures {
                     .build())))
             .setServerApproveEntities(ImmutableSet.of(
                 Key.create(billingEvent)))
-            .setTransferRequestTime(DateTime.parse("1919-01-01T00:00:00Z"))
+            .setTransferRequestTime(DateTime.parse("1991-01-01T00:00:00Z"))
             .setTransferStatus(TransferStatus.PENDING)
             .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))
             .build())
@@ -228,7 +228,7 @@ final class RdeFixtures {
             .setPersistedCurrentSponsorClientId("BusinessCat")
             .setFullyQualifiedHostName(Idn.toASCII(fqhn))
             .setInetAddresses(ImmutableSet.of(InetAddresses.forString(ip)))
-            .setLastTransferTime(DateTime.parse("1910-01-01T00:00:00Z"))
+            .setLastTransferTime(DateTime.parse("1990-01-01T00:00:00Z"))
             .setLastEppUpdateClientId("CeilingCat")
             .setLastEppUpdateTime(clock.nowUtc())
             .setStatusValues(ImmutableSet.of(StatusValue.OK))
