@@ -154,7 +154,7 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
 
   @Parameter(
       names = "--ip_whitelist",
-      description = "Comma-delimited list of IP ranges")
+      description = "Comma-delimited list of IP ranges. An empty string clears the whitelist.")
   List<String> ipWhitelist = new ArrayList<>();
 
   @Nullable
@@ -332,7 +332,9 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
         ImmutableList.Builder<CidrAddressBlock> ipWhitelistBuilder = new ImmutableList.Builder<>();
         if (!(ipWhitelist.size() == 1 && ipWhitelist.get(0).contains("null"))) {
           for (String ipRange : ipWhitelist) {
-            ipWhitelistBuilder.add(CidrAddressBlock.create(ipRange));
+            if (!ipRange.isEmpty()) {
+              ipWhitelistBuilder.add(CidrAddressBlock.create(ipRange));
+            }
           }
         }
         builder.setIpAddressWhitelist(ipWhitelistBuilder.build());
