@@ -76,9 +76,9 @@
           <td class="{css('setting')}">
             <textarea rows="7" cols="100" readonly>
               {for $clientId in mapKeys($clientIdToTld)}
-                  Login: {$clientId}{sp}
-                  Password: {$password}{sp}
-                  Tld: {$clientIdToTld[$clientId]}{\n}
+                  Login: {$clientId}{sp}{sp}{sp}{sp}{sp}{sp}
+                  Password: {$password}{sp}{sp}{sp}{sp}{sp}{sp}
+                  TLD: {$clientIdToTld[$clientId]}{sp}{sp}{sp}{sp}{sp}{sp}{\n}
               {/for}
             </textarea>
           </td>
@@ -102,27 +102,48 @@
   {@param? contactEmail: string} /** If set - an initial value to fill for the email. */
   <form name="item" class="{css('item')}" method="post" action="/registrar-ote-setup">
     <table>
+      <tr class="{css('kd-settings-pane-section')}">
+        <td>
+          {call registry.soy.forms.inputFieldLabel}
+            {param label: 'Base client ID' /}
+          {/call}
+        </td>
+        <td class="{css('setting')}">
+          {call registry.soy.forms.inputFieldValue }
+            {param name: 'clientId' /}
+            {param value: $baseClientId /}
+            {param placeholder: 'registrar\'s ID' /}
+            {param readonly: false /}
+          {/call}
+          <span class="{css('description')}">
+            Must:
+            <ol type="1">
+              <li>consist of only lowercase letters, numbers, or hyphens,</li>
+              <li>start with a letter, and</li>
+              <li>be between 3 and 14 characters (inclusive).</li>
+            </ol>
+            We require 1 and 2 since the registrar name will be used to create TLDs, and we
+            require 3 since we append "-[12345]" to the name to create client IDs which are
+            required by the EPP XML schema to be between 3-16 chars.
+          </span>
+        </td>
+      </tr>
       {call registry.soy.forms.inputFieldRowWithValue}
-        {param label: 'Base clientId' /}
-        {param name: 'clientId' /}
-        {param value: $baseClientId /}
-        {param placeholder: 'registrar\'s ID' /}
-        {param description kind="text"}
-          must 1) consist of only lowercase letters, numbers, or hyphens,
-          2) start with a letter, and 3) be between 3 and 14 characters (inclusive).
-          We require 1 and 2 since the registrar name will be used to create TLDs,
-          and we require 3 since we append \"-[1234]\" to the name to create client
-          IDs which are required by the EPP XML schema to be between 3-16 chars.
-        {/param}
-        {param readonly: false /}
-      {/call}
-      {call registry.soy.forms.inputFieldRowWithValue}
-        {param label: 'contact email' /}
+        {param label: 'Contact email' /}
         {param name: 'email' /}
         {param value: $contactEmail /}
         {param placeholder: 'registrar\'s assigned email' /}
         {param description kind="text"}
           Will be granted web-console access to the OTE registrars.
+        {/param}
+        {param readonly: false /}
+      {/call}
+      {call registry.soy.forms.inputFieldRowWithValue}
+        {param label: 'Password (optional)' /}
+        {param name: 'password' /}
+        {param placeholder: 'Optional password' /}
+        {param description kind="text"}
+          The password used to for EPP login. Leave blank to auto-generate a password.
         {/param}
         {param readonly: false /}
       {/call}

@@ -98,6 +98,7 @@ public final class ConsoleOteSetupAction implements Runnable {
   @Inject @Config("base64StringGenerator") StringGenerator passwordGenerator;
   @Inject @Parameter("clientId") Optional<String> clientId;
   @Inject @Parameter("email") Optional<String> email;
+  @Inject @Parameter("password") Optional<String> optionalPassword;
 
   @Inject ConsoleOteSetupAction() {}
 
@@ -170,7 +171,7 @@ public final class ConsoleOteSetupAction implements Runnable {
     data.put("contactEmail", email.get());
 
     try {
-      String password = passwordGenerator.createString(PASSWORD_LENGTH);
+      String password = optionalPassword.orElse(passwordGenerator.createString(PASSWORD_LENGTH));
       ImmutableMap<String, String> clientIdToTld =
           OteAccountBuilder.forClientId(clientId.get())
               .addContact(email.get())

@@ -97,6 +97,7 @@ public final class ConsoleOteSetupActionTest {
     action.productName = "Nomulus";
     action.clientId = Optional.empty();
     action.email = Optional.empty();
+    action.optionalPassword = Optional.empty();
     action.passwordGenerator = new DeterministicStringGenerator("abcdefghijklmnopqrstuvwxyz");
 
     message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
@@ -158,6 +159,24 @@ public final class ConsoleOteSetupActionTest {
                 + "   Registrar myclientid-4 with access to TLD myclientid-ga\n"
                 + "   Registrar myclientid-5 with access to TLD myclientid-eap\n"
                 + "Gave user contact@registry.example web access to these Registrars\n");
+  }
+
+  @Test
+  public void testPost_authorized_setPassword() throws Exception {
+    action.clientId = Optional.of("myclientid");
+    action.email = Optional.of("contact@registry.example");
+    action.optionalPassword = Optional.of("SomePassword");
+    action.method = Method.POST;
+    action.run();
+
+    // We just check some samples to make sure OteAccountBuilder was called successfully. We aren't
+    // checking that all the entities are there or that they have the correct values.
+    assertThat(loadByClientId("myclientid-4").get().testPassword("SomePassword"))
+        .isTrue();
+    assertThat(response.getPayload())
+        .contains("<h1>OT&E successfully created for registrar myclientid!</h1>");
+    assertThat(response.getPayload())
+        .contains("SomePassword");
   }
 
   @Test
