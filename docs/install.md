@@ -135,11 +135,11 @@ $ ls /path/to/app-dir/acme-registry-alpha
 backend  default  META-INF  tools
 ```
 
-Now deploy the code to App Engine.
+Now deploy the code to App Engine. We must provide a version string, e.g., live.
 
 ```shell
 $ appcfg.sh -A acme-registry-alpha --enable_jar_splitting \
-  update /path/to/app-dir/acme-registry-alpha
+  -V live update /path/to/app-dir/acme-registry-alpha
 Reading application configuration data...
 Processing module default
 Oct 05, 2016 12:16:59 PM com.google.apphosting.utils.config.IndexesXmlReader readConfigXml
