@@ -152,8 +152,11 @@
     <!--
       Keep google.registry.export.CheckBackupAction.MAXIMUM_BACKUP_RUNNING_TIME less than
       this interval.
-      -->
-    <schedule>every day 07:00</schedule>
+
+      To facilitate troubleshooting, run after the exportSnapshot task below (typically finishes in
+      90 minutes in production) has completed.
+      TODO(b/122271637): move to 06:00 (UTC) when the exportSnapshot task is removed. -->
+    <schedule>every day 09:00</schedule>
     <target>backend</target>
   </cron>
 
