@@ -101,7 +101,11 @@ final class DeleteAllocationTokensCommand extends ConfirmingCommand
     System.out.printf(
         "%s tokens: %s\n",
         dryRun ? "Would delete" : "Deleted",
-        JOINER.join(batch.stream().map(Key::getName).collect(toImmutableSet())));
+        JOINER.join(
+            tokensToDelete.stream()
+                .map(AllocationToken::getToken)
+                .sorted()
+                .collect(toImmutableSet())));
     return tokensToDelete.size();
   }
 }

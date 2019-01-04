@@ -54,6 +54,7 @@ public class DeleteAllocationTokensCommandTest
     runCommandForced("--prefix", "");
     assertThat(reloadTokens(preNot1, preNot2, othrNot)).isEmpty();
     assertThat(reloadTokens(preRed1, preRed2, othrRed)).containsExactly(preRed1, preRed2, othrRed);
+    assertInStdout("Deleted tokens: asdgfho7HASDS, prefix2978204, prefix8ZZZhs8");
   }
 
   @Test
@@ -84,6 +85,7 @@ public class DeleteAllocationTokensCommandTest
     runCommandForced("--prefix", "", "--dry_run");
     assertThat(reloadTokens(preRed1, preRed2, preNot1, preNot2, othrRed, othrNot))
         .containsExactly(preRed1, preRed2, preNot1, preNot2, othrRed, othrNot);
+    assertInStdout("Would delete tokens: asdgfho7HASDS, prefix2978204, prefix8ZZZhs8");
   }
 
   @Test
