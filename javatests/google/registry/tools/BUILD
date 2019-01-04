@@ -24,6 +24,7 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/rde",
         "//java/google/registry/request",
+        "//java/google/registry/security",
         "//java/google/registry/tmch",
         "//java/google/registry/tools",
         "//java/google/registry/tools/params",

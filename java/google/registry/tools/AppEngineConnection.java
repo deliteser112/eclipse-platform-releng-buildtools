@@ -102,8 +102,7 @@ class AppEngineConnection {
   private String internalSend(
       String endpoint, Map<String, ?> params, MediaType contentType, @Nullable byte[] payload)
       throws IOException {
-    GenericUrl url = new GenericUrl(getServer());
-    url.setRawPath(endpoint);
+    GenericUrl url = new GenericUrl(String.format("%s%s", getServer(), endpoint));
     url.putAll(params);
     HttpRequest request =
         (payload != null)
