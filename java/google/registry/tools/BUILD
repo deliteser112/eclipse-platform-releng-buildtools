@@ -92,6 +92,7 @@ java_library(
         "@com_google_oauth_client_jetty",
         "@com_google_re2j",
         "@com_googlecode_json_simple",
+        "@commons_io",
         "@io_bazel_rules_closure//closure/templates",
         "@jline",
         "@joda_time",
