@@ -14,7 +14,6 @@
 
 package google.registry.export.datastore;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.api.client.json.GenericJson;
@@ -39,7 +38,6 @@ public class EntityFilter extends GenericJson {
 
   EntityFilter(Collection<String> kinds) {
     checkNotNull(kinds, "kinds");
-    checkArgument(!kinds.isEmpty(), "kinds must not be empty");
     this.kinds = ImmutableList.copyOf(kinds);
   }
 

@@ -22,6 +22,7 @@ import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
+import google.registry.export.datastore.DatastoreAdminModule;
 import google.registry.keyring.KeyringModule;
 import google.registry.keyring.api.DummyKeyringModule;
 import google.registry.keyring.api.KeyModule;
@@ -56,6 +57,7 @@ import javax.inject.Singleton;
       BigqueryModule.class,
       ConfigModule.class,
       CloudDnsWriterModule.class,
+      DatastoreAdminModule.class,
       DatastoreServiceModule.class,
       DummyKeyringModule.class,
       DnsUpdateWriterModule.class,
@@ -92,7 +94,9 @@ interface RegistryToolComponent {
   void inject(GenerateDnsReportCommand command);
   void inject(GenerateEscrowDepositCommand command);
   void inject(GetKeyringSecretCommand command);
+  void inject(GetOperationStatusCommand command);
   void inject(GhostrydeCommand command);
+  void inject(ImportDatastoreCommand command);
   void inject(ListCursorsCommand command);
   void inject(LoadSnapshotCommand command);
   void inject(LockDomainCommand command);

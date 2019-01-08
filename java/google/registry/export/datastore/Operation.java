@@ -15,10 +15,10 @@
 package google.registry.export.datastore;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 import com.google.api.client.json.GenericJson;
 import com.google.api.client.util.Key;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.export.datastore.DatastoreAdmin.Get;
@@ -50,6 +50,14 @@ public class Operation extends GenericJson {
   public String getName() {
     checkState(name != null, "Name must not be null.");
     return name;
+  }
+
+  public boolean isExport() {
+    return !isNullOrEmpty(getExportFolderUrl());
+  }
+
+  public boolean isImport() {
+    return !isNullOrEmpty(getMetadata().getInputUrl());
   }
 
   public boolean isDone() {
@@ -88,7 +96,9 @@ public class Operation extends GenericJson {
   /**
    * Returns the URL to the GCS folder that holds the exported data. This folder is created by
    * Datastore and is under the {@code outputUrlPrefix} set to {@linkplain
-   * DatastoreAdmin#export(String, List) the export request}.
+   * DatastoreAdmin#export(String, java.util.Collection) the export request}.
+   *
+   * @throws IllegalStateException if this is not an export operation
    */
   public String getExportFolderUrl() {
     return getMetadata().getOutputUrlPrefix();
@@ -98,6 +108,8 @@ public class Operation extends GenericJson {
    * Returns the last segment of the {@linkplain #getExportFolderUrl() export folder URL} which can
    * be used as unique identifier of this export operation. This is a better ID than the {@linkplain
    * #getName() operation name}, which is opaque.
+   *
+   * @throws IllegalStateException if this is not an export operation
    */
   public String getExportId() {
     String exportFolderUrl = getExportFolderUrl();
@@ -138,12 +150,12 @@ public class Operation extends GenericJson {
     public CommonMetadata() {}
 
     String getOperationType() {
-      checkState(!Strings.isNullOrEmpty(operationType), "operationType may not be null or empty");
+      checkState(!isNullOrEmpty(operationType), "operationType may not be null or empty");
       return operationType;
     }
 
     String getState() {
-      checkState(!Strings.isNullOrEmpty(state), "state may not be null or empty");
+      checkState(!isNullOrEmpty(state), "state may not be null or empty");
       return state;
     }
 
@@ -165,6 +177,7 @@ public class Operation extends GenericJson {
     @Key private Progress progressEntities;
     @Key private Progress progressBytes;
     @Key private EntityFilter entityFilter;
+    @Key private String inputUrl;
     @Key private String outputUrlPrefix;
 
     public Metadata() {}
@@ -186,9 +199,22 @@ public class Operation extends GenericJson {
       return entityFilter;
     }
 
+    public String getInputUrl() {
+      return checkUrls().inputUrl;
+    }
+
     public String getOutputUrlPrefix() {
-      checkState(!Strings.isNullOrEmpty(outputUrlPrefix), "outputUrlPrefix");
-      return outputUrlPrefix;
+      return checkUrls().outputUrlPrefix;
+    }
+
+    Metadata checkUrls() {
+      checkState(
+          isNullOrEmpty(inputUrl) || isNullOrEmpty(outputUrlPrefix),
+          "inputUrl and outputUrlPrefix must not be both present");
+      checkState(
+          !isNullOrEmpty(inputUrl) || !isNullOrEmpty(outputUrlPrefix),
+          "inputUrl and outputUrlPrefix must not be both missing");
+      return this;
     }
   }
 

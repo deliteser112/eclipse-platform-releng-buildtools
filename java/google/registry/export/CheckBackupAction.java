@@ -14,6 +14,7 @@
 
 package google.registry.export;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.intersection;
 import static google.registry.export.UploadDatastoreBackupAction.enqueueUploadBackupTask;
 import static google.registry.request.Action.Method.GET;
@@ -130,6 +131,8 @@ public class CheckBackupAction implements Runnable {
   private void checkAndLoadBackupIfComplete() throws IOException {
     Set<String> kindsToLoad = ImmutableSet.copyOf(Splitter.on(',').split(kindsToLoadParam));
     Operation backup = getExportStatus();
+
+    checkArgument(backup.isExport(), "Expecting an export operation: [%s].", backupName);
 
     if (backup.isProcessing()
         && backup.getRunningTime(clock).isShorterThan(MAXIMUM_BACKUP_RUNNING_TIME)) {

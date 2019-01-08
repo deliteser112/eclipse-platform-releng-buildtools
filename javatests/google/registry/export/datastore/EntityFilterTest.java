@@ -38,11 +38,6 @@ public class EntityFilterTest {
   }
 
   @Test
-  public void testEntityFilter_create_emptyKinds() {
-    assertThrows(IllegalArgumentException.class, () -> new EntityFilter(ImmutableList.of()));
-  }
-
-  @Test
   public void testEntityFilter_marshall() throws IOException {
     EntityFilter entityFilter =
         new EntityFilter(ImmutableList.of("Registry", "Registrar", "DomainBase"));

@@ -25,6 +25,7 @@ import com.google.api.client.json.GenericJson;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.Key;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -73,10 +74,30 @@ public class DatastoreAdmin extends AbstractGoogleJsonClient {
    * </ul>
    *
    * @param outputUrlPrefix the full resource URL of the external storage location
-   * @param kinds the datastore 'kinds' to be exported
+   * @param kinds the datastore 'kinds' to be exported. If empty, all kinds will be exported
    */
   public Export export(String outputUrlPrefix, Collection<String> kinds) {
     return new Export(new ExportRequest(outputUrlPrefix, kinds));
+  }
+
+  /**
+   * Imports the entire backup specified by {@code backupUrl} back to Cloud Datastore.
+   *
+   * <p>A successful backup restores deleted entities and reverts updates to existing entities since
+   * the backup time. However, it does not affect newly added entities.
+   */
+  public Import importBackup(String backupUrl) {
+    return new Import(new ImportRequest(backupUrl, ImmutableList.of()));
+  }
+
+  /**
+   * Imports the backup specified by {@code backupUrl} back to Cloud Datastore. Only entities whose
+   * types are included in {@code kinds} are imported.
+   *
+   * @see #importBackup(String)
+   */
+  public Import importBackup(String backupUrl, Collection<String> kinds) {
+    return new Import(new ImportRequest(backupUrl, kinds));
   }
 
   /**
@@ -158,6 +179,20 @@ public class DatastoreAdmin extends AbstractGoogleJsonClient {
     }
   }
 
+  /** A request to restore an backup to a Cloud Datastore database. */
+  public class Import extends DatastoreAdminRequest<Operation> {
+
+    Import(ImportRequest importRequest) {
+      super(
+          DatastoreAdmin.this,
+          "POST",
+          "projects/{projectId}:import",
+          importRequest,
+          Operation.class);
+      set("projectId", projectId);
+    }
+  }
+
   /** A request to retrieve details of an export or import operation. */
   public class Get extends DatastoreAdminRequest<Operation> {
 
@@ -216,7 +251,26 @@ public class DatastoreAdmin extends AbstractGoogleJsonClient {
 
     ExportRequest(String outputUrlPrefix, Collection<String> kinds) {
       checkNotNull(outputUrlPrefix, "outputUrlPrefix");
+      checkArgument(!kinds.isEmpty(), "kinds must not be empty");
       this.outputUrlPrefix = outputUrlPrefix;
+      this.entityFilter = new EntityFilter(kinds);
+    }
+  }
+
+  /**
+   * Model object that describes the JSON content in an export request.
+   *
+   * <p>Please note that some properties defined in the API are excluded, e.g., {@code databaseId}
+   * (not supported by Cloud Datastore) and labels (not used by Domain Registry).
+   */
+  @SuppressWarnings("unused")
+  static class ImportRequest extends GenericJson {
+    @Key private final String inputUrl;
+    @Key private final EntityFilter entityFilter;
+
+    ImportRequest(String inputUrl, Collection<String> kinds) {
+      checkNotNull(inputUrl, "outputUrlPrefix");
+      this.inputUrl = inputUrl;
       this.entityFilter = new EntityFilter(kinds);
     }
   }

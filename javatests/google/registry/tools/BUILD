@@ -19,6 +19,7 @@ java_library(
     deps = [
         "//java/google/registry/backup",
         "//java/google/registry/config",
+        "//java/google/registry/export/datastore",
         "//java/google/registry/flows",
         "//java/google/registry/keyring/api",
         "//java/google/registry/model",
