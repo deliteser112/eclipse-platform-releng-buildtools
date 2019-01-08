@@ -13,34 +13,15 @@ def generatedDir = "${project.buildDir}/generated/source/custom/main"
 def outcastTestPatterns = [
     "google/registry/batch/DeleteContactsAndHostsActionTest.*",
     "google/registry/batch/RefreshDnsOnHostRenameActionTest.*",
-    "google.registry.export.ExportDomainListsActionTest.*",
-    "google/registry/export/ExportPremiumTermsActionTest.*",
-    "google/registry/export/ExportReservedTermsActionTest.*",
-    "google/registry/export/ExportUtilsTest.*",
-    "google/registry/export/sheet/SyncRegistrarsSheetTest.*",
     "google/registry/flows/CheckApiActionTest.*",
+    "google/registry/flows/EppLifecycleHostTest.*",
     "google/registry/flows/domain/DomainAllocateFlowTest.*",
     "google/registry/flows/domain/DomainApplicationCreateFlowTest.*",
     "google/registry/flows/domain/DomainApplicationUpdateFlowTest.*",
     "google/registry/flows/domain/DomainCreateFlowTest.*",
     "google/registry/flows/domain/DomainUpdateFlowTest.*",
-    "google/registry/flows/EppLifecycleDomainTest.*",
-    "google/registry/flows/EppLifecycleHostTest.*",
-    "google/registry/model/poll/PollMessageExternalKeyConverterTest.*",
-    "google/registry/model/poll/PollMessageTest.*",
-    "google/registry/rdap/RdapDomainActionTest.*",
-    "google/registry/rdap/RdapDomainSearchActionTest.*",
-    "google/registry/rdap/RdapEntityActionTest.*",
-    "google/registry/rdap/RdapEntitySearchActionTest.*",
-    "google/registry/rdap/RdapNameserverSearchActionTest.*",
-    "google/registry/reporting/icann/IcannHttpReporterTest.*",
-    "google/registry/tmch/LordnTaskUtilsTest.*",
-    "google/registry/tmch/NordnUploadActionTest.*",
+    "google/registry/tools/CreateDomainCommandTest.*",
     "google/registry/tools/server/CreatePremiumListActionTest.*",
-    "google/registry/ui/server/registrar/ContactSettingsTest.*",
-    "google/registry/ui/server/registrar/RegistrarSettingsActionTest.*",
-    "google/registry/ui/server/registrar/SecuritySettingsTest.*",
-
     // Conflicts with WhoisActionTest
     "google/registry/whois/WhoisHttpActionTest.*",
 ]
@@ -371,6 +352,14 @@ task soyToJava {
         "${generatedDir}/google/registry/ui/soy",
         files {
           file("${javaDir}/google/registry/ui/soy").listFiles()
+        }.filter {
+          it.name.endsWith(".soy")
+        })
+
+    soyToJava('google.registry.ui.soy.otesetup',
+        "${generatedDir}/google/registry/ui/soy/otesetup",
+        files {
+          file("${javaDir}/google/registry/ui/soy/otesetup").listFiles()
         }.filter {
           it.name.endsWith(".soy")
         })

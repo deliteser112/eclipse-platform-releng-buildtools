@@ -454,39 +454,46 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testSuccess_setAllowedTldsUncached_newTldNotInCache() {
-    // Cache duration in tests is 0. To make sure the data isn't in the cache we have to set it to a
-    // higher value and reset the cache.
-    RegistryConfig.CONFIG_SETTINGS.get().caching.singletonCacheRefreshSeconds = 600;
-    Registries.resetCache();
-    // Make sure the TLD we want to create doesn't exist yet.
-    // This is also important because getTlds fills out the cache when used.
-    assertThat(Registries.getTlds()).doesNotContain("newtld");
-    // We can't use createTld here because it failes when the cache is used.
-    persistResource(newRegistry("newtld", "NEWTLD"));
-    // Make sure we set up the cache correctly, so the newly created TLD isn't in the cache
-    assertThat(Registries.getTlds()).doesNotContain("newtld");
+    try {
+      // Cache duration in tests is 0. To make sure the data isn't in the cache we have to set it
+      // to a higher value and reset the cache.
+      RegistryConfig.CONFIG_SETTINGS.get().caching.singletonCacheRefreshSeconds = 600;
+      Registries.resetCache();
+      // Make sure the TLD we want to create doesn't exist yet.
+      // This is also important because getTlds fills out the cache when used.
+      assertThat(Registries.getTlds()).doesNotContain("newtld");
+      // We can't use createTld here because it failes when the cache is used.
+      persistResource(newRegistry("newtld", "NEWTLD"));
+      // Make sure we set up the cache correctly, so the newly created TLD isn't in the cache
+      assertThat(Registries.getTlds()).doesNotContain("newtld");
 
-    // Test that the uncached version works
-    assertThat(
-            registrar.asBuilder()
-                .setAllowedTldsUncached(ImmutableSet.of("newtld"))
-                .build()
-                .getAllowedTlds())
-        .containsExactly("newtld");
+      // Test that the uncached version works
+      assertThat(
+              registrar
+                  .asBuilder()
+                  .setAllowedTldsUncached(ImmutableSet.of("newtld"))
+                  .build()
+                  .getAllowedTlds())
+          .containsExactly("newtld");
 
-    // Test that the "regular" cached version fails. If this doesn't throw - then we changed how the
-    // cached version works:
-    // - either we switched to a different cache type/duration, and we haven't actually set up that
-    //   cache in the test
-    // - or we stopped using the cache entirely and we should rethink if the Uncached version is
-    //   still needed
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> registrar.asBuilder().setAllowedTlds(ImmutableSet.of("newtld")));
+      // Test that the "regular" cached version fails. If this doesn't throw - then we changed how
+      // the cached version works:
+      // - either we switched to a different cache type/duration, and we haven't actually set up
+      //   that cache in the test
+      // - or we stopped using the cache entirely and we should rethink if the Uncached version is
+      //   still needed
+      assertThrows(
+          IllegalArgumentException.class,
+          () -> registrar.asBuilder().setAllowedTlds(ImmutableSet.of("newtld")));
 
-    // Make sure the cache hasn't expired during the test and "newtld" is still not in the cached
-    // TLDs
-    assertThat(Registries.getTlds()).doesNotContain("newtld");
+      // Make sure the cache hasn't expired during the test and "newtld" is still not in the cached
+      // TLDs
+      assertThat(Registries.getTlds()).doesNotContain("newtld");
+    } finally {
+      // Set the cache duration back to 0 to satisfy other tests.
+      RegistryConfig.CONFIG_SETTINGS.get().caching.singletonCacheRefreshSeconds = 0;
+      Registries.resetCache();
+    }
   }
 
   @Test
