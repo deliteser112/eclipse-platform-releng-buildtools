@@ -27,6 +27,7 @@ import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
 import google.registry.ui.server.otesetup.ConsoleOteSetupAction;
 import google.registry.ui.server.registrar.ConsoleUiAction;
+import google.registry.ui.server.registrar.OteStatusAction;
 import google.registry.ui.server.registrar.RegistrarConsoleModule;
 import google.registry.ui.server.registrar.RegistrarSettingsAction;
 
@@ -46,6 +47,7 @@ interface FrontendRequestComponent {
   EppConsoleAction eppConsoleAction();
   EppTlsAction eppTlsAction();
   FlowComponent.Builder flowComponentBuilder();
+  OteStatusAction oteStatusAction();
   RegistrarSettingsAction registrarSettingsAction();
 
   @Subcomponent.Builder

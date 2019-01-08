@@ -701,7 +701,7 @@ public class DatastoreHelper {
 
   /** Persists and returns a {@link Registrar} with the specified attributes. */
   public static Registrar persistNewRegistrar(
-      String clientId, String registrarName, Registrar.Type type, long ianaIdentifier) {
+      String clientId, String registrarName, Registrar.Type type, @Nullable Long ianaIdentifier) {
     return persistSimpleResource(
         new Registrar.Builder()
             .setClientId(clientId)

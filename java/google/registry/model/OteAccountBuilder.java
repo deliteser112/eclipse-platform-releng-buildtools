@@ -361,7 +361,7 @@ public final class OteAccountBuilder {
   }
 
   /** Returns the ClientIds of the OT&amp;E, with the TLDs each has access to. */
-  static ImmutableMap<String, String> createClientIdToTldMap(String baseClientId) {
+  public static ImmutableMap<String, String> createClientIdToTldMap(String baseClientId) {
     checkArgument(
         REGISTRAR_PATTERN.matcher(baseClientId).matches(),
         "Invalid registrar name: %s",
@@ -373,5 +373,18 @@ public final class OteAccountBuilder {
         .put(baseClientId + "-4", baseClientId + "-ga")
         .put(baseClientId + "-5", baseClientId + "-eap")
         .build();
+  }
+
+  /** Returns the base client ID that correspond to a given OT&amp;E client ID. */
+  public static String getBaseClientId(String oteClientId) {
+    int index = oteClientId.lastIndexOf('-');
+    checkArgument(index > 0, "Invalid OT&E client ID: %s", oteClientId);
+    String baseClientId = oteClientId.substring(0, index);
+    checkArgument(
+        createClientIdToTldMap(baseClientId).containsKey(oteClientId),
+        "ID %s is not one of the OT&E client IDs for base %s",
+        oteClientId,
+        baseClientId);
+    return baseClientId;
   }
 }

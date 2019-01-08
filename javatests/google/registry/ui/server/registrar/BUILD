@@ -22,6 +22,7 @@ java_library(
         "//java/google/registry/ui/server",
         "//java/google/registry/ui/server/registrar",
         "//java/google/registry/util",
+        "//javatests/google/registry/model",
         "//javatests/google/registry/security",
         "//javatests/google/registry/testing",
         "//third_party/objectify:objectify-v4_1",

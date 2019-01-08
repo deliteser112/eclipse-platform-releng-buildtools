@@ -299,4 +299,53 @@ public final class OteAccountBuilderTest {
     assertContactExists("myclientid-3", "other@example.com");
     assertContactExists("myclientid-3", "email@example.com");
   }
+
+  @Test
+  public void testCreateClientIdToTldMap_validEntries() {
+    assertThat(OteAccountBuilder.createClientIdToTldMap("myclientid"))
+        .containsExactly(
+            "myclientid-1", "myclientid-sunrise",
+            "myclientid-2", "myclientid-landrush",
+            "myclientid-3", "myclientid-ga",
+            "myclientid-4", "myclientid-ga",
+            "myclientid-5", "myclientid-eap");
+  }
+
+  @Test
+  public void testCreateClientIdToTldMap_invalidId() {
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class, () -> OteAccountBuilder.createClientIdToTldMap("a"));
+    assertThat(exception).hasMessageThat().isEqualTo("Invalid registrar name: a");
+  }
+
+  @Test
+  public void testGetBaseClientId_validOteId() {
+    assertThat(OteAccountBuilder.getBaseClientId("myclientid-4")).isEqualTo("myclientid");
+  }
+
+  @Test
+  public void testGetBaseClientId_multipleDashesValid() {
+    assertThat(OteAccountBuilder.getBaseClientId("two-dashes-3")).isEqualTo("two-dashes");
+  }
+
+  @Test
+  public void testGetBaseClientId_invalidInput_malformed() {
+    assertThat(
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> OteAccountBuilder.getBaseClientId("myclientid")))
+        .hasMessageThat()
+        .isEqualTo("Invalid OT&E client ID: myclientid");
+  }
+
+  @Test
+  public void testGetBaseClientId_invalidInput_wrongForBase() {
+    assertThat(
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> OteAccountBuilder.getBaseClientId("myclientid-7")))
+        .hasMessageThat()
+        .isEqualTo("ID myclientid-7 is not one of the OT&E client IDs for base myclientid");
+  }
 }

@@ -177,7 +177,7 @@ public class OteStats {
     }
 
     /** Returns a more human-readable translation of the enum constant. */
-    private String description() {
+    public String getDescription() {
       return Ascii.toLowerCase(this.name().replace('_', ' '));
     }
 
@@ -270,7 +270,7 @@ public class OteStats {
     return String.format(
         "%s\nTOTAL: %d",
         EnumSet.allOf(StatType.class).stream()
-            .map(stat -> String.format("%s: %d", stat.description(), statCounts.count(stat)))
+            .map(stat -> String.format("%s: %d", stat.getDescription(), statCounts.count(stat)))
             .collect(Collectors.joining("\n")),
         statCounts.size());
   }
