@@ -65,6 +65,7 @@ java_library(
         "//java/google/registry/whois",
         "//java/google/registry/xjc",
         "//java/google/registry/xml",
+        "//third_party/java/jakarta_commons_io",
         "//third_party/jaxb",
         "//third_party/objectify:objectify-v4_1",
         "@com_beust_jcommander",

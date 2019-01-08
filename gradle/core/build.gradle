@@ -151,6 +151,7 @@ dependencies {
   maybeRuntime 'com.sun.activation:javax.activation:1.2.0'
   maybeRuntime 'com.thoughtworks.paranamer:paranamer:2.7'
   maybeRuntime 'commons-codec:commons-codec:1.10'
+  compile group: 'commons-io', name: 'commons-io', version: '2.6'
   maybeRuntime 'commons-logging:commons-logging:1.2'
   compile 'dnsjava:dnsjava:2.1.7'
   maybeRuntime 'io.netty:netty-buffer:4.1.28.Final'
