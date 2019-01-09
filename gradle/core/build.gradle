@@ -459,6 +459,8 @@ test {
   exclude fragileTestPatterns
   exclude outcastTestPatterns
 
+  forkEvery 1
+
   // Sets the maximum number of test executors that may exist at the same time.
   maxParallelForks 5
 }.dependsOn(fragileTest, outcastTest)
