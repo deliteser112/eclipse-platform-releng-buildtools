@@ -258,13 +258,17 @@ public final class ResourceFlowUtils {
    * Resolve a pending transfer by denying it.
    *
    * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the {@link
-   * TransferStatus}, clears all the server-approve fields on the {@link TransferData}, and sets the
-   * expiration time of the last pending transfer to now.
+   * TransferStatus}, clears all the server-approve fields on the {@link TransferData}, sets the
+   * expiration time of the last pending transfer to now, sets the last EPP update time to now, and
+   * sets the last EPP update client id to the given client id.
    */
   public static <R extends EppResource & ResourceWithTransferData> R denyPendingTransfer(
-      R resource, TransferStatus transferStatus, DateTime now) {
+      R resource, TransferStatus transferStatus, DateTime now, String lastEppUpdateClientId) {
     checkArgument(transferStatus.isDenied(), "Not a denial transfer status");
-    return resolvePendingTransfer(resource, transferStatus, now).build();
+    return resolvePendingTransfer(resource, transferStatus, now)
+        .setLastEppUpdateTime(now)
+        .setLastEppUpdateClientId(lastEppUpdateClientId)
+        .build();
   }
 
   public static <R extends EppResource & ResourceWithTransferData> void verifyHasPendingTransfer(
@@ -288,11 +292,8 @@ public final class ResourceFlowUtils {
   }
 
   public static <R extends EppResource> R verifyExistence(
-      Class<R> clazz, String targetId, R resource) throws ResourceDoesNotExistException {
-    if (resource == null) {
-      throw new ResourceDoesNotExistException(clazz, targetId);
-    }
-    return resource;
+      Class<R> clazz, String targetId, Optional<R> resource) throws ResourceDoesNotExistException {
+    return resource.orElseThrow(() -> new ResourceDoesNotExistException(clazz, targetId));
   }
 
   public static <R extends EppResource> void verifyResourceDoesNotExist(

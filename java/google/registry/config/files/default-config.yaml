@@ -22,12 +22,19 @@ gSuite:
   domainName: domain-registry.example
 
   # Display name and email address used on outgoing emails through G Suite.
+  # The email address must be valid and have permission in the GAE app to send
+  # emails. For more info see:
+  # https://cloud.google.com/appengine/docs/standard/java/mail/#who_can_send_mail
   outgoingEmailDisplayName: Example Registry
   outgoingEmailAddress: noreply@project-id.appspotmail.com
 
   # Email address of the admin account on the G Suite app. This is used for
   # logging in to perform administrative actions, not sending emails.
   adminAccountEmailAddress: admin@example.com
+
+  # Group containing the emails of the support accounts. These accounts will be
+  # given "ADMIN" role on the registrar console.
+  supportGroupEmailAddress: support@example.com
 
 registryPolicy:
   # Repository identifier (ROID) suffix for contacts and hosts.
@@ -47,6 +54,10 @@ registryPolicy:
   # Custom logic class for handling allocation tokens.
   # See flows/domain/token/AllocationTokenCustomLogic.java
   allocationTokenCustomLogicClass: google.registry.flows.domain.token.AllocationTokenCustomLogic
+
+  # Custom logic class for handling DNS query count reporting for ICANN.
+  # See reporting/icann/DnsCountQueryCoordinator.java
+  dnsCountQueryCoordinatorClass: google.registry.reporting.icann.BasicDnsCountQueryCoordinator
 
   # Length of time after which contact transfers automatically conclude.
   contactAutomaticTransferDays: 5
@@ -145,6 +156,10 @@ registryPolicy:
 
     We reserve the right to modify this agreement at any time.
 
+  # Link to static Web page with RDAP terms of service. Displayed in RDAP
+  # responses. If null, no static Web page link is generated.
+  rdapTosStaticUrl: null
+
   # Body of the spec 11 email sent to registrars.
   # Items in braces are to be replaced.
   spec11EmailBodyTemplate: |
@@ -172,6 +187,11 @@ registryPolicy:
     If you have any questions regarding this notice, please contact
     {REPLY_TO_EMAIL}.
 
+  # Whether to require an SSL certificate hash in order to be able to log in
+  # via EPP and run commands. This can be false for testing environments but
+  # should generally be true for production environments, for added security.
+  requireSslCertificates: true
+
 datastore:
   # Number of commit log buckets in Datastore. Lowering this after initial
   # install risks losing up to a days' worth of differential backups.
@@ -186,13 +206,14 @@ datastore:
   baseOfyRetryMillis: 100
 
 cloudDns:
+  # Set both properties to null in Production.
   # The root url for the Cloud DNS API.  Set this to a non-null value to
   # override the default API server used by the googleapis library.
-  rootUrl: null
+  rootUrl: https://staging-www.sandbox.googleapis.com
 
   # The service endpoint path for the Cloud DNS API.  Set this to a non-null
   # value to override the default API path used by the googleapis library.
-  servicePath: null
+  servicePath: dns/v2beta1_staging/projects/
 
 caching:
   # Length of time that a singleton should be cached before expiring.
@@ -245,8 +266,8 @@ oAuth:
     - https://www.googleapis.com/auth/userinfo.email
 
   # OAuth client IDs that are allowed to authenticate and communicate with
-  # backend services, e. g. nomulus tool, EPP proxy, etc. All client_id values
-  # used in client_secret.json files for associated tooling should be included
+  # backend services, e. g. nomulus tool, EPP proxy, etc. The client_id value
+  # used in registryTool.clientId field for associated tooling should be included
   # in this list. Client IDs are typically of the format
   # numbers-alphanumerics.apps.googleusercontent.com
   allowedOauthClientIds: []
@@ -271,7 +292,16 @@ credentialOAuth:
     - https://www.googleapis.com/auth/admin.directory.group
     # View and manage group settings in Group Settings API.
     - https://www.googleapis.com/auth/apps.groups.settings
-
+  # OAuth scopes required to create a credential locally in for the nomulus tool.
+  localCredentialOauthScopes:
+    # View and manage data in all Google Cloud APIs.
+    - https://www.googleapis.com/auth/cloud-platform
+    # Call App Engine APIs locally.
+    - https://www.googleapis.com/auth/appengine.apis
+    # View your email address.
+    - https://www.googleapis.com/auth/userinfo.email
+    # View and manage your applications deployed on Google App Engine
+    - https://www.googleapis.com/auth/appengine.admin
 
 icannReporting:
   # URL we PUT monthly ICANN transactions reports to.
@@ -282,6 +312,7 @@ icannReporting:
 
 billing:
   invoiceEmailRecipients: []
+  invoiceFilePrefix: REG-INV
 
 rde:
   # URL prefix of ICANN's server to upload RDE reports to. Nomulus adds /TLD/ID
@@ -339,18 +370,10 @@ misc:
   # to be a deliverable email address in case the registrars want to contact us.
   spec11ReplyToEmailAddress: reply-to@example.com
 
-  # Domain for the email address we send alert summary emails from.
-  alertEmailSenderDomain: appspotmail.com
-
   # How long to delay processing of asynchronous deletions. This should always
   # be longer than eppResourceCachingSeconds, to prevent deleted contacts or
   # hosts from being used on domains.
   asyncDeleteDelaySeconds: 90
-
-cloudDns:
-  # CloudDns testing config. Set both properties to null in Production.
-  rootUrl: https://staging-www.sandbox.googleapis.com
-  servicePath: dns/v2beta1_staging/projects/
 
 beam:
   # The default zone to run Apache Beam (Cloud Dataflow) jobs in.
@@ -372,5 +395,7 @@ keyring:
 
 # Configuration options relevant to the "nomulus" registry tool.
 registryTool:
-  # Name of the client secret file used for authenticating with App Engine.
-  clientSecretFilename: /google/registry/tools/resources/client_secret.json
+  # OAuth client Id used by the tool.
+  clientId: YOUR_CLIENT_ID
+  # OAuth client secret used by the tool.
+  clientSecret: YOUR_CLIENT_SECRET

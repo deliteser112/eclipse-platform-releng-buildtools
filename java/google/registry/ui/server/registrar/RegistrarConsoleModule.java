@@ -16,6 +16,7 @@ package google.registry.ui.server.registrar;
 
 
 import static google.registry.request.RequestParameters.extractOptionalParameter;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import dagger.Module;
 import dagger.Provides;
@@ -31,7 +32,31 @@ public final class RegistrarConsoleModule {
 
   @Provides
   @Parameter(PARAM_CLIENT_ID)
-  static Optional<String> provideClientId(HttpServletRequest req) {
+  static Optional<String> provideOptionalClientId(HttpServletRequest req) {
     return extractOptionalParameter(req, PARAM_CLIENT_ID);
+  }
+
+  @Provides
+  @Parameter(PARAM_CLIENT_ID)
+  static String provideClientId(HttpServletRequest req) {
+    return extractRequiredParameter(req, PARAM_CLIENT_ID);
+  }
+
+  @Provides
+  @Parameter("email")
+  static Optional<String> provideOptionalEmail(HttpServletRequest req) {
+    return extractOptionalParameter(req, "email");
+  }
+
+  @Provides
+  @Parameter("email")
+  static String provideEmail(HttpServletRequest req) {
+    return extractRequiredParameter(req, "email");
+  }
+
+  @Provides
+  @Parameter("password")
+  static Optional<String> provideOptionalPassword(HttpServletRequest req) {
+    return extractOptionalParameter(req, "password");
   }
 }

@@ -23,6 +23,7 @@ import static google.registry.testing.CertificateSamples.SAMPLE_CERT2_HASH;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newRegistry;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
@@ -33,10 +34,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.googlecode.objectify.Key;
+import google.registry.config.RegistryConfig;
 import google.registry.model.EntityTestCase;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
+import google.registry.model.registry.Registries;
 import google.registry.util.CidrAddressBlock;
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;
@@ -413,6 +416,84 @@ public class RegistrarTest extends EntityTestCase {
   public void testFailure_phonePasscodeInvalidCharacters() {
     assertThrows(
         IllegalArgumentException.class, () -> new Registrar.Builder().setPhonePasscode("code1"));
+  }
+
+  @Test
+  public void testSuccess_setAllowedTlds() {
+    assertThat(
+            registrar.asBuilder()
+                .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
+                .build()
+                .getAllowedTlds())
+        .containsExactly("xn--q9jyb4c");
+  }
+
+  @Test
+  public void testSuccess_setAllowedTldsUncached() {
+    assertThat(
+            registrar.asBuilder()
+                .setAllowedTldsUncached(ImmutableSet.of("xn--q9jyb4c"))
+                .build()
+                .getAllowedTlds())
+        .containsExactly("xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_setAllowedTlds_nonexistentTld() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> registrar.asBuilder().setAllowedTlds(ImmutableSet.of("bad")));
+  }
+
+  @Test
+  public void testFailure_setAllowedTldsUncached_nonexistentTld() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> registrar.asBuilder().setAllowedTldsUncached(ImmutableSet.of("bad")));
+  }
+
+  @Test
+  public void testSuccess_setAllowedTldsUncached_newTldNotInCache() {
+    try {
+      // Cache duration in tests is 0. To make sure the data isn't in the cache we have to set it
+      // to a higher value and reset the cache.
+      RegistryConfig.CONFIG_SETTINGS.get().caching.singletonCacheRefreshSeconds = 600;
+      Registries.resetCache();
+      // Make sure the TLD we want to create doesn't exist yet.
+      // This is also important because getTlds fills out the cache when used.
+      assertThat(Registries.getTlds()).doesNotContain("newtld");
+      // We can't use createTld here because it failes when the cache is used.
+      persistResource(newRegistry("newtld", "NEWTLD"));
+      // Make sure we set up the cache correctly, so the newly created TLD isn't in the cache
+      assertThat(Registries.getTlds()).doesNotContain("newtld");
+
+      // Test that the uncached version works
+      assertThat(
+              registrar
+                  .asBuilder()
+                  .setAllowedTldsUncached(ImmutableSet.of("newtld"))
+                  .build()
+                  .getAllowedTlds())
+          .containsExactly("newtld");
+
+      // Test that the "regular" cached version fails. If this doesn't throw - then we changed how
+      // the cached version works:
+      // - either we switched to a different cache type/duration, and we haven't actually set up
+      //   that cache in the test
+      // - or we stopped using the cache entirely and we should rethink if the Uncached version is
+      //   still needed
+      assertThrows(
+          IllegalArgumentException.class,
+          () -> registrar.asBuilder().setAllowedTlds(ImmutableSet.of("newtld")));
+
+      // Make sure the cache hasn't expired during the test and "newtld" is still not in the cached
+      // TLDs
+      assertThat(Registries.getTlds()).doesNotContain("newtld");
+    } finally {
+      // Set the cache duration back to 0 to satisfy other tests.
+      RegistryConfig.CONFIG_SETTINGS.get().caching.singletonCacheRefreshSeconds = 0;
+      Registries.resetCache();
+    }
   }
 
   @Test

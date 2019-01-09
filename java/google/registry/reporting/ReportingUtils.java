@@ -16,6 +16,7 @@ package google.registry.reporting;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
+import java.util.Map;
 import org.joda.time.Duration;
 import org.joda.time.YearMonth;
 
@@ -25,15 +26,13 @@ public class ReportingUtils {
   private static final int ENQUEUE_DELAY_MINUTES = 10;
 
   /** Enqueues a task that takes a Beam jobId and the {@link YearMonth} as parameters. */
-  public static void enqueueBeamReportingTask(String path, String jobId, YearMonth yearMonth) {
+  public static void enqueueBeamReportingTask(String path, Map<String, String> parameters) {
     TaskOptions publishTask =
         TaskOptions.Builder.withUrl(path)
             .method(TaskOptions.Method.POST)
             // Dataflow jobs tend to take about 10 minutes to complete.
-            .countdownMillis(Duration.standardMinutes(ENQUEUE_DELAY_MINUTES).getMillis())
-            .param(ReportingModule.PARAM_JOB_ID, jobId)
-            // Need to pass this through to ensure transitive yearMonth dependencies are satisfied.
-            .param(ReportingModule.PARAM_YEAR_MONTH, yearMonth.toString());
+            .countdownMillis(Duration.standardMinutes(ENQUEUE_DELAY_MINUTES).getMillis());
+    parameters.forEach(publishTask::param);
     QueueFactory.getQueue(ReportingModule.BEAM_QUEUE).add(publishTask);
   }
 }

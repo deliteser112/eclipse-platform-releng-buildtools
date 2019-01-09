@@ -58,6 +58,7 @@ public class RegistryConfigSettings {
   public static class CredentialOAuth {
     public List<String> defaultCredentialOauthScopes;
     public List<String> delegatedCredentialOauthScopes;
+    public List<String> localCredentialOauthScopes;
   }
 
   /** Configuration options for the G Suite account used by Nomulus. */
@@ -66,6 +67,7 @@ public class RegistryConfigSettings {
     public String outgoingEmailAddress;
     public String outgoingEmailDisplayName;
     public String adminAccountEmailAddress;
+    public String supportGroupEmailAddress;
   }
 
   /** Configuration options for registry policy. */
@@ -75,6 +77,7 @@ public class RegistryConfigSettings {
     public String customLogicFactoryClass;
     public String whoisCommandFactoryClass;
     public String allocationTokenCustomLogicClass;
+    public String dnsCountQueryCoordinatorClass;
     public int contactAutomaticTransferDays;
     public String greetingServerId;
     public List<String> registrarChangesNotificationEmailAddresses;
@@ -88,7 +91,9 @@ public class RegistryConfigSettings {
     public String reservedTermsExportDisclaimer;
     public String whoisDisclaimer;
     public String rdapTos;
+    public String rdapTosStaticUrl;
     public String spec11EmailBodyTemplate;
+    public boolean requireSslCertificates;
   }
 
   /** Configuration for Cloud Datastore. */
@@ -129,6 +134,7 @@ public class RegistryConfigSettings {
   /** Configuration for monthly invoices. */
   public static class Billing {
     public List<String> invoiceEmailRecipients;
+    public String invoiceFilePrefix;
   }
 
   /** Configuration for Registry Data Escrow (RDE). */
@@ -160,7 +166,6 @@ public class RegistryConfigSettings {
     public String sheetExportId;
     public String alertRecipientEmailAddress;
     public String spec11ReplyToEmailAddress;
-    public String alertEmailSenderDomain;
     public int asyncDeleteDelaySeconds;
   }
 
@@ -178,6 +183,7 @@ public class RegistryConfigSettings {
 
   /** Configuration options for the registry tool. */
   public static class RegistryTool {
-    public String clientSecretFilename;
+    public String clientId;
+    public String clientSecret;
   }
 }

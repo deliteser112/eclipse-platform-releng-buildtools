@@ -14,8 +14,8 @@
 
 package google.registry.model.contact;
 
-import static google.registry.flows.EppXmlTransformer.marshalInput;
-import static google.registry.flows.EppXmlTransformer.validateInput;
+import static google.registry.model.eppcommon.EppXmlTransformer.marshalInput;
+import static google.registry.model.eppcommon.EppXmlTransformer.validateInput;
 import static google.registry.xml.ValidationMode.LENIENT;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;

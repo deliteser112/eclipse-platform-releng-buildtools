@@ -24,6 +24,7 @@ closure_css_library(
 closure_css_library(
     name = "registrar_lib",
     srcs = [
+        "admin-settings.css",
         "contact-settings.css",
         "contact-us.css",
         "dashboard.css",

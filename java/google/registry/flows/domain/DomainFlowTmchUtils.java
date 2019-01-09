@@ -15,7 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.collect.Iterables.concat;
-import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.flows.FlowUtils.unmarshalEpp;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.flows.EppException;
@@ -90,7 +90,7 @@ public final class DomainFlowTmchUtils {
 
     SignedMark signedMark;
     try {
-      signedMark = unmarshal(SignedMark.class, signedMarkData);
+      signedMark = unmarshalEpp(SignedMark.class, signedMarkData);
     } catch (EppException e) {
       throw new SignedMarkParsingErrorException();
     }

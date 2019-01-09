@@ -19,12 +19,14 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.common.truth.Truth8;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.testing.FakeClock;
 import google.registry.util.Clock;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +39,7 @@ public class ReportingModuleTest {
 
   private HttpServletRequest req = mock(HttpServletRequest.class);
   private Clock clock;
+
   @Before
   public void setUp() {
     clock = new FakeClock(DateTime.parse("2017-07-01TZ"));
@@ -45,7 +48,14 @@ public class ReportingModuleTest {
   @Test
   public void testEmptyYearMonthParameter_returnsEmptyYearMonthOptional() {
     when(req.getParameter("yearMonth")).thenReturn("");
-    assertThat(ReportingModule.provideYearMonthOptional(req)).isEqualTo(Optional.empty());
+    Truth8.assertThat(ReportingModule.provideYearMonthOptional(req)).isEmpty();
+  }
+
+  @Test
+  public void testValidYearMonthParameter_returnsThatMonth() {
+    when(req.getParameter("yearMonth")).thenReturn("2017-05");
+    Truth8.assertThat(ReportingModule.provideYearMonthOptional(req))
+        .hasValue(new YearMonth(2017, 5));
   }
 
   @Test
@@ -61,14 +71,50 @@ public class ReportingModuleTest {
 
   @Test
   public void testEmptyYearMonth_returnsLastMonth() {
-    assertThat(ReportingModule.provideYearMonth(Optional.empty(), clock))
-        .isEqualTo(new YearMonth(2017, 6));
+    assertThat(ReportingModule.provideYearMonth(Optional.empty(), new LocalDate(2017, 1, 6)))
+        .isEqualTo(new YearMonth(2016, 12));
   }
 
   @Test
   public void testGivenYearMonth_returnsThatMonth() {
-    assertThat(ReportingModule.provideYearMonth(Optional.of(new YearMonth(2017, 5)), clock))
+    assertThat(
+            ReportingModule.provideYearMonth(
+                Optional.of(new YearMonth(2017, 5)), new LocalDate(2017, 7, 6)))
         .isEqualTo(new YearMonth(2017, 5));
   }
 
+  @Test
+  public void testEmptyDateParameter_returnsEmptyDateOptional() {
+    when(req.getParameter("date")).thenReturn("");
+    Truth8.assertThat(ReportingModule.provideDateOptional(req)).isEmpty();
+  }
+
+  @Test
+  public void testValidDateParameter_returnsThatDate() {
+    when(req.getParameter("date")).thenReturn("2017-05-13");
+    Truth8.assertThat(ReportingModule.provideDateOptional(req))
+        .hasValue(new LocalDate(2017, 5, 13));
+  }
+
+  @Test
+  public void testInvalidDateParameter_throwsException() {
+    when(req.getParameter("date")).thenReturn("20170513");
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> ReportingModule.provideDateOptional(req));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("date must be in yyyy-MM-dd format, got 20170513 instead");
+  }
+
+  @Test
+  public void testEmptyDate_returnsToday() {
+    assertThat(ReportingModule.provideDate(Optional.empty(), clock))
+        .isEqualTo(new LocalDate(2017, 7, 1));
+  }
+
+  @Test
+  public void testGivenDate_returnsThatDate() {
+    assertThat(ReportingModule.provideDate(Optional.of(new LocalDate(2017, 7, 2)), clock))
+        .isEqualTo(new LocalDate(2017, 7, 2));
+  }
 }

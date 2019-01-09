@@ -12,6 +12,7 @@ java_library(
         "//java/google/registry/beam",
         "//java/google/registry/config",
         "//java/google/registry/util",
+        "@com_google_auth_library_oauth2_http",
         "@com_google_auto_value",
         "@com_google_dagger",
         "@com_google_flogger",

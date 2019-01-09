@@ -18,16 +18,13 @@
 /** Registrar security settings page for view and edit. */
 {template .settings}
   {@param ipAddressWhitelist: list<string>}
-  {@param phonePasscode: string}
+  {@param? phonePasscode: string}
   {@param? clientCertificate: string}
   {@param? clientCertificateHash: string}
   {@param? failoverClientCertificate: string}
   {@param readonly: bool}
   <form name="item" class="{css('item')} {css('registrar')}">
     <h1>Security settings</h1>
-    {if $readonly}
-      <p>Use the 'Edit' button above to switch to enable editing the information below.
-    {/if}
     <table>
       <tr class="{css('kd-settings-pane-section')}">
         <td>
@@ -89,7 +86,7 @@
             <textarea
                name="clientCertificate"
                rows="16"
-               cols="64"
+               cols="68"
                {if $readonly}readonly{/if}>{$clientCertificate}</textarea>
           {elseif isNonnull($clientCertificateHash)}
             {if $readonly}
@@ -103,7 +100,7 @@
                 <span class="{css('description')}">Existing certificate SHA256 base64 hash:</span>
                 {$clientCertificateHash}
             {else}
-              <textarea name="clientCertificate" rows="16" cols="64"></textarea>
+              <textarea name="clientCertificate" rows="16" cols="68"></textarea>
             {/if}
           {else}
             {if $readonly}
@@ -112,10 +109,10 @@
               <p>No certificate on file.  Please enter your certificate below.
               <textarea id="clientCertificate"
                         name="clientCertificate"
-                        rows="16" cols="64"></textarea>
+                        rows="16" cols="68"></textarea>
               <div class="{css('description')}">
                 Example format:
-                <textarea id="exampleCert" rows="17" cols="64" readonly>
+                <textarea id="exampleCert" rows="17" cols="68" readonly>
                   -----BEGIN CERTIFICATE-----{\n}
                   MIIDvTCCAqWgAwIBAgIJAK/PgPT0jTwRMA0GCSqGSIb3DQEBCwUAMHUxCzAJBgNV{\n}
                   BAYTAlVTMREwDwYDVQQIDAhOZXcgWW9yazERMA8GA1UEBwwITmV3IFlvcmsxDzAN{\n}
@@ -160,7 +157,7 @@
             <textarea id="failoverClientCertificate"
                       name="failoverClientCertificate"
                       rows="16"
-                      cols="64"
+                      cols="68"
                       {if $readonly}readonly{/if}>
               {$failoverClientCertificate ?: ''}
             </textarea>

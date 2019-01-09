@@ -32,6 +32,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.CertificateSamples;
 import google.registry.testing.MockitoJUnitRule;
+import google.registry.testing.SystemPropertyRule;
 import google.registry.tools.params.ParameterFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -61,6 +62,8 @@ public abstract class CommandTestCase<C extends Command> {
   public final AppEngineRule appEngine =
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
+  @Rule public final SystemPropertyRule systemPropertyRule = new SystemPropertyRule();
+
   @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
   @Rule
@@ -69,14 +72,14 @@ public abstract class CommandTestCase<C extends Command> {
   @Before
   public final void beforeCommandTestCase() {
     // Ensure the UNITTEST environment has been set before constructing a new command instance.
-    RegistryToolEnvironment.UNITTEST.setup();
+    RegistryToolEnvironment.UNITTEST.setup(systemPropertyRule);
     command = newCommandInstance();
     System.setOut(new PrintStream(stdout));
     System.setErr(new PrintStream(stderr));
   }
 
   void runCommandInEnvironment(RegistryToolEnvironment env, String... args) throws Exception {
-    env.setup();
+    env.setup(systemPropertyRule);
     try {
       JCommander jcommander = new JCommander(command);
       jcommander.addConverterFactory(new ParameterFactory());
@@ -87,7 +90,7 @@ public abstract class CommandTestCase<C extends Command> {
       // This primarily matters for AutoTimestamp fields, which otherwise won't have updated values.
       ofy().clearSessionCache();
       // Reset back to UNITTEST environment.
-      RegistryToolEnvironment.UNITTEST.setup();
+      RegistryToolEnvironment.UNITTEST.setup(systemPropertyRule);
     }
   }
 
@@ -186,6 +189,10 @@ public abstract class CommandTestCase<C extends Command> {
 
   protected void assertNotInStdout(String expected) {
     assertThat(getStdoutAsString()).doesNotContain(expected);
+  }
+
+  protected void assertNotInStderr(String expected) {
+    assertThat(getStderrAsString()).doesNotContain(expected);
   }
 
   protected String getStdoutAsString() {

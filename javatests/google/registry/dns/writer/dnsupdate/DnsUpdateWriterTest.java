@@ -250,7 +250,7 @@ public class DnsUpdateWriterTest {
         newDomainResource("example.tld")
             .asBuilder()
             .addSubordinateHost("ns1.example.tld")
-            .addNameservers(ImmutableSet.of(Key.create(host)))
+            .addNameserver(Key.create(host))
             .build());
 
     writer.publishHost("ns1.example.tld");
@@ -358,7 +358,7 @@ public class DnsUpdateWriterTest {
             .asBuilder()
             .addSubordinateHost("ns1.example.tld")
             .addSubordinateHost("foo.example.tld")
-            .addNameservers(ImmutableSet.of(Key.create(inBailiwickNameserver)))
+            .addNameserver(Key.create(inBailiwickNameserver))
             .build());
 
     writer.publishDomain("example.tld");

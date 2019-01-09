@@ -14,23 +14,27 @@
 
 package google.registry.tools;
 
-import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
-import com.google.appengine.tools.remoteapi.RemoteApiOptions;
-
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.tools.Injector.injectReflectively;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
+import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
+import com.google.appengine.tools.remoteapi.RemoteApiOptions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import google.registry.config.RegistryConfig;
 import google.registry.model.ofy.ObjectifyService;
+import google.registry.tools.AuthModule.LoginRequiredException;
 import google.registry.tools.params.ParameterFactory;
+import java.io.ByteArrayInputStream;
+import java.net.URL;
 import java.security.Security;
 import java.util.Map;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -54,6 +58,12 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
       description = "Returns all command names.")
   private boolean showAllCommands;
 
+  @Parameter(
+      names = {"--credential"},
+      description =
+          "Name of a JSON file containing credential information used by the tool. "
+              + "If not set, credentials saved by running `nomulus login' will be used.")
+  private String credentialJson = null;
 
   // Do not make this final - compile-time constant inlining may interfere with JCommander.
   @ParametersDelegate
@@ -78,9 +88,6 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     this.commands = commands;
 
     Security.addProvider(new BouncyCastleProvider());
-
-    component = DaggerRegistryToolComponent.builder()
-        .build();
   }
 
   // The <? extends Class<? extends Command>> wildcard looks a little funny, but is needed so that
@@ -144,6 +151,9 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     checkState(RegistryToolEnvironment.get() == environment,
         "RegistryToolEnvironment argument pre-processing kludge failed.");
 
+    component =
+        DaggerRegistryToolComponent.builder().credentialFilename(credentialJson).build();
+
     // JCommander stores sub-commands as nested JCommander objects containing a list of user objects
     // to be populated.  Extract the subcommand by getting the JCommander wrapper and then
     // retrieving the first (and, by virtue of our usage, only) object from it.
@@ -155,18 +165,33 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
 
     try {
       runCommand(command);
-    } catch (AuthModule.LoginRequiredException ex) {
-      System.err.println("===================================================================");
-      System.err.println("You must login using 'nomulus login' prior to running this command.");
-      System.err.println("===================================================================");
+    } catch (RuntimeException ex) {
+      if (Throwables.getRootCause(ex) instanceof LoginRequiredException) {
+        System.err.println("===================================================================");
+        System.err.println("You must login using 'nomulus login' prior to running this command.");
+        System.err.println("===================================================================");
+        System.exit(1);
+      } else {
+        throw ex;
+      }
     }
   }
 
   @Override
   public void close() {
     if (installer != null) {
-      installer.uninstall();
-      installer = null;
+      try {
+        installer.uninstall();
+        installer = null;
+      } catch (IllegalArgumentException e) {
+        // There is no point throwing the error if the API is already uninstalled, which is most
+        // likely caused by something wrong when installing the API. That something (e. g. no
+        // credential found) must have already thrown an error message earlier (e. g. must run
+        // "nomulus login" first). This error message here is non-actionable.
+        if (!e.getMessage().equals("remote API is already uninstalled")) {
+          throw e;
+        }
+      }
     }
   }
 
@@ -191,12 +216,13 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
         installer = new RemoteApiInstaller();
         RemoteApiOptions options = new RemoteApiOptions();
         options.server(
-            getConnection().getServer().getHost(), getConnection().getServer().getPort());
+            getConnection().getServer().getHost(), getPort(getConnection().getServer()));
         if (RegistryConfig.areServersLocal()) {
           // Use dev credentials for localhost.
           options.useDevelopmentServerCredential();
         } else {
-          options.useApplicationDefaultCredential();
+          RemoteApiOptionsUtil.useGoogleCredentialStream(
+              options, new ByteArrayInputStream(component.googleCredentialJson().getBytes(UTF_8)));
         }
         installer.install(options);
       }
@@ -209,6 +235,10 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     }
 
     command.run();
+  }
+
+  private int getPort(URL url) {
+    return url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
   }
 
   void setEnvironment(RegistryToolEnvironment environment) {

@@ -115,7 +115,11 @@ public class DomainTransferApproveFlowTest
         .and()
         .hasLastTransferTime(clock.nowUtc())
         .and()
-        .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
+        .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("TheRegistrar");
     // The domain TransferData should reflect the approved transfer as we expect, with
     // all the speculative server-approve fields nulled out.
     assertThat(domain.getTransferData())

@@ -1,0 +1,147 @@
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package google.registry.model;
+
+import static com.google.common.truth.Truth.assertThat;
+
+import google.registry.model.OteStats.StatType;
+import google.registry.testing.AppEngineRule;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+@RunWith(JUnit4.class)
+public final class OteStatsTest {
+
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+
+  @Before
+  public void init() throws Exception {
+    OteStatsTestHelper.setupHistoryEntries();
+  }
+
+  @Test
+  public void testSuccess_allPass() {
+    OteStats stats = OteStats.getFromRegistrar("blobio");
+    assertThat(stats.getFailures()).isEmpty();
+    assertThat(stats.getSize()).isEqualTo(31);
+  }
+
+  @Test
+  public void testSuccess_someFailures() {
+    OteStatsTestHelper.deleteHostDeleteHistoryEntry();
+    OteStatsTestHelper.deleteDomainCreateHistoryEntry();
+    OteStatsTestHelper.deleteDomainRestoreHistoryEntry();
+    OteStats stats = OteStats.getFromRegistrar("blobio");
+    assertThat(stats.getFailures())
+        .containsExactly(
+            StatType.DOMAIN_CREATES_IDN, StatType.DOMAIN_RESTORES, StatType.HOST_DELETES)
+        .inOrder();
+    assertThat(stats.getSize()).isEqualTo(35);
+  }
+
+  @Test
+  public void testSuccess_toString() {
+    OteStats stats = OteStats.getFromRegistrar("blobio");
+    String expected =
+        "contact creates: 0\n"
+            + "contact deletes: 0\n"
+            + "contact transfer approves: 0\n"
+            + "contact transfer cancels: 0\n"
+            + "contact transfer rejects: 0\n"
+            + "contact transfer requests: 0\n"
+            + "contact updates: 0\n"
+            + "domain application creates: 0\n"
+            + "domain application creates landrush: 0\n"
+            + "domain application creates sunrise: 0\n"
+            + "domain application deletes: 0\n"
+            + "domain application updates: 0\n"
+            + "domain autorenews: 0\n"
+            + "domain creates: 5\n"
+            + "domain creates ascii: 4\n"
+            + "domain creates idn: 1\n"
+            + "domain creates start date sunrise: 1\n"
+            + "domain creates with claims notice: 1\n"
+            + "domain creates with fee: 1\n"
+            + "domain creates with sec dns: 1\n"
+            + "domain creates without sec dns: 4\n"
+            + "domain deletes: 2\n"
+            + "domain renews: 0\n"
+            + "domain restores: 1\n"
+            + "domain transfer approves: 1\n"
+            + "domain transfer cancels: 1\n"
+            + "domain transfer rejects: 1\n"
+            + "domain transfer requests: 1\n"
+            + "domain updates: 1\n"
+            + "domain updates with sec dns: 1\n"
+            + "domain updates without sec dns: 0\n"
+            + "host creates: 1\n"
+            + "host creates external: 0\n"
+            + "host creates subordinate: 1\n"
+            + "host deletes: 1\n"
+            + "host updates: 1\n"
+            + "unclassified flows: 0\n"
+            + "TOTAL: 31";
+    assertThat(stats.toString()).isEqualTo(expected);
+  }
+
+  @Test
+  public void testMissingHostDeletes_toString() {
+    OteStatsTestHelper.deleteHostDeleteHistoryEntry();
+    OteStats stats = OteStats.getFromRegistrar("blobio");
+    String expected =
+        "contact creates: 0\n"
+            + "contact deletes: 0\n"
+            + "contact transfer approves: 0\n"
+            + "contact transfer cancels: 0\n"
+            + "contact transfer rejects: 0\n"
+            + "contact transfer requests: 0\n"
+            + "contact updates: 0\n"
+            + "domain application creates: 0\n"
+            + "domain application creates landrush: 0\n"
+            + "domain application creates sunrise: 0\n"
+            + "domain application deletes: 0\n"
+            + "domain application updates: 0\n"
+            + "domain autorenews: 0\n"
+            + "domain creates: 5\n"
+            + "domain creates ascii: 4\n"
+            + "domain creates idn: 1\n"
+            + "domain creates start date sunrise: 1\n"
+            + "domain creates with claims notice: 1\n"
+            + "domain creates with fee: 1\n"
+            + "domain creates with sec dns: 1\n"
+            + "domain creates without sec dns: 4\n"
+            + "domain deletes: 2\n"
+            + "domain renews: 0\n"
+            + "domain restores: 1\n"
+            + "domain transfer approves: 1\n"
+            + "domain transfer cancels: 1\n"
+            + "domain transfer rejects: 1\n"
+            + "domain transfer requests: 1\n"
+            + "domain updates: 1\n"
+            + "domain updates with sec dns: 1\n"
+            + "domain updates without sec dns: 0\n"
+            + "host creates: 1\n"
+            + "host creates external: 0\n"
+            + "host creates subordinate: 1\n"
+            + "host deletes: 0\n"
+            + "host updates: 10\n"
+            + "unclassified flows: 0\n"
+            + "TOTAL: 39";
+    assertThat(stats.toString()).isEqualTo(expected);
+  }
+}

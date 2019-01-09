@@ -26,6 +26,7 @@ import static google.registry.flows.domain.DomainFlowUtils.newAutorenewPollMessa
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.validateRegistrationPeriod;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistrarIsActive;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
@@ -101,6 +102,7 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.FeesMismatchException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link DomainFlowUtils.RegistrarMustBeActiveForThisOperationException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainRenewFlow.IncorrectCurrentExpirationDateException}
  */
@@ -133,6 +135,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
     flowCustomLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    verifyRegistrarIsActive(clientId);
     DateTime now = ofy().getTransactionTime();
     Renew command = (Renew) resourceCommand;
     // Loads the target resource if it exists
@@ -172,12 +175,17 @@ public final class DomainRenewFlow implements TransactionalFlow {
         .build();
     // End the old autorenew billing event and poll message now. This may delete the poll message.
     updateAutorenewRecurrenceEndTime(existingDomain, now);
-    DomainResource newDomain = existingDomain.asBuilder()
-        .setRegistrationExpirationTime(newExpirationTime)
-        .setAutorenewBillingEvent(Key.create(newAutorenewEvent))
-        .setAutorenewPollMessage(Key.create(newAutorenewPollMessage))
-        .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.RENEW, explicitRenewEvent))
-        .build();
+    DomainResource newDomain =
+        existingDomain
+            .asBuilder()
+            .setLastEppUpdateTime(now)
+            .setLastEppUpdateClientId(clientId)
+            .setRegistrationExpirationTime(newExpirationTime)
+            .setAutorenewBillingEvent(Key.create(newAutorenewEvent))
+            .setAutorenewPollMessage(Key.create(newAutorenewPollMessage))
+            .addGracePeriod(
+                GracePeriod.forBillingEvent(GracePeriodStatus.RENEW, explicitRenewEvent))
+            .build();
     EntityChanges entityChanges =
         flowCustomLogic.beforeSave(
             BeforeSaveParameters.newBuilder()
@@ -218,7 +226,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
         .setType(HistoryEntry.Type.DOMAIN_RENEW)
         .setPeriod(period)
         .setModificationTime(now)
-        .setParent(Key.create(existingDomain))
+        .setParent(existingDomain)
         .setDomainTransactionRecords(
             ImmutableSet.of(
                 DomainTransactionRecord.create(

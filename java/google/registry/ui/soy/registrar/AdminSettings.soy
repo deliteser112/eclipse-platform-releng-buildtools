@@ -1,0 +1,66 @@
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+{namespace registry.soy.registrar.admin}
+
+
+
+/** Registrar admin settings page for view and edit. */
+{template .settings}
+  {@param allowedTlds: list<string>}
+  <form name="item" class="{css('item')} {css('registrar')}">
+    <h1>Administrator settings</h1>
+    <table>
+      <tr class="{css('kd-settings-pane-section')}">
+        <td>
+          <label class="{css('setting-label')}">Allowed TLDs</label>
+          <span class="{css('description')}">set or remove TLDs this
+            client is allowed access to.</span>
+        <td class="{css('setting')}">
+          <div class="{css('info')} {css('summary')}">
+            <div id="tlds">
+              {for $tld in $allowedTlds}
+                {call .tld}
+                  {param name: 'allowedTlds[' + index($tld) + ']' /}
+                  {param tld: $tld /}
+                {/call}
+              {/for}
+            </div>
+            <div class="{css('hidden')}">
+              <input id="newTld" value="" placeholder="Enter TLD"/>
+              <button id="btn-add-tld" type="button"
+                      class="{css('kd-button')} {css('btn-add')}">Add</button>
+            </div>
+          </div>
+      <tr class="{css('kd-settings-pane-section')}">
+        <td>
+          <label class="{css('setting-label')}">OT&amp;E setup page</label>
+        <td class="{css('setting')}">
+          <p>Generate new OT&amp;E accounts <a href="/registrar-ote-setup">here</a>
+    </table>
+  </form>
+{/template}
+
+
+/** TLD form input. */
+{template .tld}
+  {@param name: string}
+  {@param tld: string}
+  <div class="{css('tld')}">
+    <button type="button" class="{css('kd-button')} {css('btn-remove')} {css('hidden')}">
+      <i class="{css('icon-remove')} {css('edit')}">x</i>
+    </button>
+    <input name="{$name}" value="{$tld}" readonly>
+  </div>
+{/template}

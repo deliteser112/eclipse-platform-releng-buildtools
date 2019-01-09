@@ -15,7 +15,6 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServer;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2_HASH;
@@ -52,12 +51,6 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
         "op", "update",
         "id", CLIENT_ID,
         "args", modified.toJsonMap()));
-    // Empty whoisServer field should be set to default by server.
-    modified =
-        modified
-            .asBuilder()
-            .setWhoisServer(getDefaultRegistrarWhoisServer())
-            .build();
     assertThat(response).containsEntry("status", "SUCCESS");
     assertThat(response).containsEntry("results", asList(modified.toJsonMap()));
     assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);

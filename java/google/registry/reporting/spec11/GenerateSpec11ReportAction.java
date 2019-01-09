@@ -28,12 +28,14 @@ import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
+import google.registry.reporting.ReportingModule;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
+import java.util.Map;
 import javax.inject.Inject;
-import org.joda.time.YearMonth;
+import org.joda.time.LocalDate;
 
 /**
  * Invokes the {@code Spec11Pipeline} Beam template via the REST api.
@@ -53,7 +55,7 @@ public class GenerateSpec11ReportAction implements Runnable {
   private final String spec11TemplateUrl;
   private final String jobZone;
   private final String apiKey;
-  private final YearMonth yearMonth;
+  private final LocalDate date;
   private final Response response;
   private final Dataflow dataflow;
 
@@ -64,7 +66,7 @@ public class GenerateSpec11ReportAction implements Runnable {
       @Config("spec11TemplateUrl") String spec11TemplateUrl,
       @Config("defaultJobZone") String jobZone,
       @Key("safeBrowsingAPIKey") String apiKey,
-      YearMonth yearMonth,
+      LocalDate date,
       Response response,
       Dataflow dataflow) {
     this.projectId = projectId;
@@ -72,7 +74,7 @@ public class GenerateSpec11ReportAction implements Runnable {
     this.spec11TemplateUrl = spec11TemplateUrl;
     this.jobZone = jobZone;
     this.apiKey = apiKey;
-    this.yearMonth = yearMonth;
+    this.date = date;
     this.response = response;
     this.dataflow = dataflow;
   }
@@ -82,14 +84,14 @@ public class GenerateSpec11ReportAction implements Runnable {
     try {
       LaunchTemplateParameters params =
           new LaunchTemplateParameters()
-              .setJobName(String.format("spec11_%s", yearMonth.toString()))
+              .setJobName(String.format("spec11_%s", date))
               .setEnvironment(
                   new RuntimeEnvironment()
                       .setZone(jobZone)
                       .setTempLocation(beamBucketUrl + "/temporary"))
               .setParameters(
                   ImmutableMap.of(
-                      "safeBrowsingApiKey", apiKey, "yearMonth", yearMonth.toString("yyyy-MM")));
+                      "safeBrowsingApiKey", apiKey, ReportingModule.PARAM_DATE, date.toString()));
       LaunchTemplateResponse launchResponse =
           dataflow
               .projects()
@@ -97,8 +99,13 @@ public class GenerateSpec11ReportAction implements Runnable {
               .launch(projectId, params)
               .setGcsPath(spec11TemplateUrl)
               .execute();
-      enqueueBeamReportingTask(
-          PublishSpec11ReportAction.PATH, launchResponse.getJob().getId(), yearMonth);
+      Map<String, String> beamTaskParameters =
+          ImmutableMap.of(
+              ReportingModule.PARAM_JOB_ID,
+              launchResponse.getJob().getId(),
+              ReportingModule.PARAM_DATE,
+              date.toString());
+      enqueueBeamReportingTask(PublishSpec11ReportAction.PATH, beamTaskParameters);
       logger.atInfo().log("Got response: %s", launchResponse.getJob().toPrettyString());
     } catch (IOException e) {
       logger.atWarning().withCause(e).log("Template Launch failed");

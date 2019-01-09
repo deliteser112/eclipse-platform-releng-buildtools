@@ -17,13 +17,11 @@ package google.registry.ui.server.registrar;
 import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddress;
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
+import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.ADMIN;
+import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.disallowRegistrarAccess;
-import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.ADMIN;
-import static google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor.Role.OWNER;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
@@ -32,17 +30,18 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.ofy.Ofy;
-import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonResponse;
 import google.registry.request.ResponseImpl;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.testing.MockitoJUnitRule;
+import google.registry.ui.server.SendEmailUtils;
 import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.SendEmailService;
 import java.io.PrintWriter;
@@ -99,11 +98,12 @@ public class RegistrarSettingsActionTestCase {
     when(appEngineServiceUtils.getCurrentVersionHostname("backend")).thenReturn("backend.hostname");
     action.jsonActionRunner = new JsonActionRunner(
         ImmutableMap.of(), new JsonResponse(new ResponseImpl(rsp)));
-    action.registrarChangesNotificationEmailAddresses = ImmutableList.of(
-        "notification@test.example", "notification2@test.example");
     action.sendEmailUtils =
         new SendEmailUtils(
-            getGSuiteOutgoingEmailAddress(), getGSuiteOutgoingEmailDisplayName(), emailService);
+            getGSuiteOutgoingEmailAddress(),
+            getGSuiteOutgoingEmailDisplayName(),
+            ImmutableList.of("notification@test.example", "notification2@test.example"),
+            emailService);
     action.registryEnvironment = RegistryEnvironment.get();
     action.registrarConsoleMetrics = new RegistrarConsoleMetrics();
     action.authResult =
@@ -134,34 +134,25 @@ public class RegistrarSettingsActionTestCase {
     RegistrarConsoleMetrics.settingsRequestMetric.reset(clientId, op, roles, status);
   }
 
-  /** Sets registrarAccessor.getRegistrar to succeed for all AccessTypes. */
+  /** Sets registrarAccessor.getRegistrar to succeed for CLIENT_ID only. */
   protected void setUserWithAccess() {
-    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
-
-    when(action.registrarAccessor.getAllClientIdWithRoles())
-        .thenReturn(ImmutableSetMultimap.of(CLIENT_ID, OWNER));
-    when(action.registrarAccessor.getRegistrar(CLIENT_ID))
-        .thenAnswer(x -> loadRegistrar(CLIENT_ID));
+    action.registrarAccessor =
+        AuthenticatedRegistrarAccessor.createForTesting(
+            ImmutableSetMultimap.of(CLIENT_ID, OWNER));
   }
 
   /** Sets registrarAccessor.getRegistrar to always fail. */
   protected void setUserWithoutAccess() {
-    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
-
-    when(action.registrarAccessor.getAllClientIdWithRoles()).thenReturn(ImmutableSetMultimap.of());
-    when(action.registrarAccessor.getRegistrar(CLIENT_ID))
-        .thenThrow(new ForbiddenException("forbidden test error"));
+    action.registrarAccessor =
+        AuthenticatedRegistrarAccessor.createForTesting(ImmutableSetMultimap.of());
   }
 
   /**
    * Sets registrarAccessor.getAllClientIdWithRoles to return a map with admin role for CLIENT_ID
    */
   protected void setUserAdmin() {
-    action.registrarAccessor = mock(AuthenticatedRegistrarAccessor.class);
-
-    when(action.registrarAccessor.getAllClientIdWithRoles())
-        .thenReturn(ImmutableSetMultimap.of(CLIENT_ID, ADMIN));
-    when(action.registrarAccessor.getRegistrar(CLIENT_ID))
-        .thenAnswer(x -> loadRegistrar(CLIENT_ID));
+    action.registrarAccessor =
+        AuthenticatedRegistrarAccessor.createForTesting(
+            ImmutableSetMultimap.of(CLIENT_ID, ADMIN));
   }
 }

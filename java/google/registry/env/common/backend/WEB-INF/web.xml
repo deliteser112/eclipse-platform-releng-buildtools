@@ -177,6 +177,24 @@
   <!-- Exports a Datastore backup snapshot to GCS. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/backupDatastore</url-pattern>
+  </servlet-mapping>
+
+  <!-- Checks the completion of a Datastore backup snapshot. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/checkDatastoreBackup</url-pattern>
+  </servlet-mapping>
+
+  <!-- Loads a Datastore backup snapshot into BigQuery. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/uploadDatastoreBackup</url-pattern>
+  </servlet-mapping>
+
+  <!-- Exports a Datastore backup snapshot to GCS. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
     <url-pattern>/_dr/task/exportSnapshot</url-pattern>
   </servlet-mapping>
 

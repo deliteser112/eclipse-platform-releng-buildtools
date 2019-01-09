@@ -133,7 +133,11 @@ public class DomainTransferCancelFlowTest
     assertAboutDomains()
         .that(domain)
         .hasOneHistoryEntryEachOfTypes(
-            DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST, DOMAIN_TRANSFER_CANCEL);
+            DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST, DOMAIN_TRANSFER_CANCEL)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("NewRegistrar");
     final HistoryEntry historyEntryTransferCancel =
         getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_CANCEL);
     assertAboutHistoryEntries()

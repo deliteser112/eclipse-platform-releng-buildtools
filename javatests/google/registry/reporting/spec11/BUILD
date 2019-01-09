@@ -12,6 +12,7 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["testdata/*"]),
     deps = [
+        "//java/google/registry/beam/spec11",
         "//java/google/registry/gcs",
         "//java/google/registry/reporting/spec11",
         "//java/google/registry/util",

@@ -84,11 +84,16 @@ final class UpdateSmdCommand implements CommandWithRemoteApi {
     DateTime now = ofy().getTransactionTime();
 
     // Load the domain application.
-    DomainApplication domainApplication = loadDomainApplication(applicationId, now);
-    checkArgument(domainApplication != null, "Domain application does not exist");
+    DomainApplication domainApplication =
+        loadDomainApplication(applicationId, now)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Domain application does not exist or is deleted"));
 
     // Make sure this is a sunrise application.
-    checkArgument(!domainApplication.getEncodedSignedMarks().isEmpty(),
+    checkArgument(
+        !domainApplication.getEncodedSignedMarks().isEmpty(),
         "Can't update SMD on a landrush application.");
 
     // Verify the new SMD.

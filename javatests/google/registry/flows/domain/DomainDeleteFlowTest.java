@@ -328,6 +328,30 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   @Test
+  public void testSuccess_updatedEppUpdateTimeAfterPendingRedemption() throws Exception {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setRedemptionGracePeriodLength(standardDays(3))
+            .setPendingDeleteLength(standardDays(2))
+            .build());
+    setClientIdForFlow("TheRegistrar");
+    setUpSuccessfulTest();
+    clock.advanceOneMilli();
+
+    runFlowAssertResponse(loadFile("domain_delete_response_pending.xml"));
+
+    DomainResource domain = reloadResourceByForeignKey();
+    DateTime redemptionEndTime = domain.getLastEppUpdateTime().plusDays(3);
+    DomainResource domainAtRedemptionTime = domain.cloneProjectedAtTime(redemptionEndTime);
+    assertAboutDomains()
+        .that(domainAtRedemptionTime)
+        .hasLastEppUpdateClientId("TheRegistrar")
+        .and()
+        .hasLastEppUpdateTime(redemptionEndTime);
+  }
+
+  @Test
   public void testSuccess_addGracePeriodResultsInImmediateDelete() throws Exception {
     sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
     doImmediateDeleteTest(GracePeriodStatus.ADD, "generic_success_response.xml");
@@ -668,6 +692,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     HostResource host = persistResource(newHostResource("ns1.example.tld"));
     persistResource(
         loadByForeignKey(DomainResource.class, getUniqueIdFromCommand(), clock.nowUtc())
+            .get()
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host)))
             .build());
@@ -676,7 +701,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         newDomainResource("example1.tld")
             .asBuilder()
             .setRegistrant(
-                Key.create(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))
+                Key.create(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc()).get()))
             .setNameservers(ImmutableSet.of(Key.create(host)))
             .setDeletionTime(START_OF_TIME)
             .build());
@@ -834,7 +859,11 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     runFlow();
     assertAboutDomains()
         .that(reloadResourceByForeignKey())
-        .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_DELETE);
+        .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_DELETE)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("TheRegistrar");
     assertAboutHistoryEntries()
         .that(getOnlyHistoryEntryOfType(domain, DOMAIN_DELETE))
         .hasType(DOMAIN_DELETE)

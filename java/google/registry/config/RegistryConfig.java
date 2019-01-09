@@ -16,10 +16,13 @@ package google.registry.config;
 
 import static com.google.common.base.Suppliers.memoize;
 import static google.registry.config.ConfigUtils.makeUrl;
+import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -29,6 +32,7 @@ import dagger.Provides;
 import google.registry.util.RandomStringGenerator;
 import google.registry.util.StringGenerator;
 import google.registry.util.TaskQueueUtils;
+import google.registry.util.YamlUtils;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
@@ -56,12 +60,32 @@ import org.joda.time.Duration;
  */
 public final class RegistryConfig {
 
+  private static final String ENVIRONMENT_CONFIG_FORMAT = "files/nomulus-config-%s.yaml";
+  private static final String YAML_CONFIG_PROD =
+      readResourceUtf8(RegistryConfig.class, "files/default-config.yaml");
+
   /** Dagger qualifier for configuration settings. */
   @Qualifier
   @Retention(RUNTIME)
   @Documented
   public @interface Config {
     String value() default "";
+  }
+
+  /**
+   * Loads the {@link RegistryConfigSettings} POJO from the YAML configuration files.
+   *
+   * <p>The {@code default-config.yaml} file in this directory is loaded first, and a fatal error is
+   * thrown if it cannot be found or if there is an error parsing it. Separately, the
+   * environment-specific config file named {@code nomulus-config-ENVIRONMENT.yaml} is also loaded
+   * and those values merged into the POJO.
+   */
+  static RegistryConfigSettings getConfigSettings() {
+    String configFilePath =
+        String.format(
+            ENVIRONMENT_CONFIG_FORMAT, Ascii.toLowerCase(RegistryEnvironment.get().name()));
+    String customYaml = readResourceUtf8(RegistryConfig.class, configFilePath);
+    return YamlUtils.getConfigSettings(YAML_CONFIG_PROD, customYaml, RegistryConfigSettings.class);
   }
 
   /** Dagger module for providing configuration settings. */
@@ -393,6 +417,20 @@ public final class RegistryConfig {
     }
 
     /**
+     * Returns the email address of the group containing emails of support accounts.
+     *
+     * <p>These accounts will have "ADMIN" access to the registrar console.
+     *
+     * @see google.registry.groups.DirectoryGroupsConnection
+     */
+    @Provides
+    @Config("gSuiteSupportGroupEmailAddress")
+    public static Optional<String> provideGSuiteSupportGroupEmailAddress(
+        RegistryConfigSettings config) {
+      return Optional.ofNullable(Strings.emptyToNull(config.gSuite.supportGroupEmailAddress));
+    }
+
+    /**
      * Returns the email address(es) that notifications of registrar and/or registrar contact
      * updates should be sent to, or the empty list if updates should not be sent.
      *
@@ -471,7 +509,7 @@ public final class RegistryConfig {
     /**
      * The email address that outgoing emails from the app are sent from.
      *
-     * @see google.registry.ui.server.registrar.SendEmailUtils
+     * @see google.registry.ui.server.SendEmailUtils
      */
     @Provides
     @Config("gSuiteOutgoingEmailAddress")
@@ -482,10 +520,10 @@ public final class RegistryConfig {
     /**
      * The display name that is used on outgoing emails sent by Nomulus.
      *
-     * @see google.registry.ui.server.registrar.SendEmailUtils
+     * @see google.registry.ui.server.SendEmailUtils
      */
     @Provides
-    @Config("gSuiteOutoingEmailDisplayName")
+    @Config("gSuiteOutgoingEmailDisplayName")
     public static String provideGSuiteOutgoingEmailDisplayName(RegistryConfigSettings config) {
       return config.gSuite.outgoingEmailDisplayName;
     }
@@ -535,6 +573,17 @@ public final class RegistryConfig {
     public static String provideSpec11TemplateUrl(
         @Config("apacheBeamBucketUrl") String beamBucketUrl) {
       return beamBucketUrl + "/templates/spec11";
+    }
+
+    /**
+     * Returns whether an SSL certificate hash is required to log in via EPP and run flows.
+     *
+     * @see google.registry.flows.TlsCredentials
+     */
+    @Provides
+    @Config("requireSslCertificates")
+    public static boolean provideRequireSslCertificates(RegistryConfigSettings config) {
+      return config.registryPolicy.requireSslCertificates;
     }
 
     /**
@@ -654,6 +703,18 @@ public final class RegistryConfig {
     public static ImmutableList<String> provideInvoiceEmailRecipients(
         RegistryConfigSettings config) {
       return ImmutableList.copyOf(config.billing.invoiceEmailRecipients);
+    }
+
+    /**
+     * Returns the file prefix for the invoice CSV file.
+     *
+     * @see google.registry.beam.invoicing.InvoicingPipeline
+     * @see google.registry.reporting.billing.BillingEmailUtils
+     */
+    @Provides
+    @Config("invoiceFilePrefix")
+    public static String provideInvoiceFilePrefix(RegistryConfigSettings config) {
+      return config.billing.invoiceFilePrefix;
     }
 
     /**
@@ -825,20 +886,6 @@ public final class RegistryConfig {
     @Config("alertRecipientEmailAddress")
     public static String provideAlertRecipientEmailAddress(RegistryConfigSettings config) {
       return config.misc.alertRecipientEmailAddress;
-    }
-
-    /**
-     * Returns the email address we send emails from.
-     *
-     * @see google.registry.reporting.icann.ReportingEmailUtils
-     * @see google.registry.reporting.billing.BillingEmailUtils
-     * @see google.registry.reporting.spec11.Spec11EmailUtils
-     */
-    @Provides
-    @Config("alertSenderEmailAddress")
-    public static String provideAlertSenderEmailAddress(
-        @Config("projectId") String projectId, RegistryConfigSettings config) {
-      return String.format("%s-no-reply@%s", projectId, config.misc.alertEmailSenderDomain);
     }
 
     /**
@@ -1090,6 +1137,12 @@ public final class RegistryConfig {
       return config.registryPolicy.allocationTokenCustomLogicClass;
     }
 
+    @Provides
+    @Config("dnsCountQueryCoordinatorClass")
+    public static String dnsCountQueryCoordinatorClass(RegistryConfigSettings config) {
+      return config.registryPolicy.dnsCountQueryCoordinatorClass;
+    }
+
     /** Returns the disclaimer text for the exported premium terms. */
     @Provides
     @Config("premiumTermsExportDisclaimer")
@@ -1195,6 +1248,14 @@ public final class RegistryConfig {
       return ImmutableList.copyOf(config.credentialOAuth.delegatedCredentialOauthScopes);
     }
 
+    /** Provides the OAuth scopes required for credentials created locally for the nomulus tool. */
+    @Provides
+    @Config("localCredentialOauthScopes")
+    public static ImmutableList<String> provideLocalCredentialOauthScopes(
+        RegistryConfigSettings config) {
+      return ImmutableList.copyOf(config.credentialOAuth.localCredentialOauthScopes);
+    }
+
     /**
      * Returns the help path for the RDAP terms of service.
      *
@@ -1208,21 +1269,36 @@ public final class RegistryConfig {
       return "/tos";
     }
 
-    /**
-     * Returns the name of the OAuth2 client secrets file.
-     *
-     * <p>This is the name of a resource relative to the root of the class tree.
-     */
+    /** OAuth client ID used by the nomulus tool. */
     @Provides
-    @Config("clientSecretFilename")
-    public static String provideClientSecretFilename(RegistryConfigSettings config) {
-      return config.registryTool.clientSecretFilename;
+    @Config("toolsClientId")
+    public static String provideToolsClientId(RegistryConfigSettings config) {
+      return config.registryTool.clientId;
+    }
+
+    /** OAuth client secret used by the nomulus tool. */
+    @Provides
+    @Config("toolsClientSecret")
+    public static String provideToolsClientSecret(RegistryConfigSettings config) {
+      return config.registryTool.clientSecret;
     }
 
     @Provides
     @Config("rdapTos")
     public static ImmutableList<String> provideRdapTos(RegistryConfigSettings config) {
       return ImmutableList.copyOf(Splitter.on('\n').split(config.registryPolicy.rdapTos));
+    }
+
+    /**
+     * Link to static Web page with RDAP terms of service. Displayed in RDAP responses.
+     *
+     * @see google.registry.rdap.RdapJsonFormatter
+     */
+    @Provides
+    @Config("rdapTosStaticUrl")
+    @Nullable
+    public static String provideRdapTosStaticUrl(RegistryConfigSettings config) {
+      return config.registryPolicy.rdapTosStaticUrl;
     }
 
     /**
@@ -1235,30 +1311,38 @@ public final class RegistryConfig {
     @Provides
     @Config("rdapHelpMap")
     public static ImmutableMap<String, RdapNoticeDescriptor> provideRdapHelpMap(
-        @Config("rdapTos") ImmutableList<String> rdapTos) {
+        @Config("rdapTos") ImmutableList<String> rdapTos,
+        @Config("rdapTosStaticUrl") @Nullable String rdapTosStaticUrl) {
       return new ImmutableMap.Builder<String, RdapNoticeDescriptor>()
-          .put("/", RdapNoticeDescriptor.builder()
-              .setTitle("RDAP Help")
-              .setDescription(ImmutableList.of(
-                  "domain/XXXX",
-                  "nameserver/XXXX",
-                  "entity/XXXX",
-                  "domains?name=XXXX",
-                  "domains?nsLdhName=XXXX",
-                  "domains?nsIp=XXXX",
-                  "nameservers?name=XXXX",
-                  "nameservers?ip=XXXX",
-                  "entities?fn=XXXX",
-                  "entities?handle=XXXX",
-                  "help/XXXX"))
-              .setLinkValueSuffix("help/")
-              .setLinkHrefUrlString("https://github.com/google/nomulus/blob/master/docs/rdap.md")
-              .build())
-          .put("/tos", RdapNoticeDescriptor.builder()
-              .setTitle("RDAP Terms of Service")
-              .setDescription(rdapTos)
-              .setLinkValueSuffix("help/tos")
-              .build())
+          .put(
+              "/",
+              RdapNoticeDescriptor.builder()
+                  .setTitle("RDAP Help")
+                  .setDescription(
+                      ImmutableList.of(
+                          "domain/XXXX",
+                          "nameserver/XXXX",
+                          "entity/XXXX",
+                          "domains?name=XXXX",
+                          "domains?nsLdhName=XXXX",
+                          "domains?nsIp=XXXX",
+                          "nameservers?name=XXXX",
+                          "nameservers?ip=XXXX",
+                          "entities?fn=XXXX",
+                          "entities?handle=XXXX",
+                          "help/XXXX"))
+                  .setLinkValueSuffix("help/")
+                  .setLinkHrefUrlString(
+                      "https://github.com/google/nomulus/blob/master/docs/rdap.md")
+                  .build())
+          .put(
+              "/tos",
+              RdapNoticeDescriptor.builder()
+                  .setTitle("RDAP Terms of Service")
+                  .setDescription(rdapTos)
+                  .setLinkValueSuffix("help/tos")
+                  .setLinkHrefUrlString(rdapTosStaticUrl)
+                  .build())
           .build();
     }
 
@@ -1317,6 +1401,15 @@ public final class RegistryConfig {
    */
   public static String getSnapshotsBucket() {
     return getProjectId() + "-snapshots";
+  }
+
+  /**
+   * Returns the Google Cloud Storage bucket for storing Datastore backups.
+   *
+   * @see google.registry.export.BackupDatastoreAction
+   */
+  public static String getDatastoreBackupsBucket() {
+    return "gs://" + getProjectId() + "-datastore-backups";
   }
 
   /**
@@ -1481,12 +1574,6 @@ public final class RegistryConfig {
     return Duration.standardDays(CONFIG_SETTINGS.get().registryPolicy.contactAutomaticTransferDays);
   }
 
-  /** Provided for testing. */
-  @VisibleForTesting
-  public static String getClientSecretFilename() {
-    return CONFIG_SETTINGS.get().registryTool.clientSecretFilename;
-  }
-
   /**
    * Memoizes loading of the {@link RegistryConfigSettings} POJO.
    *
@@ -1495,7 +1582,7 @@ public final class RegistryConfig {
    */
   @VisibleForTesting
   public static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
-      memoize(YamlUtils::getConfigSettings);
+      memoize(RegistryConfig::getConfigSettings);
 
   private static String formatComments(String text) {
     return Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text).stream()

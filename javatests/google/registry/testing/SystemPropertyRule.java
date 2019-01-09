@@ -17,6 +17,7 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
+import google.registry.config.SystemPropertySetter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,10 +26,8 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import org.junit.rules.ExternalResource;
 
-/**
- * JUnit Rule for overriding the values Java system properties during tests.
- */
-public final class SystemPropertyRule extends ExternalResource {
+/** JUnit Rule for overriding the values Java system properties during tests. */
+public final class SystemPropertyRule extends ExternalResource implements SystemPropertySetter {
 
   /** Class representing a system property key value pair. */
   private static class Property {
@@ -56,14 +55,15 @@ public final class SystemPropertyRule extends ExternalResource {
   /**
    * Change the value of a system property which is restored to its original value after the test.
    *
-   * <p>It's safe to call this method multiple times with the same {@code key} within a single
-   * test. Only the truly original property value will be restored at the end.
+   * <p>It's safe to call this method multiple times with the same {@code key} within a single test.
+   * Only the truly original property value will be restored at the end.
    *
    * <p>This method can be called fluently when declaring the Rule field, or within a Test method.
    *
    * @see java.lang.System#setProperty(String, String)
    */
-  public SystemPropertyRule override(String key, @Nullable String value) {
+  @Override
+  public SystemPropertyRule setProperty(String key, @Nullable String value) {
     originals.computeIfAbsent(
         key, k -> new Property(k, Optional.ofNullable(System.getProperty(k))));
     Property property = new Property(key, Optional.ofNullable(value));

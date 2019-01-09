@@ -1,5 +1,10 @@
 rootProject.name = 'nomulus'
 
-include 'third_party'
 include 'core'
-
+include 'proxy'
+include 'third_party'
+include 'util'
+include 'services:default'
+include 'services:backend'
+include 'services:tools'
+include 'services:pubapi'

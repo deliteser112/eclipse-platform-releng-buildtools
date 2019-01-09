@@ -14,9 +14,10 @@
 
 package google.registry.tools;
 
+import dagger.BindsInstance;
 import dagger.Component;
 import google.registry.bigquery.BigqueryModule;
-import google.registry.config.CredentialModule;
+import google.registry.config.CredentialModule.LocalCredentialJson;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
@@ -31,10 +32,13 @@ import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UserServiceModule;
+import google.registry.tools.AuthModule.LocalCredentialModule;
 import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
 import google.registry.whois.WhoisModule;
+import javax.annotation.Nullable;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
@@ -46,23 +50,22 @@ import javax.inject.Singleton;
 @Singleton
 @Component(
     modules = {
+      AppEngineAdminApiModule.class,
       AppEngineServiceUtilsModule.class,
-      // TODO(b/36866706): Find a way to replace this with a command-line friendly version
       AuthModule.class,
       BigqueryModule.class,
       ConfigModule.class,
-      CredentialModule.class,
+      CloudDnsWriterModule.class,
       DatastoreServiceModule.class,
       DummyKeyringModule.class,
-      CloudDnsWriterModule.class,
-      DefaultRequestFactoryModule.class,
-      DefaultRequestFactoryModule.RequestFactoryModule.class,
       DnsUpdateWriterModule.class,
       Jackson2Module.class,
       KeyModule.class,
       KeyringModule.class,
       KmsModule.class,
+      LocalCredentialModule.class,
       RdeModule.class,
+      RequestFactoryModule.class,
       SystemClockModule.class,
       SystemSleeperModule.class,
       URLFetchServiceModule.class,
@@ -98,8 +101,10 @@ interface RegistryToolComponent {
   void inject(PendingEscrowCommand command);
   void inject(RenewDomainCommand command);
   void inject(SendEscrowReportToIcannCommand command);
+  void inject(SetNumInstancesCommand command);
   void inject(SetupOteCommand command);
   void inject(UnlockDomainCommand command);
+  void inject(UnrenewDomainCommand command);
   void inject(UpdateCursorsCommand command);
   void inject(UpdateDomainCommand command);
   void inject(UpdateKmsKeyringCommand command);
@@ -108,4 +113,15 @@ interface RegistryToolComponent {
   void inject(WhoisQueryCommand command);
 
   AppEngineConnection appEngineConnection();
+
+  @LocalCredentialJson
+  String googleCredentialJson();
+
+  @Component.Builder
+  interface Builder {
+    @BindsInstance
+    Builder credentialFilename(@Nullable @Named("credentialFileName") String credentialFilename);
+
+    RegistryToolComponent build();
+  }
 }

@@ -14,6 +14,7 @@
 
 package google.registry.dns.writer.dnsupdate;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
@@ -126,9 +127,12 @@ public class DnsUpdateWriter extends BaseDnsWriter {
    *     this domain refresh request
    */
   private void publishDomain(String domainName, String requestingHostName) {
-    DomainResource domain = loadByForeignKey(DomainResource.class, domainName, clock.nowUtc());
+    Optional<DomainResource> domainOptional =
+        loadByForeignKey(DomainResource.class, domainName, clock.nowUtc());
     update.delete(toAbsoluteName(domainName), Type.ANY);
-    if (domain != null) {
+    // If the domain is now deleted, then don't update DNS for it.
+    if (domainOptional.isPresent()) {
+      DomainResource domain = domainOptional.get();
       // As long as the domain exists, orphan glues should be cleaned.
       deleteSubordinateHostAddressSet(domain, requestingHostName, update);
       if (domain.shouldPublishToDns()) {
@@ -213,9 +217,10 @@ public class DnsUpdateWriter extends BaseDnsWriter {
     for (String hostName :
         intersection(
             domain.loadNameserverFullyQualifiedHostNames(), domain.getSubordinateHosts())) {
-      HostResource host = loadByForeignKey(HostResource.class, hostName, clock.nowUtc());
-      update.add(makeAddressSet(host));
-      update.add(makeV6AddressSet(host));
+      Optional<HostResource> host = loadByForeignKey(HostResource.class, hostName, clock.nowUtc());
+      checkState(host.isPresent(), "Host %s cannot be loaded", hostName);
+      update.add(makeAddressSet(host.get()));
+      update.add(makeV6AddressSet(host.get()));
     }
   }
 

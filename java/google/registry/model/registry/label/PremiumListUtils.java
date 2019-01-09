@@ -174,6 +174,12 @@ public final class PremiumListUtils {
       ofy().save().entities(newList, newRevision);
       return newList;
     });
+
+    // Invalidate the cache on this premium list so the change will take effect instantly. This only
+    // clears the cache on the same instance that the update was run on, which will typically be the
+    // only tools instance.
+    PremiumList.cachePremiumLists.invalidate(premiumList.getName());
+
     // TODO(b/79888775): Enqueue the oldPremiumList for deletion after at least
     // RegistryConfig.getDomainLabelListCacheDuration() has elapsed.
     return updated;

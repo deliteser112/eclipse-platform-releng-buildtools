@@ -66,10 +66,21 @@ class AppEngineConnection {
   }
 
   enum Service {
-    DEFAULT,
-    TOOLS,
-    BACKEND,
-    PUBAPI
+    DEFAULT("default"),
+    TOOLS("tools"),
+    BACKEND("backend"),
+    PUBAPI("pubapi");
+
+    private final String serviceId;
+
+    Service(String serviceId) {
+      this.serviceId = serviceId;
+    }
+
+    /** Returns the actual service id in App Engine. */
+    String getServiceId() {
+      return serviceId;
+    }
   }
 
   /** Returns a copy of this connection that talks to a different service. */
@@ -91,8 +102,7 @@ class AppEngineConnection {
   private String internalSend(
       String endpoint, Map<String, ?> params, MediaType contentType, @Nullable byte[] payload)
       throws IOException {
-    GenericUrl url = new GenericUrl(getServer());
-    url.setRawPath(endpoint);
+    GenericUrl url = new GenericUrl(String.format("%s%s", getServer(), endpoint));
     url.putAll(params);
     HttpRequest request =
         (payload != null)

@@ -113,7 +113,7 @@
     <rdeHost:crDate>1999-12-31T00:00:00Z</rdeHost:crDate>
     <rdeHost:upRr>CeilingCat</rdeHost:upRr>
     <rdeHost:upDate>1999-12-31T00:00:00Z</rdeHost:upDate>
-    <rdeHost:trDate>1910-01-01T00:00:00Z</rdeHost:trDate>
+    <rdeHost:trDate>1990-01-01T00:00:00Z</rdeHost:trDate>
 </rdeHost:host>
 
 <rdeHost:host>
@@ -126,7 +126,7 @@
     <rdeHost:crDate>1999-12-31T00:00:00Z</rdeHost:crDate>
     <rdeHost:upRr>CeilingCat</rdeHost:upRr>
     <rdeHost:upDate>1999-12-31T00:00:00Z</rdeHost:upDate>
-    <rdeHost:trDate>1910-01-01T00:00:00Z</rdeHost:trDate>
+    <rdeHost:trDate>1990-01-01T00:00:00Z</rdeHost:trDate>
 </rdeHost:host>
 
 <rdeDomain:domain>
@@ -150,8 +150,8 @@
     <rdeDomain:crRr>TheRegistrar</rdeDomain:crRr>
     <rdeDomain:crDate>1999-12-31T00:00:00Z</rdeDomain:crDate>
     <rdeDomain:exDate>2001-01-01T00:00:00Z</rdeDomain:exDate>
-    <rdeDomain:upRr>IntoTheTempest</rdeDomain:upRr>
-    <rdeDomain:upDate>1999-12-31T00:00:00Z</rdeDomain:upDate>
+    <rdeDomain:upRr>gaining</rdeDomain:upRr>
+    <rdeDomain:upDate>2000-01-01T00:00:00Z</rdeDomain:upDate>
     <rdeDomain:secDNS>
         <secDNS:dsData>
             <secDNS:keyTag>123</secDNS:keyTag>
@@ -160,13 +160,13 @@
             <secDNS:digest>1234567890</secDNS:digest>
         </secDNS:dsData>
     </rdeDomain:secDNS>
-    <rdeDomain:trDate>1925-04-20T00:00:00Z</rdeDomain:trDate>
+    <rdeDomain:trDate>1993-04-20T00:00:00Z</rdeDomain:trDate>
     <rdeDomain:trnData>
         <rdeDomain:trStatus>serverApproved</rdeDomain:trStatus>
         <rdeDomain:reRr>gaining</rdeDomain:reRr>
-        <rdeDomain:reDate>1919-01-01T00:00:00Z</rdeDomain:reDate>
+        <rdeDomain:reDate>1991-01-01T00:00:00Z</rdeDomain:reDate>
         <rdeDomain:acRr>losing</rdeDomain:acRr>
-        <rdeDomain:acDate>1925-04-20T00:00:00Z</rdeDomain:acDate>
+        <rdeDomain:acDate>1993-04-20T00:00:00Z</rdeDomain:acDate>
         <rdeDomain:exDate>2001-01-01T00:00:00Z</rdeDomain:exDate>
     </rdeDomain:trnData>
 </rdeDomain:domain>

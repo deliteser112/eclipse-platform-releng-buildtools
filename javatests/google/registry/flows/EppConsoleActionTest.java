@@ -22,6 +22,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.google.common.collect.ImmutableSetMultimap;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeHttpSession;
 import google.registry.testing.ShardableTestCase;
@@ -48,9 +50,11 @@ public class EppConsoleActionTest extends ShardableTestCase {
     EppConsoleAction action = new EppConsoleAction();
     action.inputXmlBytes = INPUT_XML_BYTES;
     action.session = new FakeHttpSession();
-    action.session.setAttribute("CLIENT_ID", "ClientIdentifier");
+    action.clientId = "ClientIdentifier";
     action.eppRequestHandler = mock(EppRequestHandler.class);
     action.userService = getUserService();
+    action.registrarAccessor =
+        AuthenticatedRegistrarAccessor.createForTesting(ImmutableSetMultimap.of());
     action.run();
     ArgumentCaptor<TransportCredentials> credentialsCaptor =
         ArgumentCaptor.forClass(TransportCredentials.class);
@@ -62,8 +66,8 @@ public class EppConsoleActionTest extends ShardableTestCase {
         eq(false),
         eq(false),
         eq(INPUT_XML_BYTES));
-    assertThat(((GaeUserCredentials) credentialsCaptor.getValue()).getUser().getEmail())
-        .isEqualTo("person@example.com");
+    assertThat(((GaeUserCredentials) credentialsCaptor.getValue()).toString())
+        .contains("user=TestUserId");
     assertThat(metadataCaptor.getValue().getClientId()).isEqualTo("ClientIdentifier");
   }
 }

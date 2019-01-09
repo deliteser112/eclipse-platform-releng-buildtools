@@ -64,6 +64,8 @@ public class LoadSnapshotAction implements Runnable {
 
   static final String SNAPSHOTS_DATASET = "snapshots";
 
+  static final String LATEST_SNAPSHOT_VIEW_NAME = "latest_datastore_export";
+
   /** Servlet-specific details needed for enqueuing tasks against itself. */
   static final String QUEUE = "export-snapshot";  // See queue.xml.
   static final String PATH = "/_dr/task/loadSnapshot";  // See web.xml.
@@ -131,7 +133,7 @@ public class LoadSnapshotAction implements Runnable {
       // well-known view in BigQuery to point at the newly loaded snapshot table for this kind.
       bigqueryPollEnqueuer.enqueuePollTask(
           jobRef,
-          createViewUpdateTask(SNAPSHOTS_DATASET, tableId, kindName),
+          createViewUpdateTask(SNAPSHOTS_DATASET, tableId, kindName, LATEST_SNAPSHOT_VIEW_NAME),
           getQueue(UpdateSnapshotViewAction.QUEUE));
 
       builder.append(String.format(" - %s:%s\n", projectId, jobId));

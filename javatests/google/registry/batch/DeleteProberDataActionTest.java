@@ -15,6 +15,7 @@
 package google.registry.batch;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -46,6 +47,7 @@ import google.registry.model.registry.Registry.TldType;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
+import java.util.Optional;
 import java.util.Set;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -190,7 +192,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
     runMapreduce();
     DateTime timeAfterDeletion = DateTime.now(UTC);
     assertThat(loadByForeignKey(DomainResource.class, "blah.ib-any.test", timeAfterDeletion))
-        .isNull();
+        .isEmpty();
     assertThat(ofy().load().entity(domain).now().getDeletionTime()).isLessThan(timeAfterDeletion);
     assertDnsTasksEnqueued("blah.ib-any.test");
   }
@@ -207,7 +209,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
     resetAction();
     runMapreduce();
     assertThat(loadByForeignKey(DomainResource.class, "blah.ib-any.test", timeAfterDeletion))
-        .isNull();
+        .isEmpty();
     assertThat(ofy().load().entity(domain).now().getDeletionTime()).isLessThan(timeAfterDeletion);
     assertDnsTasksEnqueued("blah.ib-any.test");
   }
@@ -220,10 +222,10 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
             .setCreationTimeForTest(DateTime.now(UTC).minusSeconds(1))
             .build());
     runMapreduce();
-    DomainResource domain =
+    Optional<DomainResource> domain =
         loadByForeignKey(DomainResource.class, "blah.ib-any.test", DateTime.now(UTC));
-    assertThat(domain).isNotNull();
-    assertThat(domain.getDeletionTime()).isEqualTo(END_OF_TIME);
+    assertThat(domain).isPresent();
+    assertThat(domain.get().getDeletionTime()).isEqualTo(END_OF_TIME);
   }
 
   @Test

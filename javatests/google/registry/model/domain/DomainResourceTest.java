@@ -17,6 +17,7 @@ package google.registry.model.domain;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -92,61 +93,66 @@ public class DomainResourceTest extends EntityTestCase {
     Key<PollMessage.OneTime> onetimePollKey =
         Key.create(historyEntryKey, PollMessage.OneTime.class, 1);
     // Set up a new persisted domain entity.
-    domain = persistResource(cloneAndSetAutoTimestamps(
-        new DomainResource.Builder()
-            .setFullyQualifiedDomainName("example.com")
-            .setRepoId("4-COM")
-            .setCreationClientId("a registrar")
-            .setLastEppUpdateTime(clock.nowUtc())
-            .setLastEppUpdateClientId("AnotherRegistrar")
-            .setLastTransferTime(clock.nowUtc())
-            .setStatusValues(ImmutableSet.of(
-                StatusValue.CLIENT_DELETE_PROHIBITED,
-                StatusValue.SERVER_DELETE_PROHIBITED,
-                StatusValue.SERVER_TRANSFER_PROHIBITED,
-                StatusValue.SERVER_UPDATE_PROHIBITED,
-                StatusValue.SERVER_RENEW_PROHIBITED,
-                StatusValue.SERVER_HOLD))
-            .setRegistrant(contact1Key)
-            .setContacts(ImmutableSet.of(DesignatedContact.create(Type.ADMIN, contact2Key)))
-            .setNameservers(ImmutableSet.of(hostKey))
-            .setSubordinateHosts(ImmutableSet.of("ns1.example.com"))
-            .setPersistedCurrentSponsorClientId("ThirdRegistrar")
-            .setRegistrationExpirationTime(clock.nowUtc().plusYears(1))
-            .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("password")))
-            .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
-            .setLaunchNotice(
-                LaunchNotice.create("tcnid", "validatorId", START_OF_TIME, START_OF_TIME))
-            .setTransferData(
-                new TransferData.Builder()
-                    .setGainingClientId("gaining")
-                    .setLosingClientId("losing")
-                    .setPendingTransferExpirationTime(clock.nowUtc())
-                    .setServerApproveEntities(
-                        ImmutableSet.of(oneTimeBillKey, recurringBillKey, autorenewPollKey))
-                    .setServerApproveBillingEvent(oneTimeBillKey)
-                    .setServerApproveAutorenewEvent(recurringBillKey)
-                    .setServerApproveAutorenewPollMessage(autorenewPollKey)
-                    .setTransferRequestTime(clock.nowUtc().plusDays(1))
-                    .setTransferStatus(TransferStatus.SERVER_APPROVED)
-                    .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))
-                    .setTransferredRegistrationExpirationTime(clock.nowUtc().plusYears(2))
-                    .build())
-            .setDeletePollMessage(onetimePollKey)
-            .setAutorenewBillingEvent(recurringBillKey)
-            .setAutorenewPollMessage(autorenewPollKey)
-            .setSmdId("smdid")
-            .setApplicationTime(START_OF_TIME)
-            .setApplication(Key.create(DomainApplication.class, 1))
-            .addGracePeriod(GracePeriod.create(
-                GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "registrar", null))
-            .build()));
+    domain =
+        persistResource(
+            cloneAndSetAutoTimestamps(
+                new DomainResource.Builder()
+                    .setFullyQualifiedDomainName("example.com")
+                    .setRepoId("4-COM")
+                    .setCreationClientId("a registrar")
+                    .setLastEppUpdateTime(clock.nowUtc())
+                    .setLastEppUpdateClientId("AnotherRegistrar")
+                    .setLastTransferTime(clock.nowUtc())
+                    .setStatusValues(
+                        ImmutableSet.of(
+                            StatusValue.CLIENT_DELETE_PROHIBITED,
+                            StatusValue.SERVER_DELETE_PROHIBITED,
+                            StatusValue.SERVER_TRANSFER_PROHIBITED,
+                            StatusValue.SERVER_UPDATE_PROHIBITED,
+                            StatusValue.SERVER_RENEW_PROHIBITED,
+                            StatusValue.SERVER_HOLD))
+                    .setRegistrant(contact1Key)
+                    .setContacts(ImmutableSet.of(DesignatedContact.create(Type.ADMIN, contact2Key)))
+                    .setNameservers(ImmutableSet.of(hostKey))
+                    .setSubordinateHosts(ImmutableSet.of("ns1.example.com"))
+                    .setPersistedCurrentSponsorClientId("losing")
+                    .setRegistrationExpirationTime(clock.nowUtc().plusYears(1))
+                    .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("password")))
+                    .setDsData(
+                        ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
+                    .setLaunchNotice(
+                        LaunchNotice.create("tcnid", "validatorId", START_OF_TIME, START_OF_TIME))
+                    .setTransferData(
+                        new TransferData.Builder()
+                            .setGainingClientId("gaining")
+                            .setLosingClientId("losing")
+                            .setPendingTransferExpirationTime(clock.nowUtc())
+                            .setServerApproveEntities(
+                                ImmutableSet.of(oneTimeBillKey, recurringBillKey, autorenewPollKey))
+                            .setServerApproveBillingEvent(oneTimeBillKey)
+                            .setServerApproveAutorenewEvent(recurringBillKey)
+                            .setServerApproveAutorenewPollMessage(autorenewPollKey)
+                            .setTransferRequestTime(clock.nowUtc().plusDays(1))
+                            .setTransferStatus(TransferStatus.SERVER_APPROVED)
+                            .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))
+                            .setTransferredRegistrationExpirationTime(clock.nowUtc().plusYears(2))
+                            .build())
+                    .setDeletePollMessage(onetimePollKey)
+                    .setAutorenewBillingEvent(recurringBillKey)
+                    .setAutorenewPollMessage(autorenewPollKey)
+                    .setSmdId("smdid")
+                    .setApplicationTime(START_OF_TIME)
+                    .setApplication(Key.create(DomainApplication.class, 1))
+                    .addGracePeriod(
+                        GracePeriod.create(
+                            GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "registrar", null))
+                    .build()));
   }
 
   @Test
   public void testPersistence() {
     assertThat(loadByForeignKey(DomainResource.class, domain.getForeignKey(), clock.nowUtc()))
-        .isEqualTo(domain);
+        .hasValue(domain);
   }
 
   @Test
@@ -182,7 +188,12 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testEmptySetsAndArraysBecomeNull() {
-    assertThat(newDomainResource("example.com").asBuilder().setNameservers(null).build().nsHosts)
+    assertThat(
+            newDomainResource("example.com")
+                .asBuilder()
+                .setNameservers(ImmutableSet.of())
+                .build()
+                .nsHosts)
         .isNull();
     assertThat(
             newDomainResource("example.com")
@@ -344,6 +355,89 @@ public class DomainResourceTest extends EntityTestCase {
     doExpiredTransferTest(clock.nowUtc().minusDays(1));
   }
 
+  private void setupPendingTransferDomain(
+      DateTime oldExpirationTime, DateTime transferRequestTime, DateTime transferSuccessTime) {
+    domain =
+        domain
+            .asBuilder()
+            .setRegistrationExpirationTime(oldExpirationTime)
+            .setTransferData(
+                domain
+                    .getTransferData()
+                    .asBuilder()
+                    .setTransferStatus(TransferStatus.PENDING)
+                    .setTransferRequestTime(transferRequestTime)
+                    .setPendingTransferExpirationTime(transferSuccessTime)
+                    .build())
+            .setLastEppUpdateTime(transferRequestTime)
+            .setLastEppUpdateClientId(domain.getTransferData().getGainingClientId())
+            .build();
+  }
+
+  @Test
+  public void testEppLastUpdateTimeAndClientId_autoRenewBeforeTransferSuccess() {
+    DateTime now = clock.nowUtc();
+    DateTime transferRequestDateTime = now.plusDays(1);
+    DateTime autorenewDateTime = now.plusDays(3);
+    DateTime transferSuccessDateTime = now.plusDays(5);
+    setupPendingTransferDomain(autorenewDateTime, transferRequestDateTime, transferSuccessDateTime);
+
+    DomainResource beforeAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.minusDays(1));
+    assertThat(beforeAutoRenew.getLastEppUpdateTime()).isEqualTo(transferRequestDateTime);
+    assertThat(beforeAutoRenew.getLastEppUpdateClientId()).isEqualTo("gaining");
+
+    // If autorenew happens before transfer succeeds(before transfer grace period starts as well),
+    // lastEppUpdateClientId should still be the current sponsor client id
+    DomainResource afterAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.plusDays(1));
+    assertThat(afterAutoRenew.getLastEppUpdateTime()).isEqualTo(autorenewDateTime);
+    assertThat(afterAutoRenew.getLastEppUpdateClientId()).isEqualTo("losing");
+  }
+
+  @Test
+  public void testEppLastUpdateTimeAndClientId_autoRenewAfterTransferSuccess() {
+    DateTime now = clock.nowUtc();
+    DateTime transferRequestDateTime = now.plusDays(1);
+    DateTime autorenewDateTime = now.plusDays(3);
+    DateTime transferSuccessDateTime = now.plusDays(5);
+    setupPendingTransferDomain(autorenewDateTime, transferRequestDateTime, transferSuccessDateTime);
+
+    DomainResource beforeAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.minusDays(1));
+    assertThat(beforeAutoRenew.getLastEppUpdateTime()).isEqualTo(transferRequestDateTime);
+    assertThat(beforeAutoRenew.getLastEppUpdateClientId()).isEqualTo("gaining");
+
+    DomainResource afterTransferSuccess =
+        domain.cloneProjectedAtTime(transferSuccessDateTime.plusDays(1));
+    assertThat(afterTransferSuccess.getLastEppUpdateTime()).isEqualTo(transferSuccessDateTime);
+    assertThat(afterTransferSuccess.getLastEppUpdateClientId()).isEqualTo("gaining");
+  }
+
+  private void setupUnmodifiedDomain(DateTime oldExpirationTime) {
+    domain =
+        domain
+            .asBuilder()
+            .setRegistrationExpirationTime(oldExpirationTime)
+            .setTransferData(TransferData.EMPTY)
+            .setGracePeriods(ImmutableSet.of())
+            .setLastEppUpdateTime(null)
+            .setLastEppUpdateClientId(null)
+            .build();
+  }
+
+  @Test
+  public void testEppLastUpdateTimeAndClientId_isSetCorrectlyWithNullPreviousValue() {
+    DateTime now = clock.nowUtc();
+    DateTime autorenewDateTime = now.plusDays(3);
+    setupUnmodifiedDomain(autorenewDateTime);
+
+    DomainResource beforeAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.minusDays(1));
+    assertThat(beforeAutoRenew.getLastEppUpdateTime()).isEqualTo(null);
+    assertThat(beforeAutoRenew.getLastEppUpdateClientId()).isEqualTo(null);
+
+    DomainResource afterAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.plusDays(1));
+    assertThat(afterAutoRenew.getLastEppUpdateTime()).isEqualTo(autorenewDateTime);
+    assertThat(afterAutoRenew.getLastEppUpdateClientId()).isEqualTo("losing");
+  }
+
   @Test
   public void testStackedGracePeriods() {
     ImmutableList<GracePeriod> gracePeriods = ImmutableList.of(
@@ -383,7 +477,7 @@ public class DomainResourceTest extends EntityTestCase {
         domain.cloneProjectedAtTime(domain.getRegistrationExpirationTime());
     assertThat(renewed.getRegistrationExpirationTime())
         .isEqualTo(domain.getRegistrationExpirationTime().plusYears(1));
-    assertThat(renewed.getLastEppUpdateTime()).isEqualTo(clock.nowUtc());
+    assertThat(renewed.getLastEppUpdateTime()).isEqualTo(domain.getRegistrationExpirationTime());
     assertThat(getOnlyElement(renewed.getGracePeriods()).getType())
         .isEqualTo(GracePeriodStatus.AUTO_RENEW);
   }
@@ -428,7 +522,7 @@ public class DomainResourceTest extends EntityTestCase {
         domain.cloneProjectedAtTime(oldExpirationTime.plusYears(2));
     assertThat(renewedThreeTimes.getRegistrationExpirationTime())
         .isEqualTo(oldExpirationTime.plusYears(3));
-    assertThat(renewedThreeTimes.getLastEppUpdateTime()).isEqualTo(clock.nowUtc());
+    assertThat(renewedThreeTimes.getLastEppUpdateTime()).isEqualTo(oldExpirationTime.plusYears(2));
     assertThat(renewedThreeTimes.getGracePeriods())
         .containsExactly(GracePeriod.createForRecurring(
             GracePeriodStatus.AUTO_RENEW,

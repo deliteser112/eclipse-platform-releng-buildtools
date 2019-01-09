@@ -26,13 +26,6 @@ import org.junit.runners.JUnit4;
 public class RegistryConfigTest {
 
   @Test
-  public void test_clientSecretFilename() {
-    // Verify that we're pulling this from the default.
-    assertThat(RegistryConfig.getClientSecretFilename()).isEqualTo(
-        "/google/registry/tools/resources/client_secret.json");
-  }
-
-  @Test
   public void test_reservedTermsExportDisclaimer_isPrependedWithOctothorpes() {
     assertThat(provideReservedTermsExportDisclaimer(CONFIG_SETTINGS.get()))
         .isEqualTo("# Disclaimer line 1.\n" + "# Line 2 is this 1.");

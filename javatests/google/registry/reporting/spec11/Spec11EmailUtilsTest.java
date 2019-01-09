@@ -16,6 +16,7 @@ package google.registry.reporting.spec11;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static google.registry.reporting.spec11.Spec11RegistrarThreatMatchesParserTest.sampleThreatMatches;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -24,16 +25,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.appengine.tools.cloudstorage.GcsFilename;
-import google.registry.gcs.GcsUtils;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
-import google.registry.testing.TestDataHelper;
 import google.registry.util.Retrier;
 import google.registry.util.SendEmailService;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
 import javax.annotation.Nullable;
@@ -43,7 +39,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import org.joda.time.YearMonth;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,42 +56,36 @@ public class Spec11EmailUtilsTest {
 
   private SendEmailService emailService;
   private Spec11EmailUtils emailUtils;
-  private GcsUtils gcsUtils;
+  private Spec11RegistrarThreatMatchesParser parser;
   private ArgumentCaptor<Message> gotMessage;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     emailService = mock(SendEmailService.class);
     when(emailService.createMessage())
         .thenAnswer((args) -> new MimeMessage(Session.getInstance(new Properties(), null)));
 
-    gcsUtils = mock(GcsUtils.class);
-    when(gcsUtils.openInputStream(
-            new GcsFilename("test-bucket", "icann/spec11/2018-06/SPEC11_MONTHLY_REPORT")))
-        .thenAnswer(
-            (args) ->
-                new ByteArrayInputStream(
-                    loadFile("spec11_fake_report").getBytes(StandardCharsets.UTF_8)));
+    parser = mock(Spec11RegistrarThreatMatchesParser.class);
+    when(parser.getRegistrarThreatMatches()).thenReturn(sampleThreatMatches());
 
     gotMessage = ArgumentCaptor.forClass(Message.class);
 
     emailUtils =
         new Spec11EmailUtils(
             emailService,
-            new YearMonth(2018, 6),
+            new LocalDate(2018, 7, 15),
             "my-sender@test.com",
             "my-receiver@test.com",
             "my-reply-to@test.com",
-            "{LIST_OF_THREATS}\n{REPLY_TO_EMAIL}",
-            "test-bucket",
-            "icann/spec11/2018-06/SPEC11_MONTHLY_REPORT",
-            gcsUtils,
             new Retrier(new FakeSleeper(new FakeClock()), RETRY_COUNT));
   }
 
   @Test
-  public void testSuccess_emailSpec11Reports() throws MessagingException, IOException {
-    emailUtils.emailSpec11Reports();
+  public void testSuccess_emailSpec11Reports() throws Exception {
+    emailUtils.emailSpec11Reports(
+        "{LIST_OF_THREATS}\n{REPLY_TO_EMAIL}",
+        "Google Registry Monthly Threat Detector [2018-07-15]",
+        sampleThreatMatches());
     // We inspect individual parameters because Message doesn't implement equals().
     verify(emailService, times(3)).sendMessage(gotMessage.capture());
     List<Message> capturedMessages = gotMessage.getAllValues();
@@ -104,21 +94,21 @@ public class Spec11EmailUtilsTest {
         "my-sender@test.com",
         "a@fake.com",
         "my-reply-to@test.com",
-        "Google Registry Monthly Threat Detector [2018-06]",
+        "Google Registry Monthly Threat Detector [2018-07-15]",
         "a.com - MALWARE\n\nmy-reply-to@test.com");
     validateMessage(
         capturedMessages.get(1),
         "my-sender@test.com",
         "b@fake.com",
         "my-reply-to@test.com",
-        "Google Registry Monthly Threat Detector [2018-06]",
+        "Google Registry Monthly Threat Detector [2018-07-15]",
         "b.com - MALWARE\nc.com - MALWARE\n\nmy-reply-to@test.com");
     validateMessage(
         capturedMessages.get(2),
         "my-sender@test.com",
         "my-receiver@test.com",
         null,
-        "Spec11 Pipeline Success 2018-06",
+        "Spec11 Pipeline Success 2018-07-15",
         "Spec11 reporting completed successfully.");
   }
 
@@ -147,7 +137,9 @@ public class Spec11EmailUtilsTest {
               }
             });
     RuntimeException thrown =
-        assertThrows(RuntimeException.class, () -> emailUtils.emailSpec11Reports());
+        assertThrows(
+            RuntimeException.class,
+            () -> emailUtils.emailSpec11Reports("foo", "bar", sampleThreatMatches()));
     assertThat(thrown).hasMessageThat().isEqualTo("Emailing spec11 report failed");
     assertThat(thrown)
         .hasCauseThat()
@@ -162,20 +154,20 @@ public class Spec11EmailUtilsTest {
         "my-sender@test.com",
         "my-receiver@test.com",
         null,
-        "Spec11 Emailing Failure 2018-06",
+        "Spec11 Emailing Failure 2018-07-15",
         "Emailing spec11 reports failed due to expected");
   }
 
   @Test
   public void testSuccess_sendAlertEmail() throws MessagingException, IOException {
-    emailUtils.sendAlertEmail("Spec11 Pipeline Alert: 2018-06", "Alert!");
+    emailUtils.sendAlertEmail("Spec11 Pipeline Alert: 2018-07", "Alert!");
     verify(emailService).sendMessage(gotMessage.capture());
     validateMessage(
         gotMessage.getValue(),
         "my-sender@test.com",
         "my-receiver@test.com",
         null,
-        "Spec11 Pipeline Alert: 2018-06",
+        "Spec11 Pipeline Alert: 2018-07",
         "Alert!");
   }
 
@@ -202,10 +194,5 @@ public class Spec11EmailUtilsTest {
     assertThat(message.getSubject()).isEqualTo(subject);
     assertThat(message.getContentType()).isEqualTo("text/plain");
     assertThat(message.getContent().toString()).isEqualTo(body);
-  }
-
-  /** Returns a {@link String} from a file in the {@code spec11/testdata/} directory. */
-  public static String loadFile(String filename) {
-    return TestDataHelper.loadFile(Spec11EmailUtils.class, filename);
   }
 }

@@ -41,7 +41,16 @@ import javax.annotation.Nullable;
 // TODO(b/21870796): Migrate to Guava version when this is open-sourced.
 public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
 
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  /**
+   * Wrapper class around a logger instance for {@link CidrAddressBlock}.
+   *
+   * <p>We don't want to have a static instance of {@link Logger} in {@link CidrAddressBlock},
+   * because that can cause a race condition, since the logging subsystem might not yet be
+   * initialized. With this wrapper, the {@link Logger} will be initialized on first use.
+   */
+  static class CidrAddressBlockLogger {
+    private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  }
 
   private final InetAddress ip;
 
@@ -343,7 +352,7 @@ public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
       // not have been created with an invalid netmask and a valid
       // netmask should have been successfully applied to "ipAddr" as long
       // as it represents an address of the same family as "this.ip".
-      logger.atWarning().withCause(e).log("Error while applying netmask.");
+      CidrAddressBlockLogger.logger.atWarning().withCause(e).log("Error while applying netmask.");
       return false;
     }
   }
@@ -446,6 +455,8 @@ public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
     };
   }
 
+  // InetAddresses.coerceToInteger() will be deprecated in the future.
+  @SuppressWarnings("deprecation")
   @Override
   public int hashCode() {
     return InetAddresses.coerceToInteger(ip);

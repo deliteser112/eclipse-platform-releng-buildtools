@@ -24,6 +24,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.TruthChainer.And;
 import java.util.Objects;
 import java.util.Optional;
+import org.joda.time.DateTime;
 
 /** Utility methods for asserting things about {@link HistoryEntry} instances. */
 public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEntry> {
@@ -54,6 +55,14 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
 
   public And<HistoryEntrySubject> hasOtherClientId(String otherClientId) {
     return hasValue(otherClientId, actual().getOtherClientId(), "has other client ID");
+  }
+
+  public And<HistoryEntrySubject> hasModificationTime(DateTime modificationTime) {
+    return hasValue(modificationTime, actual().getModificationTime(), "has modification time");
+  }
+
+  public And<HistoryEntrySubject> bySuperuser(boolean superuser) {
+    return hasValue(superuser, actual().getBySuperuser(), "has modification time");
   }
 
   public And<HistoryEntrySubject> hasPeriod() {

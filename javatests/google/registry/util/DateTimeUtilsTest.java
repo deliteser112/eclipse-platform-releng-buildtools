@@ -23,6 +23,7 @@ import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.DateTimeUtils.latestOf;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
+import static google.registry.util.DateTimeUtils.leapSafeSubtractYears;
 
 import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
@@ -68,6 +69,20 @@ public class DateTimeUtilsTest {
     DateTime startDate = DateTime.parse("2012-02-29T00:00:00Z");
     assertThat(startDate.plusYears(4)).isEqualTo(DateTime.parse("2016-02-29T00:00:00Z"));
     assertThat(leapSafeAddYears(startDate, 4)).isEqualTo(DateTime.parse("2016-02-28T00:00:00Z"));
+  }
+
+  @Test
+  public void testSuccess_leapSafeSubtractYears() {
+    DateTime startDate = DateTime.parse("2012-02-29T00:00:00Z");
+    assertThat(startDate.minusYears(4)).isEqualTo(DateTime.parse("2008-02-29T00:00:00Z"));
+    assertThat(leapSafeSubtractYears(startDate, 4))
+        .isEqualTo(DateTime.parse("2008-02-28T00:00:00Z"));
+  }
+
+  @Test
+  public void testSuccess_leapSafeSubtractYears_zeroYears() {
+    DateTime leapDay = DateTime.parse("2012-02-29T00:00:00Z");
+    assertThat(leapDay.minusYears(0)).isEqualTo(leapDay);
   }
 
   @Test

@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.ImmutableSortedMap.toImmutableSortedMap;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static com.google.common.collect.Ordering.natural;
@@ -68,6 +69,7 @@ import google.registry.model.UpdateAutoTimestamp;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.registrar.Registrar.BillingAccountEntry.CurrencyMapper;
+import google.registry.model.registry.Registry;
 import google.registry.util.CidrAddressBlock;
 import google.registry.util.NonFinalForTesting;
 import java.security.MessageDigest;
@@ -701,6 +703,28 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
     public Builder setAllowedTlds(Set<String> allowedTlds) {
       getInstance().allowedTlds = ImmutableSortedSet.copyOf(assertTldsExist(allowedTlds));
+      return this;
+    }
+
+    /**
+     * Same as {@link #setAllowedTlds}, but doesn't use the cache to check if the TLDs exist.
+     *
+     * <p>This should be used if the TLD we want to set is persisted in the same transaction -
+     * meaning its existence can't be cached before we need to save the Registrar.
+     *
+     * <p>We can still only set the allowedTld AFTER we saved the Registry entity. Make sure to call
+     * {@code .now()} when saving the Registry entity to make sure it's actually saved before trying
+     * to set the allowed TLDs.
+     */
+    public Builder setAllowedTldsUncached(Set<String> allowedTlds) {
+      ImmutableSet<Key<Registry>> newTldKeys =
+          Sets.difference(allowedTlds, getInstance().getAllowedTlds()).stream()
+              .map(tld -> Key.create(getCrossTldKey(), Registry.class, tld))
+              .collect(toImmutableSet());
+      Set<Key<Registry>> missingTldKeys =
+          Sets.difference(newTldKeys, ofy().load().keys(newTldKeys).keySet());
+      checkArgument(missingTldKeys.isEmpty(), "Trying to set nonexisting TLDs: %s", missingTldKeys);
+      getInstance().allowedTlds = ImmutableSortedSet.copyOf(allowedTlds);
       return this;
     }
 

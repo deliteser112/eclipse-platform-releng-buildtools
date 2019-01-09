@@ -2,28 +2,284 @@ buildscript {
   repositories {
     jcenter()
     mavenCentral()
+  }
 
-    maven {
-      url 'https://plugins.gradle.org/m2/'
-    }
+  dependencies {
+    classpath 'com.google.cloud.tools:appengine-gradle-plugin:1.3.3'
+    classpath 'org.sonatype.aether:aether-api:1.13.1'
+    classpath 'org.sonatype.aether:aether-impl:1.13.1'
   }
 }
 
-allprojects {
+plugins {
+  id 'nebula.dependency-lock' version '7.1.0'
+  id 'nebula.lint' version '10.3.5'
+  // Config helper for annotation processors such as AutoValue and Dagger.
+  // Ensures that source code is generated at an appropriate location.
+  id 'net.ltgt.apt' version '0.19' apply false
+  id 'com.bmuschko.docker-java-application' version '4.0.4' apply false
+}
+
+// Provide defaults for all of the project properties.
+
+// showAllOutput: boolean.  If true, dump all test output during the build.
+if (!project.hasProperty('showAllOutput')) {
+  ext.showAllOutput = 'false'
+}
+
+// Only do linting if the build is successful.
+gradleLint.autoLintAfterFailure = false
+
+// Paths to main and test sources.
+ext.javaDir = "${rootDir}/../java"
+ext.javatestsDir = "${rootDir}/../javatests"
+
+// Tasks to deploy/stage all App Engine services
+task deploy {
+  group = 'deployment'
+  description = 'Deploys all services to App Engine.'
+}
+
+task stage {
+  group = 'deployment'
+  description = 'Generates application directories for all services.'
+}
+
+subprojects {
+  // Skip no-op project
+  if (project.name == 'services') return
+
   repositories {
     jcenter()
     mavenCentral()
-    flatDir {
-      // The objectify jar that comes with Nomulus.
-      dirs "${rootDir}/../third_party/objectify/v4_1"
+  }
+
+  def services = [':services:default',
+                  ':services:backend',
+                  ':services:tools',
+                  ':services:pubapi']
+
+  // Set up all of the deployment projects.
+  if (services.contains(project.path)) {
+
+    apply plugin: 'war'
+
+    // Set this directory before applying the appengine plugin so that the
+    // plugin will recognize this as an app-engine standard app (and also
+    // obtains the appengine-web.xml from the correct location)
+    project.convention.plugins['war'].webAppDirName =
+        "../../../java/google/registry/env/crash/${project.name}"
+
+    apply plugin: 'com.google.cloud.tools.appengine'
+
+    // Get the web.xml file for the service.
+    war {
+      webInf {
+        from "../../../java/google/registry/env/common/${project.name}/WEB-INF"
+      }
+    }
+
+    appengine {
+      deploy {
+        // TODO: change this to a variable.
+        project = 'domain-registry-crash'
+      }
+    }
+
+    dependencies {
+      compile project(':core')
+    }
+
+    rootProject.deploy.dependsOn appengineDeploy
+    rootProject.stage.dependsOn appengineStage
+
+    // Return early, do not apply the settings below.
+    return
+  }
+
+  apply plugin: 'java'
+  apply plugin: 'maven-publish'
+  apply plugin: 'nebula.dependency-lock'
+  apply plugin: 'nebula.lint'
+  apply plugin: 'net.ltgt.apt'
+
+  version = '1.0'
+  sourceCompatibility = '1.8'
+  targetCompatibility = '1.8'
+
+  compileJava {options.encoding = "UTF-8"}
+
+  gradleLint.rules = [
+      // Checks if Gradle wrapper is up-to-date
+      'archaic-wrapper',
+      // Checks for indirect dependencies with dynamic version spec. Best
+      // practice calls for declaring them with specific versions.
+      'undeclared-dependency',
+      'unused-dependency'
+      // TODO(weiminyu): enable more dependency checks
+  ]
+
+  publishing {
+    repositories {
+      maven {
+        url = project.findProperty('repositoryUrl')
+      }
     }
   }
 
-  // Single version across all projects for now.
-  version = '1.0'
+  ext.getDistinctResolvedArtifacts = {
+    def distinctResolvedArtifacts = [:]
 
-  // Java plugin:
-  apply plugin: 'java'
+    configurations.each {
+      if (!it.isCanBeResolved()) {
+        return
+      }
+      it.resolvedConfiguration.resolvedArtifacts.each { resolvedArtifact ->
+        if (resolvedArtifact.id.componentIdentifier.displayName in
+          ['project :core', 'project :proxy', 'project :util', 'project :third_party']) {
+          return
+        }
+        distinctResolvedArtifacts[resolvedArtifact.id.toString()] = resolvedArtifact
+      }
+    }
+
+    return distinctResolvedArtifacts
+  }
+
+  ext.generateDependencyPublications = {
+    def distinctResolvedArtifacts = project.ext.getDistinctResolvedArtifacts()
+
+    distinctResolvedArtifacts.values().eachWithIndex { resolvedArtifact, n ->
+      project.publishing {
+        publications {
+          "maven${n}"(MavenPublication) {
+            artifact(resolvedArtifact.file) {
+              groupId = resolvedArtifact.moduleVersion.id.group
+              artifactId = resolvedArtifact.moduleVersion.id.name
+              version = resolvedArtifact.moduleVersion.id.version
+              classifier = resolvedArtifact.classifier
+            }
+          }
+        }
+      }
+    }
+  }
+
+  ext.urlExists = { url ->
+    def connection = (HttpURLConnection) url.openConnection()
+    connection.setRequestMethod("HEAD")
+    connection.connect()
+    if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  ext.writeMetadata = { resolvedArtifact, url, gitRepositoryPath ->
+    def groupId = resolvedArtifact.moduleVersion.id.group
+    def artifactId = resolvedArtifact.moduleVersion.id.name
+    def version = resolvedArtifact.moduleVersion.id.version
+    def relativeFileName =
+      [groupId, artifactId, 'README.domainregistry'].join('/')
+    def metadataFile = new File(gitRepositoryPath, relativeFileName)
+    metadataFile.parentFile.mkdirs()
+    def writer = metadataFile.newWriter()
+    writer << "Name: ${artifactId}\n"
+    writer << "Url: ${url}\n"
+    writer << "Version: ${version}\n"
+    writer.close()
+  }
+
+  // This task generates a metadata file for each resolved dependency artifact.
+  // The file contains the name, url and version for the artifact.
+  task generateDependencyMetadata {
+    doLast {
+      def distinctResolvedArtifacts = project.ext.getDistinctResolvedArtifacts()
+      def defaultLayout = new org.sonatype.aether.util.layout.MavenDefaultLayout()
+
+      distinctResolvedArtifacts.values().each { resolvedArtifact ->
+        def artifact = new org.sonatype.aether.util.artifact.DefaultArtifact(
+          resolvedArtifact.id.componentIdentifier.toString())
+        for (repository in project.repositories) {
+          def mavenRepository = (MavenArtifactRepository) repository
+          def repositoryUri = URI.create(mavenRepository.url.toString())
+          def artifactUri = repositoryUri.resolve(defaultLayout.getPath(artifact))
+          if (project.ext.urlExists(artifactUri.toURL())) {
+            project.ext.writeMetadata(
+              resolvedArtifact,
+              artifactUri.toURL(),
+              project.findProperty('privateRepository') + "/${project.name}")
+            break
+          }
+        }
+      }
+    }
+  }
+
+  if (project.name == 'third_party') return
+
+  // Path to code generated with annotation processors. Note that this path is
+  // chosen by the 'net.ltgt.apt' plugin, and may change if IDE-specific plugins
+  // are applied, e.g., 'idea' or 'eclipse'
+  def aptGeneratedDir = "${project.buildDir}/generated/source/apt/main"
+  def aptGeneratedTestDir = "${project.buildDir}/generated/source/apt/test"
+
+  def commonlyExcludedResources = ['**/*.java', '**/BUILD']
+
+  sourceSets {
+    main {
+      java {
+        srcDirs = [
+            project(':').javaDir,
+            aptGeneratedDir
+        ]
+      }
+      resources {
+        srcDirs = [
+            project(':').javaDir
+        ]
+        exclude commonlyExcludedResources
+      }
+    }
+    test {
+      java {
+        srcDirs = [
+            project(':').javatestsDir,
+            aptGeneratedTestDir
+        ]
+      }
+      resources {
+        srcDirs = [
+            project(':').javatestsDir,
+        ]
+        exclude commonlyExcludedResources
+      }
+    }
+  }
+
+  test {
+      testLogging.showStandardStreams = Boolean.parseBoolean(showAllOutput)
+  }
+
+  if (project.name == 'core') return
+
+  ext.relativePath = "google/registry/${project.name}"
+
+  sourceSets.each {
+    it.java {
+      include "${project.relativePath}/"
+    }
+    it.resources {
+      include "${project.relativePath}/"
+    }
+  }
+  project(':core').sourceSets.each {
+    it.java {
+      exclude "${project.relativePath}/"
+    }
+    it.resources {
+      exclude "${project.relativePath}/"
+    }
+  }
 }
-
-

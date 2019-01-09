@@ -20,6 +20,7 @@ java_library(
         "//java/google/registry/keyring/kms",
         "//java/google/registry/loadtest",
         "//java/google/registry/mapreduce",
+        "//java/google/registry/module",
         "//java/google/registry/monitoring/whitebox",
         "//java/google/registry/request",
         "//java/google/registry/request:modules",
@@ -30,8 +31,10 @@ java_library(
         "@com_google_dagger",
         "@com_google_flogger",
         "@com_google_flogger_system_backend",
+        "@com_google_monitoring_client_metrics",
         "@javax_inject",
         "@javax_servlet_api",
+        "@joda_time",
         "@org_bouncycastle_bcpkix_jdk15on",
     ],
 )

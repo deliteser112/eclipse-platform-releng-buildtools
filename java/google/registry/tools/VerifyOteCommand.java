@@ -36,7 +36,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
-/** Command to verify that a registrar has passed OT&amp;E. */
+/**
+ * Command to verify that a registrar has passed OT&amp;E.
+ *
+ * <p>Outputted stats may be truncated at the point where all tests passed to avoid unnecessarily
+ * loading lots of data.
+ */
 @Parameters(
     separators = " =",
     commandDescription = "Verify passage of OT&E for specified (or all) registrars")

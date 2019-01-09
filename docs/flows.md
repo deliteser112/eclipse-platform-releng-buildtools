@@ -231,6 +231,8 @@ An EPP flow that updates a contact.
 
 An EPP flow that allocates a new domain resource from a domain application.
 
+Note that this flow is only run by superusers.
+
 
 ### Errors
 
@@ -295,7 +297,7 @@ An EPP flow that creates a new application for a domain resource.
     *   Specified extension is not implemented.
 *   2201
     *   Registrar is not authorized to access this TLD.
-    *   Registrar must be active in order to create domains or applications.
+    *   Registrar must be active in order to perform this operation.
 *   2302
     *   Resource with this id already exists.
     *   This name has already been claimed by a sunrise applicant.
@@ -556,7 +558,7 @@ An EPP flow that creates a new domain resource.
 *   2201
     *   Only a tool can pass a metadata extension.
     *   Registrar is not authorized to access this TLD.
-    *   Registrar must be active in order to create domains or applications.
+    *   Registrar must be active in order to perform this operation.
 *   2302
     *   Resource with this id already exists.
 *   2303
@@ -689,6 +691,7 @@ comes in at the exact millisecond that the domain would have expired.
 *   2201
     *   The specified resource belongs to another client.
     *   Registrar is not authorized to access this TLD.
+    *   Registrar must be active in order to perform this operation.
 *   2303
     *   Resource with this id does not exist.
 *   2304
@@ -745,6 +748,7 @@ regardless of what the original expiration time was.
 *   2201
     *   The specified resource belongs to another client.
     *   Registrar is not authorized to access this TLD.
+    *   Registrar must be active in order to perform this operation.
 *   2303
     *   Resource with this id does not exist.
 *   2304
@@ -907,6 +911,7 @@ new ones with the correct approval time).
 *   2201
     *   Authorization info is required to request a transfer.
     *   Registrar is not authorized to access this TLD.
+    *   Registrar must be active in order to perform this operation.
 *   2202
     *   Authorization information for accessing resource is invalid.
 *   2300
@@ -1169,8 +1174,7 @@ An EPP flow for login.
 *   2103
     *   Specified extension is not implemented.
 *   2200
-    *   GAE user id is not allowed to login as requested registrar.
-    *   User is not logged in as a GAE user.
+    *   GAE User can't access the requested registrar.
     *   Registrar certificate does not match stored certificate.
     *   Registrar IP address is not in stored whitelist.
     *   Registrar certificate not present.

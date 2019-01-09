@@ -37,7 +37,7 @@ goog.forwardDeclare('registry.registrar.Console');
 registry.registrar.XmlResourceComponent = function(
     itemTmpl, eppTmpls, console) {
   registry.registrar.XmlResourceComponent.base(
-      this, 'constructor', console, itemTmpl);
+      this, 'constructor', console, itemTmpl, console.params.isOwner);
 
   /** @type {!Object} */
   this.eppTmpls = eppTmpls;

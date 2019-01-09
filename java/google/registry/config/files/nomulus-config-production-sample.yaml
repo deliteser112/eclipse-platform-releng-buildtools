@@ -18,6 +18,7 @@ gSuite:
   outgoingEmailDisplayName: placeholder
   outgoingEmailAddress: placeholder
   adminAccountEmailAddress: placeholder
+  supportGroupEmailAddress: placeholder
 
 registryPolicy:
   contactAndHostRoidSuffix: placeholder
@@ -43,6 +44,7 @@ icannReporting:
 oAuth:
   allowedOauthClientIds:
     - placeholder.apps.googleusercontent.com
+    - placeholder-for-proxy
 
 rde:
   reportUrlPrefix: https://ry-api.icann.org/report/registry-escrow-report
@@ -68,3 +70,7 @@ keyring:
   activeKeyring: KMS
   kms:
     projectId: placeholder
+
+registryTool:
+  clientId: placeholder.apps.googleusercontent.com
+  clientSecret: placeholder

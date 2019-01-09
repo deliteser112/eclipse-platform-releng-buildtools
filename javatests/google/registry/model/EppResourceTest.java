@@ -15,6 +15,8 @@
 package google.registry.model;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -40,9 +42,8 @@ public class EppResourceTest extends EntityTestCase {
         persistResource(originalContact.asBuilder().setEmailAddress("different@fake.lol").build());
     assertThat(EppResource.loadCached(ImmutableList.of(Key.create(originalContact))))
         .containsExactly(Key.create(originalContact), originalContact);
-    assertThat(
-            EppResourceUtils.loadByForeignKey(ContactResource.class, "contact123", clock.nowUtc()))
-        .isEqualTo(modifiedContact);
+    assertThat(loadByForeignKey(ContactResource.class, "contact123", clock.nowUtc()))
+        .hasValue(modifiedContact);
   }
 
   @Test
@@ -56,10 +57,8 @@ public class EppResourceTest extends EntityTestCase {
             originalHost.asBuilder().setLastTransferTime(clock.nowUtc().minusDays(60)).build());
     assertThat(EppResource.loadCached(ImmutableList.of(Key.create(originalHost))))
         .containsExactly(Key.create(originalHost), originalHost);
-    assertThat(
-            EppResourceUtils.loadByForeignKey(
-                HostResource.class, "ns1.example.com", clock.nowUtc()))
-        .isEqualTo(modifiedHost);
+    assertThat(loadByForeignKey(HostResource.class, "ns1.example.com", clock.nowUtc()))
+        .hasValue(modifiedHost);
   }
 
   private static void setNonZeroCachingInterval() {

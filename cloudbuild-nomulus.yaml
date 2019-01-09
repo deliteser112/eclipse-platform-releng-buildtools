@@ -1,0 +1,53 @@
+# To run the build locally, install cloud-build-local first.
+# See: https://cloud.google.com/cloud-build/docs/build-debug-locally
+# Then run:
+# cloud-build-local --config=cloudbuild-nomulus.yaml --dryrun=false --substitutions TAG_NAME=[TAG] .
+# This will create a docker image named gcr.io/[PROJECT_ID]/proxy:[TAG] locally.
+# The PROJECT_ID is the current project name that gcloud uses.
+# You can add "--push true" to have the image pushed to GCR.
+#
+# To manually trigger a build on GCB, run:
+# gcloud builds submit --config cloudbuild-nomulus.yaml --substitutions TAG_NAME=[TAG] .
+#
+# To trigger a build automatically, follow the instructions below and add a trigger:
+# https://cloud.google.com/cloud-build/docs/running-builds/automate-builds
+steps:
+# Set permissions correctly. Not sure why it is necessary, but it is.
+- name: 'alpine'
+  args: ['chown', '-R', 'root:root', '.']
+- name: 'alpine'
+  args: ['chmod', '-R', '777', '.']
+# Clone the private repo and merge its contents.
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['source', 'repos', 'clone', 'nomulus-config']
+- name: 'alpine'
+  args: ['sh', '-c', 'cp -r nomulus-config/* .']
+# Build the deployment files.
+- name: 'google/cloud-sdk'
+  args: ['./gradlew', 'stage', '-x', 'autoLintGradle']
+  dir: 'gradle'
+# Tar the deployment files as we cannot upload directories to GCS.
+- name: 'alpine'
+  args: ['tar', 'cvf', '../../../default.tar', '.']
+  dir: 'gradle/services/default/build/staged-app'
+- name: 'alpine'
+  args: ['tar', 'cvf', '../../../pubapi.tar', '.']
+  dir: 'gradle/services/pubapi/build/staged-app'
+- name: 'alpine'
+  args: ['tar', 'cvf', '../../../backend.tar', '.']
+  dir: 'gradle/services/backend/build/staged-app'
+- name: 'alpine'
+  args: ['tar', 'cvf', '../../../tools.tar', '.']
+  dir: 'gradle/services/tools/build/staged-app'
+# Tar files to upload to GCS.
+artifacts:
+  objects:
+    location: 'gs://${PROJECT_ID}-deploy/${TAG_NAME}'
+    paths:
+      - 'gradle/services/default.tar'
+      - 'gradle/services/pubapi.tar'
+      - 'gradle/services/backend.tar'
+      - 'gradle/services/tools.tar'
+timeout: 3600s
+options:
+  machineType: 'N1_HIGHCPU_8'

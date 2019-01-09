@@ -54,6 +54,11 @@ tr.subsection h3::first-letter {
   width: 170px;
 }
 
+.description ol {
+  list-style-type: decimal;
+  margin-left: 2em;
+}
+
 
 /* Setting groups and labels. */
 

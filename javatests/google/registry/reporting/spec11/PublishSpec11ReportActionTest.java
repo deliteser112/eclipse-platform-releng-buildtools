@@ -15,6 +15,7 @@
 package google.registry.reporting.spec11;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.reporting.spec11.Spec11RegistrarThreatMatchesParserTest.sampleThreatMatches;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
@@ -32,7 +33,7 @@ import com.google.api.services.dataflow.model.Job;
 import com.google.common.net.MediaType;
 import google.registry.testing.FakeResponse;
 import java.io.IOException;
-import org.joda.time.YearMonth;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,18 +43,22 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class PublishSpec11ReportActionTest {
 
+  private final String spec11BodyTemplate = "{LIST_OF_THREATS}\n{REPLY_TO_EMAIL}";
+  private final LocalDate date = new LocalDate(2018, 6, 5);
+
   private Dataflow dataflow;
   private Projects projects;
   private Jobs jobs;
   private Get get;
   private Spec11EmailUtils emailUtils;
+  private Spec11RegistrarThreatMatchesParser parser;
 
   private Job expectedJob;
   private FakeResponse response;
   private PublishSpec11ReportAction publishAction;
 
   @Before
-  public void setUp() throws IOException {
+  public void setUp() throws Exception {
     dataflow = mock(Dataflow.class);
     projects = mock(Projects.class);
     jobs = mock(Jobs.class);
@@ -65,17 +70,40 @@ public class PublishSpec11ReportActionTest {
     when(get.execute()).thenReturn(expectedJob);
     emailUtils = mock(Spec11EmailUtils.class);
     response = new FakeResponse();
+    parser = mock(Spec11RegistrarThreatMatchesParser.class);
+    when(parser.getRegistrarThreatMatches()).thenReturn(sampleThreatMatches());
     publishAction =
         new PublishSpec11ReportAction(
-            "test-project", "12345", emailUtils, dataflow, response, new YearMonth(2018, 6));
+            "test-project",
+            spec11BodyTemplate,
+            "12345",
+            emailUtils,
+            mock(Spec11RegistrarThreatMatchesParser.class),
+            dataflow,
+            response,
+            date);
   }
 
   @Test
-  public void testJobDone_emailsResults() {
+  public void testJobDone_emailsResultsOnSecondOfMonth() throws Exception {
     expectedJob.setCurrentState("JOB_STATE_DONE");
+    publishAction =
+        new PublishSpec11ReportAction(
+            "test-project",
+            spec11BodyTemplate,
+            "12345",
+            emailUtils,
+            parser,
+            dataflow,
+            response,
+            date.withDayOfMonth(2));
     publishAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    verify(emailUtils).emailSpec11Reports();
+    verify(emailUtils)
+        .emailSpec11Reports(
+            spec11BodyTemplate,
+            "Google Registry Monthly Threat Detector [2018-06-02]",
+            sampleThreatMatches());
   }
 
   @Test
@@ -85,8 +113,8 @@ public class PublishSpec11ReportActionTest {
     assertThat(response.getStatus()).isEqualTo(SC_NO_CONTENT);
     verify(emailUtils)
         .sendAlertEmail(
-            "Spec11 Dataflow Pipeline Failure 2018-06",
-            "Spec11 2018-06 job 12345 ended in status failure.");
+            "Spec11 Dataflow Pipeline Failure 2018-06-05",
+            "Spec11 2018-06-05 job 12345 ended in status failure.");
   }
 
   @Test
@@ -106,7 +134,15 @@ public class PublishSpec11ReportActionTest {
     assertThat(response.getPayload()).isEqualTo("Template launch failed: expected");
     verify(emailUtils)
         .sendAlertEmail(
-            "Spec11 Publish Failure 2018-06",
-            "Spec11 2018-06 publish action failed due to expected");
+            "Spec11 Publish Failure 2018-06-05",
+            "Spec11 2018-06-05 publish action failed due to expected");
+  }
+
+  @Test
+  public void testJobDone_doesNotEmailResults() {
+    expectedJob.setCurrentState("JOB_STATE_DONE");
+    publishAction.run();
+    assertThat(response.getStatus()).isEqualTo(SC_OK);
+    verifyNoMoreInteractions(emailUtils);
   }
 }

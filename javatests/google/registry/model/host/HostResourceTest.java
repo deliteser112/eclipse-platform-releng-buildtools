@@ -15,6 +15,7 @@
 package google.registry.model.host;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -86,9 +87,8 @@ public class HostResourceTest extends EntityTestCase {
 
   @Test
   public void testPersistence() {
-    assertThat(loadByForeignKey(
-        HostResource.class, host.getForeignKey(), clock.nowUtc()))
-            .isEqualTo(host);
+    assertThat(loadByForeignKey(HostResource.class, host.getForeignKey(), clock.nowUtc()))
+        .hasValue(host);
   }
 
   @Test

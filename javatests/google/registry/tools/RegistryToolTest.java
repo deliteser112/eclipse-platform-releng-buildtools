@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 import com.google.common.truth.Expect;
+import google.registry.testing.SystemPropertyRule;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Map;
@@ -41,9 +42,11 @@ public class RegistryToolTest {
   @Rule
   public final Expect expect = Expect.create();
 
+  @Rule public final SystemPropertyRule systemPropertyRule = new SystemPropertyRule();
+
   @Before
   public void init() {
-    RegistryToolEnvironment.UNITTEST.setup();
+    RegistryToolEnvironment.UNITTEST.setup(systemPropertyRule);
   }
 
   @Test

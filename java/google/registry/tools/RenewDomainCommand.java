@@ -17,7 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.util.CollectionUtils.findDuplicates;
-import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -27,6 +27,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.tools.soy.RenewDomainSoyInfo;
 import google.registry.util.Clock;
 import java.util.List;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -37,7 +38,7 @@ import org.joda.time.format.DateTimeFormatter;
 final class RenewDomainCommand extends MutatingEppToolCommand {
 
   @Parameter(
-      names = "--period",
+      names = {"-p", "--period"},
       description = "Number of years to renew the registration for (defaults to 1).")
   private int period = 1;
 
@@ -56,9 +57,11 @@ final class RenewDomainCommand extends MutatingEppToolCommand {
     checkArgument(period < 10, "Cannot renew domains for 10 or more years");
     DateTime now = clock.nowUtc();
     for (String domainName : mainParameters) {
-      DomainResource domain = loadByForeignKey(DomainResource.class, domainName, now);
-      checkArgumentNotNull(domain, "Domain '%s' does not exist or is deleted", domainName);
+      Optional<DomainResource> domainOptional =
+          loadByForeignKey(DomainResource.class, domainName, now);
+      checkArgumentPresent(domainOptional, "Domain '%s' does not exist or is deleted", domainName);
       setSoyTemplate(RenewDomainSoyInfo.getInstance(), RenewDomainSoyInfo.RENEWDOMAIN);
+      DomainResource domain = domainOptional.get();
       addSoyRecord(
           domain.getCurrentSponsorClientId(),
           new SoyMapData(

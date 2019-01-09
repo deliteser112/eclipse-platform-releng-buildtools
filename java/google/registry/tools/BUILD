@@ -26,13 +26,14 @@ java_library(
     resources = glob([
         "*.properties",
         "sql/*.sql",
-
-        # These are example client secret files.  You'll need to obtain your
-        # own for every environment you use and install them in this
-        # directory.
-        "resources/client_secret*.json",
     ]),
     visibility = [":allowed-tools"],
+    runtime_deps = [
+        "//java/google/registry/module/backend",
+        "//java/google/registry/module/frontend",
+        "//java/google/registry/module/pubapi",
+        "//java/google/registry/module/tools",
+    ],
     deps = [
         "//java/google/registry/backup",
         "//java/google/registry/beam/invoicing",
@@ -64,10 +65,14 @@ java_library(
         "//java/google/registry/whois",
         "//java/google/registry/xjc",
         "//java/google/registry/xml",
+        "//third_party/java/jakarta_commons_io",
         "//third_party/jaxb",
         "//third_party/objectify:objectify-v4_1",
         "@com_beust_jcommander",
         "@com_google_api_client",
+        "@com_google_api_client_appengine",
+        "@com_google_api_client_java6",
+        "@com_google_apis_google_api_services_appengine",
         "@com_google_apis_google_api_services_bigquery",
         "@com_google_apis_google_api_services_dns",
         "@com_google_appengine_api_1_0_sdk",
@@ -75,6 +80,7 @@ java_library(
         "@com_google_appengine_remote_api//:link",
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
+        "@com_google_code_gson",
         "@com_google_dagger",
         "@com_google_flogger",
         "@com_google_flogger_system_backend",

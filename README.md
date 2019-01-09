@@ -1,6 +1,8 @@
 # Nomulus
 
-![Build Status](https://storage.googleapis.com/domain-registry-github-build-status/github-ci-status.png)
+| Bazel | Gradle |
+|-------|--------|
+|![Build Status](https://storage.googleapis.com/domain-registry-github-build-status/github-ci-status.png)|[![Build Status](https://travis-ci.org/google/nomulus.svg?branch=master)](https://travis-ci.org/google/nomulus)|
 
 ![Nomulus logo](./nomulus-logo.png)
 

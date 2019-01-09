@@ -43,10 +43,12 @@ public class UpdateSnapshotViewAction implements Runnable {
 
   static final String UPDATE_SNAPSHOT_TABLE_ID_PARAM = "table";
   static final String UPDATE_SNAPSHOT_KIND_PARAM = "kind";
-
-  private static final String TARGET_DATASET_NAME = "latest_datastore_export";
+  static final String UPDATE_SNAPSHOT_VIEWNAME_PARAM = "viewname";
 
   /** Servlet-specific details needed for enqueuing tasks against itself. */
+  // For now this queue is shared by the backup workflows started by both ExportSnapshotAction
+  // and BackupDatastoreAction.
+  // TODO(weiminyu): update queue name (snapshot->backup) after ExportSnapshot flow is removed.
   static final String QUEUE = "export-snapshot-update-view"; // See queue.xml.
 
   static final String PATH = "/_dr/task/updateSnapshotView"; // See web.xml.
@@ -66,6 +68,10 @@ public class UpdateSnapshotViewAction implements Runnable {
   String kindName;
 
   @Inject
+  @Parameter(UPDATE_SNAPSHOT_VIEWNAME_PARAM)
+  String viewName;
+
+  @Inject
   @Config("projectId")
   String projectId;
 
@@ -75,12 +81,14 @@ public class UpdateSnapshotViewAction implements Runnable {
   UpdateSnapshotViewAction() {}
 
   /** Create a task for updating a snapshot view. */
-  static TaskOptions createViewUpdateTask(String datasetId, String tableId, String kindName) {
+  static TaskOptions createViewUpdateTask(
+      String datasetId, String tableId, String kindName, String viewName) {
     return TaskOptions.Builder.withUrl(PATH)
         .method(Method.POST)
         .param(UPDATE_SNAPSHOT_DATASET_ID_PARAM, datasetId)
         .param(UPDATE_SNAPSHOT_TABLE_ID_PARAM, tableId)
-        .param(UPDATE_SNAPSHOT_KIND_PARAM, kindName);
+        .param(UPDATE_SNAPSHOT_KIND_PARAM, kindName)
+        .param(UPDATE_SNAPSHOT_VIEWNAME_PARAM, viewName);
   }
 
   @Override
@@ -89,12 +97,10 @@ public class UpdateSnapshotViewAction implements Runnable {
       SqlTemplate sqlTemplate =
           SqlTemplate.create(
               "#standardSQL\nSELECT * FROM `%PROJECT%.%SOURCE_DATASET%.%SOURCE_TABLE%`");
-      updateSnapshotView(datasetId, tableId, kindName, TARGET_DATASET_NAME, sqlTemplate);
+      updateSnapshotView(datasetId, tableId, kindName, viewName, sqlTemplate);
     } catch (Throwable e) {
       throw new InternalServerErrorException(
-          String.format(
-              "Could not update snapshot view %s for table %s", TARGET_DATASET_NAME, tableId),
-          e);
+          String.format("Could not update snapshot view %s for table %s", viewName, tableId), e);
     }
   }
 
@@ -138,7 +144,7 @@ public class UpdateSnapshotViewAction implements Runnable {
           .update(ref.getProjectId(), ref.getDatasetId(), ref.getTableId(), table)
           .execute();
     } catch (GoogleJsonResponseException e) {
-      if (e.getDetails().getCode() == 404) {
+      if (e.getDetails() != null && e.getDetails().getCode() == 404) {
         bigquery.tables().insert(ref.getProjectId(), ref.getDatasetId(), table).execute();
       } else {
         logger.atWarning().withCause(e).log(

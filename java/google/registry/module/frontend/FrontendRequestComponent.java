@@ -25,7 +25,9 @@ import google.registry.monitoring.whitebox.WhiteboxModule;
 import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
+import google.registry.ui.server.otesetup.ConsoleOteSetupAction;
 import google.registry.ui.server.registrar.ConsoleUiAction;
+import google.registry.ui.server.registrar.OteStatusAction;
 import google.registry.ui.server.registrar.RegistrarConsoleModule;
 import google.registry.ui.server.registrar.RegistrarSettingsAction;
 
@@ -33,17 +35,19 @@ import google.registry.ui.server.registrar.RegistrarSettingsAction;
 @RequestScope
 @Subcomponent(
     modules = {
-      RegistrarConsoleModule.class,
       DnsModule.class,
       EppTlsModule.class,
+      RegistrarConsoleModule.class,
       RequestModule.class,
       WhiteboxModule.class,
     })
 interface FrontendRequestComponent {
+  ConsoleOteSetupAction consoleOteSetupAction();
   ConsoleUiAction consoleUiAction();
   EppConsoleAction eppConsoleAction();
   EppTlsAction eppTlsAction();
   FlowComponent.Builder flowComponentBuilder();
+  OteStatusAction oteStatusAction();
   RegistrarSettingsAction registrarSettingsAction();
 
   @Subcomponent.Builder

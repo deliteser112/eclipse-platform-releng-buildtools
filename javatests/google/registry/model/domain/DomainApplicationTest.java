@@ -15,6 +15,7 @@
 package google.registry.model.domain;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -88,7 +89,7 @@ public class DomainApplicationTest extends EntityTestCase {
   @Test
   public void testPersistence() {
     assertThat(loadDomainApplication(domainApplication.getForeignKey(), clock.nowUtc()))
-        .isEqualTo(domainApplication);
+        .hasValue(domainApplication);
   }
 
   @Test
@@ -121,7 +122,6 @@ public class DomainApplicationTest extends EntityTestCase {
 
   @Test
   public void testEmptySetsAndArraysBecomeNull() {
-    assertThat(emptyBuilder().setNameservers(null).build().nsHosts).isNull();
     assertThat(emptyBuilder().setNameservers(ImmutableSet.of()).build().nsHosts).isNull();
     assertThat(
             emptyBuilder()

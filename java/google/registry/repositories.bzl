@@ -15,6 +15,7 @@
 """External dependencies for Nomulus."""
 
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@io_bazel_rules_closure//closure/private:java_import_external.bzl", "java_import_external")
 
 def domain_registry_bazel_check():
@@ -31,6 +32,7 @@ def domain_registry_repositories(
         omit_com_google_api_client_jackson2 = False,
         omit_com_google_api_client_java6 = False,
         omit_com_google_api_client_servlet = False,
+        omit_com_google_apis_google_api_services_appengine = False,
         omit_com_google_apis_google_api_services_admin_directory = False,
         omit_com_google_apis_google_api_services_bigquery = False,
         omit_com_google_apis_google_api_services_clouddebugger = False,
@@ -58,6 +60,7 @@ def domain_registry_repositories(
         omit_com_google_auto_factory = False,
         omit_com_google_auto_service = False,
         omit_com_google_auto_value = False,
+        omit_com_google_code_gson = False,
         omit_com_google_cloud_bigdataoss_gcsio = False,
         omit_com_google_cloud_bigdataoss_util = False,
         omit_com_google_code_findbugs_jsr305 = False,
@@ -84,6 +87,7 @@ def domain_registry_repositories(
         omit_com_google_oauth_client_java6 = False,
         omit_com_google_oauth_client_jetty = False,
         omit_com_google_oauth_client_servlet = False,
+        omit_com_google_protobuf = False,
         omit_com_google_protobuf_java = False,
         omit_com_google_re2j = False,
         omit_com_google_template_soy = False,
@@ -102,6 +106,7 @@ def domain_registry_repositories(
         omit_com_sun_xml_bind_jaxb_xjc = False,
         omit_com_thoughtworks_paranamer = False,
         omit_commons_codec = False,
+        omit_commons_io = False,
         omit_commons_logging = False,
         omit_dnsjava = False,
         omit_io_netty_buffer = False,
@@ -187,6 +192,8 @@ def domain_registry_repositories(
         com_google_api_client_servlet()
     if not omit_com_google_apis_google_api_services_admin_directory:
         com_google_apis_google_api_services_admin_directory()
+    if not omit_com_google_apis_google_api_services_appengine:
+        com_google_apis_google_api_services_appengine()
     if not omit_com_google_apis_google_api_services_bigquery:
         com_google_apis_google_api_services_bigquery()
     if not omit_com_google_apis_google_api_services_clouddebugger:
@@ -239,6 +246,8 @@ def domain_registry_repositories(
         com_google_auto_service()
     if not omit_com_google_auto_value:
         com_google_auto_value()
+    if not omit_com_google_code_gson:
+        com_google_code_gson()
     if not omit_com_google_cloud_bigdataoss_gcsio:
         com_google_cloud_bigdataoss_gcsio()
     if not omit_com_google_cloud_bigdataoss_util:
@@ -291,6 +300,8 @@ def domain_registry_repositories(
         com_google_oauth_client_jetty()
     if not omit_com_google_oauth_client_servlet:
         com_google_oauth_client_servlet()
+    if not omit_com_google_protobuf:
+        com_google_protobuf()
     if not omit_com_google_protobuf_java:
         com_google_protobuf_java()
     if not omit_com_google_re2j:
@@ -327,6 +338,8 @@ def domain_registry_repositories(
         com_thoughtworks_paranamer()
     if not omit_commons_codec:
         commons_codec()
+    if not omit_commons_io:
+        commons_io()
     if not omit_commons_logging:
         commons_logging()
     if not omit_dnsjava:
@@ -466,12 +479,12 @@ def com_beust_jcommander():
 def com_fasterxml_jackson_core():
     java_import_external(
         name = "com_fasterxml_jackson_core",
-        jar_sha256 = "85b48d80d0ff36eecdc61ab57fe211a266b9fc326d5e172764d150e29fc99e21",
-        jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/fasterxml/jackson/core/jackson-core/2.8.5/jackson-core-2.8.5.jar",
-            "http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.8.5/jackson-core-2.8.5.jar",
-        ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
+        jar_sha256 = "fab8746aedd6427788ee390ea04d438ec141bff7eb3476f8bdd5d9110fb2718a",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.9.6/jackson-core-2.9.6.jar",
+            "http://maven.ibiblio.org/maven2/com/fasterxml/jackson/core/jackson-core/2.9.6/jackson-core-2.9.6.jar",
+        ],
     )
 
 def com_fasterxml_jackson_core_jackson_annotations():
@@ -503,12 +516,12 @@ def com_fasterxml_jackson_core_jackson_databind():
 def com_google_api_client():
     java_import_external(
         name = "com_google_api_client",
-        jar_sha256 = "47c625c83a8cf97b8bbdff2acde923ff8fd3174e62aabcfc5d1b86692594ffba",
-        jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client/1.22.0/google-api-client-1.22.0.jar",
-            "http://repo1.maven.org/maven2/com/google/api-client/google-api-client/1.22.0/google-api-client-1.22.0.jar",
-        ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
+        jar_sha256 = "fd1f06bc8cea64cd6e85e7a29dd632ba05c4e4ec2daae9a7115b6dbc9004fcd9",
+        jar_urls = [
+            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client/1.27.0/google-api-client-1.27.0.jar",
+            "http://repo1.maven.org/maven2/com/google/api-client/google-api-client/1.27.0/google-api-client-1.27.0.jar",
+        ],
         deps = [
             "@com_google_oauth_client",
             "@com_google_http_client_jackson2",
@@ -603,10 +616,10 @@ def com_google_api_client_java6():
     java_import_external(
         name = "com_google_api_client_java6",
         licenses = ["notice"],  # The Apache Software License, Version 2.0
-        jar_sha256 = "df4f423f33f467d248e51deb555404771f7bc41430b2d4d1e49966c79c0b207b",
+        jar_sha256 = "056ef35bafebd2e2b27817be00aa08e79d24fd4ba1c7c70c2407fd2ec9582cb5",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-java6/1.20.0/google-api-client-java6-1.20.0.jar",
-            "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-java6/1.20.0/google-api-client-java6-1.20.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-java6/1.27.0/google-api-client-java6-1.27.0.jar",
+            "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-java6/1.27.0/google-api-client-java6-1.27.0.jar",
         ],
         deps = [
             "@com_google_api_client",
@@ -639,6 +652,18 @@ def com_google_apis_google_api_services_admin_directory():
             "http://repo1.maven.org/maven2/com/google/apis/google-api-services-admin-directory/directory_v1-rev72-1.22.0/google-api-services-admin-directory-directory_v1-rev72-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
+        deps = ["@com_google_api_client"],
+    )
+
+def com_google_apis_google_api_services_appengine():
+    java_import_external(
+        name = "com_google_apis_google_api_services_appengine",
+        licenses = ["notice"],  # The Apache Software License, Version 2.0
+        jar_sha256 = "15329545770163aec4f2bb0c37949a03667f06e012e2204ede22a0c2fb8f9f21",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/com/google/apis/google-api-services-appengine/v1-rev85-1.25.0/google-api-services-appengine-v1-rev85-1.25.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-appengine/v1-rev85-1.25.0/google-api-services-appengine-v1-rev85-1.25.0.jar",
+        ],
         deps = ["@com_google_api_client"],
     )
 
@@ -1100,6 +1125,17 @@ def com_google_auto_value():
         ]),
     )
 
+def com_google_code_gson():
+    java_import_external(
+        name = "com_google_code_gson",
+        licenses = ["notice"],  # Apache 2.0
+        jar_sha256 = "233a0149fc365c9f6edbd683cfe266b19bdc773be98eabdaf6b3c924b48e7d81",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/com/google/code/gson/gson/2.8.5/gson-2.8.5.jar",
+            "http://maven.ibiblio.org/maven2/com/google/code/gson/gson/2.8.5/gson-2.8.5.jar",
+        ],
+    )
+
 def com_google_cloud_bigdataoss_gcsio():
     java_import_external(
         name = "com_google_cloud_bigdataoss_gcsio",
@@ -1377,12 +1413,12 @@ def com_google_gwt_user():
 def com_google_http_client():
     java_import_external(
         name = "com_google_http_client",
-        jar_sha256 = "f88ffa329ac52fb4f2ff0eb877ef7318423ac9b791a107f886ed5c7a00e77e11",
-        jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/http-client/google-http-client/1.22.0/google-http-client-1.22.0.jar",
-            "http://repo1.maven.org/maven2/com/google/http-client/google-http-client/1.22.0/google-http-client-1.22.0.jar",
-        ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
+        jar_sha256 = "fb7d80a515da4618e2b402e1fef96999e07621b381a5889ef091482c5a3e961d",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/com/google/http-client/google-http-client/1.25.0/google-http-client-1.25.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/http-client/google-http-client/1.25.0/google-http-client-1.25.0.jar",
+        ],
         deps = [
             "@com_google_code_findbugs_jsr305",
             "@com_google_guava",
@@ -1409,12 +1445,12 @@ def com_google_http_client_appengine():
 def com_google_http_client_jackson2():
     java_import_external(
         name = "com_google_http_client_jackson2",
-        jar_sha256 = "45b1e34b2dcef5cb496ef25a1223d19cf102b8c2ea4abf96491631b2faf4611c",
-        jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/http-client/google-http-client-jackson2/1.22.0/google-http-client-jackson2-1.22.0.jar",
-            "http://repo1.maven.org/maven2/com/google/http-client/google-http-client-jackson2/1.22.0/google-http-client-jackson2-1.22.0.jar",
-        ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
+        jar_sha256 = "f9e7e0d318860a2092d70b56331976280c4e9348a065ede3b99c92aa032fd853",
+        jar_urls = [
+            "http://maven.ibiblio.org/maven2/com/google/http-client/google-http-client-jackson2/1.25.0/google-http-client-jackson2-1.25.0.jar",
+            "http://repo1.maven.org/maven2/com/google/http-client/google-http-client-jackson2/1.25.0/google-http-client-jackson2-1.25.0.jar",
+        ],
         deps = [
             "@com_google_http_client",
             "@com_fasterxml_jackson_core",
@@ -1424,12 +1460,12 @@ def com_google_http_client_jackson2():
 def com_google_oauth_client():
     java_import_external(
         name = "com_google_oauth_client",
-        jar_sha256 = "a4c56168b3e042105d68cf136e40e74f6e27f63ed0a948df966b332678e19022",
-        jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client/1.22.0/google-oauth-client-1.22.0.jar",
-            "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client/1.22.0/google-oauth-client-1.22.0.jar",
-        ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
+        jar_sha256 = "7e2929133d4231e702b5956a7e5dc8347a352acc1e97082b40c3585b81cd3501",
+        jar_urls = [
+            "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client/1.25.0/google-oauth-client-1.25.0.jar",
+            "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client/1.25.0/google-oauth-client-1.25.0.jar",
+        ],
         deps = [
             "@com_google_http_client",
             "@com_google_code_findbugs_jsr305",
@@ -1458,10 +1494,10 @@ def com_google_oauth_client_java6():
     java_import_external(
         name = "com_google_oauth_client_java6",
         licenses = ["notice"],  # The Apache Software License, Version 2.0
-        jar_sha256 = "c8d61bbb65f6721b85c38a88e4cb2a1782e04b8055589036705391361b658197",
+        jar_sha256 = "1065d7ec93a9ca93005e85d73f23f71353dd731f5c5f0310d66735ad81a16c33",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.22.0/google-oauth-client-java6-1.22.0.jar",
-            "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.22.0/google-oauth-client-java6-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.27.0/google-oauth-client-java6-1.27.0.jar",
+            "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.27.0/google-oauth-client-java6-1.27.0.jar",
         ],
         deps = ["@com_google_oauth_client"],
     )
@@ -1493,6 +1529,17 @@ def com_google_oauth_client_servlet():
         deps = [
             "@com_google_oauth_client",
             "@javax_servlet_api",
+        ],
+    )
+
+def com_google_protobuf():
+    http_archive(
+        name = "com_google_protobuf",
+        strip_prefix = "protobuf-3.6.1.3",
+        sha256 = "73fdad358857e120fd0fa19e071a96e15c0f23bb25f85d3f7009abfd4f264a2a",
+        urls = [
+            "https://mirror.bazel.build/github.com/google/protobuf/archive/v3.6.1.3.tar.gz",
+            "https://github.com/protocolbuffers/protobuf/archive/v3.6.1.3.tar.gz",
         ],
     )
 
@@ -1747,23 +1794,34 @@ def com_thoughtworks_paranamer():
 def commons_codec():
     java_import_external(
         name = "commons_codec",
-        jar_sha256 = "54b34e941b8e1414bd3e40d736efd3481772dc26db3296f6aa45cec9f6203d86",
+        licenses = ["notice"],  # Apache License, Version 2.0
+        jar_sha256 = "4241dfa94e711d435f29a4604a3e2de5c4aa3c165e23bd066be6fc1fc4309569",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/commons-codec/commons-codec/1.6/commons-codec-1.6.jar",
-            "http://repo1.maven.org/maven2/commons-codec/commons-codec/1.6/commons-codec-1.6.jar",
+            "http://repo1.maven.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10.jar",
+            "http://maven.ibiblio.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10.jar",
         ],
-        licenses = ["notice"],  # The Apache Software License, Version 2.0
+    )
+
+def commons_io():
+    java_import_external(
+        name = "commons_io",
+        licenses = ["notice"],  # Apache License, Version 2.0
+        jar_sha256 = "a10418348d234968600ccb1d988efcbbd08716e1d96936ccc1880e7d22513474",
+        jar_urls = [
+            "http://maven.ibiblio.org/maven2/commons-io/commons-io/2.5/commons-io-2.5.jar",
+            "http://repo1.maven.org/maven2/commons-io/commons-io/2.5/commons-io-2.5.jar",
+        ],
     )
 
 def commons_logging():
     java_import_external(
         name = "commons_logging",
-        jar_sha256 = "ce6f913cad1f0db3aad70186d65c5bc7ffcc9a99e3fe8e0b137312819f7c362f",
-        jar_urls = [
-            "http://maven.ibiblio.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar",
-            "http://repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar",
-        ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
+        jar_sha256 = "daddea1ea0be0f56978ab3006b8ac92834afeefbd9b7e4e6316fca57df0fa636",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar",
+            "http://maven.ibiblio.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar",
+        ],
     )
 
 def dnsjava():
@@ -2212,12 +2270,12 @@ def org_apache_ftpserver_core():
 def org_apache_httpcomponents_httpclient():
     java_import_external(
         name = "org_apache_httpcomponents_httpclient",
-        jar_sha256 = "0dffc621400d6c632f55787d996b8aeca36b30746a716e079a985f24d8074057",
+        licenses = ["notice"],  # Apache License, Version 2.0
+        jar_sha256 = "7e97724443ad2a25ad8c73183431d47cc7946271bcbbdfa91a8a17522a566573",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar",
-            "http://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar",
+            "http://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.5/httpclient-4.5.5.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/httpcomponents/httpclient/4.5.5/httpclient-4.5.5.jar",
         ],
-        licenses = ["notice"],  # Apache License
         deps = [
             "@org_apache_httpcomponents_httpcore",
             "@commons_logging",
@@ -2228,12 +2286,12 @@ def org_apache_httpcomponents_httpclient():
 def org_apache_httpcomponents_httpcore():
     java_import_external(
         name = "org_apache_httpcomponents_httpcore",
-        jar_sha256 = "f7bc09dc8a7003822d109634ffd3845d579d12e725ae54673e323a7ce7f5e325",
+        licenses = ["notice"],  # Apache License, Version 2.0
+        jar_sha256 = "1b4a1c0b9b4222eda70108d3c6e2befd4a6be3d9f78ff53dd7a94966fdf51fc5",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/org/apache/httpcomponents/httpcore/4.4.4/httpcore-4.4.4.jar",
-            "http://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.4/httpcore-4.4.4.jar",
+            "http://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.9/httpcore-4.4.9.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/httpcomponents/httpcore/4.4.9/httpcore-4.4.9.jar",
         ],
-        licenses = ["notice"],  # Apache License
     )
 
 def org_apache_mina_core():
@@ -2570,7 +2628,7 @@ def org_yaml_snakeyaml():
 def xerces_xmlParserAPIs():
     java_import_external(
         name = "xerces_xmlParserAPIs",
-        licenses = ["TODO"],  # NO LICENSE DECLARED
+        licenses = ["notice"],  # Apache License, Version 2.0
         jar_sha256 = "1c2867be1faa73c67e9232631241eb1df4cd0763048646e7bb575a9980e9d7e5",
         jar_urls = [
             "http://repo1.maven.org/maven2/xerces/xmlParserAPIs/2.6.2/xmlParserAPIs-2.6.2.jar",
@@ -2587,7 +2645,7 @@ def xpp3():
         # http://creativecommons.org/licenses/publicdomain
         # Apache Software License, version 1.1
         # http://www.apache.org/licenses/LICENSE-1.1
-        licenses = ["TODO"],
+        licenses = ["notice"],
         jar_sha256 = "0341395a481bb887803957145a6a37879853dd625e9244c2ea2509d9bb7531b9",
         jar_urls = [
             "http://maven.ibiblio.org/maven2/xpp3/xpp3/1.1.4c/xpp3-1.1.4c.jar",

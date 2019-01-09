@@ -16,6 +16,7 @@ package google.registry.export;
 
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.export.LoadSnapshotAction.LATEST_SNAPSHOT_VIEW_NAME;
 import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
 import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
 import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;
@@ -159,24 +160,30 @@ public class LoadSnapshotActionTest {
     verify(bigqueryJobsInsert, times(3)).execute();
 
     // Check that the poll tasks for each load job were enqueued.
-    verify(bigqueryPollEnqueuer).enqueuePollTask(
-        new JobReference()
-            .setProjectId("Project-Id")
-            .setJobId("load-snapshot-id12345-one-1391096117045"),
-        UpdateSnapshotViewAction.createViewUpdateTask("snapshots", "id12345_one", "one"),
-        QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
-    verify(bigqueryPollEnqueuer).enqueuePollTask(
-        new JobReference()
-            .setProjectId("Project-Id")
-            .setJobId("load-snapshot-id12345-two-1391096117045"),
-        UpdateSnapshotViewAction.createViewUpdateTask("snapshots", "id12345_two", "two"),
-        QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
-    verify(bigqueryPollEnqueuer).enqueuePollTask(
-        new JobReference()
-            .setProjectId("Project-Id")
-            .setJobId("load-snapshot-id12345-three-1391096117045"),
-        UpdateSnapshotViewAction.createViewUpdateTask("snapshots", "id12345_three", "three"),
-        QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
+    verify(bigqueryPollEnqueuer)
+        .enqueuePollTask(
+            new JobReference()
+                .setProjectId("Project-Id")
+                .setJobId("load-snapshot-id12345-one-1391096117045"),
+            UpdateSnapshotViewAction.createViewUpdateTask(
+                "snapshots", "id12345_one", "one", LATEST_SNAPSHOT_VIEW_NAME),
+            QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
+    verify(bigqueryPollEnqueuer)
+        .enqueuePollTask(
+            new JobReference()
+                .setProjectId("Project-Id")
+                .setJobId("load-snapshot-id12345-two-1391096117045"),
+            UpdateSnapshotViewAction.createViewUpdateTask(
+                "snapshots", "id12345_two", "two", LATEST_SNAPSHOT_VIEW_NAME),
+            QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
+    verify(bigqueryPollEnqueuer)
+        .enqueuePollTask(
+            new JobReference()
+                .setProjectId("Project-Id")
+                .setJobId("load-snapshot-id12345-three-1391096117045"),
+            UpdateSnapshotViewAction.createViewUpdateTask(
+                "snapshots", "id12345_three", "three", LATEST_SNAPSHOT_VIEW_NAME),
+            QueueFactory.getQueue(UpdateSnapshotViewAction.QUEUE));
   }
 
   @Test

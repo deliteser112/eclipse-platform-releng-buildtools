@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.flows.EppXmlTransformer.marshal;
+import static google.registry.model.eppcommon.EppXmlTransformer.marshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.POLL_MESSAGE_ID_STRIPPER;
 import static google.registry.testing.DatastoreHelper.getPollMessages;

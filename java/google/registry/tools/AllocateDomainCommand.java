@@ -21,7 +21,7 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.io.BaseEncoding.base16;
-import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.model.eppcommon.EppXmlTransformer.unmarshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.tools.CommandUtilities.addHeader;
 import static java.util.stream.Collectors.joining;
@@ -34,7 +34,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SoyMapData;
 import com.googlecode.objectify.Key;
-import google.registry.flows.EppException;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand;
@@ -46,6 +45,7 @@ import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.SignedMark;
 import google.registry.tools.soy.DomainAllocateSoyInfo;
+import google.registry.xml.XmlException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -88,7 +88,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
   }
 
   /** Extract the registration period from the XML used to create the domain application. */
-  private static Period extractPeriodFromXml(byte[] xmlBytes) throws EppException {
+  private static Period extractPeriodFromXml(byte[] xmlBytes) throws XmlException {
     EppInput eppInput = unmarshal(EppInput.class, xmlBytes);
     return ((DomainCommand.Create)
         ((ResourceCommandWrapper) eppInput.getCommandWrapper().getCommand())
@@ -182,7 +182,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
                 "dsRecords", dsRecords,
                 "clTrid", clientTransactionId));
         applicationKeys.add(Key.create(application));
-      } catch (EppException e) {
+      } catch (XmlException e) {
         throw new RuntimeException(e);
       }
     }

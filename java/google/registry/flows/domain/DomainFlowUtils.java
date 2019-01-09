@@ -520,7 +520,7 @@ public class DomainFlowUtils {
    * Fills in a builder with the data needed for an autorenew billing event for this domain. This
    * does not copy over the id of the current autorenew billing event.
    */
-  static BillingEvent.Recurring.Builder newAutorenewBillingEvent(DomainResource domain) {
+  public static BillingEvent.Recurring.Builder newAutorenewBillingEvent(DomainResource domain) {
     return new BillingEvent.Recurring.Builder()
         .setReason(Reason.RENEW)
         .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
@@ -533,7 +533,7 @@ public class DomainFlowUtils {
    * Fills in a builder with the data needed for an autorenew poll message for this domain. This
    * does not copy over the id of the current autorenew poll message.
    */
-  static PollMessage.Autorenew.Builder newAutorenewPollMessage(DomainResource domain) {
+  public static PollMessage.Autorenew.Builder newAutorenewPollMessage(DomainResource domain) {
     return new PollMessage.Autorenew.Builder()
         .setTargetId(domain.getFullyQualifiedDomainName())
         .setClientId(domain.getCurrentSponsorClientId())
@@ -542,12 +542,14 @@ public class DomainFlowUtils {
   }
 
   /**
-   * Re-saves the current autorenew billing event and poll message with a new end time. This may end
-   * up deleting the poll message (if closing the message interval) or recreating it (if opening the
-   * message interval).
+   * Re-saves the current autorenew billing event and poll message with a new end time.
+   *
+   * <p>This may end up deleting the poll message (if closing the message interval) or recreating it
+   * (if opening the message interval). This may cause an autorenew billing event to have an end
+   * time earlier than its event time (i.e. if it's being ended before it was ever triggered).
    */
   @SuppressWarnings("unchecked")
-  static void updateAutorenewRecurrenceEndTime(DomainResource domain, DateTime newEndTime) {
+  public static void updateAutorenewRecurrenceEndTime(DomainResource domain, DateTime newEndTime) {
     Optional<PollMessage.Autorenew> autorenewPollMessage =
         Optional.ofNullable(ofy().load().key(domain.getAutorenewPollMessage()).now());
 
@@ -892,13 +894,14 @@ public class DomainFlowUtils {
   /**
    * Check that the registrar with the given client ID is active.
    *
-   * <p>Non-active registrars are not allowed to create domain applications or domain resources.
+   * <p>Non-active registrars are not allowed to run operations that cost money, like domain creates
+   * or renews.
    */
   static void verifyRegistrarIsActive(String clientId)
-      throws RegistrarMustBeActiveToCreateDomainsException {
+      throws RegistrarMustBeActiveForThisOperationException {
     Registrar registrar = Registrar.loadByClientIdCached(clientId).get();
     if (registrar.getState() != State.ACTIVE) {
-      throw new RegistrarMustBeActiveToCreateDomainsException();
+      throw new RegistrarMustBeActiveForThisOperationException();
     }
   }
 
@@ -1606,10 +1609,10 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Registrar must be active in order to create domains or applications. */
-  static class RegistrarMustBeActiveToCreateDomainsException extends AuthorizationErrorException {
-    public RegistrarMustBeActiveToCreateDomainsException() {
-      super("Registrar must be active in order to create domains or applications");
+  /** Registrar must be active in order to perform this operation. */
+  static class RegistrarMustBeActiveForThisOperationException extends AuthorizationErrorException {
+    public RegistrarMustBeActiveForThisOperationException() {
+      super("Registrar must be active in order to perform this operation");
     }
   }
 }

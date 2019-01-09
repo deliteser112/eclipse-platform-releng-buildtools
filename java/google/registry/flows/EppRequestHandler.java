@@ -14,7 +14,7 @@
 
 package google.registry.flows;
 
-import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
+import static google.registry.flows.FlowUtils.marshalWithLenientRetry;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_AND_CLOSE;
 import static google.registry.xml.XmlTransformer.prettyPrint;
 import static java.nio.charset.StandardCharsets.UTF_8;

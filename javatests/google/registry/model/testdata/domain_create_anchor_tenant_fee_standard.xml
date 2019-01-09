@@ -1,0 +1,29 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <create>
+      <domain:create
+       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>example.tld</domain:name>
+        <domain:period unit="y">2</domain:period>
+        <domain:registrant>jd1234</domain:registrant>
+        <domain:contact type="admin">jd1234</domain:contact>
+        <domain:contact type="tech">jd1234</domain:contact>
+        <domain:authInfo>
+          <domain:pw>abcdefghijklmnop</domain:pw>
+        </domain:authInfo>
+      </domain:create>
+    </create>
+    <extension>
+      <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
+        <metadata:reason>anchor-tenant-test</metadata:reason>
+        <metadata:requestedByRegistrar>false</metadata:requestedByRegistrar>
+        <metadata:anchorTenant>true</metadata:anchorTenant>
+      </metadata:metadata>
+      <fee:create xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+        <fee:currency>USD</fee:currency>
+        <fee:fee>26.00</fee:fee>
+      </fee:create>
+    </extension>
+    <clTRID>RegistryTool</clTRID>
+  </command>
+</epp>

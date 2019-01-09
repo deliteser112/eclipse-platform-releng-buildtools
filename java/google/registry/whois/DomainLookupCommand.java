@@ -33,9 +33,7 @@ public class DomainLookupCommand extends DomainOrHostLookupCommand {
 
   @Override
   protected Optional<WhoisResponse> getResponse(InternetDomainName domainName, DateTime now) {
-    final DomainResource domainResource =
-        loadByForeignKeyCached(DomainResource.class, domainName.toString(), now);
-    return Optional.ofNullable(
-        domainResource == null ? null : new DomainWhoisResponse(domainResource, fullOutput, now));
+    return loadByForeignKeyCached(DomainResource.class, domainName.toString(), now)
+        .map(domain -> new DomainWhoisResponse(domain, fullOutput, now));
   }
 }

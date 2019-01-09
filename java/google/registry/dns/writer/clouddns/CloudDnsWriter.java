@@ -19,7 +19,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.util.DomainNameUtils.getSecondLevelDomain;
 
-import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo;
+import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.Change;
@@ -120,9 +120,9 @@ public class CloudDnsWriter extends BaseDnsWriter {
     // Canonicalize name
     String absoluteDomainName = getAbsoluteHostName(domainName);
 
-    // Load the target domain. Note that it can be null if this domain was just deleted.
+    // Load the target domain. Note that it can be absent if this domain was just deleted.
     Optional<DomainResource> domainResource =
-        Optional.ofNullable(loadByForeignKey(DomainResource.class, domainName, clock.nowUtc()));
+        loadByForeignKey(DomainResource.class, domainName, clock.nowUtc());
 
     // Return early if no DNS records should be published.
     // desiredRecordsBuilder is populated with an empty set to indicate that all existing records
@@ -188,11 +188,10 @@ public class CloudDnsWriter extends BaseDnsWriter {
     // Canonicalize name
     String absoluteHostName = getAbsoluteHostName(hostName);
 
-    // Load the target host. Note that it can be null if this host was just deleted.
+    // Load the target host. Note that it can be absent if this host was just deleted.
     // desiredRecords is populated with an empty set to indicate that all existing records
     // should be deleted.
-    Optional<HostResource> host =
-        Optional.ofNullable(loadByForeignKey(HostResource.class, hostName, clock.nowUtc()));
+    Optional<HostResource> host = loadByForeignKey(HostResource.class, hostName, clock.nowUtc());
 
     // Return early if the host is deleted.
     if (!host.isPresent()) {
@@ -390,12 +389,12 @@ public class CloudDnsWriter extends BaseDnsWriter {
     try {
       dnsConnection.changes().create(projectId, zoneName, change).execute();
     } catch (GoogleJsonResponseException e) {
-      List<ErrorInfo> errors = e.getDetails().getErrors();
+      GoogleJsonError err = e.getDetails();
       // We did something really wrong here, just give up and re-throw
-      if (errors.size() > 1) {
+      if (err == null || err.getErrors().size() > 1) {
         throw new RuntimeException(e);
       }
-      String errorReason = errors.get(0).getReason();
+      String errorReason = err.getErrors().get(0).getReason();
 
       if (RETRYABLE_EXCEPTION_REASONS.contains(errorReason)) {
         throw new ZoneStateException(errorReason);

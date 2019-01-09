@@ -47,8 +47,8 @@ import google.registry.request.RequestMethod;
 import google.registry.request.RequestPath;
 import google.registry.request.Response;
 import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.request.auth.UserAuthInfo;
-import google.registry.ui.server.registrar.AuthenticatedRegistrarAccessor;
 import google.registry.util.Clock;
 import java.io.IOException;
 import java.net.URI;
@@ -270,6 +270,18 @@ public abstract class RdapActionBase implements Runnable {
     return isAuthorized(eppResource, now)
         && (!registrarParam.isPresent()
             || registrarParam.get().equals(eppResource.getPersistedCurrentSponsorClientId()));
+  }
+
+  /**
+   * Returns true if the EPP resource should be visible.
+   *
+   * <p>This is true iff:
+   * 1. The passed in resource exists and is not deleted (deleted ones will have been projected
+   *    forward in time to empty),
+   * 2. The request did not specify a registrar to filter on, or the registrar matches.
+   */
+  boolean shouldBeVisible(Optional<? extends EppResource> eppResource, DateTime now) {
+    return eppResource.isPresent() && shouldBeVisible(eppResource.get(), now);
   }
 
   /**

@@ -676,7 +676,7 @@ public class BigqueryConnection implements AutoCloseable {
       bigquery.datasets().get(getProjectId(), datasetName).execute();
       return true;
     } catch (GoogleJsonResponseException e) {
-      if (e.getDetails().getCode() == 404) {
+      if (e.getDetails() != null && e.getDetails().getCode() == 404) {
         return false;
       }
       throw e;
@@ -689,7 +689,7 @@ public class BigqueryConnection implements AutoCloseable {
       bigquery.tables().get(getProjectId(), datasetName, tableName).execute();
       return true;
     } catch (GoogleJsonResponseException e) {
-      if (e.getDetails().getCode() == 404) {
+      if (e.getDetails() != null && e.getDetails().getCode() == 404) {
         return false;
       }
       throw e;

@@ -14,16 +14,10 @@
 
 package google.registry.flows;
 
-import static com.google.appengine.api.users.UserServiceFactory.getUserService;
-import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.testing.DatastoreHelper.persistResource;
-
-import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import google.registry.model.registrar.RegistrarContact;
+import com.google.common.collect.ImmutableSetMultimap;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.UserInfo;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,20 +31,15 @@ public class EppLoginUserTest extends EppTestCase {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
-      .withUserService(UserInfo.create("user@example.com", "12345"))
       .build();
 
   @Before
   public void initTest() {
-    User user = getUserService().getCurrentUser();
-    persistResource(
-        new RegistrarContact.Builder()
-            .setParent(loadRegistrar("NewRegistrar"))
-            .setEmailAddress(user.getEmail())
-            .setGaeUserId(user.getUserId())
-            .setTypes(ImmutableSet.of(RegistrarContact.Type.ADMIN))
-            .build());
-    setTransportCredentials(GaeUserCredentials.forCurrentUser(getUserService()));
+    setTransportCredentials(
+        new GaeUserCredentials(
+            AuthenticatedRegistrarAccessor.createForTesting(
+                ImmutableSetMultimap.of(
+                    "NewRegistrar", AuthenticatedRegistrarAccessor.Role.OWNER))));
   }
 
   @Test
@@ -66,7 +55,7 @@ public class EppLoginUserTest extends EppTestCase {
             "response_error.xml",
             ImmutableMap.of(
                 "CODE", "2200",
-                "MSG", "User id is not allowed to login as requested registrar: user@example.com"));
+                "MSG", "TestUserId doesn't have access to registrar TheRegistrar"));
   }
 
   @Test
@@ -80,7 +69,7 @@ public class EppLoginUserTest extends EppTestCase {
             "response_error.xml",
             ImmutableMap.of(
                 "CODE", "2200",
-                "MSG", "User id is not allowed to login as requested registrar: user@example.com"));
+                "MSG", "TestUserId doesn't have access to registrar TheRegistrar"));
   }
 
   @Test

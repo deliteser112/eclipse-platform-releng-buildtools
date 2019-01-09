@@ -19,6 +19,8 @@
         <domain:clID>TheRegistrar</domain:clID>
         <domain:crID>NewRegistrar</domain:crID>
         <domain:crDate>2000-06-01T00:04:00Z</domain:crDate>
+        <domain:upID>TheRegistrar</domain:upID>
+        <domain:upDate>2002-06-09T00:00:00Z</domain:upDate>
         <domain:exDate>2003-06-01T00:04:00Z</domain:exDate>
         <domain:trDate>2002-06-04T00:00:00Z</domain:trDate>
         <domain:authInfo>

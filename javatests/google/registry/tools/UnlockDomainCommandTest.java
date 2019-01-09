@@ -94,7 +94,7 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
         assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--client=NewRegistrar", "missing.tld"));
-    assertThat(e).hasMessageThat().isEqualTo("Domain 'missing.tld' does not exist");
+    assertThat(e).hasMessageThat().isEqualTo("Domain 'missing.tld' does not exist or is deleted");
   }
 
   @Test

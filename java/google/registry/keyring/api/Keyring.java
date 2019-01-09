@@ -22,8 +22,8 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 /**
  * Nomulus keyring interface.
  *
- * <p>Separate methods are defined for each specific situation in which the
- * registry server needs a secret value, like a PGP key or password.
+ * <p>Separate methods are defined for each specific situation in which the registry server needs a
+ * secret value, like a PGP key or password.
  */
 @ThreadSafe
 public interface Keyring extends AutoCloseable {
@@ -31,11 +31,10 @@ public interface Keyring extends AutoCloseable {
   /**
    * Returns the key which should be used to sign RDE deposits being uploaded to a third-party.
    *
-   * <p>When we give all our data to the escrow provider, they'll need
-   * a signature to ensure the data is authentic.
+   * <p>When we give all our data to the escrow provider, they'll need a signature to ensure the
+   * data is authentic.
    *
-   * <p>This keypair should only be known to the domain registry shared
-   * registry system.
+   * <p>This keypair should only be known to the domain registry shared registry system.
    *
    * @see google.registry.rde.RdeUploadAction
    */
@@ -44,12 +43,10 @@ public interface Keyring extends AutoCloseable {
   /**
    * Returns public key for encrypting escrow deposits being staged to cloud storage.
    *
-   * <p>This adds an additional layer of security so cloud storage administrators
-   * won't be tempted to go poking around the App Engine Cloud Console and see a
-   * dump of the entire database.
+   * <p>This adds an additional layer of security so cloud storage administrators won't be tempted
+   * to go poking around the App Engine Cloud Console and see a dump of the entire database.
    *
-   * <p>This keypair should only be known to the domain registry shared
-   * registry system.
+   * <p>This keypair should only be known to the domain registry shared registry system.
    *
    * @see #getRdeStagingDecryptionKey()
    */
@@ -58,10 +55,9 @@ public interface Keyring extends AutoCloseable {
   /**
    * Returns private key for decrypting escrow deposits retrieved from cloud storage.
    *
-   * <p>This method may impose restrictions on who can call it. For example, we'd want
-   * to check that the caller isn't an HTTP request attacking a vulnerability in the
-   * admin console. The request should originate from a backend task queue servlet
-   * invocation of the RDE upload thing.
+   * <p>This method may impose restrictions on who can call it. For example, we'd want to check that
+   * the caller isn't an HTTP request attacking a vulnerability in the admin console. The request
+   * should originate from a backend task queue servlet invocation of the RDE upload thing.
    *
    * @see #getRdeStagingEncryptionKey()
    * @see google.registry.rde.RdeUploadAction
@@ -92,9 +88,9 @@ public interface Keyring extends AutoCloseable {
   /**
    * Returns public key for SSH client connections made by RDE.
    *
-   * <p>This is a string containing what would otherwise be the contents of an
-   * {@code ~/.ssh/id_rsa.pub} file. It's usually a single line with the name of
-   * the algorithm, the base64 key, and the email address of the owner.
+   * <p>This is a string containing what would otherwise be the contents of an {@code
+   * ~/.ssh/id_rsa.pub} file. It's usually a single line with the name of the algorithm, the base64
+   * key, and the email address of the owner.
    *
    * @see google.registry.rde.RdeUploadAction
    */
@@ -103,13 +99,12 @@ public interface Keyring extends AutoCloseable {
   /**
    * Returns private key for SSH client connections made by RDE.
    *
-   * <p>This is a string containing what would otherwise be the contents of an
-   * {@code ~/.ssh/id_rsa} file. It's ASCII-armored text.
+   * <p>This is a string containing what would otherwise be the contents of an {@code ~/.ssh/id_rsa}
+   * file. It's ASCII-armored text.
    *
-   * <p>This method may impose restrictions on who can call it. For example, we'd want
-   * to check that the caller isn't an HTTP request attacking a vulnerability in the
-   * admin console. The request should originate from a backend task queue servlet
-   * invocation of the RDE upload thing.
+   * <p>This method may impose restrictions on who can call it. For example, we'd want to check that
+   * the caller isn't an HTTP request attacking a vulnerability in the admin console. The request
+   * should originate from a backend task queue servlet invocation of the RDE upload thing.
    *
    * @see google.registry.rde.RdeUploadAction
    */

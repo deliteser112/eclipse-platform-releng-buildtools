@@ -159,7 +159,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     assertThat(reloadResourceByForeignKey()).isNull();
     // However, it should load correctly if we use the new name (taken from the xml).
     HostResource renamedHost =
-        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc());
+        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc()).get();
     assertAboutHosts()
         .that(renamedHost)
         .hasOnlyOneHistoryEntryWhich()

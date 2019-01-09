@@ -49,6 +49,7 @@ import google.registry.flows.domain.DomainFlowUtils.ExceedsMaxRegistrationYearsE
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
+import google.registry.flows.domain.DomainFlowUtils.RegistrarMustBeActiveForThisOperationException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
 import google.registry.flows.domain.DomainRenewFlow.IncorrectCurrentExpirationDateException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
@@ -60,6 +61,8 @@ import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
@@ -166,7 +169,11 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
         .hasRegistrationExpirationTime(newExpiration)
         .and()
         .hasOneHistoryEntryEachOfTypes(
-            HistoryEntry.Type.DOMAIN_CREATE, HistoryEntry.Type.DOMAIN_RENEW);
+            HistoryEntry.Type.DOMAIN_CREATE, HistoryEntry.Type.DOMAIN_RENEW)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("TheRegistrar");
     assertAboutHistoryEntries().that(historyEntryDomainRenew).hasPeriodYears(renewalYears);
     BillingEvent.OneTime renewBillingEvent =
         new BillingEvent.OneTime.Builder()
@@ -371,6 +378,32 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     setEppInput("domain_renew_fee_applied.xml", FEE_12_MAP);
     persistDomain();
     EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_suspendedRegistrarCantRenewDomain() {
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.SUSPENDED)
+            .build());
+    EppException thrown =
+        assertThrows(RegistrarMustBeActiveForThisOperationException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_pendingRegistrarCantRenewDomain() {
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.PENDING)
+            .build());
+    EppException thrown =
+        assertThrows(RegistrarMustBeActiveForThisOperationException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

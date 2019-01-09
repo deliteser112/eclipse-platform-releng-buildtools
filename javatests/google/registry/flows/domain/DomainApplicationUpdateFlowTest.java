@@ -112,16 +112,15 @@ public class DomainApplicationUpdateFlowTest
   }
 
   private DomainApplication persistApplication() {
+    HostResource host =
+        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()).get();
     return persistResource(
         newApplicationBuilder()
             .setContacts(
                 ImmutableSet.of(
                     DesignatedContact.create(Type.TECH, Key.create(sh8013Contact)),
                     DesignatedContact.create(Type.ADMIN, Key.create(unusedContact))))
-            .setNameservers(
-                ImmutableSet.of(
-                    Key.create(
-                        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
+            .setNameservers(ImmutableSet.of(Key.create(host)))
             .build());
   }
 
@@ -184,7 +183,8 @@ public class DomainApplicationUpdateFlowTest
   public void testSuccess_registrantMovedToTechContact() throws Exception {
     setEppInput("domain_update_sunrise_registrant_to_tech.xml");
     persistReferencedEntities();
-    ContactResource sh8013 = loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc());
+    ContactResource sh8013 =
+        loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc()).get();
     persistResource(newApplicationBuilder().setRegistrant(Key.create(sh8013)).build());
     clock.advanceOneMilli();
     runFlowAssertResponse(loadFile("generic_success_response.xml"));
@@ -194,7 +194,8 @@ public class DomainApplicationUpdateFlowTest
   public void testSuccess_multipleReferencesToSameContactRemoved() throws Exception {
     setEppInput("domain_update_sunrise_remove_multiple_contacts.xml");
     persistReferencedEntities();
-    ContactResource sh8013 = loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc());
+    ContactResource sh8013 =
+        loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc()).get();
     Key<ContactResource> sh8013Key = Key.create(sh8013);
     persistResource(
         newApplicationBuilder()
@@ -411,7 +412,8 @@ public class DomainApplicationUpdateFlowTest
         nameservers.add(
             Key.create(
                 loadByForeignKey(
-                    HostResource.class, String.format("ns%d.example.tld", i), clock.nowUtc())));
+                        HostResource.class, String.format("ns%d.example.tld", i), clock.nowUtc())
+                    .get()));
       }
     }
     persistResource(
@@ -546,7 +548,7 @@ public class DomainApplicationUpdateFlowTest
                     DesignatedContact.create(
                         Type.TECH,
                         Key.create(
-                            loadByForeignKey(ContactResource.class, "foo", clock.nowUtc())))))
+                            loadByForeignKey(ContactResource.class, "foo", clock.nowUtc()).get()))))
             .build());
     EppException thrown = assertThrows(DuplicateContactForRoleException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -639,7 +641,8 @@ public class DomainApplicationUpdateFlowTest
             .setNameservers(
                 ImmutableSet.of(
                     Key.create(
-                        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
+                        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc())
+                            .get())))
             .build());
     EppException thrown = assertThrows(AddRemoveSameValueException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -656,7 +659,8 @@ public class DomainApplicationUpdateFlowTest
                     DesignatedContact.create(
                         Type.TECH,
                         Key.create(
-                            loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))))
+                            loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())
+                                .get()))))
             .build());
     EppException thrown = assertThrows(AddRemoveSameValueException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -759,10 +763,9 @@ public class DomainApplicationUpdateFlowTest
     persistResource(
         reloadDomainApplication()
             .asBuilder()
-            .addNameservers(
-                ImmutableSet.of(
-                    Key.create(
-                        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc()))))
+            .addNameserver(
+                Key.create(
+                    loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc()).get()))
             .build());
     persistResource(
         Registry.get("tld")
@@ -833,10 +836,9 @@ public class DomainApplicationUpdateFlowTest
     persistResource(
         reloadDomainApplication()
             .asBuilder()
-            .addNameservers(
-                ImmutableSet.of(
-                    Key.create(
-                        loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc()))))
+            .addNameserver(
+                Key.create(
+                    loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc()).get()))
             .build());
     persistResource(
         Registry.get("tld")

@@ -33,6 +33,7 @@ goog.forwardDeclare('registry.Resource');
  * @param {!registry.Console} console console singleton.
  * @param {!registry.Resource} resource the RESTful resource.
  * @param {!Function} itemTmpl
+ * @param {boolean} isEditable if true, the "edit" button will be enabled
  * @param {Function} renderSetCb may be null if this resource is only
  *     ever an item.
  * @constructor
@@ -42,8 +43,10 @@ registry.ResourceComponent = function(
     console,
     resource,
     itemTmpl,
+    isEditable,
     renderSetCb) {
-  registry.ResourceComponent.base(this, 'constructor', console, itemTmpl);
+  registry.ResourceComponent.base(
+      this, 'constructor', console, itemTmpl, isEditable);
 
   /** @type {!registry.Resource} */
   this.resource = resource;
@@ -108,7 +111,7 @@ registry.ResourceComponent.prototype.handleFetchItem = function(id, rsp) {
   } else if ('set' in rsp && this.renderSetCb != null) {
     // XXX: This conditional logic should be hoisted to edit_item when
     //      collection support is improved.
-    goog.dom.removeChildren(goog.dom.getRequiredElement('reg-appbar'));
+    goog.dom.removeChildren(goog.dom.getRequiredElement('reg-app-buttons'));
     this.renderSetCb(goog.dom.getRequiredElement('reg-content'), rsp);
   } else {
     registry.util.log('unknown message type in handleFetchItem');

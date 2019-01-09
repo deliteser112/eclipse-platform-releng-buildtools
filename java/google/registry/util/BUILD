@@ -21,5 +21,6 @@ java_library(
         "@com_ibm_icu_icu4j",
         "@javax_inject",
         "@joda_time",
+        "@org_yaml_snakeyaml",
     ],
 )

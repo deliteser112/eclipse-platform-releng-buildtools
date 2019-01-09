@@ -196,7 +196,7 @@ public class GenerateDnsReportCommandTest extends CommandTestCase<GenerateDnsRep
 
   @Test
   public void testSuccess_skipDomainsWithoutNameservers() throws Exception {
-    persistResource(domain1.asBuilder().setNameservers(null).build());
+    persistResource(domain1.asBuilder().setNameservers(ImmutableSet.of()).build());
     runCommand("--output=" + output, "--tld=xn--q9jyb4c");
     assertThat(getOutputAsJson())
         .isEqualTo(ImmutableList.of(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT));

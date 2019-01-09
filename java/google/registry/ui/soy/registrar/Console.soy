@@ -24,6 +24,8 @@
   {@param xsrfToken: string} /** Security token. */
   {@param clientId: string} /** Registrar client identifier. */
   {@param allClientIds: list<string>} /** All registrar client identifiers for the user. */
+  {@param isAdmin: bool}
+  {@param isOwner: bool}
   {@param username: string} /** Arbitrary username to display. */
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param productName: string} /** Name to display for this software product. */
@@ -39,7 +41,17 @@
   {/call}
   {call registry.soy.console.googlebar data="all" /}
   <div id="reg-app">
-    <div id="reg-appbar" class="{css('kd-appbar')}"></div>
+    <div id="reg-appbar" class="{css('kd-appbar')}">
+      <div class="{css('kd-description')}">
+        Accessing <span class="{css('kd-value')}">{$clientId}</span> as{sp}
+        {if $isOwner}<span class="{css('kd-value')}">Owner</span>{/if}
+        {if $isAdmin}<span class="{css('kd-value')}">Admin</span>{/if}
+        {if length($allClientIds) > 1}
+          {sp}(Switch registrar: {call .clientIdSelect_ data="all" /})
+        {/if}
+      </div>
+      <div id="reg-app-buttons" class="{css('kd-buttonbar')} {css('left')}"></div>
+    </div>
     {call .navbar_ data="all" /}
     <div id="reg-content-and-footer">
       <div id="reg-content">
@@ -55,7 +67,7 @@
       <script src="/assets/js/registrar_dbg.js"></script>
     {case google.registry.ui.ConsoleDebug.RAW}
       <script>var CLOSURE_NO_DEPS = true;</script>
-      <script src="/assets/sources/closure_library/closure/goog/base.js"></script>
+      <script src="/assets/sources/com_google_javascript_closure_library/closure/googbase.js"></script>
       <script src="/assets/sources/domain_registry/java/google/registry/ui/deps.js"></script>
       <script>goog.require('registry.registrar.main');</script>
   {/switch}
@@ -63,6 +75,8 @@
     <script>
       registry.registrar.main({$xsrfToken},
                               {$clientId},
+                              {if $isAdmin}true{else}false{/if},
+                              {if $isOwner}true{else}false{/if},
                               {$productName},
                               {$integrationEmail},
                               {$supportEmail},
@@ -76,21 +90,9 @@
 
 /** Sidebar nav. Ids on each elt for testing only. */
 {template .navbar_ visibility="private"}
-  {@param clientId: string} /** Registrar client identifier. */
-  {@param allClientIds: list<string>}
+  {@param isAdmin: bool}
 
   <div id="reg-nav" class="{css('kd-content-sidebar')}">
-    <form>
-      <select name="clientId"
-              id="select-client-id"
-              class="{css('kd-button')} {css('kd-button-submit')}"
-              onchange='this.form.submit()'>
-        <option value="">[auto select]</option>
-        {for $id in $allClientIds}
-          <option value="{$id}" {if $id == $clientId}selected{/if}>{$id}</option>
-        {/for}
-      </select>
-    </form>
     <ul id="reg-navlist">
       <li>
         <a href="#">Home</a>
@@ -105,11 +107,33 @@
             <a href="#security-settings">Security</a>
           <li>
             <a href="#contact-settings">Contact</a>
+          {if $isAdmin}
+            <li>
+              <a href="#admin-settings">Admin</a>
+          {/if}
         </ul>
       <li>
         <a href="#contact-us">Contact us</a>
     </ul>
   </div>
+{/template}
+
+
+/** Drop-down selection for the clientId. */
+{template .clientIdSelect_}
+  {@param clientId: string} /** Registrar client identifier. */
+  {@param allClientIds: list<string>}
+  <form>
+    <select name="clientId"
+            id="select-client-id"
+            class="{css('kd-button')} {css('kd-button-submit')}"
+            onchange='this.form.submit()'>
+      <option value="">[auto select]</option>
+      {for $id in $allClientIds}
+        <option value="{$id}" {if $id == $clientId}selected{/if}>{$id}</option>
+      {/for}
+    </select>
+  </form>
 {/template}
 
 

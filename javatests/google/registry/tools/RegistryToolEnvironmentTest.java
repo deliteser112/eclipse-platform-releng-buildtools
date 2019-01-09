@@ -17,6 +17,8 @@ package google.registry.tools;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
 
+import google.registry.testing.SystemPropertyRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -25,17 +27,20 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RegistryToolEnvironmentTest {
 
+  @Rule public final SystemPropertyRule systemPropertyRule = new SystemPropertyRule();
+
   @Test
   public void testGet_withoutSetup_throws() {
+    RegistryToolEnvironment.reset();
     assertThrows(IllegalStateException.class, RegistryToolEnvironment::get);
   }
 
   @Test
   public void testSetup_changesEnvironmentReturnedByGet() {
-    RegistryToolEnvironment.UNITTEST.setup();
+    RegistryToolEnvironment.UNITTEST.setup(systemPropertyRule);
     assertThat(RegistryToolEnvironment.get()).isEqualTo(RegistryToolEnvironment.UNITTEST);
 
-    RegistryToolEnvironment.ALPHA.setup();
+    RegistryToolEnvironment.ALPHA.setup(systemPropertyRule);
     assertThat(RegistryToolEnvironment.get()).isEqualTo(RegistryToolEnvironment.ALPHA);
   }
 

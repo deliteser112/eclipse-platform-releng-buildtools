@@ -68,6 +68,7 @@ registry.json.Response.prototype.results;
 // XXX: Might not need undefineds here.
 /**
  * @typedef {{
+ *   allowedTlds: !Array<string>,
  *   clientIdentifier: string,
  *   clientCertificate: string?,
  *   clientCertificateHash: string?,

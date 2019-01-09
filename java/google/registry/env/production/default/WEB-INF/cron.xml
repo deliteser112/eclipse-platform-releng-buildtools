@@ -175,6 +175,24 @@
   </cron>
 
   <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=export-snapshot&endpoint=/_dr/task/backupDatastore&runInEmpty]]></url>
+    <description>
+      This job fires off a Datastore managed-export job that generates snapshot files in GCS.
+      It also enqueues a new task to wait on the completion of that job and then load the resulting
+      snapshot into bigquery.
+    </description>
+    <!--
+      Keep google.registry.export.CheckBackupAction.MAXIMUM_BACKUP_RUNNING_TIME less than
+      this interval.
+
+      To facilitate troubleshooting, run after the exportSnapshot task below (typically finishes in
+      90 minutes in production) has completed.
+      TODO(b/122271637): move to 06:00 (UTC) when the exportSnapshot task is removed. -->
+    <schedule>every day 09:00</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=export-snapshot&endpoint=/_dr/task/exportSnapshot&runInEmpty]]></url>
     <description>
       This job fires off a Datastore backup-as-a-service job that generates snapshot files in GCS.
@@ -289,13 +307,12 @@
   <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/generateSpec11&runInEmpty]]></url>
     <description>
-      Starts the beam/spec11/Spec11Pipeline Dataflow template, which creates last month's Spec11
-      report. This report is stored in gs://[PROJECT-ID]-reporting/icann/spec11/yyyy-MM.
-      Upon Dataflow job completion, sends an e-mail to all registrars with domain registrations
-      flagged by the SafeBrowsing API.
+      Starts the beam/spec11/Spec11Pipeline Dataflow template, which creates today's Spec11
+      report. This report is stored in gs://[PROJECT-ID]-reporting/icann/spec11/yyyy-MM/.
+      This job will only send email notifications on the second of every month.
       See GenerateSpec11ReportAction for more details.
     </description>
-    <schedule>2 of month 15:00</schedule>
+    <schedule>every day 15:00</schedule>
     <target>backend</target>
   </cron>
 </cronentries>

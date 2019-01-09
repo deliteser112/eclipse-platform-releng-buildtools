@@ -22,6 +22,7 @@ import google.registry.config.CredentialModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.export.DriveModule;
+import google.registry.export.datastore.DatastoreAdminModule;
 import google.registry.export.sheet.SheetsServiceModule;
 import google.registry.gcs.GcsServiceModule;
 import google.registry.groups.DirectoryModule;
@@ -56,6 +57,7 @@ import javax.inject.Singleton;
       BigqueryModule.class,
       ConfigModule.class,
       CredentialModule.class,
+      DatastoreAdminModule.class,
       DatastoreServiceModule.class,
       DirectoryModule.class,
       DummyKeyringModule.class,

@@ -33,13 +33,8 @@ env:
   # quota)
   TERM=dumb
 
-install:
-  # Install a specific gradle version first, default gradle can't deal with
-  # our gradle build scripts.
-  - wget http://services.gradle.org/distributions/gradle-4.10.2-bin.zip && unzip gradle-4.10.2-bin.zip
-
 # Specialize gradle build to use an up-to-date gradle and the /gradle
 # directory.
 # The "travis_wait 45" lets our build spend up to 45 minutes without writing
 # output, instead of the default 10.
-script: cd gradle && travis_wait 45 ../gradle-4.10.2/bin/gradle build
+script: cd gradle && chmod 755 ./gradlew && travis_wait 45 ./gradlew build

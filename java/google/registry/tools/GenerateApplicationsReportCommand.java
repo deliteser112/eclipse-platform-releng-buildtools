@@ -15,7 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.model.eppcommon.EppXmlTransformer.unmarshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
@@ -29,7 +29,6 @@ import com.google.common.base.Joiner;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Query;
-import google.registry.flows.EppException;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
@@ -39,6 +38,7 @@ import google.registry.tmch.TmchXmlSignature;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.Clock;
 import google.registry.util.Idn;
+import google.registry.xml.XmlException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -132,7 +132,7 @@ final class GenerateApplicationsReportCommand implements CommandWithRemoteApi {
       SignedMark signedMark;
       try {
         signedMark = unmarshal(SignedMark.class, signedMarkData);
-      } catch (EppException e) {
+      } catch (XmlException e) {
         return Optional.of(makeLine(domainApplication, "Unparseable SMD"));
       }
 

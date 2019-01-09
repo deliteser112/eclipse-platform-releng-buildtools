@@ -37,4 +37,7 @@ public interface AppEngineServiceUtils {
 
   /** Returns a host name to use for the given service and version. */
   String getVersionHostname(String service, String version);
+
+  /** Set the number of instances at runtime for a given service and version. */
+  void setNumInstances(String service, String version, long numInstances);
 }

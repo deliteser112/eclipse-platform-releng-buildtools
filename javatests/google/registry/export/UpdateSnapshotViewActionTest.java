@@ -20,6 +20,7 @@ import static google.registry.export.UpdateSnapshotViewAction.QUEUE;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
+import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_VIEWNAME_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.createViewUpdateTask;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
@@ -79,20 +80,26 @@ public class UpdateSnapshotViewActionTest {
     action.checkedBigquery = checkedBigquery;
     action.datasetId = "some_dataset";
     action.kindName = "fookind";
+    action.viewName = "latest_datastore_export";
     action.projectId = "myproject";
     action.tableId = "12345_fookind";
   }
 
   @Test
   public void testSuccess_createViewUpdateTask() {
-    getQueue(QUEUE).add(createViewUpdateTask("some_dataset", "12345_fookind", "fookind"));
-    assertTasksEnqueued(QUEUE,
+    getQueue(QUEUE)
+        .add(
+            createViewUpdateTask(
+                "some_dataset", "12345_fookind", "fookind", "latest_datastore_export"));
+    assertTasksEnqueued(
+        QUEUE,
         new TaskMatcher()
             .url(UpdateSnapshotViewAction.PATH)
             .method("POST")
             .param(UPDATE_SNAPSHOT_DATASET_ID_PARAM, "some_dataset")
             .param(UPDATE_SNAPSHOT_TABLE_ID_PARAM, "12345_fookind")
-            .param(UPDATE_SNAPSHOT_KIND_PARAM, "fookind"));
+            .param(UPDATE_SNAPSHOT_KIND_PARAM, "fookind")
+            .param(UPDATE_SNAPSHOT_VIEWNAME_PARAM, "latest_datastore_export"));
   }
 
   @Test

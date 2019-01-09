@@ -216,13 +216,13 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    */
   private RdapSearchResults searchByDomainNameWithoutWildcard(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
-    DomainResource domainResource =
+    Optional<DomainResource> domainResource =
         loadByForeignKey(DomainResource.class, partialStringQuery.getInitialString(), now);
-    ImmutableList<DomainResource> results =
-        ((domainResource == null) || !shouldBeVisible(domainResource, now))
-            ? ImmutableList.of()
-            : ImmutableList.of(domainResource);
-    return makeSearchResults(results, now);
+    return makeSearchResults(
+        shouldBeVisible(domainResource, now)
+            ? ImmutableList.of(domainResource.get())
+            : ImmutableList.of(),
+        now);
   }
 
   /** Searches for domains by domain name with an initial string, wildcard and possible suffix. */
@@ -343,15 +343,15 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     // the key.
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     if (desiredRegistrar.isPresent()) {
-      HostResource host =
+      Optional<HostResource> host =
           loadByForeignKey(
               HostResource.class,
               partialStringQuery.getInitialString(),
               shouldIncludeDeleted() ? START_OF_TIME : now);
-      return ((host == null)
-              || !desiredRegistrar.get().equals(host.getPersistedCurrentSponsorClientId()))
+      return (!host.isPresent()
+              || !desiredRegistrar.get().equals(host.get().getPersistedCurrentSponsorClientId()))
           ? ImmutableList.of()
-          : ImmutableList.of(Key.create(host));
+          : ImmutableList.of(Key.create(host.get()));
     } else {
       Key<HostResource> hostKey =
           loadAndGetKey(
@@ -370,15 +370,14 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     // with no initial string.
     DomainResource domainResource =
         loadByForeignKey(
-            DomainResource.class,
-            partialStringQuery.getSuffix(),
-            shouldIncludeDeleted() ? START_OF_TIME : now);
-    if (domainResource == null) {
-      // Don't allow wildcards with suffixes which are not domains we manage. That would risk a
-      // table scan in some easily foreseeable cases.
-      throw new UnprocessableEntityException(
-          "A suffix in a lookup by nameserver name must be a domain defined in the system");
-    }
+                DomainResource.class,
+                partialStringQuery.getSuffix(),
+                shouldIncludeDeleted() ? START_OF_TIME : now)
+            .orElseThrow(
+                () ->
+                    new UnprocessableEntityException(
+                        "A suffix in a lookup by nameserver name "
+                            + "must be a domain defined in the system"));
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     ImmutableList.Builder<Key<HostResource>> builder = new ImmutableList.Builder<>();
     for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
@@ -386,12 +385,12 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
       // then the query ns.exam*.example.com would match against nameserver ns.example.com.
       if (partialStringQuery.matches(fqhn)) {
         if (desiredRegistrar.isPresent()) {
-          HostResource host =
+          Optional<HostResource> host =
               loadByForeignKey(
                   HostResource.class, fqhn, shouldIncludeDeleted() ? START_OF_TIME : now);
-          if ((host != null)
-              && desiredRegistrar.get().equals(host.getPersistedCurrentSponsorClientId())) {
-            builder.add(Key.create(host));
+          if (host.isPresent()
+              && desiredRegistrar.get().equals(host.get().getPersistedCurrentSponsorClientId())) {
+            builder.add(Key.create(host.get()));
           }
         } else {
           Key<HostResource> hostKey =

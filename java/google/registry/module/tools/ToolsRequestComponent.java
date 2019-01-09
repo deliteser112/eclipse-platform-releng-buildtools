@@ -34,6 +34,7 @@ import google.registry.tools.server.CreatePremiumListAction;
 import google.registry.tools.server.DeleteEntityAction;
 import google.registry.tools.server.GenerateZoneFilesAction;
 import google.registry.tools.server.KillAllCommitLogsAction;
+import google.registry.tools.server.KillAllDomainApplicationsAction;
 import google.registry.tools.server.KillAllEppResourcesAction;
 import google.registry.tools.server.ListDomainsAction;
 import google.registry.tools.server.ListHostsAction;
@@ -69,6 +70,7 @@ interface ToolsRequestComponent {
   FlowComponent.Builder flowComponentBuilder();
   GenerateZoneFilesAction generateZoneFilesAction();
   KillAllCommitLogsAction killAllCommitLogsAction();
+  KillAllDomainApplicationsAction killAllDomainApplicationsAction();
   KillAllEppResourcesAction killAllEppResourcesAction();
   ListDomainsAction listDomainsAction();
   ListHostsAction listHostsAction();

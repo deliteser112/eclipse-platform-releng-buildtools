@@ -22,6 +22,7 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableList;
@@ -57,6 +58,9 @@ public enum Fixture {
     @Override
     public void load() {
       createTlds("xn--q9jyb4c", "example");
+
+      // Used for OT&E TLDs
+      persistPremiumList("default_sandbox_list");
 
       ContactResource google = persistResource(newContactResource("google")
           .asBuilder()

@@ -26,6 +26,7 @@ import static google.registry.model.registry.label.DomainLabelMetrics.PremiumLis
 import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.UNCACHED_POSITIVE;
 import static google.registry.model.registry.label.DomainLabelMetrics.premiumListChecks;
 import static google.registry.model.registry.label.DomainLabelMetrics.premiumListProcessingTime;
+import static google.registry.model.registry.label.PremiumList.createCachePremiumLists;
 import static google.registry.model.registry.label.PremiumListUtils.deletePremiumList;
 import static google.registry.model.registry.label.PremiumListUtils.doesPremiumListExist;
 import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
@@ -35,7 +36,7 @@ import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static org.joda.time.Duration.standardMinutes;
+import static org.joda.time.Duration.standardDays;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -63,9 +64,11 @@ public class PremiumListUtilsTest {
 
   @Before
   public void before() {
-    // createTld() overwrites the premium list, so call it first.
+    // Set long persist times on caches so they can be tested (cache times default to 0 in tests).
     PremiumList.cachePremiumListEntries =
-        PremiumList.createCachePremiumListEntries(standardMinutes(1));
+        PremiumList.createCachePremiumListEntries(standardDays(1));
+    PremiumList.cachePremiumLists = createCachePremiumLists(standardDays(1));
+    // createTld() overwrites the premium list, so call it first.
     createTld("tld");
     PremiumList pl =
         persistPremiumList(
@@ -307,6 +310,16 @@ public class PremiumListUtilsTest {
     assertThat(entriesReloaded).hasSize(1);
     assertThat(entriesReloaded).containsKey("test");
     assertThat(entriesReloaded.get("test").parent).isEqualTo(resaved.getRevisionKey());
+  }
+
+  @Test
+  public void test_savePremiumListAndEntries_clearsCache() {
+    assertThat(PremiumList.cachePremiumLists.getIfPresent("tld")).isNull();
+    PremiumList pl = PremiumList.getCached("tld").get();
+    assertThat(PremiumList.cachePremiumLists.getIfPresent("tld")).isEqualTo(pl);
+    savePremiumListAndEntries(
+        new PremiumList.Builder().setName("tld").build(), ImmutableList.of("test,USD 1"));
+    assertThat(PremiumList.cachePremiumLists.getIfPresent("tld")).isNull();
   }
 
   @Test

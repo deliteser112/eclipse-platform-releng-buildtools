@@ -39,7 +39,9 @@ import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateConfigModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
+import google.registry.export.BackupDatastoreAction;
 import google.registry.export.BigqueryPollJobAction;
+import google.registry.export.CheckBackupAction;
 import google.registry.export.CheckSnapshotAction;
 import google.registry.export.ExportDomainListsAction;
 import google.registry.export.ExportPremiumTermsAction;
@@ -49,6 +51,7 @@ import google.registry.export.ExportSnapshotAction;
 import google.registry.export.LoadSnapshotAction;
 import google.registry.export.SyncGroupMembersAction;
 import google.registry.export.UpdateSnapshotViewAction;
+import google.registry.export.UploadDatastoreBackupAction;
 import google.registry.export.sheet.SheetModule;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.flows.async.AsyncFlowsModule;
@@ -70,6 +73,7 @@ import google.registry.reporting.billing.BillingModule;
 import google.registry.reporting.billing.CopyDetailReportsAction;
 import google.registry.reporting.billing.GenerateInvoicesAction;
 import google.registry.reporting.billing.PublishInvoicesAction;
+import google.registry.reporting.icann.DnsCountQueryCoordinatorModule;
 import google.registry.reporting.icann.IcannReportingModule;
 import google.registry.reporting.icann.IcannReportingStagingAction;
 import google.registry.reporting.icann.IcannReportingUploadAction;
@@ -97,6 +101,7 @@ import google.registry.tmch.TmchSmdrlAction;
         BillingModule.class,
         CloudDnsWriterModule.class,
         CronModule.class,
+        DnsCountQueryCoordinatorModule.class,
         DnsModule.class,
         DnsUpdateConfigModule.class,
         DnsUpdateWriterModule.class,
@@ -114,8 +119,10 @@ import google.registry.tmch.TmchSmdrlAction;
         WhiteboxModule.class,
     })
 interface BackendRequestComponent {
+  BackupDatastoreAction backupDatastoreAction();
   BigqueryPollJobAction bigqueryPollJobAction();
   BrdaCopyAction brdaCopyAction();
+  CheckBackupAction checkBackupAction();
   CheckSnapshotAction checkSnapshotAction();
   CommitLogCheckpointAction commitLogCheckpointAction();
   CommitLogFanoutAction commitLogFanoutAction();
@@ -158,6 +165,7 @@ interface BackendRequestComponent {
   TmchCrlAction tmchCrlAction();
   TmchDnlAction tmchDnlAction();
   TmchSmdrlAction tmchSmdrlAction();
+  UploadDatastoreBackupAction uploadDatastoreBackupAction();
   UpdateSnapshotViewAction updateSnapshotViewAction();
   PublishInvoicesAction uploadInvoicesAction();
 

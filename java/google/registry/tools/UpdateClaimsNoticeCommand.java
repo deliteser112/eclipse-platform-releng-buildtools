@@ -82,16 +82,20 @@ final class UpdateClaimsNoticeCommand implements CommandWithRemoteApi {
     DateTime now = ofy().getTransactionTime();
 
     // Load the domain application.
-    DomainApplication domainApplication = loadDomainApplication(applicationId, now);
-    checkArgument(domainApplication != null, "Domain application does not exist");
+    DomainApplication domainApplication =
+        loadDomainApplication(applicationId, now)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Domain application does not exist or is deleted"));
 
     // Make sure this isn't a sunrise application.
     checkArgument(domainApplication.getEncodedSignedMarks().isEmpty(),
         "Can't update claims notice on sunrise applications.");
 
     // Validate the new launch notice checksum.
-    String domainLabel = InternetDomainName.from(domainApplication.getFullyQualifiedDomainName())
-        .parts().get(0);
+    String domainLabel =
+        InternetDomainName.from(domainApplication.getFullyQualifiedDomainName()).parts().get(0);
     launchNotice.validate(domainLabel);
 
     DomainApplication updatedApplication = domainApplication.asBuilder()

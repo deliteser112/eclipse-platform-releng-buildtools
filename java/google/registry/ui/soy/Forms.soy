@@ -295,6 +295,21 @@
   </tr>
 {/template}
 
+/** Submit button. */
+{template .submitRow}
+  {@param label: string}
+  <tr>
+    <td></td>
+    <td>
+      <input
+        id="submit-button"
+        type="submit"
+        value="{$label}"
+        class="{css('kd-button')} {css('kd-button-submit')}">
+    </td>
+  </tr>
+{/template}
+
 
 /** Drop-down select button widget. */
 {template .menuButton}

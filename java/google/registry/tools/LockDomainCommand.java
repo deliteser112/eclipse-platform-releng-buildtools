@@ -14,9 +14,9 @@
 
 package google.registry.tools;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameters;
@@ -28,6 +28,7 @@ import com.google.template.soy.data.SoyMapData;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.tools.soy.DomainUpdateSoyInfo;
+import java.util.Optional;
 import org.joda.time.DateTime;
 
 /**
@@ -45,10 +46,11 @@ public class LockDomainCommand extends LockOrUnlockDomainCommand {
     // Project all domains as of the same time so that argument order doesn't affect behavior.
     DateTime now = DateTime.now(UTC);
     for (String domain : getDomains()) {
-      DomainResource domainResource = loadByForeignKey(DomainResource.class, domain, now);
-      checkArgument(domainResource != null, "Domain '%s' does not exist", domain);
+      Optional<DomainResource> domainResource = loadByForeignKey(DomainResource.class, domain, now);
+      checkArgumentPresent(domainResource, "Domain '%s' does not exist or is deleted", domain);
       ImmutableSet<StatusValue> statusesToAdd =
-          Sets.difference(REGISTRY_LOCK_STATUSES, domainResource.getStatusValues()).immutableCopy();
+          Sets.difference(REGISTRY_LOCK_STATUSES, domainResource.get().getStatusValues())
+              .immutableCopy();
       if (statusesToAdd.isEmpty()) {
         logger.atInfo().log("Domain '%s' is already locked and needs no updates.", domain);
         continue;

@@ -147,7 +147,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
- * @error {@link DomainFlowUtils.RegistrarMustBeActiveToCreateDomainsException}
+ * @error {@link DomainFlowUtils.RegistrarMustBeActiveForThisOperationException}
  * @error {@link DomainFlowTmchUtils.SignedMarksMustBeEncodedException}
  * @error {@link DomainFlowTmchUtils.SignedMarkCertificateExpiredException}
  * @error {@link DomainFlowTmchUtils.SignedMarkCertificateInvalidException}

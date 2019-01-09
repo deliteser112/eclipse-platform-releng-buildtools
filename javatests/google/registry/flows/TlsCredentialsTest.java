@@ -15,19 +15,31 @@
 package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import google.registry.model.registrar.Registrar;
 import google.registry.request.HttpException.BadRequestException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ShardableTestCase;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link TlsCredentials}. */
 @RunWith(JUnit4.class)
-public final class TlsCredentialsTest {
+public final class TlsCredentialsTest extends ShardableTestCase {
+
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+
   @Test
   public void testProvideClientCertificateHash() {
     HttpServletRequest req = mock(HttpServletRequest.class);
@@ -46,8 +58,15 @@ public final class TlsCredentialsTest {
   }
 
   @Test
-  public void testNothing1() {}
-
-  @Test
-  public void testNothing2() {}
+  public void test_validateCertificate_canBeConfiguredToBypassCertHashes() throws Exception {
+    TlsCredentials tls = new TlsCredentials(false, "certHash", Optional.of("192.168.1.1"));
+    persistResource(
+        loadRegistrar("TheRegistrar")
+            .asBuilder()
+            .setClientCertificate(null, DateTime.now(UTC))
+            .setFailoverClientCertificate(null, DateTime.now(UTC))
+            .build());
+    // This would throw a RegistrarCertificateNotConfiguredException if cert hashes wren't bypassed.
+    tls.validateCertificate(Registrar.loadByClientId("TheRegistrar").get());
+  }
 }

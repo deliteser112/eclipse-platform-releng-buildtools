@@ -12,6 +12,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//java/google/registry/config",
+        "//javatests/google/registry/testing",
         "@com_google_auto_value",
         "@com_google_guava",
         "@com_google_truth",

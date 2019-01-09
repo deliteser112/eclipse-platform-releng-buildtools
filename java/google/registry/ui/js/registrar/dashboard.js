@@ -52,7 +52,7 @@ goog.inherits(registry.registrar.Dashboard, registry.Component);
 /** @override */
 registry.registrar.Dashboard.prototype.bindToDom = function(id) {
   registry.registrar.Dashboard.base(this, 'bindToDom', '');
-  goog.dom.removeChildren(goog.dom.getRequiredElement('reg-appbar'));
+  goog.dom.removeChildren(goog.dom.getRequiredElement('reg-app-buttons'));
   goog.soy.renderElement(goog.dom.getElement('reg-content'),
                          registry.soy.registrar.console.dashboard,
                          this.console.params);

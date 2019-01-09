@@ -35,7 +35,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.io.IOException;
-import org.joda.time.YearMonth;
+import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -87,20 +87,20 @@ public class GenerateSpec11ReportActionTest {
             "gs://template",
             "us-east1-c",
             "api_key/a",
-            YearMonth.parse("2018-06"),
+            new LocalDate(2018, 6, 11),
             response,
             dataflow);
     action.run();
 
     LaunchTemplateParameters expectedLaunchTemplateParameters =
         new LaunchTemplateParameters()
-            .setJobName("spec11_2018-06")
+            .setJobName("spec11_2018-06-11")
             .setEnvironment(
                 new RuntimeEnvironment()
                     .setZone("us-east1-c")
                     .setTempLocation("gs://my-bucket-beam/temporary"))
             .setParameters(
-                ImmutableMap.of("safeBrowsingApiKey", "api_key/a", "yearMonth", "2018-06"));
+                ImmutableMap.of("safeBrowsingApiKey", "api_key/a", "date", "2018-06-11"));
     verify(dataflowTemplates).launch("test", expectedLaunchTemplateParameters);
     verify(dataflowLaunch).setGcsPath("gs://template");
     assertThat(response.getStatus()).isEqualTo(200);
@@ -112,7 +112,7 @@ public class GenerateSpec11ReportActionTest {
             .url("/_dr/task/publishSpec11")
             .method("POST")
             .param("jobId", "jobid")
-            .param("yearMonth", "2018-06");
+            .param("date", "2018-06-11");
     assertTasksEnqueued("beam-reporting", matcher);
   }
 }

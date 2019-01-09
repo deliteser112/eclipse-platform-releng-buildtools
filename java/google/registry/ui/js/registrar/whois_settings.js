@@ -34,7 +34,7 @@ goog.forwardDeclare('registry.registrar.Console');
 registry.registrar.WhoisSettings = function(console, resource) {
   registry.registrar.WhoisSettings.base(
       this, 'constructor', console, resource,
-      registry.soy.registrar.whois.settings, null);
+      registry.soy.registrar.whois.settings, console.params.isOwner, null);
 };
 goog.inherits(registry.registrar.WhoisSettings, registry.ResourceComponent);
 

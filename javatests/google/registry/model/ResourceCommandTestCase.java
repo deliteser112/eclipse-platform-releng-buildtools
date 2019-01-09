@@ -14,7 +14,7 @@
 
 package google.registry.model;
 
-import static google.registry.flows.EppXmlTransformer.marshalInput;
+import static google.registry.model.eppcommon.EppXmlTransformer.marshalInput;
 import static google.registry.xml.ValidationMode.STRICT;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;

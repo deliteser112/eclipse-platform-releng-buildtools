@@ -28,8 +28,13 @@ import static org.mockito.Mockito.verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor.Role;
 import google.registry.testing.CertificateSamples;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.CidrAddressBlock;
@@ -86,10 +91,11 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   public void testFailure_readRegistrarInfo_notAuthorized() {
     setUserWithoutAccess();
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of("id", CLIENT_ID));
-    assertThat(response).containsExactly(
-        "status", "ERROR",
-        "results", ImmutableList.of(),
-        "message", "forbidden test error");
+    assertThat(response)
+        .containsExactly(
+            "status", "ERROR",
+            "results", ImmutableList.of(),
+            "message", "TestUserId doesn't have access to registrar TheRegistrar");
     assertNoTasksEnqueued("sheet");
     assertMetric(CLIENT_ID, "read", "[]", "ERROR: ForbiddenException");
   }
@@ -108,10 +114,14 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
   @Test
   public void testUpdate_emptyJsonObject_errorLastUpdateTimeFieldRequired() {
+    Map<String, Object> args = Maps.newHashMap(loadRegistrar(CLIENT_ID).toJsonMap());
+    args.remove("lastUpdateTime");
+
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,
-        "args", ImmutableMap.of()));
+        "args", args));
+
     assertThat(response).containsExactly(
         "status", "ERROR",
         "field", "lastUpdateTime",
@@ -123,10 +133,14 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
   @Test
   public void testUpdate_noEmail_errorEmailFieldRequired() {
+    Map<String, Object> args = Maps.newHashMap(loadRegistrar(CLIENT_ID).toJsonMap());
+    args.remove("emailAddress");
+
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,
-        "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
+        "args", args));
+
     assertThat(response).containsExactly(
         "status", "ERROR",
         "field", "emailAddress",
@@ -139,13 +153,14 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   @Test
   public void testUpdate_emptyJsonObject_emailFieldNotRequiredWhenEmpty() {
     persistResource(loadRegistrar(CLIENT_ID).asBuilder().setEmailAddress(null).build());
+    Map<String, Object> args = Maps.newHashMap(loadRegistrar(CLIENT_ID).toJsonMap());
+    args.remove("emailAddress");
 
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,
-        "args", ImmutableMap.of(
-            "allowedTlds", ImmutableList.of("currenttld"),
-            "lastUpdateTime", getLastUpdateTime())));
+        "args", args));
+
     assertThat(response).containsExactly(
         "status", "SUCCESS",
         "message", "Saved TheRegistrar",
@@ -156,26 +171,31 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   @Test
   public void testFailure_updateRegistrarInfo_notAuthorized() {
     setUserWithoutAccess();
+
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,
         "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
-    assertThat(response).containsExactly(
-        "status", "ERROR",
-        "results", ImmutableList.of(),
-        "message", "forbidden test error");
+
+    assertThat(response)
+        .containsExactly(
+            "status", "ERROR",
+            "results", ImmutableList.of(),
+            "message", "TestUserId doesn't have access to registrar TheRegistrar");
     assertNoTasksEnqueued("sheet");
     assertMetric(CLIENT_ID, "update", "[]", "ERROR: ForbiddenException");
   }
 
   @Test
   public void testUpdate_badEmail_errorEmailField() {
+    Map<String, Object> args = Maps.newHashMap(loadRegistrar(CLIENT_ID).toJsonMap());
+    args.put("emailAddress", "lolcat");
+
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,
-        "args", ImmutableMap.of(
-            "lastUpdateTime", getLastUpdateTime(),
-            "emailAddress", "lolcat")));
+        "args", args));
+
     assertThat(response).containsExactly(
         "status", "ERROR",
         "field", "emailAddress",
@@ -187,10 +207,14 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
   @Test
   public void testPost_nonParsableTime_getsAngry() {
+    Map<String, Object> args = Maps.newHashMap(loadRegistrar(CLIENT_ID).toJsonMap());
+    args.put("lastUpdateTime", "cookies");
+
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,
-        "args", ImmutableMap.of("lastUpdateTime", "cookies")));
+        "args", args));
+
     assertThat(response).containsExactly(
         "status", "ERROR",
         "field", "lastUpdateTime",
@@ -202,12 +226,14 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
   @Test
   public void testPost_nonAsciiCharacters_getsAngry() {
+    Map<String, Object> args = Maps.newHashMap(loadRegistrar(CLIENT_ID).toJsonMap());
+    args.put("emailAddress", "ヘ(◕。◕ヘ)@example.com");
+
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "id", CLIENT_ID,
-        "args", ImmutableMap.of(
-            "lastUpdateTime", getLastUpdateTime(),
-            "emailAddress", "ヘ(◕。◕ヘ)@example.com")));
+        "args", args));
+
     assertThat(response).containsExactly(
         "status", "ERROR",
         "field", "emailAddress",
@@ -217,128 +243,192 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: FormFieldException");
   }
 
+  /**
+   * Makes sure a field update succeeds IF AND ONLY IF we have the "correct" role.
+   *
+   * Each of the Registrar fields can be changed only by a single {@link Role}. We make sure that
+   * trying to update the field works if the user has the "correct" role, but failes if it doesn't.
+   */
   private <T> void doTestUpdate(
+      Role correctRole,
       Function<Registrar, T> getter,
       T newValue,
       BiFunction<Registrar.Builder, T, Registrar.Builder> setter) {
+    doTestUpdateWithCorrectRole_succeeds(correctRole, getter, newValue, setter);
+    doTestUpdateWithoutCorrectRole_failes(correctRole, getter, newValue, setter);
+  }
+
+  private <T> void doTestUpdateWithCorrectRole_succeeds(
+      Role role,
+      Function<Registrar, T> getter,
+      T newValue,
+      BiFunction<Registrar.Builder, T, Registrar.Builder> setter) {
+    // Set the user to only have the current role for this registrar
+    action.registrarAccessor =
+        AuthenticatedRegistrarAccessor.createForTesting(ImmutableSetMultimap.of(CLIENT_ID, role));
+    // Load the registrar as it is currently in datastore, and make sure the requested update will
+    // actually change it
     Registrar registrar = loadRegistrar(CLIENT_ID);
     assertThat(getter.apply(registrar)).isNotEqualTo(newValue);
 
+    // Call the action to perform the requested update, then load the "updated" registrar and
+    // return the "datastore" registrar to its original state (for the next iteration)
     Map<String, Object> response =
         action.handleJsonRequest(
             ImmutableMap.of(
                 "op", "update",
                 "id", CLIENT_ID,
                 "args", setter.apply(registrar.asBuilder(), newValue).build().toJsonMap()));
+    Registrar updatedRegistrar = loadRegistrar(CLIENT_ID);
+    persistResource(registrar);
 
-    registrar = loadRegistrar(CLIENT_ID);
+    // This role is authorized to perform this change, make sure the change succeeded
+    // We got a success result:
     assertThat(response).containsEntry("status", "SUCCESS");
-    assertThat(response).containsEntry("results", asList(registrar.toJsonMap()));
-    assertThat(getter.apply(registrar)).isEqualTo(newValue);
+    assertThat(response).containsEntry("results", asList(updatedRegistrar.toJsonMap()));
+    // The updatedRegistrar had its value changed:
+    // (We check it separately from the next assert to get better error message on failure)
+    assertThat(getter.apply(updatedRegistrar)).isEqualTo(newValue);
+    // ONLY that value changed:
+    assertThat(updatedRegistrar).isEqualTo(setter.apply(registrar.asBuilder(), newValue).build());
+    // We increased the correct metric
+    assertMetric(CLIENT_ID, "update", String.format("[%s]", role), "SUCCESS");
+  }
+
+  private <T> void doTestUpdateWithoutCorrectRole_failes(
+      Role correctRole,
+      Function<Registrar, T> getter,
+      T newValue,
+      BiFunction<Registrar.Builder, T, Registrar.Builder> setter) {
+    // Set the user to only have the current role for this registrar
+    ImmutableSet<Role> allExceptCorrectRoles =
+        Sets.difference(ImmutableSet.copyOf(Role.values()), ImmutableSet.of(correctRole))
+            .immutableCopy();
+    ImmutableSetMultimap<String, Role> accessMap =
+        new ImmutableSetMultimap.Builder<String, Role>()
+            .putAll(CLIENT_ID, allExceptCorrectRoles)
+            .build();
+    action.registrarAccessor =
+        AuthenticatedRegistrarAccessor.createForTesting(accessMap);
+    // Load the registrar as it is currently in datastore, and make sure the requested update will
+    // actually change it
+    Registrar registrar = loadRegistrar(CLIENT_ID);
+    assertThat(getter.apply(registrar)).isNotEqualTo(newValue);
+
+    // Call the action to perform the requested update, then load the "updated" registrar and
+    // returned the "datastore" registrar to its original state (for the next iteration)
+    Map<String, Object> response =
+        action.handleJsonRequest(
+            ImmutableMap.of(
+                "op",
+                "update",
+                "id",
+                CLIENT_ID,
+                "args",
+                setter.apply(registrar.asBuilder(), newValue).build().toJsonMap()));
+    Registrar updatedRegistrar = loadRegistrar(CLIENT_ID);
+    persistResource(registrar);
+
+    // This role is NOT authorized to perform this change, make sure the change failed
+    // We got an error response with the correct message
+    assertThat(response).containsEntry("status", "ERROR");
+    assertThat(response).containsEntry("results", ImmutableList.of());
+    assertThat(response.get("message").toString())
+        .containsMatch("Unauthorized: only .* can change fields .*");
+    // Make sure the value hasn't changed
+    // (We check it separately from the next assert to get better error message on failure)
+    assertThat(getter.apply(updatedRegistrar)).isEqualTo(getter.apply(registrar));
+    // Make sure no other values have changed either
+    assertThat(updatedRegistrar).isEqualTo(registrar);
+    // We increased the correct metric
+    assertMetric(
+        CLIENT_ID, "update", allExceptCorrectRoles.toString(), "ERROR: ForbiddenException");
   }
 
   @Test
   public void testUpdate_premiumPriceAck() {
     doTestUpdate(
-        Registrar::getPremiumPriceAckRequired, true, Registrar.Builder::setPremiumPriceAckRequired);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
+        Role.OWNER,
+        Registrar::getPremiumPriceAckRequired,
+        true,
+        Registrar.Builder::setPremiumPriceAckRequired);
   }
 
   @Test
   public void testUpdate_whoisServer() {
-    doTestUpdate(Registrar::getWhoisServer, "new-whois.example", Registrar.Builder::setWhoisServer);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
+    doTestUpdate(
+        Role.OWNER,
+        Registrar::getWhoisServer,
+        "new-whois.example",
+        Registrar.Builder::setWhoisServer);
   }
 
   @Test
   public void testUpdate_phoneNumber() {
-    doTestUpdate(Registrar::getPhoneNumber, "+1.2345678900", Registrar.Builder::setPhoneNumber);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
+    doTestUpdate(
+        Role.OWNER, Registrar::getPhoneNumber, "+1.2345678900", Registrar.Builder::setPhoneNumber);
   }
 
   @Test
   public void testUpdate_faxNumber() {
-    doTestUpdate(Registrar::getFaxNumber, "+1.2345678900", Registrar.Builder::setFaxNumber);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
+    doTestUpdate(
+        Role.OWNER, Registrar::getFaxNumber, "+1.2345678900", Registrar.Builder::setFaxNumber);
   }
 
   @Test
   public void testUpdate_url() {
-    doTestUpdate(Registrar::getUrl, "new-url.example", Registrar.Builder::setUrl);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
+    doTestUpdate(Role.OWNER, Registrar::getUrl, "new-url.example", Registrar.Builder::setUrl);
   }
 
   @Test
   public void testUpdate_ipAddressWhitelist() {
     doTestUpdate(
+        Role.OWNER,
         Registrar::getIpAddressWhitelist,
         ImmutableList.of(CidrAddressBlock.create("1.1.1.0/24")),
         Registrar.Builder::setIpAddressWhitelist);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testUpdate_clientCertificate() {
     doTestUpdate(
+        Role.OWNER,
         Registrar::getClientCertificate,
         CertificateSamples.SAMPLE_CERT,
         (builder, s) -> builder.setClientCertificate(s, clock.nowUtc()));
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testUpdate_failoverClientCertificate() {
     doTestUpdate(
+        Role.OWNER,
         Registrar::getFailoverClientCertificate,
         CertificateSamples.SAMPLE_CERT,
         (builder, s) -> builder.setFailoverClientCertificate(s, clock.nowUtc()));
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
-  public void testUpdate_allowedTlds_succeedWhenUserIsAdmin() {
-    setUserAdmin();
+  public void testUpdate_allowedTlds() {
     doTestUpdate(
+        Role.ADMIN,
         Registrar::getAllowedTlds,
-        ImmutableSet.of("newtld"),
+        ImmutableSet.of("newtld", "currenttld"),
         (builder, s) -> builder.setAllowedTlds(s));
-    assertMetric(CLIENT_ID, "update", "[ADMIN]", "SUCCESS");
-  }
-
-  @Test
-  public void testUpdate_allowedTlds_failedWhenUserIsNotAdmin() {
-    Map<String, Object> response =
-        action.handleJsonRequest(
-            ImmutableMap.of(
-                "op", "update",
-                "id", CLIENT_ID,
-                "args",
-                ImmutableMap.of(
-                    "lastUpdateTime", getLastUpdateTime(),
-                    "emailAddress", "abc@def.com",
-                    "allowedTlds", ImmutableList.of("newtld"))));
-    assertThat(response)
-        .containsExactly(
-            "status", "ERROR",
-            "results", ImmutableList.of(),
-            "message", "Only admin can update allowed TLDs.");
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "ERROR: ForbiddenException");
-    assertNoTasksEnqueued("sheet");
   }
 
   @Test
   public void testUpdate_allowedTlds_failedWhenTldNotExist() {
     setUserAdmin();
+    Map<String, Object> args = Maps.newHashMap(loadRegistrar(CLIENT_ID).toJsonMap());
+    args.put("allowedTlds", ImmutableList.of("invalidtld", "currenttld"));
+
     Map<String, Object> response =
         action.handleJsonRequest(
             ImmutableMap.of(
                 "op", "update",
                 "id", CLIENT_ID,
-                "args",
-                ImmutableMap.of(
-                    "lastUpdateTime", getLastUpdateTime(),
-                    "emailAddress", "abc@def.com",
-                    "allowedTlds", ImmutableList.of("invalidtld"))));
+                "args", args));
+
     assertThat(response)
         .containsExactly(
             "status", "ERROR",
@@ -349,17 +439,39 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_allowedTlds_noChange_successWhenUserIsNotAdmin() {
+  public void testUpdate_allowedTlds_failedWhenRemovingTld() {
+    setUserAdmin();
+    Map<String, Object> args = Maps.newHashMap(loadRegistrar(CLIENT_ID).toJsonMap());
+    args.put("allowedTlds", ImmutableList.of("newtld"));
+
     Map<String, Object> response =
         action.handleJsonRequest(
             ImmutableMap.of(
                 "op", "update",
                 "id", CLIENT_ID,
-                "args",
-                ImmutableMap.of(
-                    "lastUpdateTime", getLastUpdateTime(),
-                    "emailAddress", "abc@def.com",
-                    "allowedTlds", ImmutableList.of("currenttld"))));
+                "args", args));
+
+    assertThat(response)
+        .containsExactly(
+            "status", "ERROR",
+            "results", ImmutableList.of(),
+            "message", "Can't remove allowed TLDs using the console.");
+    assertMetric(CLIENT_ID, "update", "[ADMIN]", "ERROR: ForbiddenException");
+    assertNoTasksEnqueued("sheet");
+  }
+
+  @Test
+  public void testUpdate_allowedTlds_noChange_successWhenUserIsNotAdmin() {
+    Map<String, Object> args = Maps.newHashMap(loadRegistrar(CLIENT_ID).toJsonMap());
+    args.put("allowedTlds", ImmutableList.of("currenttld"));
+
+    Map<String, Object> response =
+        action.handleJsonRequest(
+            ImmutableMap.of(
+                "op", "update",
+                "id", CLIENT_ID,
+                "args", args));
+
     assertThat(response)
         .containsExactly(
             "status", "SUCCESS",
@@ -371,33 +483,34 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   @Test
   public void testUpdate_localizedAddress_city() {
     doTestUpdate(
+        Role.OWNER,
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setCity("newCity").build(),
         Registrar.Builder::setLocalizedAddress);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testUpdate_localizedAddress_countryCode() {
     doTestUpdate(
+        Role.OWNER,
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setCountryCode("GB").build(),
         Registrar.Builder::setLocalizedAddress);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testUpdate_localizedAddress_state() {
     doTestUpdate(
+        Role.OWNER,
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setState("NJ").build(),
         Registrar.Builder::setLocalizedAddress);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testUpdate_localizedAddress_street() {
     doTestUpdate(
+        Role.OWNER,
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID)
             .getLocalizedAddress()
@@ -405,16 +518,15 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
             .setStreet(ImmutableList.of("new street"))
             .build(),
         Registrar.Builder::setLocalizedAddress);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   @Test
   public void testUpdate_localizedAddress_zip() {
     doTestUpdate(
+        Role.OWNER,
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setZip("new zip").build(),
         Registrar.Builder::setLocalizedAddress);
-    assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
   private static String getLastUpdateTime() {

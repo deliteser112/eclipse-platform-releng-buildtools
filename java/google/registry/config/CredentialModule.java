@@ -26,6 +26,9 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.security.GeneralSecurityException;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
@@ -37,7 +40,21 @@ import javax.inject.Singleton;
 @Module
 public abstract class CredentialModule {
 
-  /** Provides the default {@link GoogleCredential} from the Google Cloud runtime. */
+  /**
+   * Provides the default {@link GoogleCredential} from the Google Cloud runtime.
+   *
+   * <p>The credential returned depends on the runtime environment:
+   *
+   * <ul>
+   *   <li>On AppEngine, returns the service account credential for
+   *       PROJECT_ID@appspot.gserviceaccount.com
+   *   <li>On Compute Engine, returns the service account credential for
+   *       PROJECT_NUMBER-compute@developer.gserviceaccount.com
+   *   <li>On end user host, this returns the credential downloaded by gcloud. Please refer to <a
+   *       href="https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login">Cloud
+   *       SDK documentation</a> for details.
+   * </ul>
+   */
   @DefaultCredential
   @Provides
   @Singleton
@@ -109,6 +126,8 @@ public abstract class CredentialModule {
 
   /** Dagger qualifier for the Application Default Credential. */
   @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
   public @interface DefaultCredential {}
 
   /**
@@ -116,6 +135,8 @@ public abstract class CredentialModule {
    * threads.
    */
   @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
   public @interface JsonCredential {}
 
   /**
@@ -123,5 +144,19 @@ public abstract class CredentialModule {
    * Suite).
    */
   @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
   public @interface DelegatedCredential {}
+
+  /** Dagger qualifier for the local credential used in the nomulus tool. */
+  @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface LocalCredential {}
+
+  /** Dagger qualifier for the JSON string used to create the local credential. */
+  @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface LocalCredentialJson {}
 }

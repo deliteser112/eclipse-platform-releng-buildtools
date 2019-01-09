@@ -281,9 +281,14 @@ public class DomainResource extends DomainBase
       }
       // Set all remaining transfer properties.
       setAutomaticTransferSuccessProperties(builder, transferData);
+      builder
+          .setLastEppUpdateTime(transferExpirationTime)
+          .setLastEppUpdateClientId(transferData.getGainingClientId());
       // Finish projecting to now.
       return builder.build().cloneProjectedAtTime(now);
     }
+
+    Optional<DateTime> newLastEppUpdateTime = Optional.empty();
 
     // There is no transfer. Do any necessary autorenews.
 
@@ -296,11 +301,13 @@ public class DomainResource extends DomainBase
       DateTime newExpirationTime  = lastAutorenewTime.plusYears(1);
       builder
           .setRegistrationExpirationTime(newExpirationTime)
-          .addGracePeriod(GracePeriod.createForRecurring(
-              GracePeriodStatus.AUTO_RENEW,
-              lastAutorenewTime.plus(Registry.get(getTld()).getAutoRenewGracePeriodLength()),
-              getCurrentSponsorClientId(),
-              autorenewBillingEvent));
+          .addGracePeriod(
+              GracePeriod.createForRecurring(
+                  GracePeriodStatus.AUTO_RENEW,
+                  lastAutorenewTime.plus(Registry.get(getTld()).getAutoRenewGracePeriodLength()),
+                  getCurrentSponsorClientId(),
+                  autorenewBillingEvent));
+      newLastEppUpdateTime = Optional.of(lastAutorenewTime);
     }
 
     // Remove any grace periods that have expired.
@@ -309,6 +316,22 @@ public class DomainResource extends DomainBase
     for (GracePeriod gracePeriod : almostBuilt.getGracePeriods()) {
       if (isBeforeOrAt(gracePeriod.getExpirationTime(), now)) {
         builder.removeGracePeriod(gracePeriod);
+        if (!newLastEppUpdateTime.isPresent()
+            || isBeforeOrAt(newLastEppUpdateTime.get(), gracePeriod.getExpirationTime())) {
+          newLastEppUpdateTime = Optional.of(gracePeriod.getExpirationTime());
+        }
+      }
+    }
+
+    // It is possible that the lastEppUpdateClientId is different from current sponsor client
+    // id, so we have to do the comparison instead of having one variable just storing the most
+    // recent time.
+    if (newLastEppUpdateTime.isPresent()) {
+      if (getLastEppUpdateTime() == null
+          || newLastEppUpdateTime.get().isAfter(getLastEppUpdateTime())) {
+        builder
+            .setLastEppUpdateTime(newLastEppUpdateTime.get())
+            .setLastEppUpdateClientId(getCurrentSponsorClientId());
       }
     }
 

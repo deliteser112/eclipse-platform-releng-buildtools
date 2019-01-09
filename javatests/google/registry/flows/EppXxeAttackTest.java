@@ -21,10 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/**
- * Tests for XXE attacks.
- *
- */
+/** Tests for <a href="https://en.wikipedia.org/wiki/XML_external_entity_attack">XXE</a> attacks. */
 @RunWith(JUnit4.class)
 public class EppXxeAttackTest extends EppTestCase {
 

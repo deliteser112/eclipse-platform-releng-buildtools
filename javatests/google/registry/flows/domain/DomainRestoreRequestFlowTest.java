@@ -51,6 +51,7 @@ import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
+import google.registry.flows.domain.DomainFlowUtils.RegistrarMustBeActiveForThisOperationException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
 import google.registry.flows.domain.DomainRestoreRequestFlow.DomainNotEligibleForRestoreException;
 import google.registry.flows.domain.DomainRestoreRequestFlow.RestoreCommandIncludesChangesException;
@@ -62,6 +63,8 @@ import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
@@ -148,7 +151,11 @@ public class DomainRestoreRequestFlowTest
         .hasDeletionTime(END_OF_TIME)
         .and()
         .hasOneHistoryEntryEachOfTypes(
-            HistoryEntry.Type.DOMAIN_DELETE, HistoryEntry.Type.DOMAIN_RESTORE);
+            HistoryEntry.Type.DOMAIN_DELETE, HistoryEntry.Type.DOMAIN_RESTORE)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("TheRegistrar");
     assertThat(domain.getGracePeriods()).isEmpty();
     assertDnsTasksEnqueued("example.tld");
     // The poll message for the delete should now be gone. The only poll message should be the new
@@ -349,6 +356,33 @@ public class DomainRestoreRequestFlowTest
     ResourceDoesNotExistException thrown =
         assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_suspendedRegistrarCantRestoreDomain() {
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.SUSPENDED)
+            .build());
+    EppException thrown =
+        assertThrows(RegistrarMustBeActiveForThisOperationException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_pendingRegistrarCantRestoreDomain() {
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.PENDING)
+            .build());
+    EppException thrown =
+        assertThrows(RegistrarMustBeActiveForThisOperationException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

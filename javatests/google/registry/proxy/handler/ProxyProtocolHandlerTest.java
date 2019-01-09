@@ -57,7 +57,7 @@ public class ProxyProtocolHandlerTest {
     assertThat(channel.writeInbound(Unpooled.wrappedBuffer((header + message).getBytes(UTF_8))))
         .isTrue();
     assertThat(((ByteBuf) channel.readInbound()).toString(UTF_8)).isEqualTo(message);
-    assertThat(channel.attr(REMOTE_ADDRESS_KEY).get()).isNull();
+    assertThat(channel.attr(REMOTE_ADDRESS_KEY).get()).isEqualTo("0.0.0.0");
     assertThat(channel.pipeline().get(ProxyProtocolHandler.class)).isNull();
     assertThat(channel.isActive()).isTrue();
   }

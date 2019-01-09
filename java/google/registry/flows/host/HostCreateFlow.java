@@ -64,7 +64,7 @@ import org.joda.time.DateTime;
  * hosts cannot have any. This flow allows creating a host name, and if necessary enqueues tasks to
  * update DNS.
  *
- * @error {@link google.registry.flows.EppXmlTransformer.IpAddressVersionMismatchException}
+ * @error {@link google.registry.flows.FlowUtils.IpAddressVersionMismatchException}
  * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
  * @error {@link HostFlowUtils.HostNameTooLongException}
  * @error {@link HostFlowUtils.HostNameTooShallowException}
@@ -87,8 +87,13 @@ public final class HostCreateFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject DnsQueue dnsQueue;
   @Inject EppResponse.Builder responseBuilder;
-  @Inject @Config("contactAndHostRoidSuffix") String roidSuffix;
-  @Inject HostCreateFlow() {}
+
+  @Inject
+  @Config("contactAndHostRoidSuffix")
+  String roidSuffix;
+
+  @Inject
+  HostCreateFlow() {}
 
   @Override
   public final EppResponse run() throws EppException {
@@ -126,17 +131,21 @@ public final class HostCreateFlow implements TransactionalFlow {
         .setType(HistoryEntry.Type.HOST_CREATE)
         .setModificationTime(now)
         .setParent(Key.create(newHost));
-    ImmutableSet<ImmutableObject> entitiesToSave = ImmutableSet.of(
-        newHost,
-        historyBuilder.build(),
-        ForeignKeyIndex.create(newHost, newHost.getDeletionTime()),
-        EppResourceIndex.create(Key.create(newHost)));
+    ImmutableSet<ImmutableObject> entitiesToSave =
+        ImmutableSet.of(
+            newHost,
+            historyBuilder.build(),
+            ForeignKeyIndex.create(newHost, newHost.getDeletionTime()),
+            EppResourceIndex.create(Key.create(newHost)));
     if (superordinateDomain.isPresent()) {
-      entitiesToSave = union(
-          entitiesToSave,
-          superordinateDomain.get().asBuilder()
-              .addSubordinateHost(command.getFullyQualifiedHostName())
-              .build());
+      entitiesToSave =
+          union(
+              entitiesToSave,
+              superordinateDomain
+                  .get()
+                  .asBuilder()
+                  .addSubordinateHost(command.getFullyQualifiedHostName())
+                  .build());
       // Only update DNS if this is a subordinate host. External hosts have no glue to write, so
       // they are only written as NS records from the referencing domain.
       dnsQueue.addHostRefreshTask(targetId);

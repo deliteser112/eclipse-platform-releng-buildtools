@@ -1244,12 +1244,12 @@ li.kd-labellistitem a.kd-label-blue {
 Component: App bars
 ------------------------------------------------------------------*/
 .kd-appbar {
-  position:relative;
+  position: relative;
   padding: 21px 0;
   border-bottom: 1px solid #ebebeb;
-  height: 29px;
-  z-index:20;
-  background:#fff;
+  height: 66px;
+  z-index: 20;
+  background: #fff;
 }
 .kd-appbar .kd-appname {
   width: 160px;
@@ -1262,6 +1262,22 @@ Component: App bars
   line-height: 29px;
   color: #666;
   white-space:nowrap;
+}
+.kd-appbar .kd-description {
+  height: 29px;
+  font-size: 20px;
+  font-weight: normal;
+  line-height: 29px;
+  padding-bottom: 8px;
+  color: #666;
+  white-space:nowrap;
+}
+.kd-appbar .kd-description .kd-value {
+  color: black;
+  font-weight: bold;
+}
+.kd-appbar .kd-description form {
+  display: inline;
 }
 .kd-appbar .kd-appname a { color: #666; cursor:pointer; }
 #stickers .kd-appbar .kd-buttonbar {

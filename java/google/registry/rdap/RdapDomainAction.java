@@ -29,6 +29,7 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -74,14 +75,14 @@ public class RdapDomainAction extends RdapActionBase {
               pathSearchString, getHumanReadableObjectTypeName(), e.getMessage()));
     }
     // The query string is not used; the RDAP syntax is /rdap/domain/mydomain.com.
-    DomainResource domainResource =
+    Optional<DomainResource> domainResource =
         loadByForeignKey(
             DomainResource.class, pathSearchString, shouldIncludeDeleted() ? START_OF_TIME : now);
-    if ((domainResource == null) || !shouldBeVisible(domainResource, now)) {
+    if (!shouldBeVisible(domainResource, now)) {
       throw new NotFoundException(pathSearchString + " not found");
     }
     return rdapJsonFormatter.makeRdapJsonForDomain(
-        domainResource,
+        domainResource.get(),
         true,
         fullServletPath,
         rdapWhoisServer,

@@ -27,6 +27,7 @@ import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.testing.FakeClock;
+import google.registry.testing.SystemPropertyRule;
 import google.registry.tools.ShellCommand.JCommanderCompletor;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -40,12 +41,15 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class ShellCommandTest {
+
+  @Rule public final SystemPropertyRule systemPropertyRule = new SystemPropertyRule();
 
   CommandRunner cli = mock(CommandRunner.class);
   FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
@@ -107,7 +111,7 @@ public class ShellCommandTest {
 
   @Test
   public void testNoIdleWhenInAlpha() throws Exception {
-    RegistryToolEnvironment.ALPHA.setup();
+    RegistryToolEnvironment.ALPHA.setup(systemPropertyRule);
     MockCli cli = new MockCli();
     ShellCommand shellCommand =
         createShellCommand(cli, Duration.standardDays(1), "test1 foo bar", "test2 foo bar");
@@ -116,7 +120,7 @@ public class ShellCommandTest {
 
   @Test
   public void testNoIdleWhenInSandbox() throws Exception {
-    RegistryToolEnvironment.SANDBOX.setup();
+    RegistryToolEnvironment.SANDBOX.setup(systemPropertyRule);
     MockCli cli = new MockCli();
     ShellCommand shellCommand =
         createShellCommand(cli, Duration.standardDays(1), "test1 foo bar", "test2 foo bar");
@@ -125,7 +129,7 @@ public class ShellCommandTest {
 
   @Test
   public void testIdleWhenOverHourInProduction() throws Exception {
-    RegistryToolEnvironment.PRODUCTION.setup();
+    RegistryToolEnvironment.PRODUCTION.setup(systemPropertyRule);
     MockCli cli = new MockCli();
     ShellCommand shellCommand =
         createShellCommand(cli, Duration.standardMinutes(61), "test1 foo bar", "test2 foo bar");
@@ -135,7 +139,7 @@ public class ShellCommandTest {
 
   @Test
   public void testNoIdleWhenUnderHourInProduction() throws Exception {
-    RegistryToolEnvironment.PRODUCTION.setup();
+    RegistryToolEnvironment.PRODUCTION.setup(systemPropertyRule);
     MockCli cli = new MockCli();
     ShellCommand shellCommand =
         createShellCommand(cli, Duration.standardMinutes(59), "test1 foo bar", "test2 foo bar");
@@ -155,7 +159,7 @@ public class ShellCommandTest {
   public void testMultipleCommandInvocations() throws Exception {
     try (RegistryCli cli =
         new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class))) {
-      RegistryToolEnvironment.UNITTEST.setup();
+      RegistryToolEnvironment.UNITTEST.setup(systemPropertyRule);
       cli.setEnvironment(RegistryToolEnvironment.UNITTEST);
       cli.run(new String[] {"test_command", "-x", "xval", "arg1", "arg2"});
       cli.run(new String[] {"test_command", "-x", "otherxval", "arg3"});
@@ -253,10 +257,11 @@ public class ShellCommandTest {
   @Test
   public void testEncapsulatedOutputStream_basicFuncionality() {
     ByteArrayOutputStream backing = new ByteArrayOutputStream();
-    PrintStream out = new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "));
-    out.println("first line");
-    out.print("second line\ntrailing data");
-    out.flush();
+    try (PrintStream out =
+        new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "))) {
+      out.println("first line");
+      out.print("second line\ntrailing data");
+    }
     assertThat(backing.toString())
         .isEqualTo("out: first line\nout: second line\nout: trailing data\n");
   }
@@ -264,14 +269,14 @@ public class ShellCommandTest {
   @Test
   public void testEncapsulatedOutputStream_emptyStream() {
     ByteArrayOutputStream backing = new ByteArrayOutputStream();
-    PrintStream out = new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "));
-    out.flush();
+    try (PrintStream out =
+        new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "))) {}
     assertThat(backing.toString()).isEqualTo("");
   }
 
   @Test
   public void testEncapsulatedOutput_command() throws Exception {
-    RegistryToolEnvironment.ALPHA.setup();
+    RegistryToolEnvironment.ALPHA.setup(systemPropertyRule);
     captureOutput();
     ShellCommand shellCommand =
         new ShellCommand(
@@ -288,8 +293,29 @@ public class ShellCommandTest {
     assertThat(stderr.toString()).isEmpty();
     assertThat(stdout.toString())
         .isEqualTo(
-            "out: first line\nerr: second line\nerr: surprise!\nout: fragmented line\n"
+            "RUNNING \"command1\"\n"
+                + "out: first line\nerr: second line\nerr: surprise!\nout: fragmented line\n"
                 + "SUCCESS\n");
+  }
+
+  @Test
+  public void testEncapsulatedOutput_throws() throws Exception {
+    RegistryToolEnvironment.ALPHA.setup(systemPropertyRule);
+    captureOutput();
+    ShellCommand shellCommand =
+        new ShellCommand(
+            args -> {
+              System.out.println("first line");
+              throw new Exception("some error!");
+            });
+    shellCommand.encapsulateOutput = true;
+    shellCommand.run();
+    assertThat(stderr.toString()).isEmpty();
+    assertThat(stdout.toString())
+        .isEqualTo(
+            "RUNNING \"command1\"\n"
+                + "out: first line\n"
+                + "FAILURE java.lang.Exception some error!\n");
   }
 
   @Test
@@ -307,7 +333,7 @@ public class ShellCommandTest {
     shellCommand.run();
     assertThat(stderr.toString()).isEmpty();
     assertThat(stdout.toString())
-        .isEqualTo("out: first line\nSUCCESS\n");
+        .isEqualTo("RUNNING \"do\" \"something\"\nout: first line\nSUCCESS\n");
   }
 
   void captureOutput() {

@@ -34,7 +34,7 @@ goog.forwardDeclare('registry.registrar.Console');
 registry.registrar.Resources = function(console, resource) {
   registry.registrar.Resources.base(
       this, 'constructor', console, resource,
-      registry.soy.registrar.console.resources, null);
+      registry.soy.registrar.console.resources, console.params.isOwner, null);
 };
 goog.inherits(registry.registrar.Resources,
               registry.ResourceComponent);

@@ -31,6 +31,10 @@ public class ActivityReportingQueryBuilderTest {
     ActivityReportingQueryBuilder queryBuilder = new ActivityReportingQueryBuilder();
     queryBuilder.yearMonth = new YearMonth(2017, 9);
     queryBuilder.projectId = "domain-registry-alpha";
+    queryBuilder.dnsCountQueryCoordinator =
+        new BasicDnsCountQueryCoordinator(
+            new BasicDnsCountQueryCoordinator.Params(null, queryBuilder.yearMonth,
+                                                     queryBuilder.projectId));
     return queryBuilder;
   }
 
@@ -63,5 +67,4 @@ public class ActivityReportingQueryBuilderTest {
           .isEqualTo(ReportingTestData.loadFile(testFilename));
     }
   }
-
 }

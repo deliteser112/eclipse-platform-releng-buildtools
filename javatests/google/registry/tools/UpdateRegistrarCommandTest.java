@@ -134,7 +134,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testSuccess_clearIpWhitelist() throws Exception {
+  public void testSuccess_clearIpWhitelist_useNull() throws Exception {
     persistResource(
         loadRegistrar("NewRegistrar")
             .asBuilder()
@@ -145,6 +145,21 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
             .build());
     assertThat(loadRegistrar("NewRegistrar").getIpAddressWhitelist()).isNotEmpty();
     runCommand("--ip_whitelist=null", "--force", "NewRegistrar");
+    assertThat(loadRegistrar("NewRegistrar").getIpAddressWhitelist()).isEmpty();
+  }
+
+  @Test
+  public void testSuccess_clearIpWhitelist_useEmpty() throws Exception {
+    persistResource(
+        loadRegistrar("NewRegistrar")
+            .asBuilder()
+            .setIpAddressWhitelist(
+                ImmutableList.of(
+                    CidrAddressBlock.create("192.168.1.1"),
+                    CidrAddressBlock.create("192.168.0.2/16")))
+            .build());
+    assertThat(loadRegistrar("NewRegistrar").getIpAddressWhitelist()).isNotEmpty();
+    runCommand("--ip_whitelist=", "--force", "NewRegistrar");
     assertThat(loadRegistrar("NewRegistrar").getIpAddressWhitelist()).isEmpty();
   }
 

@@ -14,29 +14,18 @@
 
 package google.registry.module.tools;
 
-import com.google.common.flogger.FluentLogger;
-import java.io.IOException;
-import java.security.Security;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import com.google.monitoring.metrics.MetricReporter;
+import dagger.Lazy;
+import google.registry.module.ServletBase;
 
 /** Servlet that should handle all requests to our "tools" App Engine module. */
-public final class ToolsServlet extends HttpServlet {
+public final class ToolsServlet extends ServletBase {
 
   private static final ToolsComponent component = DaggerToolsComponent.create();
   private static final ToolsRequestHandler requestHandler = component.requestHandler();
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final Lazy<MetricReporter> metricReporter = component.metricReporter();
 
-  @Override
-  public void init() {
-    Security.addProvider(new BouncyCastleProvider());
-  }
-
-  @Override
-  public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-    logger.atInfo().log("Received tools request");
-    requestHandler.handleRequest(req, rsp);
+  public ToolsServlet() {
+    super(requestHandler, metricReporter);
   }
 }

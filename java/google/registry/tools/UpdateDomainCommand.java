@@ -19,7 +19,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
@@ -37,6 +37,7 @@ import google.registry.tools.soy.DomainUpdateSoyInfo;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import org.joda.time.DateTime;
@@ -172,8 +173,10 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
 
       if (!nameservers.isEmpty() || !admins.isEmpty() || !techs.isEmpty() || !statuses.isEmpty()) {
         DateTime now = DateTime.now(UTC);
-        DomainResource domainResource = loadByForeignKey(DomainResource.class, domain, now);
-        checkArgumentNotNull(domainResource, "Domain '%s' does not exist", domain);
+        Optional<DomainResource> domainOptional =
+            loadByForeignKey(DomainResource.class, domain, now);
+        checkArgumentPresent(domainOptional, "Domain '%s' does not exist or is deleted", domain);
+        DomainResource domainResource = domainOptional.get();
         checkArgument(
             !domainResource.getStatusValues().contains(SERVER_UPDATE_PROHIBITED),
             "The domain '%s' has status SERVER_UPDATE_PROHIBITED. Verify that you are allowed "

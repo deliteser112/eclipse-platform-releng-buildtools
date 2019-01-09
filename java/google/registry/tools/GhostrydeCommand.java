@@ -31,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.inject.Inject;
 import javax.inject.Provider;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
@@ -101,9 +102,15 @@ final class GhostrydeCommand implements CommandWithRemoteApi {
   private void runDecrypt() throws IOException, PGPException {
     try (InputStream in = Files.newInputStream(input);
         InputStream ghostDecoder = Ghostryde.decoder(in, rdeStagingDecryptionKey.get())) {
-      Path outFile =
-          Files.isDirectory(output) ? output.resolve(input.getFileName() + ".decrypt") : output;
-      Files.copy(ghostDecoder, outFile, REPLACE_EXISTING);
+      System.err.println("output = " + output);
+      if (output.toString().equals("/dev/stdout")) {
+        System.err.println("doing copy");
+        IOUtils.copy(ghostDecoder, System.out);
+      } else {
+        Path outFile =
+            Files.isDirectory(output) ? output.resolve(input.getFileName() + ".decrypt") : output;
+        Files.copy(ghostDecoder, outFile, REPLACE_EXISTING);
+      }
     }
   }
 }

@@ -58,4 +58,7 @@ public interface GroupsConnection {
    * automatically added as an owner.
    */
   Group createGroup(String groupKey) throws IOException;
+
+  /** Checks whether the given email belongs to the "support" group. */
+  boolean isMemberOfGroup(String memberEmail, String groupKey);
 }

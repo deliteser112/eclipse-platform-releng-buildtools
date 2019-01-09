@@ -22,7 +22,7 @@ h1 {
 }
 
 pre {
-  font-family: monospace;
+  font-family: "Courier New", Courier, monospace;
   white-space: pre-wrap;
 }
 
@@ -48,8 +48,8 @@ input[readonly], textarea[readonly] {
 }
 
 textarea {
-  margin: 1em 0;
-  font-family: monospace;
+  margin-bottom: 1em;
+  font-family: "Courier New", Courier, monospace;
   font-size: 13px;
   border: solid 1px #ddd;
 }
@@ -196,13 +196,10 @@ li.kd-menulistitem {
 }
 
 .kd-appbar {
-  padding: 0.75em 0;
-}
-
-#reg-app-buttons {
-  /* Same as in reg-content below.  Lines the left edge of the
-     appbuttons and content area with the 'R' in Registry. */
+  /* same as in reg-content below.  lines the left edge of the
+     appbuttons and content area with the 'r' in registry. */
   padding-left: 173px;
+  padding-top: .75em;
 }
 
 .kd-content-sidebar {
@@ -214,7 +211,7 @@ li.kd-menulistitem {
 #reg-nav {
   position: fixed;
   left: 0;
-  top: 128px;
+  top: 136px;
   width: 155px;
   margin: 0 25px 0 0;
   z-index: 3;
@@ -261,7 +258,7 @@ li.kd-menulistitem {
 
 #reg-content-and-footer {
   position: absolute;
-  top: 105px;
+  top: 136px;
   left: 173px;
   bottom: 0;
   width: 100%;

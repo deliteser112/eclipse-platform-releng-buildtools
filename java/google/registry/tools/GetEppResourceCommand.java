@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
-import javax.annotation.Nullable;
+import java.util.Optional;
 import org.joda.time.DateTime;
 
 /** Abstract command to print one or more resources to stdout. */
@@ -44,17 +44,20 @@ abstract class GetEppResourceCommand implements CommandWithRemoteApi {
   abstract void runAndPrint();
 
   /**
-   * Prints a possibly-null resource to stdout, using resourceType and uniqueId to construct a
+   * Prints a possibly-absent resource to stdout, using resourceType and uniqueId to construct a
    * nice error message if the resource was null (i.e. doesn't exist).
    *
    * <p>The websafe key is appended to the output for use in e.g. manual mapreduce calls.
    */
-  void printResource(String resourceType, String uniqueId, @Nullable EppResource resource) {
-    System.out.println(resource != null
-        ? String.format("%s\n\nWebsafe key: %s",
-            expand ? resource.toHydratedString() : resource,
-            Key.create(resource).getString())
-        : String.format("%s '%s' does not exist or is deleted\n", resourceType, uniqueId));
+  void printResource(
+      String resourceType, String uniqueId, Optional<? extends EppResource> resource) {
+    System.out.println(
+        resource.isPresent()
+            ? String.format(
+                "%s\n\nWebsafe key: %s",
+                expand ? resource.get().toHydratedString() : resource.get(),
+                Key.create(resource.get()).getString())
+            : String.format("%s '%s' does not exist or is deleted\n", resourceType, uniqueId));
   }
 
   @Override

@@ -100,7 +100,7 @@ import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTl
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
-import google.registry.flows.domain.DomainFlowUtils.RegistrarMustBeActiveToCreateDomainsException;
+import google.registry.flows.domain.DomainFlowUtils.RegistrarMustBeActiveForThisOperationException;
 import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyNameserversException;
@@ -771,7 +771,24 @@ public class DomainApplicationCreateFlowTest
             .build());
     clock.advanceOneMilli();
     EppException thrown =
-        assertThrows(RegistrarMustBeActiveToCreateDomainsException.class, this::runFlow);
+        assertThrows(RegistrarMustBeActiveForThisOperationException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_pendingRegistrarCantCreateDomainApplication() {
+    setEppInput("domain_create_sunrise_encoded_signed_mark.xml");
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.PENDING)
+            .build());
+    clock.advanceOneMilli();
+    EppException thrown =
+        assertThrows(RegistrarMustBeActiveForThisOperationException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

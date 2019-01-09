@@ -21,6 +21,7 @@ goog.require('goog.dom.classlist');
 goog.require('goog.net.XhrIo');
 goog.require('registry.Console');
 goog.require('registry.Resource');
+goog.require('registry.registrar.AdminSettings');
 goog.require('registry.registrar.Contact');
 goog.require('registry.registrar.ContactSettings');
 goog.require('registry.registrar.ContactUs');
@@ -76,20 +77,43 @@ registry.registrar.Console = function(params) {
   this.lastActiveNavElt;
 
   /**
+   * A map from the URL fragment to the component to show.
+   *
    * @type {!Object.<string, function(new:registry.Component,
    *                                  !registry.registrar.Console,
    *                                  !registry.Resource)>}
    */
   this.pageMap = {};
+  // Homepage. Displayed when there's no fragment, or when the fragment doesn't
+  // correspond to any view
+  this.pageMap[''] = registry.registrar.Dashboard;
+  // Updating the Registrar settings
   this.pageMap['security-settings'] = registry.registrar.SecuritySettings;
   this.pageMap['contact-settings'] = registry.registrar.ContactSettings;
   this.pageMap['whois-settings'] = registry.registrar.WhoisSettings;
   this.pageMap['contact-us'] = registry.registrar.ContactUs;
   this.pageMap['resources'] = registry.registrar.Resources;
+  // For admin use. The relevant tab is only shown in Console.soy for admins,
+  // but we also need to remove it here, otherwise it'd still be accessible if
+  // the user manually puts '#admin-settings' in the URL.
+  //
+  // Both the Console.soy and here, the "hiding the admin console for non
+  // admins" is purely for "aesthetic / design" reasons and have NO security
+  // implications.
+  //
+  // The security implications are only in the backend where we make sure all
+  // changes are made by users with the correct access (in other words - we
+  // don't trust the client-side to secure our application anyway)
+  if (this.params.isAdmin) {
+    this.pageMap['admin-settings'] = registry.registrar.AdminSettings;
+  }
+
+  // sending EPPs through the console. Currently hidden (doesn't have a "tab")
+  // but still accessible if the user manually puts #domain (or other) in the
+  // fragment
   this.pageMap['contact'] = registry.registrar.Contact;
   this.pageMap['domain'] = registry.registrar.Domain;
   this.pageMap['host'] = registry.registrar.Host;
-  this.pageMap[''] = registry.registrar.Dashboard;
 };
 goog.inherits(registry.registrar.Console, registry.Console);
 

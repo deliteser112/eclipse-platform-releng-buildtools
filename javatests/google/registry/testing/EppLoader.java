@@ -14,7 +14,7 @@
 
 package google.registry.testing;
 
-import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.flows.FlowUtils.unmarshalEpp;
 import static google.registry.testing.TestDataHelper.loadFile;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -37,7 +37,12 @@ public class EppLoader {
   }
 
   public EppInput getEpp() throws EppException {
-    return unmarshal(EppInput.class, eppXml.getBytes(UTF_8));
+    /*
+     * TODO(b/120837374): we shouldn't use EppException in non-Flow tests. Find a way to use {@link
+     * google.registry.model.eppcommon.EppXmlTransformer#unmarshal(Class, byte[])} in those tests
+     * instead of {@link google.registry.flows.FlowUtils#unmarshalEpp(Class, byte[])}
+     */
+    return unmarshalEpp(EppInput.class, eppXml.getBytes(UTF_8));
   }
 
   public String getEppXml() {

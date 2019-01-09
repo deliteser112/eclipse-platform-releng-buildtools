@@ -14,11 +14,17 @@
 
 package google.registry.beam.invoicing;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.google.auth.oauth2.GoogleCredentials;
 import google.registry.beam.invoicing.BillingEvent.InvoiceGroupingKey;
 import google.registry.beam.invoicing.BillingEvent.InvoiceGroupingKey.InvoiceGroupingKeyCoder;
+import google.registry.config.CredentialModule.LocalCredentialJson;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.reporting.billing.BillingModule;
 import google.registry.reporting.billing.GenerateInvoicesAction;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import javax.inject.Inject;
 import org.apache.beam.runners.dataflow.DataflowRunner;
@@ -76,6 +82,12 @@ public class InvoicingPipeline implements Serializable {
   String billingBucketUrl;
 
   @Inject
+  @Config("invoiceFilePrefix")
+  String invoiceFilePrefix;
+
+  @Inject @LocalCredentialJson String credentialJson;
+
+  @Inject
   InvoicingPipeline() {}
 
   /** Custom options for running the invoicing pipeline. */
@@ -96,6 +108,13 @@ public class InvoicingPipeline implements Serializable {
   public void deploy() {
     // We can't store options as a member variable due to serialization concerns.
     InvoicingPipelineOptions options = PipelineOptionsFactory.as(InvoicingPipelineOptions.class);
+    try {
+      options.setGcpCredential(
+          GoogleCredentials.fromStream(new ByteArrayInputStream(credentialJson.getBytes(UTF_8))));
+    } catch (IOException e) {
+      throw new RuntimeException(
+          "Cannot obtain local credential to deploy the invoicing pipeline", e);
+    }
     options.setProject(projectId);
     options.setRunner(DataflowRunner.class);
     // This causes p.run() to stage the pipeline as a template on GCS, as opposed to running it.
@@ -164,7 +183,7 @@ public class InvoicingPipeline implements Serializable {
                         billingBucketUrl,
                         BillingModule.INVOICES_DIRECTORY,
                         yearMonth,
-                        BillingModule.OVERALL_INVOICE_PREFIX,
+                        invoiceFilePrefix,
                         yearMonth)))
         .withHeader(InvoiceGroupingKey.invoiceHeader())
         .withoutSharding()

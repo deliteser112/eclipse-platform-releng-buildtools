@@ -46,6 +46,22 @@ public class DirectoryGroupsConnection implements GroupsConnection {
   private static final String MEMBER_NOT_FOUND_MSG = "Resource Not Found: memberKey";
   private static final String MEMBER_ALREADY_EXISTS_MSG = "Member already exists.";
 
+  /**
+   * All possible errors from {@link Directory.Members#get} when an email doesn't belong to a group.
+   *
+   * <p>See {@link #isMemberOfGroup} for details.
+   *
+   * <p>TODO(b/119220829): remove once we transition to using hasMember
+   *
+   * <p>TODO(b/119221854): update error messages if and when they change
+   */
+  private static final ImmutableSet<String> ERROR_MESSAGES_MEMBER_NOT_FOUND =
+      ImmutableSet.of(
+          // The given email corresponds to an actual account, but isn't part of this group
+          "Resource Not Found: memberKey",
+          // There's no account corresponding to this email
+          "Missing required field: memberKey");
+
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final Groups defaultGroupPermissions = getDefaultGroupPermissions();
 
@@ -79,7 +95,9 @@ public class DirectoryGroupsConnection implements GroupsConnection {
       // If the member is already in the group, ignore the error, get the existing member, and
       // return it.
       GoogleJsonError err = e.getDetails();
-      if (err.getCode() == SC_NOT_FOUND && err.getMessage().equals(GROUP_NOT_FOUND_MSG)) {
+      if (err == null) {
+        throw e;
+      } else if (err.getCode() == SC_NOT_FOUND && err.getMessage().equals(GROUP_NOT_FOUND_MSG)) {
         logger.atInfo().withCause(e).log(
             "Creating group %s during addition of member %s because the group doesn't exist.",
             groupKey, email);
@@ -153,7 +171,8 @@ public class DirectoryGroupsConnection implements GroupsConnection {
       return createdGroup;
     } catch (GoogleJsonResponseException e) {
       // Ignore the error thrown if the group already exists.
-      if (e.getDetails().getCode() == SC_CONFLICT
+      if (e.getDetails() != null
+          && e.getDetails().getCode() == SC_CONFLICT
           && e.getDetails().getMessage().equals("Entity already exists.")) {
         logger.atInfo().withCause(e).log(
             "Could not create group %s because it already exists.", groupKey);
@@ -161,6 +180,48 @@ public class DirectoryGroupsConnection implements GroupsConnection {
       } else {
         throw e;
       }
+    }
+  }
+
+  @Override
+  public boolean isMemberOfGroup(String memberEmail, String groupKey) {
+    // We're using "get" instead of "hasMember" because "hasMember" fails for emails that don't
+    // belong to the G-Suite domain.
+    //
+    // "get" fails for users that aren't part of the group, but it also might fail for other
+    // reasons (no access, group doesn't exist etc.).
+    // Which error is caused by "user isn't in that group" isn't documented, and was found using
+    // trial and error.
+    //
+    // TODO(b/119221676): transition to using hasMember
+    //
+    // Documentation for the API of "get":
+    // https://developers.google.com/admin-sdk/directory/v1/reference/members/get
+    //
+    // Documentation for the API of "hasMember":
+    // https://developers.google.com/admin-sdk/directory/v1/reference/members/hasMember
+    try {
+      Directory.Members.Get getRequest = directory.members().get(groupKey, memberEmail);
+      Member getReply = getRequest.execute();
+      logger.atInfo().log(
+          "%s is a member of the group %s. Got reply: %s", memberEmail, groupKey, getReply);
+      return true;
+    } catch (GoogleJsonResponseException e) {
+      if (e.getDetails() != null
+          && ERROR_MESSAGES_MEMBER_NOT_FOUND.contains(e.getDetails().getMessage())) {
+        // This means the "get" request failed because the email wasn't part of the group.
+        // This is expected behavior for any visitor that isn't a support group member.
+        logger.atInfo().log(
+            "%s isn't a member of the group %s. Got reply %s",
+            memberEmail, groupKey, e.getMessage());
+        return false;
+      }
+      // If we got here - we had an unexpected error. Rethrow.
+      throw new RuntimeException(
+          String.format("Error checking whether %s is in group %s", memberEmail, groupKey), e);
+    } catch (IOException e) {
+      throw new RuntimeException(
+          String.format("Error checking whether %s is in group %s", memberEmail, groupKey), e);
     }
   }
 }

@@ -22,21 +22,21 @@ import google.registry.beam.spec11.Spec11Pipeline;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import javax.inject.Qualifier;
-import org.joda.time.YearMonth;
+import org.joda.time.LocalDate;
 
 /** Module for dependencies required by Spec11 reporting. */
 @Module
 public class Spec11Module {
 
   @Provides
-  @Spec11ReportDirectory
-  static String provideDirectoryPrefix(YearMonth yearMonth) {
-    return Spec11Pipeline.getSpec11Subdirectory(yearMonth.toString("yyyy-MM"));
+  @Spec11ReportFilePath
+  static String provideSpec11ReportFilePath(LocalDate localDate) {
+    return Spec11Pipeline.getSpec11ReportFilePath(localDate);
   }
 
   /** Dagger qualifier for the subdirectory we stage to/upload from for Spec11 reports. */
   @Qualifier
   @Documented
   @Retention(RUNTIME)
-  @interface Spec11ReportDirectory {}
+  @interface Spec11ReportFilePath {}
 }

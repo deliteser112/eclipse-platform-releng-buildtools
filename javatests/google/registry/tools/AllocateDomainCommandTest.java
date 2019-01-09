@@ -16,12 +16,12 @@ package google.registry.tools;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.flows.picker.FlowPicker.getFlowClass;
 import static google.registry.model.domain.DesignatedContact.Type.ADMIN;
 import static google.registry.model.domain.DesignatedContact.Type.BILLING;
 import static google.registry.model.domain.DesignatedContact.Type.TECH;
 import static google.registry.model.domain.launch.ApplicationStatus.VALIDATED;
+import static google.registry.model.eppcommon.EppXmlTransformer.unmarshal;
 import static google.registry.model.registry.Registry.TldState.QUIET_PERIOD;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;

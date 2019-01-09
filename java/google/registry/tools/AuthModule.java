@@ -21,39 +21,57 @@ import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInsta
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
+import com.google.gson.Gson;
+import dagger.Binds;
+import dagger.Lazy;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.CredentialModule.DefaultCredential;
+import google.registry.config.CredentialModule.LocalCredential;
+import google.registry.config.CredentialModule.LocalCredentialJson;
 import google.registry.config.RegistryConfig.Config;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import javax.annotation.Nullable;
+import javax.inject.Named;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
 
-/**
- * Module providing the dependency graph for authorization credentials.
- */
+/** Module providing the dependency graph for authorization credentials. */
 @Module
 public class AuthModule {
 
   private static final File DATA_STORE_DIR =
       new File(System.getProperty("user.home"), ".config/nomulus/credentials");
 
+  @Module
+  abstract static class LocalCredentialModule {
+    @Binds
+    @DefaultCredential
+    abstract GoogleCredential provideLocalCredentialAsDefaultCredential(
+        @LocalCredential GoogleCredential credential);
+  }
+
   @Provides
-  public Credential provideCredential(
-      GoogleAuthorizationCodeFlow flow,
-      @ClientScopeQualifier String clientScopeQualifier) {
+  @StoredCredential
+  static Credential provideCredential(
+      GoogleAuthorizationCodeFlow flow, @ClientScopeQualifier String clientScopeQualifier) {
     try {
       // Try to load the credentials, throw an exception if we fail.
       Credential credential = flow.loadCredential(clientScopeQualifier);
@@ -67,10 +85,27 @@ public class AuthModule {
   }
 
   @Provides
-  GoogleAuthorizationCodeFlow provideAuthorizationCodeFlow(
+  @LocalCredential
+  public static GoogleCredential provideLocalCredential(
+      @LocalCredentialJson String credentialJson,
+      @Config("localCredentialOauthScopes") ImmutableList<String> scopes) {
+    try {
+      GoogleCredential credential =
+          GoogleCredential.fromStream(new ByteArrayInputStream(credentialJson.getBytes(UTF_8)));
+      if (credential.createScopedRequired()) {
+        credential = credential.createScoped(scopes);
+      }
+      return credential;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Provides
+  public static GoogleAuthorizationCodeFlow provideAuthorizationCodeFlow(
       JsonFactory jsonFactory,
       GoogleClientSecrets clientSecrets,
-      @Config("requiredOauthScopes") ImmutableSet<String> requiredOauthScopes,
+      @Config("localCredentialOauthScopes") ImmutableList<String> requiredOauthScopes,
       AbstractDataStoreFactory dataStoreFactory) {
     try {
       return new GoogleAuthorizationCodeFlow.Builder(
@@ -83,41 +118,68 @@ public class AuthModule {
   }
 
   @Provides
-  AuthorizationCodeInstalledApp provideAuthorizationCodeInstalledApp(
+  public static AuthorizationCodeInstalledApp provideAuthorizationCodeInstalledApp(
       GoogleAuthorizationCodeFlow flow) {
     return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver());
   }
 
   @Provides
-  GoogleClientSecrets provideClientSecrets(
-      @Config("clientSecretFilename") String clientSecretFilename, JsonFactory jsonFactory) {
+  static Details provideDefaultInstalledDetails() {
+    return new Details()
+        .setAuthUri("https://accounts.google.com/o/oauth2/auth")
+        .setTokenUri("https://accounts.google.com/o/oauth2/token");
+  }
+
+  @Provides
+  public static GoogleClientSecrets provideClientSecrets(
+      @Config("toolsClientId") String clientId,
+      @Config("toolsClientSecret") String clientSecret,
+      Details details) {
+    return new GoogleClientSecrets()
+        .setInstalled(details.setClientId(clientId).setClientSecret(clientSecret));
+  }
+
+  @Provides
+  @LocalCredentialJson
+  public static String provideLocalCredentialJson(
+      Lazy<GoogleClientSecrets> clientSecrets,
+      @StoredCredential Lazy<Credential> credential,
+      @Nullable @Named("credentialFileName") String credentialFilename) {
     try {
-      // Load the client secrets file.
-      InputStream secretResourceStream = getClass().getResourceAsStream(clientSecretFilename);
-      if (secretResourceStream == null) {
-        throw new RuntimeException("No client secret file found: " + clientSecretFilename);
+      if (credentialFilename != null) {
+        return new String(Files.readAllBytes(Paths.get(credentialFilename)), UTF_8);
+      } else {
+        return new Gson()
+            .toJson(
+                ImmutableMap.<String, String>builder()
+                    .put("type", "authorized_user")
+                    .put("client_id", clientSecrets.get().getDetails().getClientId())
+                    .put("client_secret", clientSecrets.get().getDetails().getClientSecret())
+                    .put("refresh_token", credential.get().getRefreshToken())
+                    .build());
       }
-      return GoogleClientSecrets.load(jsonFactory,
-          new InputStreamReader(secretResourceStream, UTF_8));
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
   @Provides
-  @OAuthClientId String provideClientId(GoogleClientSecrets clientSecrets) {
+  @OAuthClientId
+  static String provideClientId(GoogleClientSecrets clientSecrets) {
     return clientSecrets.getDetails().getClientId();
   }
 
   @Provides
-  @ClientScopeQualifier String provideClientScopeQualifier(
-      @OAuthClientId String clientId, @Config("requiredOauthScopes") ImmutableSet<String> scopes) {
+  @ClientScopeQualifier
+  static String provideClientScopeQualifier(
+      @OAuthClientId String clientId,
+      @Config("localCredentialOauthScopes") ImmutableList<String> scopes) {
     return clientId + " " + Joiner.on(" ").join(Ordering.natural().sortedCopy(scopes));
   }
 
   @Provides
   @Singleton
-  public AbstractDataStoreFactory provideDataStoreFactory() {
+  public static AbstractDataStoreFactory provideDataStoreFactory() {
     try {
       return new FileDataStoreFactory(DATA_STORE_DIR);
     } catch (IOException ex) {
@@ -125,31 +187,32 @@ public class AuthModule {
     }
   }
 
-  /** Wrapper class to hold the login() function. */
-  public static class Authorizer {
-    /** Initiate the login flow. */
-    public static void login(
-        GoogleAuthorizationCodeFlow flow,
-        @ClientScopeQualifier String clientScopeQualifier) throws IOException {
-      new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver())
-          .authorize(clientScopeQualifier);
-    }
+  /** Raised when we need a user login. */
+  static class LoginRequiredException extends RuntimeException {
+    LoginRequiredException() {}
   }
 
-  /** Raised when we need a user login. */
-  public static class LoginRequiredException extends RuntimeException {
-    public LoginRequiredException() {}
-  }
+  /**
+   * Dagger qualifier for the {@link Credential} constructed from the data stored on disk.
+   *
+   * <p>This {@link Credential} should not be used in another module, hence the private qualifier.
+   * It's only use is to build a {@link GoogleCredential}, which is used in injection sites
+   * elsewhere.
+   */
+  @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  private @interface StoredCredential {}
 
   /** Dagger qualifier for the credential qualifier consisting of client and scopes. */
   @Qualifier
   @Documented
   @Retention(RetentionPolicy.RUNTIME)
-  public @interface ClientScopeQualifier {}
+  @interface ClientScopeQualifier {}
 
   /** Dagger qualifier for the OAuth2 client id. */
   @Qualifier
   @Documented
   @Retention(RetentionPolicy.RUNTIME)
-  public @interface OAuthClientId {}
+  @interface OAuthClientId {}
 }

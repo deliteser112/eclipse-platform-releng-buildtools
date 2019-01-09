@@ -60,7 +60,8 @@ registry.registrar.ConsoleTestUtil.renderConsoleMain = function(
     xsrfToken: args.xsrfToken || 'ignore',
     username: args.username || 'jart',
     logoutUrl: args.logoutUrl || 'https://logout.url.com',
-    isAdmin: goog.isDefAndNotNull(args.isAdmin) ? args.isAdmin : true,
+    isAdmin: !!args.isAdmin,
+    isOwner: !!args.isOwner,
     clientId: args.clientId || 'ignore',
     allClientIds: args.allClientIds || ['clientId1', 'clientId2'],
     logoFilename: args.logoFilename || 'logo.png',
@@ -88,6 +89,16 @@ registry.registrar.ConsoleTestUtil.visit = function(
   opt_args.path = opt_args.path || '';
   opt_args.clientId = opt_args.clientId || 'dummyRegistrarId';
   opt_args.xsrfToken = opt_args.xsrfToken || 'dummyXsrfToken';
+  opt_args.isAdmin = !!opt_args.isAdmin;
+  // set the default isOwner to be the opposite of isAdmin.
+  // That way, if we don't explicitly state them both we get what we'd expect:
+  // {} -> OWNER (the "regular" case of a visitor to the console)
+  // {isOwner:true} -> OWNER
+  // {isAdmin:true} -> ADMIN (the "regular" case of an admin visitor)
+  // {isOwner:true, isAdmin:true} -> OWNER + ADMIN together
+  if (opt_args.isOwner === undefined) {
+    opt_args.isOwner = !opt_args.isAdmin;
+  }
   if (opt_args.isEppLoggedIn === undefined) {
     opt_args.isEppLoggedIn = true;
   }

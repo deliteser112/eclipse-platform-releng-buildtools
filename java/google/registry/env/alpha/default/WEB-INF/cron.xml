@@ -143,6 +143,24 @@
   </cron>
 
   <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=export-snapshot&endpoint=/_dr/task/backupDatastore&runInEmpty]]></url>
+    <description>
+      This job fires off a Datastore managed-export job that generates snapshot files in GCS.
+      It also enqueues a new task to wait on the completion of that job and then load the resulting
+      snapshot into bigquery.
+    </description>
+    <!--
+      Keep google.registry.export.CheckBackupAction.MAXIMUM_BACKUP_RUNNING_TIME less than
+      this interval.
+
+      To facilitate troubleshooting, run after the exportSnapshot task below (typically finishes in
+      90 minutes in production) has completed.
+      TODO(b/122271637): move to 06:00 (UTC) when the exportSnapshot task is removed. -->
+    <schedule>every day 09:00</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=export-snapshot&endpoint=/_dr/task/exportSnapshot&runInEmpty]]></url>
     <description>
       This job fires off a Datastore backup-as-a-service job that generates snapshot files in GCS.

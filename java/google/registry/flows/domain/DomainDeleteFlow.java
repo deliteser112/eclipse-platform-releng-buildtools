@@ -152,10 +152,12 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     Builder builder;
     if (existingDomain.getStatusValues().contains(StatusValue.PENDING_TRANSFER)) {
       builder =
-          denyPendingTransfer(existingDomain, TransferStatus.SERVER_CANCELLED, now).asBuilder();
+          denyPendingTransfer(existingDomain, TransferStatus.SERVER_CANCELLED, now, clientId)
+              .asBuilder();
     } else {
       builder = existingDomain.asBuilder();
     }
+    builder.setLastEppUpdateTime(now).setLastEppUpdateClientId(clientId);
     Duration redemptionGracePeriodLength = registry.getRedemptionGracePeriodLength();
     Duration pendingDeleteLength = registry.getPendingDeleteLength();
     Optional<DomainDeleteSuperuserExtension> domainDeleteSuperuserExtension =

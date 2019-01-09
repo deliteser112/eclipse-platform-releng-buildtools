@@ -23,16 +23,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.google.appengine.api.users.User;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.TestLogHandler;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.monitoring.whitebox.EppMetric;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeHttpSession;
@@ -142,15 +143,16 @@ public class FlowRunnerTest extends ShardableTestCase {
   @Test
   public void testRun_loggingStatement_gaeUserCredentials() throws Exception {
     flowRunner.credentials =
-        GaeUserCredentials.forTestingUser(new User("user@example.com", "authDomain"), false);
+        new GaeUserCredentials(AuthenticatedRegistrarAccessor.createForTesting(
+            ImmutableSetMultimap.of()));
     flowRunner.run(eppMetricBuilder);
-    assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
-        .contains("GaeUserCredentials{gaeUser=user@example.com, isAdmin=false}");
+    assertThat(findFirstLogMessageByPrefix(handler, "EPP Command\n\t"))
+        .contains("user=TestUserId");
   }
 
   @Test
   public void testRun_loggingStatement_tlsCredentials() throws Exception {
-    flowRunner.credentials = new TlsCredentials("abc123def", Optional.of("127.0.0.1"));
+    flowRunner.credentials = new TlsCredentials(true, "abc123def", Optional.of("127.0.0.1"));
     flowRunner.run(eppMetricBuilder);
     assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
         .contains("TlsCredentials{clientCertificateHash=abc123def, clientAddress=/127.0.0.1}");

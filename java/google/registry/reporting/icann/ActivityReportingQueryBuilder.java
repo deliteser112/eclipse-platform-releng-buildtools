@@ -29,9 +29,7 @@ import org.joda.time.YearMonth;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-/**
- * Utility class that produces SQL queries used to generate activity reports from Bigquery.
- */
+/** Utility class that produces SQL queries used to generate activity reports from Bigquery. */
 public final class ActivityReportingQueryBuilder implements QueryBuilder {
 
   // Names for intermediary tables for overall activity reporting query.
@@ -42,20 +40,23 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
   static final String WHOIS_COUNTS = "whois_counts";
   static final String ACTIVITY_REPORT_AGGREGATION = "activity_report_aggregation";
 
-  @Inject @Config("projectId") String projectId;
+  @Inject
+  @Config("projectId")
+  String projectId;
 
   @Inject YearMonth yearMonth;
 
-  @Inject ActivityReportingQueryBuilder() {}
+  @Inject DnsCountQueryCoordinator dnsCountQueryCoordinator;
+
+  @Inject
+  ActivityReportingQueryBuilder() {}
 
   /** Returns the aggregate query which generates the activity report from the saved view. */
   @Override
   public String getReportQuery() {
     return String.format(
         "#standardSQL\nSELECT * FROM `%s.%s.%s`",
-        projectId,
-        ICANN_REPORTING_DATA_SET,
-        getTableName(ACTIVITY_REPORT_AGGREGATION));
+        projectId, ICANN_REPORTING_DATA_SET, getTableName(ACTIVITY_REPORT_AGGREGATION));
   }
 
   /** Sets the month we're doing activity reporting for, and returns the view query map. */
@@ -65,6 +66,10 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
     // The pattern-matching is inclusive, so we subtract 1 day to only report that month's data.
     LocalDate lastDayOfMonth = yearMonth.toLocalDate(1).plusMonths(1).minusDays(1);
     return createQueryMap(firstDayOfMonth, lastDayOfMonth);
+  }
+
+  public void prepareForQuery() throws Exception {
+    dnsCountQueryCoordinator.prepareForQuery();
   }
 
   /** Returns a map from view name to its associated SQL query. */
@@ -80,8 +85,7 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
             .build();
     queriesBuilder.put(getTableName(REGISTRAR_OPERATING_STATUS), operationalRegistrarsQuery);
 
-    String dnsCountsQuery =
-        SqlTemplate.create(getQueryFromFile("dns_counts.sql")).build();
+    String dnsCountsQuery = dnsCountQueryCoordinator.createQuery();
     queriesBuilder.put(getTableName(DNS_COUNTS), dnsCountsQuery);
 
     // Convert reportingMonth into YYYYMMDD format for Bigquery table partition pattern-matching.
@@ -132,7 +136,6 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
 
     return queriesBuilder.build();
   }
-
 
   /** Returns the table name of the query, suffixed with the yearMonth in _yyyyMM format. */
   private String getTableName(String queryName) {

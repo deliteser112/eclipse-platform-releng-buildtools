@@ -23,6 +23,8 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import com.google.common.flogger.FluentLogger;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.RequestAuthenticator;
+import google.registry.util.NonFinalForTesting;
+import google.registry.util.SystemClock;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import java.io.IOException;
 import java.util.Optional;
@@ -30,6 +32,8 @@ import javax.annotation.Nullable;
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * Dagger-based request processor.
@@ -64,6 +68,10 @@ public class RequestHandler<C> {
   private final Router router;
   private final Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider;
   private final RequestAuthenticator requestAuthenticator;
+  private final SystemClock clock = new SystemClock();
+
+  @NonFinalForTesting
+  RequestMetrics requestMetrics = new RequestMetrics();
 
   /**
    * Constructor for subclasses to create a new request handler for a specific request component.
@@ -143,6 +151,8 @@ public class RequestHandler<C> {
         .requestModule(new RequestModule(req, rsp, authResult.get()))
         .build();
     // Apply the selected Route to the component to produce an Action instance, and run it.
+    boolean success = true;
+    DateTime startTime = clock.nowUtc();
     try {
       route.get().instantiator().apply(component).run();
       if (route.get().action().automaticallyPrintOk()) {
@@ -151,6 +161,14 @@ public class RequestHandler<C> {
       }
     } catch (HttpException e) {
       e.send(rsp);
+      success = false;
+    } finally {
+      requestMetrics.record(
+          new Duration(startTime, clock.nowUtc()),
+          path,
+          method,
+          authResult.get().authLevel(),
+          success);
     }
   }
 }

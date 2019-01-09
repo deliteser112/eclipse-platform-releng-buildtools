@@ -67,6 +67,7 @@ import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
+import google.registry.flows.domain.DomainFlowUtils.RegistrarMustBeActiveForThisOperationException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.InvalidTransferPeriodValueException;
@@ -89,6 +90,8 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
@@ -150,7 +153,11 @@ public class DomainTransferRequestFlowTest
         .that(domain)
         .hasCurrentSponsorClientId("TheRegistrar")
         .and()
-        .hasStatusValue(StatusValue.PENDING_TRANSFER);
+        .hasStatusValue(StatusValue.PENDING_TRANSFER)
+        .and()
+        .hasLastEppUpdateTime(clock.nowUtc())
+        .and()
+        .hasLastEppUpdateClientId("NewRegistrar");
     Trid expectedTrid =
         Trid.create(
             getClientTrid(),
@@ -414,7 +421,11 @@ public class DomainTransferRequestFlowTest
     assertTransferApproved(domainAfterAutomaticTransfer, implicitTransferTime, expectedPeriod);
     assertAboutDomains()
         .that(domainAfterAutomaticTransfer)
-        .hasRegistrationExpirationTime(expectedExpirationTime);
+        .hasRegistrationExpirationTime(expectedExpirationTime)
+        .and()
+        .hasLastEppUpdateTime(implicitTransferTime)
+        .and()
+        .hasLastEppUpdateClientId("NewRegistrar");
     assertThat(
             ofy()
                 .load()
@@ -776,6 +787,40 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
+  public void testFailure_suspendedRegistrarCantTransferDomain() {
+    setupDomain("example", "tld");
+    clock.advanceOneMilli();
+    persistResource(
+        Registrar.loadByClientId("NewRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.SUSPENDED)
+            .build());
+    EppException thrown =
+        assertThrows(
+            RegistrarMustBeActiveForThisOperationException.class,
+            () -> doFailingTest("domain_transfer_request.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_pendingRegistrarCantTransferDomain() {
+    setupDomain("example", "tld");
+    clock.advanceOneMilli();
+    persistResource(
+        Registrar.loadByClientId("NewRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.PENDING)
+            .build());
+    EppException thrown =
+        assertThrows(
+            RegistrarMustBeActiveForThisOperationException.class,
+            () -> doFailingTest("domain_transfer_request.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
   public void testSuccess_nonDefaultAutomaticTransferLength() throws Exception {
     setupDomain("example", "tld");
     persistResource(
@@ -803,6 +848,19 @@ public class DomainTransferRequestFlowTest
     setupDomain("example", "tld");
     doSuccessfulTest(
         "domain_transfer_request_missing_period.xml", "domain_transfer_request_response.xml");
+  }
+
+  @Test
+  public void testSuccess_canTransferAwayFromSuspendedRegistrar() throws Exception {
+    setupDomain("example", "tld");
+    clock.advanceOneMilli();
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.SUSPENDED)
+            .build());
+    doSuccessfulTest("domain_transfer_request.xml", "domain_transfer_request_response.xml");
   }
 
   @Test

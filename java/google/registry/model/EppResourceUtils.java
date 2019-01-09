@@ -44,6 +44,7 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -75,7 +76,7 @@ public final class EppResourceUtils {
   /**
    * Loads the last created version of an {@link EppResource} from Datastore by foreign key.
    *
-   * <p>Returns null if no resource with this foreign key was ever created, or if the most recently
+   * <p>Returns empty if no resource with this foreign key was ever created, or if the most recently
    * created resource was deleted before time "now".
    *
    * <p>Loading an {@link EppResource} by itself is not sufficient to know its current state since
@@ -91,8 +92,7 @@ public final class EppResourceUtils {
    * @param foreignKey id to match
    * @param now the current logical time to project resources at
    */
-  @Nullable
-  public static <T extends EppResource> T loadByForeignKey(
+  public static <T extends EppResource> Optional<T> loadByForeignKey(
       Class<T> clazz, String foreignKey, DateTime now) {
     return loadByForeignKeyHelper(clazz, foreignKey, now, false);
   }
@@ -120,15 +120,13 @@ public final class EppResourceUtils {
    * @param foreignKey id to match
    * @param now the current logical time to project resources at
    */
-  @Nullable
-  public static <T extends EppResource> T loadByForeignKeyCached(
+  public static <T extends EppResource> Optional<T> loadByForeignKeyCached(
       Class<T> clazz, String foreignKey, DateTime now) {
     return loadByForeignKeyHelper(
         clazz, foreignKey, now, RegistryConfig.isEppResourceCachingEnabled());
   }
 
-  @Nullable
-  private static <T extends EppResource> T loadByForeignKeyHelper(
+  private static <T extends EppResource> Optional<T> loadByForeignKeyHelper(
       Class<T> clazz, String foreignKey, DateTime now, boolean useCache) {
     checkArgument(
         ForeignKeyedEppResource.class.isAssignableFrom(clazz),
@@ -140,14 +138,14 @@ public final class EppResourceUtils {
             : ofy().load().type(ForeignKeyIndex.mapToFkiClass(clazz)).id(foreignKey).now();
     // The value of fki.getResourceKey() might be null for hard-deleted prober data.
     if (fki == null || isAtOrAfter(now, fki.getDeletionTime()) || fki.getResourceKey() == null) {
-      return null;
+      return Optional.empty();
     }
     T resource =
         useCache
             ? EppResource.loadCached(fki.getResourceKey())
             : ofy().load().key(fki.getResourceKey()).now();
     if (resource == null || isAtOrAfter(now, resource.getDeletionTime())) {
-      return null;
+      return Optional.empty();
     }
     // When setting status values based on a time, choose the greater of "now" and the resource's
     // UpdateAutoTimestamp. For non-mutating uses (info, whois, etc.), this is equivalent to rolling
@@ -155,24 +153,25 @@ public final class EppResourceUtils {
     // doesn't appear stale. For mutating flows, if we had to roll now forward then the flow will
     // fail when it tries to save anything via Ofy, since "now" is needed to be > the last update
     // time for writes.
-    return cloneProjectedAtTime(
-        resource, latestOf(now, resource.getUpdateAutoTimestamp().getTimestamp()));
+    return Optional.of(
+        cloneProjectedAtTime(
+            resource, latestOf(now, resource.getUpdateAutoTimestamp().getTimestamp())));
   }
 
   /**
-   * Returns the domain application with the given application id if it exists, or null if it does
+   * Returns the domain application with the given application id if it exists, or absent if it does
    * not or is soft-deleted as of the given time.
    */
-  @Nullable
-  public static DomainApplication loadDomainApplication(String applicationId, DateTime now) {
+  public static Optional<DomainApplication> loadDomainApplication(
+      String applicationId, DateTime now) {
     DomainApplication application =
         ofy().load().key(Key.create(DomainApplication.class, applicationId)).now();
     if (application == null || isAtOrAfter(now, application.getDeletionTime())) {
-      return null;
+      return Optional.empty();
     }
     // Applications don't have any speculative changes that become effective later, so no need to
     // clone forward in time.
-    return application;
+    return Optional.of(application);
   }
 
   /**
@@ -400,14 +399,6 @@ public final class EppResourceUtils {
    */
   public static boolean isLinked(Key<? extends EppResource> key, DateTime now) {
     return queryForLinkedDomains(key, now).limit(1).count() > 0;
-  }
-
-  /** Exception to throw when failing to parse a repo id. */
-  public static class InvalidRepoIdException extends Exception {
-
-    public InvalidRepoIdException(String message) {
-      super(message);
-    }
   }
 
   private EppResourceUtils() {}

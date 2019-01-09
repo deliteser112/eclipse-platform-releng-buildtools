@@ -25,6 +25,7 @@ import static google.registry.flows.domain.DomainFlowUtils.newAutorenewPollMessa
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistrarIsActive;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
@@ -101,6 +102,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
+ * @error {@link DomainFlowUtils.RegistrarMustBeActiveForThisOperationException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainRestoreRequestFlow.DomainNotEligibleForRestoreException}
  * @error {@link DomainRestoreRequestFlow.RestoreCommandIncludesChangesException}
@@ -129,6 +131,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         RgpUpdateExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    verifyRegistrarIsActive(clientId);
     Update command = (Update) resourceCommand;
     DateTime now = ofy().getTransactionTime();
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
@@ -158,7 +161,8 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         .setParent(historyEntry)
         .build();
     DomainResource newDomain =
-        performRestore(existingDomain, newExpirationTime, autorenewEvent, autorenewPollMessage);
+        performRestore(
+            existingDomain, newExpirationTime, autorenewEvent, autorenewPollMessage, now, clientId);
     updateForeignKeyIndexDeletionTime(newDomain);
     entitiesToSave.add(newDomain, historyEntry, autorenewEvent, autorenewPollMessage);
     ofy().save().entities(entitiesToSave.build());
@@ -224,8 +228,11 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
       DomainResource existingDomain,
       DateTime newExpirationTime,
       BillingEvent.Recurring autorenewEvent,
-      PollMessage.Autorenew autorenewPollMessage) {
-    return existingDomain.asBuilder()
+      PollMessage.Autorenew autorenewPollMessage,
+      DateTime now,
+      String clientId) {
+    return existingDomain
+        .asBuilder()
         .setRegistrationExpirationTime(newExpirationTime)
         .setDeletionTime(END_OF_TIME)
         .setStatusValues(null)
@@ -233,6 +240,8 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         .setDeletePollMessage(null)
         .setAutorenewBillingEvent(Key.create(autorenewEvent))
         .setAutorenewPollMessage(Key.create(autorenewPollMessage))
+        .setLastEppUpdateTime(now)
+        .setLastEppUpdateClientId(clientId)
         .build();
   }
 

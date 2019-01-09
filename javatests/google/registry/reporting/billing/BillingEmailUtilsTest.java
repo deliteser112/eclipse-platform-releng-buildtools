@@ -67,7 +67,7 @@ public class BillingEmailUtilsTest {
     when(emailService.createMessage())
         .thenReturn(new MimeMessage(Session.getDefaultInstance(new Properties(), null)));
     gcsUtils = mock(GcsUtils.class);
-    when(gcsUtils.openInputStream(new GcsFilename("test-bucket", "results/CRR-INV-2017-10.csv")))
+    when(gcsUtils.openInputStream(new GcsFilename("test-bucket", "results/REG-INV-2017-10.csv")))
         .thenReturn(
             new ByteArrayInputStream("test,data\nhello,world".getBytes(StandardCharsets.UTF_8)));
     msgCaptor = ArgumentCaptor.forClass(Message.class);
@@ -80,6 +80,7 @@ public class BillingEmailUtilsTest {
             "my-receiver@test.com",
             ImmutableList.of("hello@world.com", "hola@mundo.com"),
             "test-bucket",
+            "REG-INV",
             "results/",
             gcsUtils,
             new Retrier(new FakeSleeper(new FakeClock()), RETRY_COUNT));
@@ -109,10 +110,7 @@ public class BillingEmailUtilsTest {
         .isEqualTo("Attached is the 2017-10 invoice for the domain registry.");
     assertThat(contents.getBodyPart(1)).isInstanceOf(BodyPart.class);
     BodyPart attachmentPart = contents.getBodyPart(1);
-    // TODO(b/71631624): Fix content type in nomulus build to be "text/csv; charset=utf-8" once next
-    //                   version of framework is released.
-    assertThat(attachmentPart.getContentType())
-        .isEqualTo("text/plain; name=CRR-INV-2017-10.csv");
+    assertThat(attachmentPart.getContentType()).endsWith("name=REG-INV-2017-10.csv");
     assertThat(attachmentPart.getContent().toString()).isEqualTo("test,data\nhello,world");
   }
 

@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import com.googlecode.objectify.ObjectifyFilter;
 import google.registry.model.ofy.OfyFilter;
+import google.registry.module.backend.BackendServlet;
+import google.registry.module.frontend.FrontendServlet;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,41 +55,38 @@ public final class RegistryTestServer {
 
   private static final ImmutableList<Route> ROUTES = ImmutableList.of(
       // Frontend Services
-      route("/whois/*", google.registry.module.frontend.FrontendServlet.class),
-      route("/rdap/*", google.registry.module.frontend.FrontendServlet.class),
-      route("/registrar-xhr", google.registry.module.frontend.FrontendServlet.class),
-      route("/check", google.registry.module.frontend.FrontendServlet.class),
+      route("/whois/*", FrontendServlet.class),
+      route("/rdap/*", FrontendServlet.class),
+      route("/registrar-xhr", FrontendServlet.class),
+      route("/check", FrontendServlet.class),
 
       // Proxy Services
-      route("/_dr/epp", google.registry.module.frontend.FrontendServlet.class),
-      route("/_dr/whois", google.registry.module.frontend.FrontendServlet.class),
+      route("/_dr/epp", FrontendServlet.class),
+      route("/_dr/whois", FrontendServlet.class),
 
       // Registry Data Escrow (RDE)
-      route("/_dr/cron/rdeCreate", google.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/rdeStaging", google.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/rdeUpload", google.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/rdeReport", google.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/brdaCopy", google.registry.module.backend.BackendServlet.class),
+      route("/_dr/cron/rdeCreate", BackendServlet.class),
+      route("/_dr/task/rdeStaging", BackendServlet.class),
+      route("/_dr/task/rdeUpload", BackendServlet.class),
+      route("/_dr/task/rdeReport", BackendServlet.class),
+      route("/_dr/task/brdaCopy", BackendServlet.class),
 
       // Trademark Clearinghouse (TMCH)
-      route("/_dr/cron/tmchDnl", google.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/tmchSmdrl", google.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/tmchCrl", google.registry.module.backend.BackendServlet.class),
+      route("/_dr/cron/tmchDnl", BackendServlet.class),
+      route("/_dr/task/tmchSmdrl", BackendServlet.class),
+      route("/_dr/task/tmchCrl", BackendServlet.class),
 
       // Notification of Registered Domain Names (NORDN)
-      route("/_dr/task/nordnUpload",
-          google.registry.module.backend.BackendServlet.class),
-      route("/_dr/task/nordnVerify",
-          google.registry.module.backend.BackendServlet.class),
+      route("/_dr/task/nordnUpload", BackendServlet.class),
+      route("/_dr/task/nordnVerify", BackendServlet.class),
 
       // Process DNS pull queue
-      route("/_dr/cron/readDnsQueue",
-          google.registry.module.backend.BackendServlet.class),
+      route("/_dr/cron/readDnsQueue", BackendServlet.class),
 
       // Registrar Console
-      route("/registrar", google.registry.module.frontend.FrontendServlet.class),
-      route("/registrar-settings",
-          google.registry.module.frontend.FrontendServlet.class));
+      route("/registrar", FrontendServlet.class),
+      route("/registrar-settings", FrontendServlet.class),
+      route("/registrar-ote-setup", FrontendServlet.class));
 
   private static final ImmutableList<Class<? extends Filter>> FILTERS = ImmutableList.of(
       ObjectifyFilter.class,
