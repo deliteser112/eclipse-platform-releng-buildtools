@@ -75,20 +75,34 @@ public class KillAllDomainApplicationsAction implements Runnable {
                   getContext().incrementCounter("applications already deleted");
                   return;
                 }
+
                 Key<DomainApplication> applicationKey = Key.create(application);
                 DomainApplicationIndex dai =
                     ofy().load().key(DomainApplicationIndex.createKey(application)).now();
                 EppResourceIndex eri =
                     ofy().load().entity(EppResourceIndex.create(applicationKey)).now();
-                if (dai == null || eri == null) {
+
+                if (dai == null) {
                   logger.atSevere().log(
-                      "Missing index(es) for application %s; skipping.", applicationKey);
-                  getContext().incrementCounter("missing indexes");
-                  return;
+                      "Missing domain application index for application %s.", applicationKey);
+                  getContext().incrementCounter("missing domain application indexes");
+                } else {
+                  ofy().delete().entity(dai);
                 }
+
+                // This case shouldn't be possible except in extremely rare circumstances, as this
+                // mapreduce itself is relying on EPP resource indexes to load the domain
+                // applications to delete.
+                if (eri == null) {
+                  logger.atSevere().log(
+                      "Missing EPP resource index for application %s.", applicationKey);
+                  getContext().incrementCounter("missing EPP resource indexes");
+                } else {
+                  ofy().delete().entity(eri);
+                }
+
                 // Delete the application, its descendents, and the indexes.
                 ofy().delete().keys(ofy().load().ancestor(application).keys());
-                ofy().delete().entities(dai, eri);
                 logger.atInfo().log("Deleted domain application %s.", applicationKey);
                 getContext().incrementCounter("applications deleted");
               });

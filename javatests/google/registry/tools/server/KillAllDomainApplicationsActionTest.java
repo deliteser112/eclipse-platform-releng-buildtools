@@ -16,6 +16,7 @@ package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -89,6 +90,28 @@ public class KillAllDomainApplicationsActionTest
             ofy()
                 .load()
                 .entities(application, applicationEri, applicationDai, applicationHistoryEntry))
+        .isEmpty();
+  }
+
+  @Test
+  public void test_deletesApplication_evenWhenIndexIsMissing() throws Exception {
+    createTld("tld1");
+    DomainApplication application = persistActiveDomainApplication("applied.tld1");
+    EppResourceIndex applicationEri =
+        ofy().load().entity(EppResourceIndex.create(Key.create(application))).now();
+    HistoryEntry applicationHistoryEntry =
+        persistResource(new HistoryEntry.Builder().setParent(application).build());
+
+    // Delete the domain application index.
+    ofy().transact(() -> ofy().delete().key(DomainApplicationIndex.createKey(application)).now());
+    ofy().clearSessionCache();
+
+    runMapreduce();
+    ofy().clearSessionCache();
+
+    // Check that the domain application and history entry were deleted even though the indexes
+    // couldn't be found.
+    assertThat(ofy().load().entities(application, applicationEri, applicationHistoryEntry))
         .isEmpty();
   }
 }
