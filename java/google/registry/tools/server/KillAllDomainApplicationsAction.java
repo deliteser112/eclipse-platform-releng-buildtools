@@ -82,8 +82,13 @@ public class KillAllDomainApplicationsAction implements Runnable {
                 EppResourceIndex eri =
                     ofy().load().entity(EppResourceIndex.create(applicationKey)).now();
 
+                // This case is common and happens when the same domain name was applied for
+                // multiple times (i.e. there are multiple domain applications sharing a name). The
+                // first one that the mapreduce happens to process will delete the DAI and then
+                // subsequent ones will see the entity as already deleted, which is safe and
+                // expected.
                 if (dai == null) {
-                  logger.atSevere().log(
+                  logger.atWarning().log(
                       "Missing domain application index for application %s.", applicationKey);
                   getContext().incrementCounter("missing domain application indexes");
                 } else {
