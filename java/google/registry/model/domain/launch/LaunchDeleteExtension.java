@@ -21,5 +21,4 @@ import javax.xml.bind.annotation.XmlRootElement;
  * commands.
  */
 @XmlRootElement(name = "delete")
-public class LaunchDeleteExtension
-    extends LaunchExtension implements ApplicationIdTargetExtension {}
+public class LaunchDeleteExtension extends LaunchExtension {}

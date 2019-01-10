@@ -16,9 +16,13 @@ package google.registry.model;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.testing.AppEngineRule.makeRegistrar1;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
+import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
+import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
@@ -29,7 +33,6 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.DatastoreHelper;
 import google.registry.util.CidrAddressBlock;
 import google.registry.util.SystemClock;
 import org.joda.money.Money;
@@ -52,7 +55,6 @@ public final class OteAccountBuilderTest {
     assertThat(OteAccountBuilder.forClientId("myclientid").getClientIdToTldMap())
         .containsExactly(
             "myclientid-1", "myclientid-sunrise",
-            "myclientid-2", "myclientid-landrush",
             "myclientid-3", "myclientid-ga",
             "myclientid-4", "myclientid-ga",
             "myclientid-5", "myclientid-eap");
@@ -72,7 +74,7 @@ public final class OteAccountBuilderTest {
     assertThat(registry.getAddGracePeriodLength()).isEqualTo(Duration.standardDays(5));
     assertThat(registry.getPendingDeleteLength()).isEqualTo(Duration.standardDays(5));
     assertThat(registry.getRedemptionGracePeriodLength()).isEqualTo(Duration.standardDays(30));
-    assertThat(registry.getEapFeeScheduleAsMap()).containsExactly(START_OF_TIME, Money.of(USD, 0));
+    assertThat(registry.getEapFeeScheduleAsMap()).containsExactly(START_OF_TIME, Money.zero(USD));
   }
 
   private void assertTldExistsGa(String tld, Money eapFee) {
@@ -80,7 +82,7 @@ public final class OteAccountBuilderTest {
     assertThat(registry).isNotNull();
     assertThat(registry.getPremiumList().getName()).isEqualTo("default_sandbox_list");
     assertThat(registry.getTldStateTransitions())
-        .containsExactly(START_OF_TIME, TldState.GENERAL_AVAILABILITY);
+        .containsExactly(START_OF_TIME, GENERAL_AVAILABILITY);
     assertThat(registry.getDnsWriters()).containsExactly("VoidDnsWriter");
     assertThat(registry.getAddGracePeriodLength()).isEqualTo(Duration.standardHours(1));
     assertThat(registry.getPendingDeleteLength()).isEqualTo(Duration.standardMinutes(5));
@@ -118,16 +120,13 @@ public final class OteAccountBuilderTest {
     OteAccountBuilder.forClientId("myclientid").addContact("email@example.com").buildAndPersist();
 
     assertTldExists("myclientid-sunrise", TldState.START_DATE_SUNRISE);
-    assertTldExists("myclientid-landrush", TldState.LANDRUSH);
-    assertTldExistsGa("myclientid-ga", Money.of(USD, 0));
+    assertTldExistsGa("myclientid-ga", Money.zero(USD));
     assertTldExistsGa("myclientid-eap", Money.of(USD, 100));
     assertRegistrarExists("myclientid-1", "myclientid-sunrise");
-    assertRegistrarExists("myclientid-2", "myclientid-landrush");
     assertRegistrarExists("myclientid-3", "myclientid-ga");
     assertRegistrarExists("myclientid-4", "myclientid-ga");
     assertRegistrarExists("myclientid-5", "myclientid-eap");
     assertContactExists("myclientid-1", "email@example.com");
-    assertContactExists("myclientid-2", "email@example.com");
     assertContactExists("myclientid-3", "email@example.com");
     assertContactExists("myclientid-4", "email@example.com");
     assertContactExists("myclientid-5", "email@example.com");
@@ -142,26 +141,21 @@ public final class OteAccountBuilderTest {
         .buildAndPersist();
 
     assertTldExists("myclientid-sunrise", TldState.START_DATE_SUNRISE);
-    assertTldExists("myclientid-landrush", TldState.LANDRUSH);
-    assertTldExistsGa("myclientid-ga", Money.of(USD, 0));
+    assertTldExistsGa("myclientid-ga", Money.zero(USD));
     assertTldExistsGa("myclientid-eap", Money.of(USD, 100));
     assertRegistrarExists("myclientid-1", "myclientid-sunrise");
-    assertRegistrarExists("myclientid-2", "myclientid-landrush");
     assertRegistrarExists("myclientid-3", "myclientid-ga");
     assertRegistrarExists("myclientid-4", "myclientid-ga");
     assertRegistrarExists("myclientid-5", "myclientid-eap");
     assertContactExists("myclientid-1", "email@example.com");
-    assertContactExists("myclientid-2", "email@example.com");
     assertContactExists("myclientid-3", "email@example.com");
     assertContactExists("myclientid-4", "email@example.com");
     assertContactExists("myclientid-5", "email@example.com");
     assertContactExists("myclientid-1", "other@example.com");
-    assertContactExists("myclientid-2", "other@example.com");
     assertContactExists("myclientid-3", "other@example.com");
     assertContactExists("myclientid-4", "other@example.com");
     assertContactExists("myclientid-5", "other@example.com");
     assertContactExists("myclientid-1", "someone@example.com");
-    assertContactExists("myclientid-2", "someone@example.com");
     assertContactExists("myclientid-3", "someone@example.com");
     assertContactExists("myclientid-4", "someone@example.com");
     assertContactExists("myclientid-5", "someone@example.com");
@@ -244,8 +238,7 @@ public final class OteAccountBuilderTest {
 
   @Test
   public void testCreateOteEntities_entityExists_failsWhenNotReplaceExisting() {
-    DatastoreHelper.persistSimpleResource(
-        AppEngineRule.makeRegistrar1().asBuilder().setClientId("myclientid-1").build());
+    persistSimpleResource(makeRegistrar1().asBuilder().setClientId("myclientid-1").build());
     OteAccountBuilder oteSetupHelper = OteAccountBuilder.forClientId("myclientid");
 
     assertThat(assertThrows(IllegalStateException.class, () -> oteSetupHelper.buildAndPersist()))
@@ -255,14 +248,14 @@ public final class OteAccountBuilderTest {
 
   @Test
   public void testCreateOteEntities_entityExists_succeedsWhenReplaceExisting() {
-    DatastoreHelper.persistSimpleResource(
-        AppEngineRule.makeRegistrar1().asBuilder().setClientId("myclientid-1").build());
-    DatastoreHelper.createTld("myclientid-landrush", Registry.TldState.SUNRUSH);
+    persistSimpleResource(makeRegistrar1().asBuilder().setClientId("myclientid-4").build());
+    createTld("myclientid-ga", GENERAL_AVAILABILITY);
 
     OteAccountBuilder.forClientId("myclientid").setReplaceExisting(true).buildAndPersist();
 
-    assertTldExists("myclientid-landrush", TldState.LANDRUSH);
+    assertTldExistsGa("myclientid-ga", Money.zero(USD));
     assertRegistrarExists("myclientid-3", "myclientid-ga");
+    assertRegistrarExists("myclientid-4", "myclientid-ga");
   }
 
   @Test
@@ -305,7 +298,6 @@ public final class OteAccountBuilderTest {
     assertThat(OteAccountBuilder.createClientIdToTldMap("myclientid"))
         .containsExactly(
             "myclientid-1", "myclientid-sunrise",
-            "myclientid-2", "myclientid-landrush",
             "myclientid-3", "myclientid-ga",
             "myclientid-4", "myclientid-ga",
             "myclientid-5", "myclientid-eap");

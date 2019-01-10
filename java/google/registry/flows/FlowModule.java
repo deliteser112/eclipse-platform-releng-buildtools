@@ -15,13 +15,11 @@
 package google.registry.flows;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Strings.nullToEmpty;
 
 import com.google.common.base.Strings;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.flows.picker.FlowPicker;
-import google.registry.model.domain.launch.ApplicationIdTargetExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.Trid;
@@ -207,19 +205,6 @@ public class FlowModule {
 
   @Provides
   @FlowScope
-  @ApplicationId
-  static String provideApplicationId(EppInput eppInput) {
-    // Treat a missing application id as empty so we can always inject a non-null value.
-    Optional<ApplicationIdTargetExtension> extension =
-        eppInput.getSingleExtension(ApplicationIdTargetExtension.class);
-    checkState(
-        extension.isPresent(),
-        "ApplicationIdTargetExtension must be used to provide the application ID");
-    return nullToEmpty(extension.get().getApplicationId());
-  }
-
-  @Provides
-  @FlowScope
   @PollMessageId
   static String providePollMessageId(EppInput eppInput) {
     return Strings.nullToEmpty(((Poll) eppInput.getCommandWrapper().getCommand()).getMessageId());
@@ -293,11 +278,6 @@ public class FlowModule {
   @Qualifier
   @Documented
   public @interface TargetId {}
-
-  /** Dagger qualifier for the application id for domain application flows. */
-  @Qualifier
-  @Documented
-  public @interface ApplicationId {}
 
   /** Dagger qualifier for the message id for poll flows. */
   @Qualifier

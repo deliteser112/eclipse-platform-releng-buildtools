@@ -43,24 +43,15 @@ goog.inherits(registry.registrar.Domain,
               registry.registrar.XmlResourceComponent);
 
 
-/**
- * @define {boolean} Launch phase flag. If not SUNRUSH then GA.
- */
-goog.define('registry.registrar.Domain.SUNRUSH', false);
-
-
 /** @override */
 registry.registrar.Domain.prototype.newModel = function() {
   var newModel = {item: {'domain:period': ''}};
-  if (registry.registrar.Domain.SUNRUSH) {
-    newModel.allowSmd = true;
-  }
   return newModel;
 };
 
 
 /**
- * Prepare a fetch query for the domain by its domain application id.
+ * Prepare a fetch query for the domain by its id.
  * @param {!Object} params should have a name field with a
  *    possibly extended domain name id of the form "example.tld:1234"
  *    where the 1234 is the domain application id assigned by the
@@ -68,24 +59,8 @@ registry.registrar.Domain.prototype.newModel = function() {
  * @override
  */
 registry.registrar.Domain.prototype.prepareFetch = function(params) {
-  var xml;
-  if (registry.registrar.Domain.SUNRUSH) {
-    var idParts = params.id.split(':');
-    if (idParts.length != 2) {
-      registry.util.butter(
-          'Domain queries during sunrush have the form: ' +
-          '"example.tld:1234", where 1234 is the application ID.');
-      throw Error('Invalid domain name for SUNRUSH, lacking application ID');
-    }
-    params.name = idParts[0];
-    params.applicationID = idParts[1];
-    xml = registry.soy.registrar.domainepp.infoSunrush(
-        /** @type {{applicationID: ?, clTrid: ?, name: ?}} */(params));
-  } else {
-    xml = registry.soy.registrar.domainepp.info(
-        /** @type {{clTrid: ?, id: ?}} */ (params));
-  }
-  return xml.toString();
+  return registry.soy.registrar.domainepp.info(
+        /** @type {{clTrid: ?, id: ?}} */ (params)).toString();
 };
 
 
@@ -96,11 +71,6 @@ registry.registrar.Domain.prototype.processItem = function() {
   var extension = this.model['epp']['response']['extension'];
   if (extension && extension['launch:infData']) {
     var extendedInfData = extension['launch:infData'];
-
-    var applicationID = extendedInfData['launch:applicationID'];
-    if (applicationID) {
-      this.model.item['launch:applicationID'] = applicationID;
-    }
 
     var mark = extendedInfData['mark:mark'];
     if (mark) {
@@ -165,14 +135,8 @@ registry.registrar.Domain.prototype.prepareCreate = function(params) {
   if (form['smd:encodedSignedMark'] == '') {
     delete form['smd:encodedSignedMark'];
   }
-  var xml;
-  if (registry.registrar.Domain.SUNRUSH) {
-    xml = registry.soy.registrar.domainepp.createSunrush(
-        /** @type {{clTrid:?, item: ?}} */(params));
-  } else {
-    xml = registry.soy.registrar.domainepp.create(
-        /** @type {{clTrid: ?, item: ?}} */(params));
-  }
+  var xml = registry.soy.registrar.domainepp.create(
+      /** @type {{clTrid: ?, item: ?}} */(params));
   return xml.toString();
 };
 
@@ -192,19 +156,12 @@ registry.registrar.Domain.prototype.prepareUpdate =
     this.addRem(form['domain:ns']['domain:hostObj'], 'Hosts', params);
   }
 
-  var xml;
-  if (registry.registrar.Domain.SUNRUSH) {
-    xml = registry.soy.registrar.domainepp.updateSunrush(
-        /** @type {{clTrid: ?, item: ?}} */(params));
-    nextId += ':' + form['launch:applicationID'];
-  } else {
-    if (form['domain:ns'] && form['domain:ns']['domain:hostObj']) {
-      this.addRem(form['domain:ns']['domain:hostObj'], 'Hosts', params);
-    }
-    this.addRem(form['domain:contact'], 'Contacts', params);
-    xml = registry.soy.registrar.domainepp.update(
-        /** @type {{clTrid: ?, item: ?}} */(params));
+  if (form['domain:ns'] && form['domain:ns']['domain:hostObj']) {
+    this.addRem(form['domain:ns']['domain:hostObj'], 'Hosts', params);
   }
+  this.addRem(form['domain:contact'], 'Contacts', params);
+  var xml = registry.soy.registrar.domainepp.update(
+      /** @type {{clTrid: ?, item: ?}} */(params));
 
   return xml.toString();
 };

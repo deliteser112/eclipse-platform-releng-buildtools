@@ -31,7 +31,6 @@
 {template .item}
   {@param item: ?}
   {@param? readonly: ?}  /** passed through to field rendering. */
-  {@param? allowSmd: ?}  /** optional flag to allow sunrush smd applications. */
   {let $isEdit: isNonnull($item['domain:name']) /}
   <form name="item" class="{css('item')} {css('domain')}">
     <h1>
@@ -125,16 +124,6 @@
       {/if}
       <tr id="domain-hosts-footer"></tr>
 
-      {if isNonnull($item['launch:applicationID'])}
-        <tr class="{css('section-lead')}">
-          <th colspan="2"><h2>Sunrise domain application</h2></th>
-        </tr>
-        {call registry.soy.forms.inputFieldRowWithValue data="all"}
-          {param label: 'Application ID' /}
-          {param name: 'launch:applicationID' /}
-          {param value: $item['launch:applicationID'] /}
-        {/call}
-      {/if}
       {if isNonnull($item['mark:mark'])}
         <tr>
           <td>Mark Data
@@ -143,13 +132,6 @@
                 {$item['mark:mark']['keyValue']}</textarea>
             </td>
         </tr>
-      {else}
-        {if $allowSmd}
-          {call registry.soy.forms.textareaFieldRow data="all"}
-            {param label: 'Encoded Signed Mark (base64 encoded, no header or footer)' /}
-            {param name: 'smd:encodedSignedMark' /}
-          {/call}
-        {/if}
       {/if}
     </table>
     {if $isEdit}
@@ -183,7 +165,7 @@
 
 /* XXX: Should change support for admin/tech. */
 /**
- * Update domain.  Includes sunrush applicationId if present.
+ * Update domain.
  */
 {template .update}
   {@param? item: ?}
@@ -210,11 +192,6 @@
       <input type="hidden"
              name="domain:name"
              value="{$item['domain:name']['keyValue']}">
-      {if isNonnull($item['launch:applicationID'])}
-        <input type="hidden"
-               name="launch:applicationID"
-               value="{$item['launch:applicationID']['keyValue']}">
-      {/if}
     </table>
   </form>
 {/template}

@@ -16,7 +16,7 @@ package google.registry.model.pricing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.emptyToNull;
-import static google.registry.model.registry.Registry.TldState.SUNRISE;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
 import static google.registry.model.registry.label.ReservedList.getReservationTypes;
@@ -45,7 +45,7 @@ public final class StaticPremiumListPricingEngine implements PremiumPricingEngin
     Registry registry = Registry.get(checkNotNull(tld, "tld"));
     Optional<Money> premiumPrice = getPremiumPrice(label, registry);
     boolean isNameCollisionInSunrise =
-        registry.getTldState(priceTime).equals(SUNRISE)
+        registry.getTldState(priceTime).equals(START_DATE_SUNRISE)
             && getReservationTypes(label, tld).contains(NAME_COLLISION);
     String feeClass = emptyToNull(Joiner.on('-').skipNulls().join(
             premiumPrice.isPresent() ? "premium" : null,

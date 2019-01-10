@@ -60,6 +60,9 @@ public class LaunchCreateExtension extends LaunchExtension implements CommandExt
     /**
      * A Launch Application refers to a registration made during a launch phase when the server
      * accepts multiple applications for the same domain name.
+     *
+     * <p>This is no longer used, but is retained so incoming commands with this value error out
+     * with a descriptive message rather than failing XML marshalling.
      */
     @XmlEnumValue("application")
     APPLICATION,

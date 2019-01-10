@@ -33,7 +33,6 @@ import google.registry.model.EppResource.BuilderWithTransferData;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.EppResource.ResourceWithTransferData;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.index.ForeignKeyIndex;
@@ -156,22 +155,6 @@ public final class EppResourceUtils {
     return Optional.of(
         cloneProjectedAtTime(
             resource, latestOf(now, resource.getUpdateAutoTimestamp().getTimestamp())));
-  }
-
-  /**
-   * Returns the domain application with the given application id if it exists, or absent if it does
-   * not or is soft-deleted as of the given time.
-   */
-  public static Optional<DomainApplication> loadDomainApplication(
-      String applicationId, DateTime now) {
-    DomainApplication application =
-        ofy().load().key(Key.create(DomainApplication.class, applicationId)).now();
-    if (application == null || isAtOrAfter(now, application.getDeletionTime())) {
-      return Optional.empty();
-    }
-    // Applications don't have any speculative changes that become effective later, so no need to
-    // clone forward in time.
-    return Optional.of(application);
   }
 
   /**

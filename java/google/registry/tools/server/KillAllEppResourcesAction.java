@@ -26,8 +26,6 @@ import google.registry.config.RegistryEnvironment;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResource;
-import google.registry.model.domain.DomainApplication;
-import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.request.Action;
@@ -75,12 +73,11 @@ public class KillAllEppResourcesAction implements Runnable {
 
     /**
      * Delete an {@link EppResourceIndex}, its referent, all descendants of each referent, and the
-     * {@link ForeignKeyIndex} or {@link DomainApplicationIndex} of the referent, as appropriate.
+     * {@link ForeignKeyIndex} of the referent, as appropriate.
      *
      * <p>This will delete:
      * <ul>
      *   <li>All {@link ForeignKeyIndex} types
-     *   <li>{@link DomainApplicationIndex}
      *   <li>{@link EppResourceIndex}
      *   <li>All {@link EppResource} types
      *   <li>{@code HistoryEntry}
@@ -98,9 +95,7 @@ public class KillAllEppResourcesAction implements Runnable {
       }
       EppResource resource = ofy().load().key(eri.getKey()).now();
       // TODO(b/28247733): What about FKI's for renamed hosts?
-      Key<?> indexKey = resource instanceof DomainApplication
-          ? DomainApplicationIndex.createKey((DomainApplication) resource)
-          : ForeignKeyIndex.createKey(resource);
+      Key<?> indexKey = ForeignKeyIndex.createKey(resource);
       emitAndIncrementCounter(indexKey, indexKey);
     }
 

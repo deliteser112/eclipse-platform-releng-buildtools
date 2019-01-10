@@ -15,10 +15,10 @@
 package google.registry.flows.domain;
 
 import static google.registry.model.eppoutput.CheckData.DomainCheck.create;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
@@ -59,8 +59,6 @@ import google.registry.flows.domain.DomainFlowUtils.TransfersAreAlwaysForOneYear
 import google.registry.flows.domain.DomainFlowUtils.UnknownFeeCommandException;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.launch.ApplicationStatus;
-import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -259,84 +257,6 @@ public class DomainCheckFlowTest
   public void testSuccess_50IdsAllowed_withAllocationToken() throws Exception {
     setEppInput("domain_check_50_allocationtoken.xml");
     runFlow();
-  }
-
-  @Test
-  public void testSuccess_pendingSunriseApplicationInGeneralAvailability() throws Exception {
-    createTld("tld", TldState.GENERAL_AVAILABILITY);
-    persistResource(newDomainApplication("example2.tld").asBuilder().build());
-    doCheckTest(
-        create(true, "example1.tld", null),
-        create(false, "example2.tld", "Pending allocation"),
-        create(true, "example3.tld", null));
-  }
-
-  @Test
-  public void testSuccess_pendingLandrushApplicationInGeneralAvailability() throws Exception {
-    createTld("tld", TldState.GENERAL_AVAILABILITY);
-    persistResource(
-        newDomainApplication("example2.tld").asBuilder().setPhase(LaunchPhase.LANDRUSH).build());
-    doCheckTest(
-        create(true, "example1.tld", null),
-        create(false, "example2.tld", "Pending allocation"),
-        create(true, "example3.tld", null));
-  }
-
-  @Test
-  public void testSuccess_pendingSunriseApplicationInQuietPeriod() throws Exception {
-    createTld("tld", TldState.QUIET_PERIOD);
-    persistResource(newDomainApplication("example2.tld").asBuilder().build());
-    doCheckTest(
-        create(true, "example1.tld", null),
-        create(false, "example2.tld", "Pending allocation"),
-        create(true, "example3.tld", null));
-  }
-
-  @Test
-  public void testSuccess_pendingLandrushApplicationInQuietPeriod() throws Exception {
-    createTld("tld", TldState.QUIET_PERIOD);
-    persistResource(
-        newDomainApplication("example2.tld").asBuilder().setPhase(LaunchPhase.LANDRUSH).build());
-    doCheckTest(
-        create(true, "example1.tld", null),
-        create(false, "example2.tld", "Pending allocation"),
-        create(true, "example3.tld", null));
-  }
-
-  @Test
-  public void testSuccess_pendingSunriseApplicationInSunrise() throws Exception {
-    createTld("tld", TldState.SUNRISE);
-    persistResource(newDomainApplication("example2.tld").asBuilder().build());
-    doCheckTest(
-        create(true, "example1.tld", null),
-        create(true, "example2.tld", null),
-        create(true, "example3.tld", null));
-  }
-
-  @Test
-  public void testSuccess_pendingLandrushApplicationInLandrush() throws Exception {
-    createTld("tld", TldState.LANDRUSH);
-    persistResource(
-        newDomainApplication("example2.tld").asBuilder().setPhase(LaunchPhase.LANDRUSH).build());
-    doCheckTest(
-        create(true, "example1.tld", null),
-        create(true, "example2.tld", null),
-        create(true, "example3.tld", null));
-  }
-
-  @Test
-  public void testSuccess_rejectedApplication() throws Exception {
-    createTld("tld", TldState.LANDRUSH);
-    persistResource(
-        newDomainApplication("example2.tld")
-            .asBuilder()
-            .setPhase(LaunchPhase.LANDRUSH)
-            .setApplicationStatus(ApplicationStatus.REJECTED)
-            .build());
-    doCheckTest(
-        create(true, "example1.tld", null),
-        create(true, "example2.tld", null),
-        create(true, "example3.tld", null));
   }
 
   @Test
@@ -693,7 +613,7 @@ public class DomainCheckFlowTest
 
   @Test
   public void testFeeExtension_feesNotOmittedOnReservedNamesInSunrise_v06() throws Exception {
-    createTld("tld", TldState.SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -707,7 +627,7 @@ public class DomainCheckFlowTest
   @Test
   public void testFeeExtension_feesNotOmittedOnReservedNamesInSunrise_v11_create()
       throws Exception {
-    createTld("tld", TldState.SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -720,7 +640,7 @@ public class DomainCheckFlowTest
 
   @Test
   public void testFeeExtension_feesNotOmittedOnReservedNamesInSunrise_v11_renew() throws Exception {
-    createTld("tld", TldState.SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -734,7 +654,7 @@ public class DomainCheckFlowTest
   @Test
   public void testFeeExtension_feesNotOmittedOnReservedNamesInSunrise_v11_transfer()
       throws Exception {
-    createTld("tld", TldState.SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -748,7 +668,7 @@ public class DomainCheckFlowTest
   @Test
   public void testFeeExtension_feesNotOmittedOnReservedNamesInSunrise_v11_restore()
       throws Exception {
-    createTld("tld", TldState.SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -761,7 +681,7 @@ public class DomainCheckFlowTest
 
   @Test
   public void testFeeExtension_feesNotOmittedOnReservedNamesInSunrise_v12() throws Exception {
-    createTld("tld", TldState.SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     persistResource(
         Registry.get("tld")
             .asBuilder()

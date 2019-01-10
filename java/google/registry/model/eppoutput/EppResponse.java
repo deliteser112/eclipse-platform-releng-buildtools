@@ -43,8 +43,6 @@ import google.registry.model.domain.fee12.FeeRenewResponseExtensionV12;
 import google.registry.model.domain.fee12.FeeTransferResponseExtensionV12;
 import google.registry.model.domain.fee12.FeeUpdateResponseExtensionV12;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension;
-import google.registry.model.domain.launch.LaunchCreateResponseExtension;
-import google.registry.model.domain.launch.LaunchInfoResponseExtension;
 import google.registry.model.domain.rgp.RgpInfoExtension;
 import google.registry.model.domain.secdns.SecDnsInfoExtension;
 import google.registry.model.eppcommon.Trid;
@@ -139,8 +137,6 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
       @XmlElementRef(type = FeeTransferResponseExtensionV12.class),
       @XmlElementRef(type = FeeUpdateResponseExtensionV12.class),
       @XmlElementRef(type = LaunchCheckResponseExtension.class),
-      @XmlElementRef(type = LaunchCreateResponseExtension.class),
-      @XmlElementRef(type = LaunchInfoResponseExtension.class),
       @XmlElementRef(type = RgpInfoExtension.class),
       @XmlElementRef(type = SecDnsInfoExtension.class) })
   @XmlElementWrapper(name = "extension")

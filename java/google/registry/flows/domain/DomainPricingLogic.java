@@ -22,13 +22,11 @@ import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowScope;
 import google.registry.flows.custom.DomainPricingCustomLogic;
-import google.registry.flows.custom.DomainPricingCustomLogic.ApplicationUpdatePriceParameters;
 import google.registry.flows.custom.DomainPricingCustomLogic.CreatePriceParameters;
 import google.registry.flows.custom.DomainPricingCustomLogic.RenewPriceParameters;
 import google.registry.flows.custom.DomainPricingCustomLogic.RestorePriceParameters;
 import google.registry.flows.custom.DomainPricingCustomLogic.TransferPriceParameters;
 import google.registry.flows.custom.DomainPricingCustomLogic.UpdatePriceParameters;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
@@ -158,25 +156,6 @@ public final class DomainPricingLogic {
                     .build())
             .setRegistry(registry)
             .setDomainName(InternetDomainName.from(domainName))
-            .setAsOfDate(date)
-            .build());
-  }
-
-  /** Returns a new domain application update price for the pricer. */
-  @SuppressWarnings("unused")
-  public FeesAndCredits getApplicationUpdatePrice(
-      Registry registry, DomainApplication application, DateTime date) throws EppException {
-    BaseFee feeOrCredit =
-        Fee.create(Money.zero(registry.getCurrency()).getAmount(), FeeType.UPDATE);
-    return customLogic.customizeApplicationUpdatePrice(
-        ApplicationUpdatePriceParameters.newBuilder()
-            .setFeesAndCredits(
-                new FeesAndCredits.Builder()
-                    .setCurrency(registry.getCurrency())
-                    .setFeesAndCredits(feeOrCredit)
-                    .build())
-            .setRegistry(registry)
-            .setDomainApplication(application)
             .setAsOfDate(date)
             .build());
   }

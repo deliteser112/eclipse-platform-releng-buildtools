@@ -60,6 +60,7 @@ import org.junit.Test;
 
 /** Unit tests for {@link DomainResource}. */
 public class DomainResourceTest extends EntityTestCase {
+
   DomainResource domain;
 
   @Before
@@ -141,8 +142,6 @@ public class DomainResourceTest extends EntityTestCase {
                     .setAutorenewBillingEvent(recurringBillKey)
                     .setAutorenewPollMessage(autorenewPollKey)
                     .setSmdId("smdid")
-                    .setApplicationTime(START_OF_TIME)
-                    .setApplication(Key.create(DomainApplication.class, 1))
                     .addGracePeriod(
                         GracePeriod.create(
                             GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "registrar", null))

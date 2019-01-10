@@ -16,6 +16,8 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.registrar.Registrar.State.ACTIVE;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -154,12 +156,10 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--email=contact@email.com",
         "--certfile=" + getCertFilename());
 
-    verifyTldCreation("blobio-sunrise", "BLOBIOS0", TldState.START_DATE_SUNRISE);
-    verifyTldCreation("blobio-landrush", "BLOBIOL1", TldState.LANDRUSH);
-    verifyTldCreation(
-        "blobio-ga",
+    verifyTldCreation("blobio-sunrise", "BLOBIOS0", START_DATE_SUNRISE);
+    verifyTldCreation("blobio-ga",
         "BLOBIOG2",
-        TldState.GENERAL_AVAILABILITY,
+        GENERAL_AVAILABILITY,
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
         Duration.standardMinutes(5),
@@ -167,7 +167,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyTldCreation(
         "blobio-eap",
         "BLOBIOE3",
-        TldState.GENERAL_AVAILABILITY,
+        GENERAL_AVAILABILITY,
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
         Duration.standardMinutes(5),
@@ -177,13 +177,11 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         CidrAddressBlock.create("1.1.1.1"));
 
     verifyRegistrarCreation("blobio-1", "blobio-sunrise", PASSWORD, ipAddress);
-    verifyRegistrarCreation("blobio-2", "blobio-landrush", PASSWORD, ipAddress);
     verifyRegistrarCreation("blobio-3", "blobio-ga", PASSWORD, ipAddress);
     verifyRegistrarCreation("blobio-4", "blobio-ga", PASSWORD, ipAddress);
     verifyRegistrarCreation("blobio-5", "blobio-eap", PASSWORD, ipAddress);
 
     verifyRegistrarContactCreation("blobio-1", "contact@email.com");
-    verifyRegistrarContactCreation("blobio-2", "contact@email.com");
     verifyRegistrarContactCreation("blobio-3", "contact@email.com");
     verifyRegistrarContactCreation("blobio-4", "contact@email.com");
     verifyRegistrarContactCreation("blobio-5", "contact@email.com");
@@ -197,12 +195,10 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--email=abc@email.com",
         "--certfile=" + getCertFilename());
 
-    verifyTldCreation("abc-sunrise", "ABCSUNR0", TldState.START_DATE_SUNRISE);
-    verifyTldCreation("abc-landrush", "ABCLAND1", TldState.LANDRUSH);
-    verifyTldCreation(
-        "abc-ga",
+    verifyTldCreation("abc-sunrise", "ABCSUNR0", START_DATE_SUNRISE);
+    verifyTldCreation("abc-ga",
         "ABCGA2",
-        TldState.GENERAL_AVAILABILITY,
+        GENERAL_AVAILABILITY,
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
         Duration.standardMinutes(5),
@@ -210,7 +206,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyTldCreation(
         "abc-eap",
         "ABCEAP3",
-        TldState.GENERAL_AVAILABILITY,
+        GENERAL_AVAILABILITY,
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
         Duration.standardMinutes(5),
@@ -220,13 +216,11 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         ImmutableList.of(CidrAddressBlock.create("1.1.1.1"));
 
     verifyRegistrarCreation("abc-1", "abc-sunrise", PASSWORD, ipAddress);
-    verifyRegistrarCreation("abc-2", "abc-landrush", PASSWORD, ipAddress);
     verifyRegistrarCreation("abc-3", "abc-ga", PASSWORD, ipAddress);
     verifyRegistrarCreation("abc-4", "abc-ga", PASSWORD, ipAddress);
     verifyRegistrarCreation("abc-5", "abc-eap", PASSWORD, ipAddress);
 
     verifyRegistrarContactCreation("abc-1", "abc@email.com");
-    verifyRegistrarContactCreation("abc-2", "abc@email.com");
     verifyRegistrarContactCreation("abc-3", "abc@email.com");
     verifyRegistrarContactCreation("abc-4", "abc@email.com");
     verifyRegistrarContactCreation("abc-5", "abc@email.com");
@@ -243,7 +237,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyTldCreation(
         "blobio-eap",
         "BLOBIOE3",
-        TldState.GENERAL_AVAILABILITY,
+        GENERAL_AVAILABILITY,
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
         Duration.standardMinutes(5),
@@ -265,12 +259,11 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--email=contact@email.com",
         "--certfile=" + getCertFilename());
 
-    verifyTldCreation("blobio-sunrise", "BLOBIOS0", TldState.START_DATE_SUNRISE);
-    verifyTldCreation("blobio-landrush", "BLOBIOL1", TldState.LANDRUSH);
+    verifyTldCreation("blobio-sunrise", "BLOBIOS0", START_DATE_SUNRISE);
     verifyTldCreation(
         "blobio-ga",
         "BLOBIOG2",
-        TldState.GENERAL_AVAILABILITY,
+        GENERAL_AVAILABILITY,
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
         Duration.standardMinutes(5),
@@ -278,7 +271,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyTldCreation(
         "blobio-eap",
         "BLOBIOE3",
-        TldState.GENERAL_AVAILABILITY,
+        GENERAL_AVAILABILITY,
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
         Duration.standardMinutes(5),
@@ -289,13 +282,11 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         CidrAddressBlock.create("2.2.2.2"));
 
     verifyRegistrarCreation("blobio-1", "blobio-sunrise", PASSWORD, ipAddresses);
-    verifyRegistrarCreation("blobio-2", "blobio-landrush", PASSWORD, ipAddresses);
     verifyRegistrarCreation("blobio-3", "blobio-ga", PASSWORD, ipAddresses);
     verifyRegistrarCreation("blobio-4", "blobio-ga", PASSWORD, ipAddresses);
     verifyRegistrarCreation("blobio-5", "blobio-eap", PASSWORD, ipAddresses);
 
     verifyRegistrarContactCreation("blobio-1", "contact@email.com");
-    verifyRegistrarContactCreation("blobio-2", "contact@email.com");
     verifyRegistrarContactCreation("blobio-3", "contact@email.com");
     verifyRegistrarContactCreation("blobio-4", "contact@email.com");
     verifyRegistrarContactCreation("blobio-5", "contact@email.com");
@@ -470,8 +461,15 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--email=contact@email.com",
         "--certfile=" + getCertFilename());
 
-    verifyTldCreation("blobio-sunrise", "BLOBIOS0", TldState.START_DATE_SUNRISE);
-    verifyTldCreation("blobio-landrush", "BLOBIOL1", TldState.LANDRUSH);
+    verifyTldCreation("blobio-sunrise", "BLOBIOS0", START_DATE_SUNRISE);
+    verifyTldCreation(
+        "blobio-ga",
+        "BLOBIOG2",
+        GENERAL_AVAILABILITY,
+        Duration.standardMinutes(60),
+        Duration.standardMinutes(10),
+        Duration.standardMinutes(5),
+        false);
   }
 
   @Test
@@ -512,6 +510,6 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         CidrAddressBlock.create("1.1.1.1"));
 
     verifyRegistrarCreation("blobio-1", "blobio-sunrise", PASSWORD, ipAddress);
-    verifyRegistrarCreation("blobio-2", "blobio-landrush", PASSWORD, ipAddress);
+    verifyRegistrarCreation("blobio-3", "blobio-ga", PASSWORD, ipAddress);
   }
 }

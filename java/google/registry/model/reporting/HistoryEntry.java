@@ -50,11 +50,15 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
     CONTACT_TRANSFER_REJECT,
     CONTACT_TRANSFER_REQUEST,
     CONTACT_UPDATE,
+    /**
+     * Used for history entries that were allocated as a result of a domain application.
+     *
+     * <p>Domain applications (and thus allocating from an application) no longer exist, but we have
+     * existing domains in the system that were created via allocation and thus have history entries
+     * of this type under them, so this is retained for legacy purposes.
+     */
+    @Deprecated
     DOMAIN_ALLOCATE,
-    DOMAIN_APPLICATION_CREATE,
-    DOMAIN_APPLICATION_DELETE,
-    DOMAIN_APPLICATION_UPDATE,
-    DOMAIN_APPLICATION_STATUS_UPDATE,
     /**
      * Used for domain registration autorenews explicitly logged by
      * {@link google.registry.batch.ExpandRecurringBillingEventsAction}.

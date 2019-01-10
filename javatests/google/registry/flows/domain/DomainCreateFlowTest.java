@@ -36,11 +36,9 @@ import static google.registry.testing.DatastoreHelper.deleteTld;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newContactResource;
-import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
-import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -72,7 +70,6 @@ import google.registry.flows.EppRequestSource;
 import google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainCreateFlow.AnchorTenantCreatePeriodException;
-import google.registry.flows.domain.DomainCreateFlow.DomainHasOpenApplicationsException;
 import google.registry.flows.domain.DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException;
 import google.registry.flows.domain.DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException;
 import google.registry.flows.domain.DomainCreateFlow.SignedMarksOnlyDuringSunriseException;
@@ -138,7 +135,6 @@ import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -1180,35 +1176,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_openApplication() throws Exception {
-    persistContactsAndHosts();
-    persistActiveDomainApplication(getUniqueIdFromCommand());
-    clock.advanceOneMilli();
-    EppException thrown = assertThrows(DomainHasOpenApplicationsException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testSuccess_superuserOpenApplication() throws Exception {
-    persistContactsAndHosts();
-    persistActiveDomainApplication(getUniqueIdFromCommand());
-    doSuccessfulTest(
-        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
-  }
-
-  @Test
-  public void testSuccess_rejectedApplication() throws Exception {
-    persistContactsAndHosts();
-    persistResource(
-        newDomainApplication(getUniqueIdFromCommand())
-            .asBuilder()
-            .setApplicationStatus(ApplicationStatus.REJECTED)
-            .build());
-    clock.advanceOneMilli();
-    doSuccessfulTest();
-  }
-
-  @Test
   public void testFailure_missingContact() {
     persistActiveHost("ns1.example.net");
     persistActiveHost("ns2.example.net");
@@ -1252,33 +1219,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_sunrise() {
-    createTld("tld", TldState.SUNRISE);
-    persistContactsAndHosts();
-    EppException thrown =
-        assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testFailure_sunrush() {
-    createTld("tld", TldState.SUNRUSH);
-    persistContactsAndHosts();
-    EppException thrown =
-        assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testFailure_landrush() {
-    createTld("tld", TldState.LANDRUSH);
-    persistContactsAndHosts();
-    EppException thrown =
-        assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
   public void testFailure_startDateSunrise_missingLaunchExtension() {
     createTld("tld", START_DATE_SUNRISE);
     persistContactsAndHosts();
@@ -1299,14 +1239,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testSuccess_superuserPredelegation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
-    persistContactsAndHosts();
-    doSuccessfulTest(
-        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
-  }
-
-  @Test
-  public void testSuccess_superuserSunrush() throws Exception {
-    createTld("tld", TldState.SUNRUSH);
     persistContactsAndHosts();
     doSuccessfulTest(
         "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
@@ -1443,22 +1375,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_code_with_mark.xml");
     persistContactsAndHosts();
     EppException thrown = assertThrows(UnsupportedMarkTypeException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  /**
-   * Tests that a sunrise registration fails with the correct error during end-date sunrise.
-   *
-   * <p>Makes sure that a sunrise registration without signed mark during end-date sunrise fails
-   * with the "wrong phase" error rather than the "missing signed mark" error.
-   */
-  @Test
-  public void testFailure_registrationDuringEndDateSunrise_wrongPhase() {
-    createTld("tld", TldState.SUNRISE);
-    setEppInput("domain_create_registration_sunrise.xml");
-    persistContactsAndHosts();
-    EppException thrown =
-        assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1717,64 +1633,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_sunriseRegistration() {
-    createTld("tld", TldState.SUNRISE);
-    setEppInput("domain_create_registration_sunrise.xml");
-    persistContactsAndHosts();
-    EppException thrown =
-        assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testSuccess_superuserSunriseRegistration() throws Exception {
-    createTld("tld", TldState.SUNRISE);
-    setEppInput("domain_create_registration_sunrise.xml");
-    persistContactsAndHosts();
-    doSuccessfulTest(
-        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
-  }
-
-  @Test
-  public void testSuccess_qlpSunriseRegistration() throws Exception {
-    createTld("tld", TldState.SUNRISE);
-    setEppInput("domain_create_registration_qlp_sunrise.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
-    persistContactsAndHosts();
-    runFlowAssertResponse(
-        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
-    assertNoLordn();
-  }
-
-  @Test
-  public void testSuccess_qlpSunriseRegistration_withEncodedSignedMark() throws Exception {
-    createTld("tld", TldState.SUNRISE);
-    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
-    setEppInput("domain_create_registration_qlp_sunrise_encoded_signed_mark.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
-    persistContactsAndHosts();
-    runFlowAssertResponse(
-        loadFile(
-            "domain_create_response_encoded_signed_mark_name.xml",
-            ImmutableMap.of("DOMAIN", "test-validate.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT, Flag.SUNRISE));
-    assertSunriseLordn("test-validate.tld");
-  }
-
-  @Test
-  public void testSuccess_qlpSunriseRegistration_withClaimsNotice() throws Exception {
-    createTld("tld", TldState.SUNRISE);
-    clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
-    setEppInput("domain_create_registration_qlp_sunrise_claims_notice.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
-    persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
-    assertClaimsLordn();
-  }
-
-  @Test
   public void testFailure_startDateSunriseRegistration_missingSignedMark() {
     createTld("tld", START_DATE_SUNRISE);
     setEppInput("domain_create_registration_sunrise.xml");
@@ -1823,9 +1681,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   /**
    * Test that missing type= argument on launch create works in start-date sunrise.
-   *
-   * <p>TODO(b/76095570):have the same exact test on end-date sunrise - using the same .xml file -
-   * that checks that an application was created.
    */
   @Test
   public void testSuccess_startDateSunriseRegistration_withEncodedSignedMark_noType()
@@ -1840,20 +1695,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             ImmutableMap.of("DOMAIN", "test-validate.tld")));
     assertSuccessfulCreate("tld", ImmutableSet.of(Flag.SUNRISE));
     assertSunriseLordn("test-validate.tld");
-  }
-
-  /** Tests possible confusion caused by the common start-date and end-date sunrise LaunchPhase. */
-  @Test
-  public void testFail_sunriseRegistration_withEncodedSignedMark() {
-    createTld("tld", TldState.SUNRISE);
-    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
-    setEppInput(
-        "domain_create_registration_encoded_signed_mark.xml",
-        ImmutableMap.of("DOMAIN", "test-validate.tld", "PHASE", "sunrise"));
-    persistContactsAndHosts();
-    EppException thrown =
-        assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -1906,16 +1747,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_sunrushRegistration() {
-    createTld("tld", TldState.SUNRUSH);
-    setEppInput("domain_create_registration_sunrush.xml");
-    persistContactsAndHosts();
-    EppException thrown =
-        assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
   public void testFailure_notAuthorizedForTld() {
     createTld("irrelevant", "IRR");
     persistResource(
@@ -1926,109 +1757,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     EppException thrown = assertThrows(NotAuthorizedForTldException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testSuccess_superuserSunrushRegistration() throws Exception {
-    createTld("tld", TldState.SUNRUSH);
-    setEppInput("domain_create_registration_sunrush.xml");
-    persistContactsAndHosts();
-    doSuccessfulTest(
-        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
-  }
-
-  @Test
-  public void testSuccess_qlpSunrushRegistration() throws Exception {
-    createTld("tld", TldState.SUNRUSH);
-    setEppInput("domain_create_registration_qlp_sunrush.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
-    persistContactsAndHosts();
-    runFlowAssertResponse(
-        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
-    assertNoLordn();
-  }
-
-  @Test
-  public void testSuccess_qlpSunrushRegistration_withEncodedSignedMark() throws Exception {
-    createTld("tld", TldState.SUNRUSH);
-    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
-    setEppInput("domain_create_registration_qlp_sunrush_encoded_signed_mark.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
-    persistContactsAndHosts();
-    runFlowAssertResponse(
-        loadFile(
-            "domain_create_response_encoded_signed_mark_name.xml",
-            ImmutableMap.of("DOMAIN", "test-validate.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT, Flag.SUNRISE));
-    assertSunriseLordn("test-validate.tld");
-  }
-
-  @Test
-  public void testSuccess_qlpSunrushRegistration_withClaimsNotice() throws Exception {
-    createTld("tld", TldState.SUNRUSH);
-    clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
-    setEppInput("domain_create_registration_qlp_sunrush_claims_notice.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
-    persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
-    assertClaimsLordn();
-  }
-
-  @Test
-  public void testFailure_landrushRegistration() {
-    createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_create_registration_landrush.xml");
-    persistContactsAndHosts();
-    EppException thrown =
-        assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testSuccess_superuserLandrushRegistration() throws Exception {
-    createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_create_registration_landrush.xml");
-    persistContactsAndHosts();
-    doSuccessfulTest(
-        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
-  }
-
-  @Test
-  public void testSuccess_qlpLandrushRegistration() throws Exception {
-    createTld("tld", TldState.LANDRUSH);
-    setEppInput("domain_create_registration_qlp_landrush.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
-    persistContactsAndHosts();
-    runFlowAssertResponse(
-        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
-    assertNoLordn();
-  }
-
-  @Test
-  public void testFailure_qlpLandrushRegistration_withEncodedSignedMark() {
-    createTld("tld", TldState.LANDRUSH);
-    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
-    setEppInput("domain_create_registration_qlp_landrush_encoded_signed_mark.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
-    persistContactsAndHosts();
-    EppException thrown =
-        assertThrows(SignedMarksOnlyDuringSunriseException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testSuccess_qlpLandrushRegistration_withClaimsNotice() throws Exception {
-    createTld("tld", TldState.LANDRUSH);
-    clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
-    setEppInput("domain_create_registration_qlp_landrush_claims_notice.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
-    persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
-    assertClaimsLordn();
   }
 
   @Test

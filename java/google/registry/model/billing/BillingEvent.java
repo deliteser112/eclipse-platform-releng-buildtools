@@ -70,6 +70,9 @@ public abstract class BillingEvent extends ImmutableObject
     ALLOCATION,
     ANCHOR_TENANT,
     AUTO_RENEW,
+    /**
+     * Landrush billing events are historical only and are no longer created.
+     */
     LANDRUSH,
     /**
      * This flag is used on create {@link OneTime} billing events for domains that were reserved.

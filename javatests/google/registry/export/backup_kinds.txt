@@ -2,7 +2,6 @@ AllocationToken
 Cancellation
 ContactResource
 Cursor
-DomainApplicationIndex
 DomainBase
 EntityGroupRoot
 EppResourceIndex

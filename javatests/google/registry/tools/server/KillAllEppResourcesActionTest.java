@@ -25,7 +25,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
-import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -43,7 +42,6 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
-import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex.ForeignKeyContactIndex;
 import google.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
@@ -69,7 +67,6 @@ public class KillAllEppResourcesActionTest extends MapreduceTestCase<KillAllEppR
               ForeignKeyContactIndex.class,
               ForeignKeyDomainIndex.class,
               ForeignKeyHostIndex.class,
-              DomainApplicationIndex.class,
               DomainBase.class,
               ContactResource.class,
               HostResource.class,
@@ -95,8 +92,6 @@ public class KillAllEppResourcesActionTest extends MapreduceTestCase<KillAllEppR
     for (EppResource resource : asList(
         persistActiveDomain("foo.tld1"),
         persistActiveDomain("foo.tld2"),
-        persistActiveDomainApplication("foo.tld1"),
-        persistActiveDomainApplication("foo.tld2"),
         persistActiveContact("foo"),
         persistActiveContact("foo"),
         persistActiveHost("ns.foo.tld1"),

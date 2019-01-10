@@ -44,7 +44,6 @@ import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.util.Clock;
@@ -63,7 +62,6 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.ClaimsPeriodEndedException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
- * @error {@link DomainClaimsCheckNotAllowedInSunrise}
  * @error {@link DomainClaimsCheckNotAllowedWithAllocationTokens}
  */
 @ReportingSpec(ActivityReportField.DOMAIN_CHECK)  // Claims check is a special domain check.
@@ -104,9 +102,6 @@ public final class DomainClaimsCheckFlow implements Flow {
           Registry registry = Registry.get(tld);
           DateTime now = clock.nowUtc();
           verifyNotInPredelegation(registry, now);
-          if (registry.getTldState(now) == TldState.SUNRISE) {
-            throw new DomainClaimsCheckNotAllowedInSunrise();
-          }
           verifyClaimsPeriodNotEnded(registry, now);
         }
       }
@@ -118,13 +113,6 @@ public final class DomainClaimsCheckFlow implements Flow {
     return responseBuilder
         .setOnlyExtension(LaunchCheckResponseExtension.create(CLAIMS, launchChecksBuilder.build()))
         .build();
-  }
-
-  /** Claims checks are not allowed during sunrise. */
-  static class DomainClaimsCheckNotAllowedInSunrise extends CommandUseErrorException {
-    public DomainClaimsCheckNotAllowedInSunrise() {
-      super("Claims checks are not allowed during sunrise");
-    }
   }
 
   /** Claims checks are not allowed with allocation tokens. */

@@ -42,7 +42,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyClientUpdateNot
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.nullToEmpty;
-import static google.registry.util.DateTimeUtils.earliestOf;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
@@ -67,10 +66,8 @@ import google.registry.model.domain.DomainCommand.Update;
 import google.registry.model.domain.DomainCommand.Update.AddRemove;
 import google.registry.model.domain.DomainCommand.Update.Change;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.fee.FeeUpdateCommandExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
-import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
@@ -93,12 +90,6 @@ import org.joda.time.DateTime;
  * <p>Some status values (those of the form "serverSomethingProhibited") can only be applied by the
  * superuser. As such, adding or removing these statuses incurs a billing event. There will be only
  * one charge per update, even if several such statuses are updated at once.
- *
- * <p>If a domain was created during the sunrise or landrush phases of a TLD, is still within the
- * sunrushAddGracePeriod and has not yet been delegated in DNS, then it will not yet have been
- * billed for. Any update that causes the name to be delegated (such * as adding nameservers or
- * removing a hold status) will cause the domain to convert to a normal create and be billed for
- * accordingly.
  *
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ResourceFlowUtils.AddRemoveSameValueException}
@@ -177,16 +168,6 @@ public final class DomainUpdateFlow implements TransactionalFlow {
         AfterValidationParameters.newBuilder().setExistingDomain(existingDomain).build());
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, now);
     DomainResource newDomain = performUpdate(command, existingDomain, now);
-    // If the new domain is in the sunrush add grace period and is now publishable to DNS because we
-    // have added nameserver or removed holds, we have to convert it to a standard add grace period.
-    if (newDomain.shouldPublishToDns()) {
-      for (GracePeriod gracePeriod : newDomain.getGracePeriods()) {
-        if (gracePeriod.isSunrushAddGracePeriod()) {
-          newDomain = convertSunrushAddToAdd(newDomain, gracePeriod, historyEntry, now);
-          break; // There can only be one sunrush add grace period.
-        }
-      }
-    }
     validateNewState(newDomain);
     dnsQueue.addDomainRefreshTask(targetId);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
@@ -287,50 +268,6 @@ public final class DomainUpdateFlow implements TransactionalFlow {
           .addStatusValue(StatusValue.SERVER_UPDATE_PROHIBITED);
     }
     return domainBuilder.build();
-  }
-
-  private DomainResource convertSunrushAddToAdd(
-      DomainResource newDomain, GracePeriod gracePeriod, HistoryEntry historyEntry, DateTime now) {
-    // Cancel the billing event for the sunrush add and replace it with a new billing event.
-    BillingEvent.Cancellation billingEventCancellation =
-        BillingEvent.Cancellation.forGracePeriod(gracePeriod, historyEntry, targetId);
-    BillingEvent.OneTime billingEvent =
-        createBillingEventForSunrushConversion(newDomain, historyEntry, gracePeriod, now);
-    ofy().save().entities(billingEvent, billingEventCancellation);
-    // Modify the grace periods on the domain.
-    return newDomain.asBuilder()
-        .removeGracePeriod(gracePeriod)
-        .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, billingEvent))
-        .build();
-  }
-
-  private BillingEvent.OneTime createBillingEventForSunrushConversion(
-      DomainResource existingDomain,
-      HistoryEntry historyEntry,
-      GracePeriod sunrushAddGracePeriod,
-      DateTime now) {
-    // Compute the expiration time of the add grace period. We will not allow it to be after the
-    // sunrush add grace period expiration time (i.e. you can't get extra add grace period by
-    // setting a nameserver).
-    DateTime addGracePeriodExpirationTime = earliestOf(
-        now.plus(Registry.get(existingDomain.getTld()).getAddGracePeriodLength()),
-        sunrushAddGracePeriod.getExpirationTime());
-    // Create a new billing event for the add grace period. Note that we do this even if it would
-    // occur at the same time as the sunrush add grace period, as the event time will differ
-    // between them.
-    BillingEvent.OneTime originalAddEvent =
-        ofy().load().key(sunrushAddGracePeriod.getOneTimeBillingEvent()).now();
-    return new BillingEvent.OneTime.Builder()
-        .setReason(Reason.CREATE)
-        .setTargetId(targetId)
-        .setFlags(originalAddEvent.getFlags())
-        .setClientId(sunrushAddGracePeriod.getClientId())
-        .setCost(originalAddEvent.getCost())
-        .setPeriodYears(originalAddEvent.getPeriodYears())
-        .setEventTime(now)
-        .setBillingTime(addGracePeriodExpirationTime)
-        .setParent(historyEntry)
-        .build();
   }
 
   private void validateRegistrantIsntBeingRemoved(Change change) throws EppException {

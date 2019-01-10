@@ -76,7 +76,6 @@ public class PollRequestFlow implements Flow {
             .setMessageId(makePollMessageExternalId(pollMessage))
             .build())
         .setMultipleResData(pollMessage.getResponseData())
-        .setExtensions(pollMessage.getResponseExtensions())
         .build();
   }
 

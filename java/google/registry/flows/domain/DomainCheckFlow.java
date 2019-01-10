@@ -24,13 +24,11 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
-import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.registry.label.ReservationType.getTypeOfHighestSeverity;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.flows.EppException;
@@ -58,7 +56,6 @@ import google.registry.model.eppoutput.CheckData.DomainCheckData;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservationType;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
@@ -98,14 +95,6 @@ import org.joda.time.DateTime;
  */
 @ReportingSpec(ActivityReportField.DOMAIN_CHECK)
 public final class DomainCheckFlow implements Flow {
-
-  /**
-   * The TLD states during which we want to report a domain with pending applications as
-   * unavailable.
-   */
-  private static final ImmutableSet<TldState> PENDING_ALLOCATION_TLD_STATES =
-      Sets.immutableEnumSet(
-          TldState.GENERAL_AVAILABILITY, TldState.START_DATE_SUNRISE, TldState.QUIET_PERIOD);
 
   @Inject ResourceCommand resourceCommand;
   @Inject ExtensionManager extensionManager;
@@ -166,7 +155,7 @@ public final class DomainCheckFlow implements Flow {
     ImmutableList.Builder<DomainCheck> checks = new ImmutableList.Builder<>();
     for (String targetId : targetIds) {
       Optional<String> message =
-          getMessageForCheck(domainNames.get(targetId), existingIds, tokenCheckResults, now);
+          getMessageForCheck(domainNames.get(targetId), existingIds, tokenCheckResults);
       checks.add(DomainCheck.create(!message.isPresent(), targetId, message.orElse(null)));
     }
     BeforeResponseReturnData responseData =
@@ -185,17 +174,9 @@ public final class DomainCheckFlow implements Flow {
   private Optional<String> getMessageForCheck(
       InternetDomainName domainName,
       Set<String> existingIds,
-      ImmutableMap<InternetDomainName, String> tokenCheckResults,
-      DateTime now) {
+      ImmutableMap<InternetDomainName, String> tokenCheckResults) {
     if (existingIds.contains(domainName.toString())) {
       return Optional.of("In use");
-    }
-    Registry registry = Registry.get(domainName.parent().toString());
-    if (PENDING_ALLOCATION_TLD_STATES.contains(registry.getTldState(now))
-        && loadActiveApplicationsByDomainName(domainName.toString(), now)
-            .stream()
-            .anyMatch(input -> !input.getApplicationStatus().isFinalStatus())) {
-      return Optional.of("Pending allocation");
     }
     ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
     if (!reservationTypes.isEmpty()) {

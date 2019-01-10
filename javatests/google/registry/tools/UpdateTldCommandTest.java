@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -26,7 +27,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.JPY;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardMinutes;
 
 import com.beust.jcommander.ParameterException;
@@ -65,28 +65,20 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testSuccess_tldStateTransitions() throws Exception {
     DateTime sunriseStart = now;
-    DateTime sunrushStart = sunriseStart.plusMonths(2);
-    DateTime quietPeriodStart = sunrushStart.plusMonths(1);
+    DateTime quietPeriodStart = sunriseStart.plusMonths(2);
     DateTime gaStart = quietPeriodStart.plusWeeks(1);
     runCommandForced(
         String.format(
-            "--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE,%s=SUNRUSH,%s=QUIET_PERIOD,"
+            "--tld_state_transitions=%s=PREDELEGATION,%s=START_DATE_SUNRISE,%s=QUIET_PERIOD,"
                 + "%s=GENERAL_AVAILABILITY",
-            START_OF_TIME,
-            sunriseStart,
-            sunrushStart,
-            quietPeriodStart,
-            gaStart),
+            START_OF_TIME, sunriseStart, quietPeriodStart, gaStart),
         "xn--q9jyb4c");
 
     Registry registry = Registry.get("xn--q9jyb4c");
     assertThat(registry.getTldState(sunriseStart.minusMillis(1))).isEqualTo(TldState.PREDELEGATION);
-    assertThat(registry.getTldState(sunriseStart)).isEqualTo(TldState.SUNRISE);
-    assertThat(registry.getTldState(sunriseStart.plusMillis(1))).isEqualTo(TldState.SUNRISE);
-    assertThat(registry.getTldState(sunrushStart.minusMillis(1))).isEqualTo(TldState.SUNRISE);
-    assertThat(registry.getTldState(sunrushStart)).isEqualTo(TldState.SUNRUSH);
-    assertThat(registry.getTldState(sunrushStart.plusMillis(1))).isEqualTo(TldState.SUNRUSH);
-    assertThat(registry.getTldState(quietPeriodStart.minusMillis(1))).isEqualTo(TldState.SUNRUSH);
+    assertThat(registry.getTldState(sunriseStart)).isEqualTo(START_DATE_SUNRISE);
+    assertThat(registry.getTldState(sunriseStart.plusMillis(1))).isEqualTo(START_DATE_SUNRISE);
+    assertThat(registry.getTldState(quietPeriodStart.minusMillis(1))).isEqualTo(START_DATE_SUNRISE);
     assertThat(registry.getTldState(quietPeriodStart)).isEqualTo(TldState.QUIET_PERIOD);
     assertThat(registry.getTldState(quietPeriodStart.plusMillis(1)))
         .isEqualTo(TldState.QUIET_PERIOD);
@@ -99,13 +91,14 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testSuccess_setTldState() throws Exception {
-    Registry registry = persistResource(
-        Registry.get("xn--q9jyb4c").asBuilder()
+    persistResource(
+        Registry.get("xn--q9jyb4c")
+            .asBuilder()
             .setTldStateTransitions(ImmutableSortedMap.of(START_OF_TIME, TldState.PREDELEGATION))
             .build());
-    runCommandForced("--set_current_tld_state=SUNRISE", "xn--q9jyb4c");
-    registry = Registry.get("xn--q9jyb4c");
-    assertThat(registry.getTldState(now.plusDays(1))).isEqualTo(TldState.SUNRISE);
+    runCommandForced("--set_current_tld_state=START_DATE_SUNRISE", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getTldState(now.plusDays(1)))
+        .isEqualTo(START_DATE_SUNRISE);
   }
 
   @Test
@@ -149,13 +142,6 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         .isNotEqualTo(standardMinutes(5));
     runCommandForced("--add_grace_period=PT300S", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getAddGracePeriodLength()).isEqualTo(standardMinutes(5));
-  }
-
-  @Test
-  public void testSuccess_sunrushAddGracePeriodFlag() throws Exception {
-    runCommandForced("--sunrush_add_grace_period=P13D", "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getSunrushAddGracePeriodLength())
-        .isEqualTo(standardDays(13));
   }
 
   @Test
@@ -509,7 +495,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
             () ->
                 runCommandForced(
                     String.format(
-                        "--tld_state_transitions=%s=SUNRISE,%s=PREDELEGATION",
+                        "--tld_state_transitions=%s=START_DATE_SUNRISE,%s=PREDELEGATION",
                         now, now.plusMonths(1)),
                     "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("The TLD states are chronologically out of order");
@@ -523,7 +509,8 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
             () ->
                 runCommandForced(
                     String.format(
-                        "--tld_state_transitions=%s=SUNRISE,%s=SUNRISE", now, now.plusMonths(1)),
+                        "--tld_state_transitions=%s=START_DATE_SUNRISE,%s=START_DATE_SUNRISE",
+                        now, now.plusMonths(1)),
                     "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("The TLD states are chronologically out of order");
   }
@@ -535,7 +522,8 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
             ParameterException.class,
             () ->
                 runCommandForced(
-                    String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now),
+                    String.format(
+                        "--tld_state_transitions=%s=PREDELEGATION,%s=START_DATE_SUNRISE", now, now),
                     "xn--q9jyb4c"));
     assertThat(thrown)
         .hasMessageThat()
@@ -550,7 +538,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
             () ->
                 runCommandForced(
                     String.format(
-                        "--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE",
+                        "--tld_state_transitions=%s=PREDELEGATION,%s=START_DATE_SUNRISE",
                         now, now.minus(Duration.millis(1))),
                     "xn--q9jyb4c"));
     assertThat(thrown)
@@ -566,7 +554,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
             () ->
                 runCommandForced(
                     String.format(
-                        "--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE",
+                        "--tld_state_transitions=%s=PREDELEGATION,%s=START_DATE_SUNRISE",
                         now, now.plusDays(1)),
                     "--set_current_tld_state=GENERAL_AVAILABILITY",
                     "xn--q9jyb4c"));
@@ -587,7 +575,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
-            () -> runCommandForced("--set_current_tld_state=SUNRISE", "xn--q9jyb4c"));
+            () -> runCommandForced("--set_current_tld_state=START_DATE_SUNRISE", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("The TLD states are chronologically out of order");
   }
 
@@ -603,7 +591,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
-            () -> runCommandForced("--set_current_tld_state=SUNRISE", "xn--q9jyb4c"));
+            () -> runCommandForced("--set_current_tld_state=START_DATE_SUNRISE", "xn--q9jyb4c"));
     assertThat(thrown)
         .hasMessageThat()
         .contains(" when there is a later transition already scheduled");
@@ -624,7 +612,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
             () ->
                 runCommandInEnvironment(
                     RegistryToolEnvironment.PRODUCTION,
-                    "--set_current_tld_state=SUNRISE",
+                    "--set_current_tld_state=START_DATE_SUNRISE",
                     "xn--q9jyb4c",
                     "--force"));
     assertThat(thrown)

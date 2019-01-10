@@ -14,8 +14,6 @@
 
 package google.registry.model.domain.rgp;
 
-import static com.google.common.base.Predicates.equalTo;
-import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.google.common.collect.ImmutableMap;
@@ -78,18 +76,6 @@ public enum GracePeriodStatus implements EppEnum {
   PENDING_RESTORE("pendingRestore"),
 
   /**
-   * This grace period is provided after the allocation of a domain name that was applied for during
-   * sunrise or landrush. If the domain name is deleted by the registrar during this period, the
-   * registry provides a credit to the registrar for the cost of the registration. This grace period
-   * is cancelled when any nameservers are set on the domain, at which point it converts to a
-   * standard add grace period.
-   *
-   * <p>Note that this status shows up as "addPeriod" in XML, which is the same as the add grace
-   * period. This is done deliberately so as not to break the standard EPP schema.
-   */
-  SUNRUSH_ADD("addPeriod"),
-
-  /**
    * This grace period is provided after the successful transfer of domain name registration
    * sponsorship from one registrar to another registrar. If the domain name is deleted by the new
    * sponsoring registrar during this period, the registry provides a credit to the registrar for
@@ -100,7 +86,6 @@ public enum GracePeriodStatus implements EppEnum {
   /** Provide a quick lookup of GracePeriodStatus from XML name. */
   private static final ImmutableMap<String, GracePeriodStatus> XML_NAME_TO_GRACE_PERIOD_STATUS =
       Stream.of(GracePeriodStatus.values())
-          .filter(not(equalTo(SUNRUSH_ADD)))
           .collect(
               toImmutableMap(
                   (GracePeriodStatus gracePeriodStatus) -> gracePeriodStatus.xmlName,

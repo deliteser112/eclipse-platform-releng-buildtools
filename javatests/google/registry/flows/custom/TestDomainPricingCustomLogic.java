@@ -37,18 +37,6 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
   }
 
   @Override
-  public FeesAndCredits customizeApplicationUpdatePrice(
-      ApplicationUpdatePriceParameters priceParameters) {
-    return (priceParameters
-            .domainApplication()
-            .getFullyQualifiedDomainName()
-            .startsWith("non-free-update"))
-        ? addCustomFee(
-            priceParameters.feesAndCredits(), Fee.create(ONE_HUNDRED_BUCKS, FeeType.UPDATE))
-        : priceParameters.feesAndCredits();
-  }
-
-  @Override
   public FeesAndCredits customizeRenewPrice(RenewPriceParameters priceParameters) {
     return (priceParameters.domainName().toString().startsWith("costly-renew"))
         ? addCustomFee(

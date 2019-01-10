@@ -21,7 +21,6 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
-import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GcsTestingUtils.readGcsFile;
@@ -101,14 +100,13 @@ public class GenerateZoneFilesActionTest extends MapreduceTestCase<GenerateZoneF
         .addNameservers(nameservers)
         .setStatusValues(ImmutableSet.of(StatusValue.SERVER_HOLD))
         .build());
-    // These should be ignored; contact and applications aren't in DNS, hosts need to be from the
-    // same tld and have ip addresses, and domains need to be from the same tld and have hosts (even
-    // in the case where domains contain DS data).
+    // These should be ignored; contacts aren't in DNS, hosts need to be from the same tld and have
+    // IP addresses, and domains need to be from the same TLD and have hosts (even in the case where
+    // domains contain DS data).
     persistResource(newDomainResource("ds-only.tld").asBuilder()
         .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))
         .build());
     persistActiveContact("ignored_contact");
-    persistActiveDomainApplication("ignored_application.tld");
     persistActiveHost("ignored.host.tld");  // No ips.
     persistActiveDomain("ignored_domain.tld");  // No hosts or DS data.
     persistResource(newHostResource("ignored.foo.com").asBuilder().addInetAddresses(ips).build());

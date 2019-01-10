@@ -20,7 +20,6 @@ import static google.registry.export.ExportDomainListsAction.ExportDomainListsRe
 import static google.registry.export.ExportDomainListsAction.ExportDomainListsReducer.REGISTERED_DOMAINS_FILENAME;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
-import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GcsTestingUtils.readGcsFile;
@@ -150,19 +149,6 @@ public class ExportDomainListsActionTest extends MapreduceTestCase<ExportDomainL
     verifyExportedToDrive("brouhaha", "dasher.tld\nprancer.tld");
     verifyExportedToDrive("hooray", "buddy.tldtwo\nrudolph.tldtwo\nsanta.tldtwo");
     // tldthree does not have a drive id, so no export to drive is performed.
-    verifyNoMoreInteractions(driveConnection);
-  }
-
-  @Test
-  public void test_doesntOutputDomainApplications() throws Exception {
-    persistActiveDomain("chilipepper.tld");
-    persistActiveDomainApplication("nagajolokia.tld");
-    runMapreduce();
-    GcsFilename firstTldFile = new GcsFilename("outputbucket", "tld.txt");
-    String tlds = new String(readGcsFile(gcsService, firstTldFile), UTF_8).trim();
-    // Check that it didn't output nagajolokia.tld.
-    assertThat(tlds).isEqualTo("chilipepper.tld");
-    verifyExportedToDrive("brouhaha", "chilipepper.tld");
     verifyNoMoreInteractions(driveConnection);
   }
 }

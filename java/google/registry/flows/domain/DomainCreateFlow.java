@@ -45,26 +45,21 @@ import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.eppcommon.StatusValue.SERVER_HOLD;
 import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
-import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
-import static google.registry.model.registry.Registry.TldState.SUNRISE;
-import static google.registry.model.registry.Registry.TldState.SUNRUSH;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
-import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
@@ -81,7 +76,6 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.billing.BillingEvent.Recurring;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
@@ -130,7 +124,6 @@ import org.joda.time.Duration;
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException}
  * @error {@link DomainCreateFlow.AnchorTenantCreatePeriodException}
- * @error {@link DomainCreateFlow.DomainHasOpenApplicationsException}
  * @error {@link DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException}
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
  * @error {@link DomainCreateFlow.SignedMarksOnlyDuringSunriseException}
@@ -191,19 +184,6 @@ import org.joda.time.Duration;
 @ReportingSpec(ActivityReportField.DOMAIN_CREATE)
 public class DomainCreateFlow implements TransactionalFlow {
 
-  /**
-   * States when the TLD is in sunrise.
-   *
-   * <p>Note that a TLD in SUNRUSH means sunrise is in effect, but not necessarily that the "create"
-   * command is a "sunrise create". It might be a landrush create. We must make sure there's a
-   * signed mark to know if the create is "sunrise" or "landrush" for verification purposes.
-   *
-   * <p>Note also that SUNRISE (start-date sunrise) and LANDRUSH can't "naturally" succeed in this
-   * flow. They can only succeed if sent as a superuser or anchor tenant.
-   */
-  private static final ImmutableSet<TldState> SUNRISE_STATES =
-      Sets.immutableEnumSet(SUNRISE, SUNRUSH, START_DATE_SUNRISE);
-
   /** Anchor tenant creates should always be for 2 years, since they get 2 years free. */
   private static final int ANCHOR_TENANT_CREATE_VALID_YEARS = 2;
 
@@ -260,7 +240,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       verifyNoCodeMarks(launchCreate.get());
       validateLaunchCreateNotice(launchCreate.get().getNotice(), domainLabel, isSuperuser, now);
     }
-    boolean isSunriseCreate = hasSignedMarks && SUNRISE_STATES.contains(tldState);
+    boolean isSunriseCreate = hasSignedMarks && tldState == START_DATE_SUNRISE;
     Optional<AllocationToken> allocationToken =
         verifyAllocationTokenIfPresent(command, registry, clientId, now);
     boolean isAnchorTenant =
@@ -275,6 +255,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     // registering premium domains.
     if (!isSuperuser) {
       checkAllowedAccessToTld(clientId, registry.getTldStr());
+      verifyIsGaOrIsSpecialCase(tldState, isAnchorTenant, hasSignedMarks);
       if (launchCreate.isPresent()) {
         verifyLaunchPhaseMatchesRegistryPhase(registry, launchCreate.get(), now);
       }
@@ -288,8 +269,6 @@ public class DomainCreateFlow implements TransactionalFlow {
         verifyClaimsNoticeIfAndOnlyIfNeeded(domainName, hasSignedMarks, hasClaimsNotice);
       }
       verifyPremiumNameIsNotBlocked(targetId, now, clientId);
-      verifyNoOpenApplications(now);
-      verifyIsGaOrIsSpecialCase(tldState, isAnchorTenant, hasSignedMarks);
       verifySignedMarkOnlyInSunrise(hasSignedMarks, tldState);
     }
     String signedMarkId = null;
@@ -418,7 +397,7 @@ public class DomainCreateFlow implements TransactionalFlow {
    */
   static void verifySignedMarkOnlyInSunrise(boolean hasSignedMarks, TldState tldState)
       throws EppException {
-    if (hasSignedMarks && !SUNRISE_STATES.contains(tldState)) {
+    if (hasSignedMarks && tldState != START_DATE_SUNRISE) {
       throw new SignedMarksOnlyDuringSunriseException();
     }
   }
@@ -431,15 +410,6 @@ public class DomainCreateFlow implements TransactionalFlow {
       throws EppException {
     if (isAnchorTenant && registrationYears != ANCHOR_TENANT_CREATE_VALID_YEARS) {
       throw new AnchorTenantCreatePeriodException(registrationYears);
-    }
-  }
-
-  /** Prohibit creating a domain if there is an open application for the same name. */
-  private void verifyNoOpenApplications(DateTime now) throws DomainHasOpenApplicationsException {
-    for (DomainApplication application : loadActiveApplicationsByDomainName(targetId, now)) {
-      if (!application.getApplicationStatus().isFinalStatus()) {
-        throw new DomainHasOpenApplicationsException();
-      }
     }
   }
 
@@ -465,7 +435,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       return;
     }
 
-    // During START_DATE_SUNRISE, only allow registration with a signed marks.
+    // During START_DATE_SUNRISE, only allow registration with signed marks.
     if (START_DATE_SUNRISE.equals(tldState)) {
       if (!hasSignedMarks) {
         throw new MustHaveSignedMarksInCurrentPhaseException();
@@ -623,13 +593,6 @@ public class DomainCreateFlow implements TransactionalFlow {
   static class SignedMarksOnlyDuringSunriseException extends CommandUseErrorException {
     public SignedMarksOnlyDuringSunriseException() {
       super("Signed marks are only allowed during sunrise");
-    }
-  }
-
-  /** There is an open application for this domain. */
-  static class DomainHasOpenApplicationsException extends StatusProhibitsOperationException {
-    public DomainHasOpenApplicationsException() {
-      super("There is an open application for this domain");
     }
   }
 

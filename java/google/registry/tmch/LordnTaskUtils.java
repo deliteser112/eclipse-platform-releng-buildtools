@@ -29,6 +29,10 @@ import org.joda.time.DateTime;
 /**
  * Helper methods for creating tasks containing CSV line data in the lordn-sunrise and lordn-claims
  * queues based on DomainResource changes.
+ *
+ * <p>Note that, per the <a href="https://tools.ietf.org/html/draft-ietf-regext-tmch-func-spec-04">
+ * TMCH RFC</a>, while the application-datetime data is optional (which we never send because there
+ * start-date sunrise has no applications), its presence in the header is still required.
  */
 public final class LordnTaskUtils {
 
@@ -62,31 +66,25 @@ public final class LordnTaskUtils {
 
   /** Returns the corresponding CSV LORDN line for a sunrise domain. */
   public static String getCsvLineForSunriseDomain(DomainResource domain, DateTime transactionTime) {
-    // Only skip nulls in the outer join because only application time is allowed to be null.
-    Joiner joiner = Joiner.on(',');
-    return joiner.skipNulls().join(
-        joiner.join(
+    return Joiner.on(',')
+        .join(
             domain.getRepoId(),
             domain.getFullyQualifiedDomainName(),
             domain.getSmdId(),
             getIanaIdentifier(domain.getCreationClientId()),
-            transactionTime), // Used as creation time.
-        domain.getApplicationTime()); // This may be null for start-date sunrise or QLP domains.
+            transactionTime); // Used as creation time.
   }
 
   /** Returns the corresponding CSV LORDN line for a claims domain. */
   public static String getCsvLineForClaimsDomain(DomainResource domain, DateTime transactionTime) {
-    // Only skip nulls in the outer join because only application time is allowed to be null.
-    Joiner joiner = Joiner.on(',');
-    return joiner.skipNulls().join(
-        joiner.join(
+    return Joiner.on(',')
+        .join(
             domain.getRepoId(),
             domain.getFullyQualifiedDomainName(),
             domain.getLaunchNotice().getNoticeId().getTcnId(),
             getIanaIdentifier(domain.getCreationClientId()),
             transactionTime, // Used as creation time.
-            domain.getLaunchNotice().getAcceptedTime()),
-        domain.getApplicationTime());  // This is usually null except for landrush domains.
+            domain.getLaunchNotice().getAcceptedTime());
   }
 
   /** Retrieves the IANA identifier for a registrar based on the client id. */

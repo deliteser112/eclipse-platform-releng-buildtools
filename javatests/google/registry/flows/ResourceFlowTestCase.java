@@ -17,7 +17,6 @@ package google.registry.flows;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
-import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.tmch.ClaimsListShardTest.createTestClaimsListShard;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
@@ -33,8 +32,6 @@ import com.google.common.testing.TestLogHandler;
 import com.googlecode.objectify.Key;
 import google.registry.flows.FlowUtils.NotLoggedInException;
 import google.registry.model.EppResource;
-import google.registry.model.domain.DomainApplication;
-import google.registry.model.domain.launch.ApplicationIdTargetExtension;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput.ResourceCommandWrapper;
 import google.registry.model.eppinput.ResourceCommand;
@@ -44,7 +41,6 @@ import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
 import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.TypeUtils.TypeInstantiator;
-import java.util.Optional;
 import java.util.logging.Level;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -85,11 +81,6 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
     return reloadResourceByForeignKey(clock.nowUtc());
   }
 
-  protected DomainApplication reloadDomainApplication() throws Exception {
-    ofy().clearSessionCache();
-    return loadDomainApplication(getUniqueIdFromCommand(), clock.nowUtc()).get();
-  }
-
   protected <T extends EppResource> T reloadResourceAndCloneAtTime(T resource, DateTime now) {
     // Force the session to be cleared.
     ofy().clearSessionCache();
@@ -104,17 +95,8 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
             .getResourceCommand();
   }
 
-  /**
-   * We have to duplicate the logic from SingleResourceFlow.getTargetId() here. However, given the
-   * choice between making that method public, and duplicating its logic, it seems better to muddy
-   * the test code rather than the production code.
-   */
   protected String getUniqueIdFromCommand() throws Exception {
-    Optional<ApplicationIdTargetExtension> extension =
-        eppLoader.getEpp().getSingleExtension(ApplicationIdTargetExtension.class);
-    return extension.isPresent()
-        ? extension.get().getApplicationId()
-        : getResourceCommand().getTargetId();
+    return getResourceCommand().getTargetId();
   }
 
   protected Class<R> getResourceClass() {

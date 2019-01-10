@@ -40,8 +40,7 @@ abstract class EppResourceBaseReader<T> extends RetryingInputReader<EppResourceI
    * The resource kinds to filter for.
    *
    * <p>This can be empty, or any of {"ContactResource", "HostResource", "DomainBase"}. It will
-   * never contain "EppResource", "DomainResource" or "DomainApplication" since these aren't
-   * actual kinds in Datastore.
+   * never contain "EppResource" or "DomainResource" since these aren't actual kinds in Datastore.
    */
   private final ImmutableSet<String> filterKinds;
 

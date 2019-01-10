@@ -38,10 +38,10 @@ public class EnumParameterTest {
   @Test
   public void testFailure_badValue() {
     IllegalArgumentException thrown =
-        assertThrows(IllegalArgumentException.class, () -> instance.convert("GENERAL_SUNRUSH"));
+        assertThrows(IllegalArgumentException.class, () -> instance.convert("FREE_DOMAINS"));
     assertThat(thrown)
         .hasMessageThat()
         .contains(
-            "No enum constant google.registry.model.registry.Registry.TldState.GENERAL_SUNRUSH");
+            "No enum constant google.registry.model.registry.Registry.TldState.FREE_DOMAINS");
   }
 }

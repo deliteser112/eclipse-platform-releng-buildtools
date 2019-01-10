@@ -157,32 +157,6 @@ enum google.registry.model.domain.DesignatedContact$Type {
   REGISTRANT;
   TECH;
 }
-class google.registry.model.domain.DomainApplication {
-  @Id java.lang.String repoId;
-  com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Key<google.registry.model.ofy.CommitLogManifest>> revisions;
-  google.registry.model.CreateAutoTimestamp creationTime;
-  google.registry.model.UpdateAutoTimestamp updateTimestamp;
-  google.registry.model.domain.DomainAuthInfo authInfo;
-  google.registry.model.domain.Period period;
-  google.registry.model.domain.launch.ApplicationStatus applicationStatus;
-  google.registry.model.domain.launch.LaunchNotice launchNotice;
-  google.registry.model.domain.launch.LaunchPhase phase;
-  google.registry.model.eppcommon.Trid creationTrid;
-  java.lang.String creationClientId;
-  java.lang.String currentSponsorClientId;
-  java.lang.String fullyQualifiedDomainName;
-  java.lang.String idnTableName;
-  java.lang.String lastEppUpdateClientId;
-  java.lang.String tld;
-  java.util.List<google.registry.model.smd.EncodedSignedMark> encodedSignedMarks;
-  java.util.Set<com.googlecode.objectify.Key<google.registry.model.host.HostResource>> nsHosts;
-  java.util.Set<google.registry.model.domain.DesignatedContact> allContacts;
-  java.util.Set<google.registry.model.domain.secdns.DelegationSignerData> dsData;
-  java.util.Set<google.registry.model.eppcommon.StatusValue> status;
-  org.joda.money.Money auctionPrice;
-  org.joda.time.DateTime deletionTime;
-  org.joda.time.DateTime lastEppUpdateTime;
-}
 class google.registry.model.domain.DomainAuthInfo {
   google.registry.model.eppcommon.AuthInfo$PasswordAuth pw;
 }
@@ -210,7 +184,6 @@ class google.registry.model.domain.DomainResource {
   @Id java.lang.String repoId;
   com.google.common.collect.ImmutableSortedMap<org.joda.time.DateTime, com.googlecode.objectify.Key<google.registry.model.ofy.CommitLogManifest>> revisions;
   com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$Recurring> autorenewBillingEvent;
-  com.googlecode.objectify.Key<google.registry.model.domain.DomainApplication> application;
   com.googlecode.objectify.Key<google.registry.model.poll.PollMessage$Autorenew> autorenewPollMessage;
   com.googlecode.objectify.Key<google.registry.model.poll.PollMessage$OneTime> deletePollMessage;
   google.registry.model.CreateAutoTimestamp creationTime;
@@ -231,7 +204,6 @@ class google.registry.model.domain.DomainResource {
   java.util.Set<google.registry.model.domain.secdns.DelegationSignerData> dsData;
   java.util.Set<google.registry.model.eppcommon.StatusValue> status;
   java.util.Set<java.lang.String> subordinateHosts;
-  org.joda.time.DateTime applicationTime;
   org.joda.time.DateTime deletionTime;
   org.joda.time.DateTime lastEppUpdateTime;
   org.joda.time.DateTime lastTransferTime;
@@ -252,20 +224,6 @@ enum google.registry.model.domain.Period$Unit {
   MONTHS;
   YEARS;
 }
-enum google.registry.model.domain.launch.ApplicationStatus {
-  ALLOCATED;
-  INVALID;
-  PENDING_ALLOCATION;
-  PENDING_VALIDATION;
-  REJECTED;
-  VALIDATED;
-}
-class google.registry.model.domain.launch.LaunchInfoResponseExtension {
-  google.registry.model.domain.launch.ApplicationStatus applicationStatus;
-  google.registry.model.domain.launch.LaunchPhase phase;
-  java.lang.String applicationId;
-  java.util.List<google.registry.model.mark.Mark> marks;
-}
 class google.registry.model.domain.launch.LaunchNotice {
   google.registry.model.domain.launch.LaunchNotice$NoticeIdType noticeId;
   org.joda.time.DateTime acceptedTime;
@@ -275,10 +233,6 @@ class google.registry.model.domain.launch.LaunchNotice$NoticeIdType {
   java.lang.String tcnId;
   java.lang.String validatorId;
 }
-class google.registry.model.domain.launch.LaunchPhase {
-  java.lang.String phase;
-  java.lang.String subphase;
-}
 enum google.registry.model.domain.rgp.GracePeriodStatus {
   ADD;
   AUTO_RENEW;
@@ -286,7 +240,6 @@ enum google.registry.model.domain.rgp.GracePeriodStatus {
   PENDING_RESTORE;
   REDEMPTION;
   RENEW;
-  SUNRUSH_ADD;
   TRANSFER;
 }
 class google.registry.model.domain.secdns.DelegationSignerData {
@@ -349,11 +302,6 @@ class google.registry.model.host.HostResource {
   org.joda.time.DateTime lastSuperordinateChange;
   org.joda.time.DateTime lastTransferTime;
 }
-class google.registry.model.index.DomainApplicationIndex {
-  @Id java.lang.String fullyQualifiedDomainName;
-  google.registry.model.UpdateAutoTimestamp updateTimestamp;
-  java.util.Set<com.googlecode.objectify.Key<google.registry.model.domain.DomainApplication>> references;
-}
 class google.registry.model.index.EppResourceIndex {
   @Id java.lang.String id;
   @Parent com.googlecode.objectify.Key<google.registry.model.index.EppResourceIndexBucket> bucket;
@@ -381,96 +329,6 @@ class google.registry.model.index.ForeignKeyIndex$ForeignKeyHostIndex {
   com.googlecode.objectify.Key<E> topReference;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
   org.joda.time.DateTime deletionTime;
-}
-class google.registry.model.mark.CourtMark {
-  java.lang.String countryCode;
-  java.lang.String courtName;
-  java.lang.String goodsAndServices;
-  java.lang.String id;
-  java.lang.String markName;
-  java.lang.String referenceNumber;
-  java.util.List<google.registry.model.mark.MarkContact> contacts;
-  java.util.List<google.registry.model.mark.MarkHolder> markHolders;
-  java.util.List<java.lang.String> labels;
-  java.util.List<java.lang.String> regions;
-  org.joda.time.DateTime protectionDate;
-}
-class google.registry.model.mark.Mark {
-  java.util.List<google.registry.model.mark.CourtMark> courtMarks;
-  java.util.List<google.registry.model.mark.Trademark> trademarks;
-  java.util.List<google.registry.model.mark.TreatyOrStatuteMark> treatyOrStatuteMarks;
-}
-class google.registry.model.mark.MarkAddress {
-  java.lang.String city;
-  java.lang.String countryCode;
-  java.lang.String state;
-  java.lang.String zip;
-  java.util.List<java.lang.String> street;
-}
-class google.registry.model.mark.MarkContact {
-  google.registry.model.mark.MarkAddress address;
-  google.registry.model.mark.MarkContact$ContactType type;
-  google.registry.model.mark.MarkPhoneNumber fax;
-  google.registry.model.mark.MarkPhoneNumber voice;
-  java.lang.String email;
-  java.lang.String name;
-  java.lang.String organization;
-}
-enum google.registry.model.mark.MarkContact$ContactType {
-  AGENT;
-  OWNER;
-  THIRD_PARTY;
-}
-class google.registry.model.mark.MarkHolder {
-  google.registry.model.mark.MarkAddress address;
-  google.registry.model.mark.MarkHolder$EntitlementType entitlement;
-  google.registry.model.mark.MarkPhoneNumber fax;
-  google.registry.model.mark.MarkPhoneNumber voice;
-  java.lang.String email;
-  java.lang.String name;
-  java.lang.String organization;
-}
-enum google.registry.model.mark.MarkHolder$EntitlementType {
-  ASSIGNEE;
-  LICENSEE;
-  OWNER;
-}
-class google.registry.model.mark.MarkPhoneNumber {
-  java.lang.String extension;
-  java.lang.String phoneNumber;
-}
-class google.registry.model.mark.MarkProtection {
-  java.lang.String countryCode;
-  java.lang.String region;
-  java.util.List<java.lang.String> rulingCountryCodes;
-}
-class google.registry.model.mark.Trademark {
-  java.lang.String applicationId;
-  java.lang.String goodsAndServices;
-  java.lang.String id;
-  java.lang.String jurisdiction;
-  java.lang.String markName;
-  java.lang.String registrationNumber;
-  java.util.List<google.registry.model.mark.MarkContact> contacts;
-  java.util.List<google.registry.model.mark.MarkHolder> markHolders;
-  java.util.List<java.lang.Long> markClasses;
-  java.util.List<java.lang.String> labels;
-  org.joda.time.DateTime applicationDate;
-  org.joda.time.DateTime expirationDate;
-  org.joda.time.DateTime registrationDate;
-}
-class google.registry.model.mark.TreatyOrStatuteMark {
-  java.lang.String goodsAndServices;
-  java.lang.String id;
-  java.lang.String markName;
-  java.lang.String referenceNumber;
-  java.lang.String title;
-  java.util.List<google.registry.model.mark.MarkContact> contacts;
-  java.util.List<google.registry.model.mark.MarkHolder> markHolders;
-  java.util.List<google.registry.model.mark.MarkProtection> markProtections;
-  java.util.List<java.lang.String> labels;
-  org.joda.time.DateTime executionDate;
-  org.joda.time.DateTime protectionDate;
 }
 class google.registry.model.ofy.CommitLogBucket {
   @Id long bucketNum;
@@ -533,7 +391,6 @@ class google.registry.model.poll.PollMessage$Autorenew {
 class google.registry.model.poll.PollMessage$OneTime {
   @Id long id;
   @Parent com.googlecode.objectify.Key<google.registry.model.reporting.HistoryEntry> parent;
-  google.registry.model.domain.launch.LaunchInfoResponseExtension launchInfoResponseExtension;
   java.lang.String clientId;
   java.lang.String msg;
   java.util.List<google.registry.model.poll.PendingActionNotificationResponse$ContactPendingActionNotificationResponse> contactPendingActionNotificationResponses;
@@ -664,7 +521,6 @@ class google.registry.model.registry.Registry {
   org.joda.time.Duration pendingDeleteLength;
   org.joda.time.Duration redemptionGracePeriodLength;
   org.joda.time.Duration renewGracePeriodLength;
-  org.joda.time.Duration sunrushAddGracePeriodLength;
   org.joda.time.Duration transferGracePeriodLength;
 }
 class google.registry.model.registry.Registry$BillingCostTransition {
@@ -673,13 +529,10 @@ class google.registry.model.registry.Registry$BillingCostTransition {
 }
 enum google.registry.model.registry.Registry$TldState {
   GENERAL_AVAILABILITY;
-  LANDRUSH;
   PDT;
   PREDELEGATION;
   QUIET_PERIOD;
   START_DATE_SUNRISE;
-  SUNRISE;
-  SUNRUSH;
 }
 class google.registry.model.registry.Registry$TldStateTransition {
   google.registry.model.registry.Registry$TldState tldState;
@@ -790,10 +643,6 @@ enum google.registry.model.reporting.HistoryEntry$Type {
   CONTACT_TRANSFER_REQUEST;
   CONTACT_UPDATE;
   DOMAIN_ALLOCATE;
-  DOMAIN_APPLICATION_CREATE;
-  DOMAIN_APPLICATION_DELETE;
-  DOMAIN_APPLICATION_STATUS_UPDATE;
-  DOMAIN_APPLICATION_UPDATE;
   DOMAIN_AUTORENEW;
   DOMAIN_CREATE;
   DOMAIN_DELETE;
@@ -837,10 +686,6 @@ class google.registry.model.server.ServerSecret {
   @Parent com.googlecode.objectify.Key<google.registry.model.common.EntityGroupRoot> parent;
   long leastSignificant;
   long mostSignificant;
-}
-class google.registry.model.smd.EncodedSignedMark {
-  com.google.appengine.api.datastore.Text encodedData;
-  java.lang.String encoding;
 }
 class google.registry.model.smd.SignedMarkRevocationList {
   @Id long id;

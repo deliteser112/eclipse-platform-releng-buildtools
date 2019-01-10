@@ -105,9 +105,9 @@ public final class OteStatusActionTest {
 
   @Test
   public void testFailure_noRegistrar() {
-    assertThat(action.handleJsonRequest(ImmutableMap.of("clientId", "nonexistent-id-2")))
+    assertThat(action.handleJsonRequest(ImmutableMap.of("clientId", "nonexistent-id-3")))
         .containsExactlyEntriesIn(
-            errorResultWithMessage("TestUserId doesn't have access to registrar nonexistent-id-2"));
+            errorResultWithMessage("TestUserId doesn't have access to registrar nonexistent-id-3"));
   }
 
   @Test

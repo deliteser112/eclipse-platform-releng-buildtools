@@ -289,11 +289,6 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   }
 
   @Test
-  public void testSuccess_sunrushAddGracePeriod() throws Exception {
-    doAddPeriodTest(GracePeriodStatus.SUNRUSH_ADD);
-  }
-
-  @Test
   public void testSuccess_autoRenewGracePeriod() throws Exception {
     persistTestEntities(false);
     // Add an AUTO_RENEW grace period to the saved resource.

@@ -23,7 +23,6 @@ import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.batch.AsyncTaskMetrics.OperationType.DNS_REFRESH;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -45,7 +44,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.batch.AsyncTaskMetrics.OperationResult;
 import google.registry.batch.RefreshDnsOnHostRenameAction.RefreshDnsOnHostRenameReducer;
@@ -137,11 +135,6 @@ public class RefreshDnsOnHostRenameActionTest
   @Test
   public void testSuccess_dnsUpdateEnqueued() throws Exception {
     HostResource host = persistActiveHost("ns1.example.tld");
-    persistResource(
-        newDomainApplication("notadomain.tld")
-            .asBuilder()
-            .setNameservers(ImmutableSet.of(Key.create(host)))
-            .build());
     persistResource(newDomainResource("example.tld", host));
     persistResource(newDomainResource("otherexample.tld", host));
     persistResource(newDomainResource("untouched.tld", persistActiveHost("ns2.example.tld")));

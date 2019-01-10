@@ -100,7 +100,6 @@ public final class OteAccountBuilder {
 
   private final ImmutableMap<String, String> clientIdToTld;
   private final Registry sunriseTld;
-  private final Registry landrushTld;
   private final Registry gaTld;
   private final Registry eapTld;
   private final ImmutableList.Builder<RegistrarContact> contactsBuilder =
@@ -117,8 +116,6 @@ public final class OteAccountBuilder {
     sunriseTld =
         createTld(
             baseClientId + "-sunrise", TldState.START_DATE_SUNRISE, null, null, null, false, 0);
-    landrushTld =
-        createTld(baseClientId + "-landrush", TldState.LANDRUSH, null, null, null, false, 1);
     gaTld =
         createTld(
             baseClientId + "-ga",
@@ -260,7 +257,7 @@ public final class OteAccountBuilder {
   private void saveAllEntities() {
     ofy().assertInTransaction();
 
-    ImmutableList<Registry> registries = ImmutableList.of(sunriseTld, landrushTld, gaTld, eapTld);
+    ImmutableList<Registry> registries = ImmutableList.of(sunriseTld, gaTld, eapTld);
     ImmutableList<RegistrarContact> contacts = contactsBuilder.build();
 
     if (!replaceExisting) {
@@ -368,7 +365,7 @@ public final class OteAccountBuilder {
         baseClientId);
     return new ImmutableMap.Builder<String, String>()
         .put(baseClientId + "-1", baseClientId + "-sunrise")
-        .put(baseClientId + "-2", baseClientId + "-landrush")
+        // The -2 registrar no longer exists because landrush no longer exists.
         .put(baseClientId + "-3", baseClientId + "-ga")
         .put(baseClientId + "-4", baseClientId + "-ga")
         .put(baseClientId + "-5", baseClientId + "-eap")

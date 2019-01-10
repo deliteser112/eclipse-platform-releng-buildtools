@@ -22,7 +22,6 @@ import google.registry.flows.SessionMetadata;
 import google.registry.flows.domain.DomainPricingLogic;
 import google.registry.flows.domain.FeesAndCredits;
 import google.registry.model.ImmutableObject;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.registry.Registry;
 import org.joda.time.DateTime;
@@ -37,13 +36,6 @@ public class DomainPricingCustomLogic extends BaseFlowCustomLogic {
   protected DomainPricingCustomLogic(
       EppInput eppInput, SessionMetadata sessionMetadata, FlowMetadata flowMetadata) {
     super(eppInput, sessionMetadata, flowMetadata);
-  }
-
-  /** A hook that customizes the application update price. */
-  @SuppressWarnings("unused")
-  public FeesAndCredits customizeApplicationUpdatePrice(
-      ApplicationUpdatePriceParameters priceParameters) throws EppException {
-    return priceParameters.feesAndCredits();
   }
 
   /** A hook that customizes the create price. */
@@ -79,38 +71,6 @@ public class DomainPricingCustomLogic extends BaseFlowCustomLogic {
   public FeesAndCredits customizeUpdatePrice(UpdatePriceParameters priceParameters)
       throws EppException {
     return priceParameters.feesAndCredits();
-  }
-
-  /** A class to encapsulate parameters for a call to {@link #customizeApplicationUpdatePrice} . */
-  @AutoValue
-  public abstract static class ApplicationUpdatePriceParameters extends ImmutableObject {
-
-    public abstract FeesAndCredits feesAndCredits();
-
-    public abstract Registry registry();
-
-    public abstract DomainApplication domainApplication();
-
-    public abstract DateTime asOfDate();
-
-    public static Builder newBuilder() {
-      return new AutoValue_DomainPricingCustomLogic_ApplicationUpdatePriceParameters.Builder();
-    }
-
-    /** Builder for {@link ApplicationUpdatePriceParameters}. */
-    @AutoValue.Builder
-    public abstract static class Builder {
-
-      public abstract Builder setFeesAndCredits(FeesAndCredits feesAndCredits);
-
-      public abstract Builder setRegistry(Registry registry);
-
-      public abstract Builder setDomainApplication(DomainApplication domainApplication);
-
-      public abstract Builder setAsOfDate(DateTime asOfDate);
-
-      public abstract ApplicationUpdatePriceParameters build();
-    }
   }
 
   /** A class to encapsulate parameters for a call to {@link #customizeCreatePrice} . */

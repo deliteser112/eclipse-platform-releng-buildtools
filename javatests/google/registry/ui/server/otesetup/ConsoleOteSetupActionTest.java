@@ -154,7 +154,6 @@ public final class ConsoleOteSetupActionTest {
             ""
                 + "The following entities were created in unittest by TestUserId:\n"
                 + "   Registrar myclientid-1 with access to TLD myclientid-sunrise\n"
-                + "   Registrar myclientid-2 with access to TLD myclientid-landrush\n"
                 + "   Registrar myclientid-3 with access to TLD myclientid-ga\n"
                 + "   Registrar myclientid-4 with access to TLD myclientid-ga\n"
                 + "   Registrar myclientid-5 with access to TLD myclientid-eap\n"

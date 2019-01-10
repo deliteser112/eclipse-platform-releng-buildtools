@@ -97,7 +97,6 @@ public class Registry extends ImmutableObject implements Buildable {
   public static final boolean DEFAULT_ESCROW_ENABLED = false;
   public static final boolean DEFAULT_DNS_PAUSED = false;
   public static final Duration DEFAULT_ADD_GRACE_PERIOD = Duration.standardDays(5);
-  public static final Duration DEFAULT_SUNRUSH_ADD_GRACE_PERIOD = Duration.standardDays(5);
   public static final Duration DEFAULT_AUTO_RENEW_GRACE_PERIOD = Duration.standardDays(45);
   public static final Duration DEFAULT_REDEMPTION_GRACE_PERIOD = Duration.standardDays(30);
   public static final Duration DEFAULT_RENEW_GRACE_PERIOD = Duration.standardDays(5);
@@ -126,27 +125,9 @@ public class Registry extends ImmutableObject implements Buildable {
    * sequence of states (ignoring {@link #PDT} which is a pseudo-state).
    */
   public enum TldState {
+
     /** The state of not yet being delegated to this registry in the root zone by IANA. */
     PREDELEGATION,
-
-    /**
-     * The state in which only trademark holders can submit applications for domains. Doing so
-     * requires a claims notice to be submitted with the application.
-     */
-    SUNRISE,
-
-    /**
-     * The state representing the overlap of {@link #SUNRISE} with a "landrush" state in which
-     * anyone can submit an application for a domain name. Sunrise applications may continue during
-     * landrush, so we model the overlap as a distinct state named "sunrush".
-     */
-    SUNRUSH,
-
-    /**
-     * The state in which anyone can submit an application for a domain name. Sunrise applications
-     * are not allowed during this phase.
-     */
-    LANDRUSH,
 
     /**
      * The state in which only trademark holders can submit a "create" request. It is identical to
@@ -155,9 +136,9 @@ public class Registry extends ImmutableObject implements Buildable {
     START_DATE_SUNRISE,
 
     /**
-     * A state in which no domain operations are permitted. Generally used after sunrise or landrush
-     * to allocate uncontended applications and send contended applications to auction. This state
-     * is special in that it has no ordering constraints and can appear after any phase.
+     * A state in which no domain operations are permitted. Generally used between sunrise and
+     * general availability. This state is special in that it has no ordering constraints and can
+     * appear after any phase.
      */
     QUIET_PERIOD,
 
@@ -373,9 +354,6 @@ public class Registry extends ImmutableObject implements Buildable {
   /** The length of the anchor tenant add grace period for this TLD. */
   Duration anchorTenantAddGracePeriodLength = DEFAULT_ANCHOR_TENANT_ADD_GRACE_PERIOD;
 
-  /** The length of the add grace period during sunrush for this TLD. */
-  Duration sunrushAddGracePeriodLength = DEFAULT_SUNRUSH_ADD_GRACE_PERIOD;
-
   /** The length of the auto renew grace period for this TLD. */
   Duration autoRenewGracePeriodLength = DEFAULT_AUTO_RENEW_GRACE_PERIOD;
 
@@ -497,10 +475,6 @@ public class Registry extends ImmutableObject implements Buildable {
 
   public Duration getAddGracePeriodLength() {
     return addGracePeriodLength;
-  }
-
-  public Duration getSunrushAddGracePeriodLength() {
-    return sunrushAddGracePeriodLength;
   }
 
   public Duration getAutoRenewGracePeriodLength() {
@@ -717,14 +691,6 @@ public class Registry extends ImmutableObject implements Buildable {
           addGracePeriodLength.isLongerThan(Duration.ZERO),
           "addGracePeriodLength must be non-zero");
       getInstance().addGracePeriodLength = addGracePeriodLength;
-      return this;
-    }
-
-    public Builder setSunrushAddGracePeriodLength(Duration sunrushAddGracePeriodLength) {
-      checkArgument(
-          sunrushAddGracePeriodLength.isLongerThan(Duration.ZERO),
-          "sunrushAddGracePeriodLength must be non-zero");
-      getInstance().sunrushAddGracePeriodLength = sunrushAddGracePeriodLength;
       return this;
     }
 

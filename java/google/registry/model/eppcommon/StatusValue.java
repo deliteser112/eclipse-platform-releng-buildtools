@@ -21,7 +21,6 @@ import static com.google.common.base.Strings.nullToEmpty;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
@@ -77,9 +76,9 @@ public enum StatusValue implements EppEnum {
   /**
    * A status for a resource undergoing asynchronous creation.
    *
-   * <p>We only use this for unallocated applications.
+   * <p>This status is here for completeness, but it is not used by our system.
    */
-  PENDING_CREATE(AllowedOn.APPLICATIONS),
+  PENDING_CREATE(AllowedOn.NONE),
 
   /**
    * A status for a resource indicating that deletion has been requested but has not yet happened.
@@ -92,18 +91,16 @@ public enum StatusValue implements EppEnum {
    * Otherwise, domains go through an extended deletion process, consisting of a 30-day redemption
    * grace period followed by a 5-day "pending delete" period before they are actually 100% deleted.
    * These domains have the PENDING_DELETE status throughout that 35-day window.
-   *
-   * <p>Applications are deleted synchronously and never have this status.
    */
-  PENDING_DELETE(AllowedOn.ALL_BUT_APPLICATIONS),
+  PENDING_DELETE(AllowedOn.ALL),
 
   /**
    * A status for a resource with an unresolved transfer request.
    *
-   * <p>Applications can't be transferred. Hosts transfer indirectly via superordinate domain.
+   * <p>Hosts transfer indirectly via superordinate domain.
    */
   // TODO(b/34844887): Remove PENDING_TRANSFER from all host resources and forbid it here.
-  PENDING_TRANSFER(AllowedOn.ALL_BUT_APPLICATIONS),
+  PENDING_TRANSFER(AllowedOn.ALL),
 
   /**
    * A status for a resource undergoing an asynchronous update.
@@ -130,11 +127,9 @@ public enum StatusValue implements EppEnum {
 
   /** Enum to help clearly list which resource types a status value is allowed to be present on. */
   private enum AllowedOn {
-    ALL(ContactResource.class, DomainApplication.class, DomainResource.class, HostResource.class),
+    ALL(ContactResource.class, DomainResource.class, HostResource.class),
     NONE,
-    DOMAINS(DomainResource.class),
-    APPLICATIONS(DomainApplication.class),
-    ALL_BUT_APPLICATIONS(ContactResource.class, DomainResource.class, HostResource.class);
+    DOMAINS(DomainResource.class);
 
     private final ImmutableSet<Class<? extends EppResource>> classes;
 

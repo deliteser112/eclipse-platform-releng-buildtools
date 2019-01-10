@@ -76,12 +76,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
   @Nullable
   @Parameter(
-      names = "--sunrush_add_grace_period",
-      description = "Length of the add grace period during sunrush (in ISO 8601 duration format)")
-  Duration sunrushAddGracePeriod;
-
-  @Nullable
-  @Parameter(
       names = "--redemption_grace_period",
       description = "Length of the redemption grace period (in ISO 8601 duration format)")
   Duration redemptionGracePeriod;
@@ -331,7 +325,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       }
 
       Optional.ofNullable(addGracePeriod).ifPresent(builder::setAddGracePeriodLength);
-      Optional.ofNullable(sunrushAddGracePeriod).ifPresent(builder::setSunrushAddGracePeriodLength);
       Optional.ofNullable(redemptionGracePeriod).ifPresent(builder::setRedemptionGracePeriodLength);
       Optional.ofNullable(pendingDeleteLength).ifPresent(builder::setPendingDeleteLength);
       Optional.ofNullable(automaticTransferLength).ifPresent(builder::setAutomaticTransferLength);

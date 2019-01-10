@@ -60,39 +60,35 @@ public class LordnTaskUtilsTest {
     inject.setStaticField(Ofy.class, "clock", clock);
   }
 
-
-
-  private DomainResource.Builder newDomainBuilder(DateTime applicationTime) {
+  private DomainResource.Builder newDomainBuilder() {
     return new DomainResource.Builder()
         .setFullyQualifiedDomainName("fleece.example")
         .setRegistrant(Key.create(persistActiveContact("jd1234")))
         .setSmdId("smdzzzz")
-        .setCreationClientId("TheRegistrar")
-        .setApplicationTime(applicationTime);
+        .setCreationClientId("TheRegistrar");
   }
 
   @Test
   public void test_enqueueDomainResourceTask_sunrise() {
-    DomainResource domain = newDomainBuilder(DateTime.parse("2010-05-01T10:11:12Z"))
-        .setRepoId("A-EXAMPLE")
-        .build();
-    persistDomainAndEnqueueLordn(domain);
+    persistDomainAndEnqueueLordn(newDomainBuilder().setRepoId("A-EXAMPLE").build());
     String expectedPayload =
-        "A-EXAMPLE,fleece.example,smdzzzz,1,2010-05-01T10:11:12.000Z,2010-05-01T10:11:12.000Z";
+        "A-EXAMPLE,fleece.example,smdzzzz,1,2010-05-01T10:11:12.000Z";
     assertTasksEnqueued(
         "lordn-sunrise", new TaskMatcher().payload(expectedPayload).tag("example"));
   }
 
   @Test
   public void test_enqueueDomainResourceTask_claims() {
-    DateTime time = DateTime.parse("2010-05-01T10:11:12Z");
-    DomainResource domain = newDomainBuilder(time)
-        .setRepoId("11-EXAMPLE")
-        .setLaunchNotice(LaunchNotice.create("landrush1tcn", null, null, time.minusHours(1)))
-        .build();
+    DomainResource domain =
+        newDomainBuilder()
+            .setRepoId("11-EXAMPLE")
+            .setLaunchNotice(
+                LaunchNotice.create(
+                    "landrush1tcn", null, null, DateTime.parse("2010-05-01T09:11:12Z")))
+            .build();
     persistDomainAndEnqueueLordn(domain);
     String expectedPayload = "11-EXAMPLE,fleece.example,landrush1tcn,1,2010-05-01T10:11:12.000Z,"
-        + "2010-05-01T09:11:12.000Z,2010-05-01T10:11:12.000Z";
+        + "2010-05-01T09:11:12.000Z";
     assertTasksEnqueued(
         "lordn-claims", new TaskMatcher().payload(expectedPayload).tag("example"));
   }
@@ -110,20 +106,16 @@ public class LordnTaskUtilsTest {
                             .setType(Type.OTE)
                             .setIanaIdentifier(null)
                             .build()));
-    DomainResource domain =
-        newDomainBuilder(DateTime.parse("2010-05-01T10:11:12Z")).setRepoId("3-EXAMPLE").build();
-    persistDomainAndEnqueueLordn(domain);
-    String expectedPayload =
-        "3-EXAMPLE,fleece.example,smdzzzz,null,2010-05-01T10:11:12.000Z,2010-05-01T10:11:12.000Z";
+    persistDomainAndEnqueueLordn(newDomainBuilder().setRepoId("3-EXAMPLE").build());
+    String expectedPayload = "3-EXAMPLE,fleece.example,smdzzzz,null,2010-05-01T10:11:12.000Z";
     assertTasksEnqueued(
         "lordn-sunrise", new TaskMatcher().payload(expectedPayload).tag("example"));
   }
 
   @Test
   public void test_enqueueDomainResourceTask_throwsExceptionOnInvalidRegistrar() {
-    DateTime time = DateTime.parse("2010-05-01T10:11:12Z");
     DomainResource domain =
-        newDomainBuilder(time)
+        newDomainBuilder()
             .setRepoId("9000-EXAMPLE")
             .setCreationClientId("nonexistentRegistrar")
             .build();

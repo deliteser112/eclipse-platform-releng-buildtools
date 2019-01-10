@@ -24,7 +24,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.JPY;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardMinutes;
 
 import com.beust.jcommander.ParameterException;
@@ -150,17 +149,6 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getAddGracePeriodLength()).isEqualTo(standardMinutes(5));
-  }
-
-  @Test
-  public void testSuccess_sunrushAddGracePeriodFlag() throws Exception {
-    runCommandForced(
-        "--sunrush_add_grace_period=P13D",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getSunrushAddGracePeriodLength())
-        .isEqualTo(standardDays(13));
   }
 
   @Test
@@ -311,20 +299,6 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_invalidSunrushAddGracePeriod() {
-    Exception e =
-        assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                runCommandForced(
-                    "--sunrush_add_grace_period=5d",
-                    "--roid_suffix=Q9JYB4C",
-                    "--dns_writers=VoidDnsWriter",
-                    "xn--q9jyb4c"));
-    assertThat(e).hasMessageThat().isEqualTo("Invalid format: \"5d\"");
-  }
-
-  @Test
   public void testFailure_invalidRedemptionGracePeriod() {
     IllegalArgumentException thrown =
         assertThrows(
@@ -375,7 +349,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
             () ->
                 runCommandForced(
                     String.format(
-                        "--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE",
+                        "--tld_state_transitions=%s=PREDELEGATION,%s=START_DATE_SUNRISE",
                         now, now.plus(Duration.millis(1))),
                     "--initial_tld_state=GENERAL_AVAILABILITY",
                     "--dns_writers=VoidDnsWriter",

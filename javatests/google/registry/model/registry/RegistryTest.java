@@ -19,6 +19,10 @@ import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
+import static google.registry.model.registry.Registry.TldState.QUIET_PERIOD;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newRegistry;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
@@ -216,65 +220,51 @@ public class RegistryTest extends EntityTestCase {
     Registry registry = Registry.get("tld").asBuilder()
         .setTldStateTransitions(ImmutableSortedMap.of(START_OF_TIME, TldState.PDT))
         .build();
-    assertThat(registry.getTldState(START_OF_TIME)).isEqualTo(TldState.GENERAL_AVAILABILITY);
+    assertThat(registry.getTldState(START_OF_TIME)).isEqualTo(GENERAL_AVAILABILITY);
   }
 
   @Test
   public void testTldStateTransitionTimes() {
-    Registry registry = Registry.get("tld").asBuilder()
-        .setTldStateTransitions(ImmutableSortedMap.<DateTime, TldState>naturalOrder()
-            .put(START_OF_TIME, TldState.PREDELEGATION)
-            .put(clock.nowUtc().plusMonths(1), TldState.SUNRISE)
-            .put(clock.nowUtc().plusMonths(2), TldState.SUNRUSH)
-            .put(clock.nowUtc().plusMonths(3), TldState.LANDRUSH)
-            .put(clock.nowUtc().plusMonths(4), TldState.QUIET_PERIOD)
-            .put(clock.nowUtc().plusMonths(5), TldState.GENERAL_AVAILABILITY)
-            .build())
-        .build();
-    assertThat(registry.getTldState(clock.nowUtc())).isEqualTo(TldState.PREDELEGATION);
-    assertThat(registry.getTldState(clock.nowUtc().plusMillis(1)))
-        .isEqualTo(TldState.PREDELEGATION);
+    Registry registry =
+        Registry.get("tld")
+            .asBuilder()
+            .setTldStateTransitions(
+                ImmutableSortedMap.<DateTime, TldState>naturalOrder()
+                    .put(START_OF_TIME, PREDELEGATION)
+                    .put(clock.nowUtc().plusMonths(1), START_DATE_SUNRISE)
+                    .put(clock.nowUtc().plusMonths(2), QUIET_PERIOD)
+                    .put(clock.nowUtc().plusMonths(3), GENERAL_AVAILABILITY)
+                    .build())
+            .build();
+    assertThat(registry.getTldState(clock.nowUtc())).isEqualTo(PREDELEGATION);
+    assertThat(registry.getTldState(clock.nowUtc().plusMillis(1))).isEqualTo(PREDELEGATION);
     assertThat(registry.getTldState(clock.nowUtc().plusMonths(1).minusMillis(1)))
-        .isEqualTo(TldState.PREDELEGATION);
-    assertThat(registry.getTldState(clock.nowUtc().plusMonths(1))).isEqualTo(TldState.SUNRISE);
+        .isEqualTo(PREDELEGATION);
+    assertThat(registry.getTldState(clock.nowUtc().plusMonths(1))).isEqualTo(START_DATE_SUNRISE);
     assertThat(registry.getTldState(clock.nowUtc().plusMonths(1).plusMillis(1)))
-        .isEqualTo(TldState.SUNRISE);
+        .isEqualTo(START_DATE_SUNRISE);
     assertThat(registry.getTldState(clock.nowUtc().plusMonths(2).minusMillis(1)))
-        .isEqualTo(TldState.SUNRISE);
-    assertThat(registry.getTldState(clock.nowUtc().plusMonths(2))).isEqualTo(TldState.SUNRUSH);
+        .isEqualTo(START_DATE_SUNRISE);
+    assertThat(registry.getTldState(clock.nowUtc().plusMonths(2))).isEqualTo(QUIET_PERIOD);
     assertThat(registry.getTldState(clock.nowUtc().plusMonths(2).plusMillis(1)))
-        .isEqualTo(TldState.SUNRUSH);
+        .isEqualTo(QUIET_PERIOD);
     assertThat(registry.getTldState(clock.nowUtc().plusMonths(3).minusMillis(1)))
-        .isEqualTo(TldState.SUNRUSH);
-    assertThat(registry.getTldState(clock.nowUtc().plusMonths(3))).isEqualTo(TldState.LANDRUSH);
+        .isEqualTo(QUIET_PERIOD);
+    assertThat(registry.getTldState(clock.nowUtc().plusMonths(3))).isEqualTo(GENERAL_AVAILABILITY);
     assertThat(registry.getTldState(clock.nowUtc().plusMonths(3).plusMillis(1)))
-        .isEqualTo(TldState.LANDRUSH);
-    assertThat(registry.getTldState(clock.nowUtc().plusMonths(4).minusMillis(1)))
-        .isEqualTo(TldState.LANDRUSH);
-    assertThat(registry.getTldState(clock.nowUtc().plusMonths(4)))
-        .isEqualTo(TldState.QUIET_PERIOD);
-    assertThat(registry.getTldState(clock.nowUtc().plusMonths(4).plusMillis(1)))
-        .isEqualTo(TldState.QUIET_PERIOD);
-    assertThat(registry.getTldState(clock.nowUtc().plusMonths(5).minusMillis(1)))
-        .isEqualTo(TldState.QUIET_PERIOD);
-    assertThat(registry.getTldState(clock.nowUtc().plusMonths(5)))
-        .isEqualTo(TldState.GENERAL_AVAILABILITY);
-    assertThat(registry.getTldState(clock.nowUtc().plusMonths(5).plusMillis(1)))
-        .isEqualTo(TldState.GENERAL_AVAILABILITY);
-    assertThat(registry.getTldState(END_OF_TIME)).isEqualTo(TldState.GENERAL_AVAILABILITY);
+        .isEqualTo(GENERAL_AVAILABILITY);
+    assertThat(registry.getTldState(END_OF_TIME)).isEqualTo(GENERAL_AVAILABILITY);
   }
 
   @Test
   public void testQuietPeriodCanAppearMultipleTimesAnywhere() {
     Registry.get("tld").asBuilder()
         .setTldStateTransitions(ImmutableSortedMap.<DateTime, TldState>naturalOrder()
-            .put(START_OF_TIME, TldState.PREDELEGATION)
-            .put(clock.nowUtc().plusMonths(1), TldState.QUIET_PERIOD)
-            .put(clock.nowUtc().plusMonths(2), TldState.SUNRISE)
-            .put(clock.nowUtc().plusMonths(3), TldState.QUIET_PERIOD)
-            .put(clock.nowUtc().plusMonths(4), TldState.LANDRUSH)
-            .put(clock.nowUtc().plusMonths(5), TldState.QUIET_PERIOD)
-            .put(clock.nowUtc().plusMonths(6), TldState.GENERAL_AVAILABILITY)
+            .put(START_OF_TIME, PREDELEGATION)
+            .put(clock.nowUtc().plusMonths(1), QUIET_PERIOD)
+            .put(clock.nowUtc().plusMonths(2), START_DATE_SUNRISE)
+            .put(clock.nowUtc().plusMonths(3), QUIET_PERIOD)
+            .put(clock.nowUtc().plusMonths(6), GENERAL_AVAILABILITY)
             .build())
         .build();
   }
@@ -366,10 +356,8 @@ public class RegistryTest extends EntityTestCase {
                 .asBuilder()
                 .setTldStateTransitions(
                     ImmutableSortedMap.of(
-                        clock.nowUtc(),
-                        TldState.SUNRUSH,
-                        clock.nowUtc().plusMonths(1),
-                        TldState.SUNRISE))
+                        clock.nowUtc(), GENERAL_AVAILABILITY,
+                        clock.nowUtc().plusMonths(1), START_DATE_SUNRISE))
                 .build());
   }
 
@@ -382,10 +370,8 @@ public class RegistryTest extends EntityTestCase {
                 .asBuilder()
                 .setTldStateTransitions(
                     ImmutableSortedMap.of(
-                        clock.nowUtc(),
-                        TldState.SUNRUSH,
-                        clock.nowUtc().plusMonths(1),
-                        TldState.SUNRUSH))
+                        clock.nowUtc(), START_DATE_SUNRISE,
+                        clock.nowUtc().plusMonths(1), START_DATE_SUNRISE))
                 .build());
   }
 

@@ -27,7 +27,6 @@ import static google.registry.config.RegistryConfig.getContactAutomaticTransferL
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.EppResourceUtils.createRepoId;
 import static google.registry.model.ResourceTransferUtils.createTransferResponse;
-import static google.registry.model.domain.launch.ApplicationStatus.VALIDATED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.PremiumListUtils.parentPremiumListEntriesOnRevision;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
@@ -66,17 +65,14 @@ import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
-import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
 import google.registry.model.index.ForeignKeyIndex;
@@ -93,7 +89,6 @@ import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 import google.registry.model.registry.label.PremiumList.PremiumListRevision;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.Builder;
 import google.registry.model.transfer.TransferStatus;
@@ -161,59 +156,6 @@ public class DatastoreHelper {
             DesignatedContact.create(Type.ADMIN, contactKey),
             DesignatedContact.create(Type.TECH, contactKey)))
         .setRegistrationExpirationTime(END_OF_TIME)
-        .build();
-  }
-
-  public static DomainApplication newDomainApplication(String domainName) {
-    // This ensures that the domain application gets the next available repoId before the created
-    // contact does, which is usually the applicationId 1.
-    return newDomainApplication(
-        domainName,
-        generateNewDomainRoid(getTldFromDomainName(domainName)),
-        persistActiveContact("contact1234"),
-        LaunchPhase.SUNRISE);
-  }
-
-  public static DomainApplication newDomainApplication(String domainName, ContactResource contact) {
-    return newDomainApplication(domainName, contact, LaunchPhase.SUNRISE);
-  }
-
-  public static DomainApplication newDomainApplication(
-      String domainName, ContactResource contact, LaunchPhase phase) {
-    return newDomainApplication(
-        domainName,
-        generateNewDomainRoid(getTldFromDomainName(domainName)),
-        contact,
-        phase);
-  }
-
-  public static DomainApplication newDomainApplication(
-      String domainName, String repoId, ContactResource contact, LaunchPhase phase) {
-    Key<ContactResource> contactKey = Key.create(contact);
-    return new DomainApplication.Builder()
-        .setRepoId(repoId)
-        .setFullyQualifiedDomainName(domainName)
-        .setPersistedCurrentSponsorClientId("TheRegistrar")
-        .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
-        .setRegistrant(contactKey)
-        .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, contactKey),
-            DesignatedContact.create(Type.TECH, contactKey)))
-        .setPhase(phase)
-        .setApplicationStatus(VALIDATED)
-        .addStatusValue(StatusValue.PENDING_CREATE)
-        .build();
-  }
-
-  public static DomainApplication newSunriseApplication(String domainName) {
-    return newSunriseApplication(domainName, persistActiveContact("contact1234"));
-  }
-
-  public static DomainApplication newSunriseApplication(
-      String domainName, ContactResource contact) {
-    return newDomainApplication(domainName, contact, LaunchPhase.SUNRISE)
-        .asBuilder()
-        .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "abcdef")))
         .build();
   }
 
@@ -325,25 +267,6 @@ public class DatastoreHelper {
             .setCreationTimeForTest(creationTime)
             .setRegistrationExpirationTime(expirationTime)
             .build());
-  }
-
-  public static DomainApplication persistActiveDomainApplication(String domainName) {
-    return persistResource(newDomainApplication(domainName));
-  }
-
-  public static DomainApplication persistActiveDomainApplication(
-      String domainName, ContactResource contact, LaunchPhase phase) {
-    return persistResource(newDomainApplication(domainName, contact, phase));
-  }
-
-  /**
-   * Persists a domain application resource with the given domain name deleted at the specified
-   * time.
-   */
-  public static DomainApplication persistDeletedDomainApplication(
-      String domainName, DateTime deletionTime) {
-    return persistResource(
-        newDomainApplication(domainName).asBuilder().setDeletionTime(deletionTime).build());
   }
 
   /** Persists a domain resource with the given domain name deleted at the specified time. */
@@ -901,7 +824,7 @@ public class DatastoreHelper {
    * ofy() session cache. Specifically, this method calls .now() on the save to force the write to
    * actually get sent to Datastore (although it does not force it to be applied) and clears the
    * session cache. If necessary, this method also updates the relevant {@link EppResourceIndex},
-   * {@link ForeignKeyIndex} and {@link DomainApplicationIndex}.
+   * {@link ForeignKeyIndex}.
    *
    * <p><b>Note:</b> Your resource will not be enrolled in a commit log. If you want backups, use
    * {@link #persistResourceWithCommitLog(Object)}.
@@ -933,9 +856,6 @@ public class DatastoreHelper {
     saver.entity(index);
     if (resource instanceof ForeignKeyedEppResource) {
       saver.entity(ForeignKeyIndex.create(resource, resource.getDeletionTime()));
-    }
-    if (resource instanceof DomainApplication) {
-      saver.entity(DomainApplicationIndex.createUpdatedInstance((DomainApplication) resource));
     }
   }
 

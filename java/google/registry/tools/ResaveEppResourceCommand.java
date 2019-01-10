@@ -43,7 +43,7 @@ public final class ResaveEppResourceCommand extends MutatingCommand {
 
   @Parameter(
     names = "--id",
-    description = "Foreign key of the resource, or application ID of the domain application.")
+    description = "Foreign key of the resource.")
   protected String uniqueId;
 
   @Override

@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactCommand;
 import google.registry.model.domain.DomainCommand;
-import google.registry.model.domain.allocate.AllocateCreateExtension;
 import google.registry.model.domain.fee06.FeeCheckCommandExtensionV06;
 import google.registry.model.domain.fee06.FeeCreateCommandExtensionV06;
 import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
@@ -328,8 +327,6 @@ public class EppInput extends ImmutableObject {
 
     /** Zero or more command extensions. */
     @XmlElementRefs({
-        // allocate create extension
-        @XmlElementRef(type = AllocateCreateExtension.class),
         // allocation token extension
         @XmlElementRef(type = AllocationTokenExtension.class),
         // fee extension version 0.6

@@ -18,6 +18,9 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_AND_CLOSE;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.testing.DatastoreHelper.assertBillingEventsForResource;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
@@ -29,6 +32,7 @@ import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Ordering;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import google.registry.model.billing.BillingEvent;
@@ -376,13 +380,11 @@ public class EppLifecycleDomainTest extends EppTestCase {
     DateTime sunriseDate = DateTime.parse("2000-05-30T00:00:00Z");
     createTld(
         "example",
-        ImmutableSortedMap.of(
-            START_OF_TIME,
-            TldState.PREDELEGATION,
-            sunriseDate,
-            TldState.SUNRISE,
-            sunriseDate.plusMonths(2),
-            TldState.GENERAL_AVAILABILITY));
+        new ImmutableSortedMap.Builder<DateTime, TldState>(Ordering.natural())
+            .put(START_OF_TIME, PREDELEGATION)
+            .put(sunriseDate, START_DATE_SUNRISE)
+            .put(sunriseDate.plusMonths(2), GENERAL_AVAILABILITY)
+            .build());
 
     assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
 
@@ -393,7 +395,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "response_error.xml",
             ImmutableMap.of(
-                "CODE", "2002", "MSG", "Command is not allowed in the current registry phase"));
+                "CODE", "2002",
+                "MSG", "The current registry phase does not allow for general registrations"));
 
     assertThatCommand("domain_info_testvalidate.xml")
         .atTime(sunriseDate.plusDays(1))
@@ -412,8 +415,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
     createTld(
         "example",
         ImmutableSortedMap.of(
-            START_OF_TIME, TldState.PREDELEGATION,
-            gaDate, TldState.GENERAL_AVAILABILITY));
+            START_OF_TIME, PREDELEGATION,
+            gaDate, GENERAL_AVAILABILITY));
 
     assertThatCommand("login_valid_fee_extension.xml").hasResponse("generic_success_response.xml");
 
@@ -882,9 +885,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
     createTld(
         "example",
         ImmutableSortedMap.of(
-            START_OF_TIME, TldState.PREDELEGATION,
-            sunriseDate, TldState.START_DATE_SUNRISE,
-            gaDate, TldState.GENERAL_AVAILABILITY));
+            START_OF_TIME, PREDELEGATION,
+            sunriseDate, START_DATE_SUNRISE,
+            gaDate, GENERAL_AVAILABILITY));
 
     assertThatLogin("NewRegistrar", "foo-BAR2")
         .atTime(sunriseDate.minusDays(3))
@@ -898,13 +901,11 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "response_error.xml",
             ImmutableMap.of(
-                "CODE", "2306",
-                "MSG",
-                    "Declared launch extension phase does not match the current registry phase"));
+                "CODE", "2002",
+                "MSG", "The current registry phase does not allow for general registrations"));
 
     assertThatCommand(
-            "domain_create_no_hosts_or_dsdata.xml",
-            ImmutableMap.of("DOMAIN", "general.example"))
+            "domain_create_no_hosts_or_dsdata.xml", ImmutableMap.of("DOMAIN", "general.example"))
         .atTime(sunriseDate.minusDays(1))
         .hasResponse(
             "response_error.xml",
@@ -912,7 +913,17 @@ public class EppLifecycleDomainTest extends EppTestCase {
                 "CODE", "2002",
                 "MSG", "The current registry phase does not allow for general registrations"));
 
-    // During start-date sunrise, create with mark will succeed but without will fail.
+    // During sunrise, verify that the launch phase must be set to sunrise.
+    assertThatCommand("domain_create_start_date_sunrise_encoded_mark_wrong_phase.xml")
+        .atTime(sunriseDate)
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of(
+                "CODE", "2306",
+                "MSG",
+                    "Declared launch extension phase does not match the current registry phase"));
+
+    // During sunrise, create with mark will succeed but without will fail.
     // We also test we can delete without a mark.
     assertThatCommand("domain_create_start_date_sunrise_encoded_mark.xml")
         .atTime(sunriseDate.plusDays(1))
@@ -961,12 +972,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertThatLogoutSucceeds();
   }
 
-  /**
-   * Test that missing type= argument on launch create works in start-date sunrise.
-   *
-   * <p>TODO(b/76095570):have the same exact test on end-date sunrise - using the same .xml file -
-   * that checks that an application was created.
-   */
+  /** Test that missing type= argument on launch create works in start-date sunrise. */
   @Test
   public void testDomainCreation_startDateSunrise_noType() throws Exception {
     // The signed mark is valid between 2013 and 2017
@@ -975,9 +981,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
     createTld(
         "example",
         ImmutableSortedMap.of(
-            START_OF_TIME, TldState.PREDELEGATION,
-            sunriseDate, TldState.START_DATE_SUNRISE,
-            gaDate, TldState.GENERAL_AVAILABILITY));
+            START_OF_TIME, PREDELEGATION,
+            sunriseDate, START_DATE_SUNRISE,
+            gaDate, GENERAL_AVAILABILITY));
 
     assertThatLogin("NewRegistrar", "foo-BAR2")
         .atTime(sunriseDate.minusDays(3))

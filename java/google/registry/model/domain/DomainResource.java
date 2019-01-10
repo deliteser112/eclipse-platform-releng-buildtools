@@ -106,25 +106,12 @@ public class DomainResource extends DomainBase
   Set<GracePeriod> gracePeriods;
 
   /**
-   * The id of the signed mark that was used to create the sunrise application for this domain.
-   * Will only be populated for domains allocated from a sunrise application.
+   * The id of the signed mark that was used to create this domain in sunrise.
+   *
+   * <p>Will only be populated for domains created in sunrise.
    */
   @IgnoreSave(IfNull.class)
   String smdId;
-
-  /**
-   * The time that the application used to allocate this domain was created. Will only be populated
-   * for domains allocated from an application.
-   */
-  @IgnoreSave(IfNull.class)
-  DateTime applicationTime;
-
-  /**
-   * A key to the application used to allocate this domain. Will only be populated for domains
-   * allocated from an application.
-   */
-  @IgnoreSave(IfNull.class)
-  Key<DomainApplication> application;
 
   /** Data about any pending or past transfers on this domain. */
   TransferData transferData;
@@ -162,14 +149,6 @@ public class DomainResource extends DomainBase
 
   public String getSmdId() {
     return smdId;
-  }
-
-  public DateTime getApplicationTime() {
-    return applicationTime;
-  }
-
-  public Key<DomainApplication> getApplication() {
-    return application;
   }
 
   @Override
@@ -423,16 +402,6 @@ public class DomainResource extends DomainBase
 
     public Builder setSmdId(String smdId) {
       getInstance().smdId = smdId;
-      return this;
-    }
-
-    public Builder setApplicationTime(DateTime applicationTime) {
-      getInstance().applicationTime = applicationTime;
-      return this;
-    }
-
-    public Builder setApplication(Key<DomainApplication> application) {
-      getInstance().application = application;
       return this;
     }
 

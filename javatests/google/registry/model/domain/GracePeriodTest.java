@@ -67,15 +67,7 @@ public class GracePeriodTest {
     assertThat(gracePeriod.getRecurringBillingEvent()).isNull();
     assertThat(gracePeriod.getClientId()).isEqualTo("TheRegistrar");
     assertThat(gracePeriod.getExpirationTime()).isEqualTo(now.plusDays(1));
-    assertThat(gracePeriod.isSunrushAddGracePeriod()).isFalse();
     assertThat(gracePeriod.hasBillingEvent()).isTrue();
-  }
-
-  @Test
-  public void testSuccess_forBillingEvent_sunrushAdd() {
-    GracePeriod gracePeriod = GracePeriod.forBillingEvent(GracePeriodStatus.SUNRUSH_ADD, onetime);
-    assertThat(gracePeriod.getType()).isEqualTo(GracePeriodStatus.ADD);
-    assertThat(gracePeriod.isSunrushAddGracePeriod()).isTrue();
   }
 
   @Test

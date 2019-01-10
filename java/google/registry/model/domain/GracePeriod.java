@@ -59,12 +59,7 @@ public class GracePeriod extends ImmutableObject {
   Key<BillingEvent.Recurring> billingEventRecurring = null;
 
   public GracePeriodStatus getType() {
-    // NB: We implicitly convert SUNRUSH_ADD to ADD, since they should be functionally equivalent.
-    return type == GracePeriodStatus.SUNRUSH_ADD ? GracePeriodStatus.ADD : type;
-  }
-
-  public boolean isSunrushAddGracePeriod() {
-    return type == GracePeriodStatus.SUNRUSH_ADD;
+    return type;
   }
 
   public DateTime getExpirationTime() {

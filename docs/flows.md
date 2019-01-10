@@ -225,227 +225,6 @@ An EPP flow that updates a contact.
     *   Cannot add and remove the same value.
     *   Declining contact disclosure is disallowed by server policy.
 
-## DomainAllocateFlow
-
-### Description
-
-An EPP flow that allocates a new domain resource from a domain application.
-
-Note that this flow is only run by superusers.
-
-
-### Errors
-
-*   2004
-    *   New registration period exceeds maximum number of years.
-*   2201
-    *   Only a superuser can allocate domains.
-*   2302
-    *   Resource with this id already exists.
-*   2303
-    *   Domain application with specific ROID does not exist.
-*   2304
-    *   Domain application already has a final status.
-    *   Registrant is not whitelisted for this TLD.
-    *   Nameservers are not whitelisted for this domain.
-    *   Nameservers are not whitelisted for this TLD.
-    *   Nameservers not specified for domain with nameserver-restricted
-        reservation.
-    *   Nameservers not specified for domain on TLD with nameserver whitelist.
-
-## DomainApplicationCreateFlow
-
-### Description
-
-An EPP flow that creates a new application for a domain resource.
-
-
-### Errors
-
-*   2002
-    *   A notice cannot be specified when using a signed mark.
-    *   Sunrise applications are disallowed during landrush.
-    *   Command is not allowed in the current registry phase.
-*   2003
-    *   Landrush applications are disallowed during sunrise.
-    *   Fees must be explicitly acknowledged when performing any operations on a
-        premium name.
-    *   The provided mark does not match the desired domain label.
-*   2004
-    *   The acceptance time specified in the claim notice is more than 48 hours
-        in the past.
-    *   New registration period exceeds maximum number of years.
-    *   The expiration time specified in the claim notice has elapsed.
-    *   The fees passed in the transform command do not match the fees that will
-        be charged.
-    *   Domain label is not allowed by IDN table.
-    *   The checksum in the specified TCNID does not validate.
-    *   Domain name is under tld which doesn't exist.
-*   2005
-    *   Domain name must have exactly one part above the TLD.
-    *   Domain name must not equal an existing multi-part TLD.
-    *   The requested fee is expressed in a scale that is invalid for the given
-        currency.
-    *   The specified TCNID is invalid.
-    *   Signed mark data is improperly encoded.
-    *   Error while parsing encoded signed mark data.
-*   2102
-    *   The 'maxSigLife' setting is not supported.
-    *   The 'grace-period', 'applied' and 'refundable' fields are disallowed by
-        server policy.
-*   2103
-    *   Specified extension is not implemented.
-*   2201
-    *   Registrar is not authorized to access this TLD.
-    *   Registrar must be active in order to perform this operation.
-*   2302
-    *   Resource with this id already exists.
-    *   This name has already been claimed by a sunrise applicant.
-*   2303
-    *   Resource linked to this domain does not exist.
-*   2304
-    *   The claims period for this TLD has ended.
-    *   Requested domain is reserved.
-    *   Requested domain requires a claims notice.
-    *   Nameservers are not whitelisted for this domain.
-    *   Nameservers are not whitelisted for this TLD.
-    *   Nameservers not specified for domain with nameserver-restricted
-        reservation.
-    *   Nameservers not specified for domain on TLD with nameserver whitelist.
-    *   The requested domain name is on the premium price list, and this
-        registrar has blocked premium registrations.
-    *   Registrant is not whitelisted for this TLD.
-    *   Requested domain does not require a claims notice.
-*   2306
-    *   Domain names can only contain a-z, 0-9, '.' and '-'.
-    *   Periods for domain registrations must be specified in years.
-    *   Encoded signed marks must use base64 encoding.
-    *   The requested fees cannot be provided in the requested currency.
-    *   Non-IDN domain names cannot contain hyphens in the third or fourth
-        position.
-    *   Domain labels cannot be longer than 63 characters.
-    *   More than one contact for a given role is not allowed.
-    *   No part of a domain name can be empty.
-    *   Domain name starts with xn-- but is not a valid IDN.
-    *   The specified trademark validator is not supported.
-    *   Declared launch extension phase does not match the current registry
-        phase.
-    *   Domain labels cannot begin with a dash.
-    *   Missing type attribute for contact.
-    *   The provided mark is not yet valid.
-    *   The provided mark has expired.
-    *   Signed marks must be encoded.
-    *   Certificate used in signed mark signature has expired.
-    *   Certificate parsing error, or possibly a bad provider or algorithm.
-    *   Certificate used in signed mark signature has expired.
-    *   Certificate used in signed mark signature was revoked by ICANN.
-    *   Invalid signature on a signed mark.
-    *   Signed mark data is revoked.
-    *   Invalid signature on a signed mark.
-    *   Too many DS records set on a domain.
-    *   Too many nameservers set on this domain.
-    *   Only one signed mark is allowed per application.
-    *   Domain labels cannot end with a dash.
-    *   Only encoded signed marks are supported.
-
-## DomainApplicationDeleteFlow
-
-### Description
-
-An EPP flow that deletes a domain application.
-
-
-### Errors
-
-*   2002
-    *   Command is not allowed in the current registry phase.
-*   2103
-    *   Specified extension is not implemented.
-*   2201
-    *   The specified resource belongs to another client.
-    *   Registrar is not authorized to access this TLD.
-*   2303
-    *   Resource with this id does not exist.
-*   2304
-    *   A sunrise application cannot be deleted during landrush.
-*   2306
-    *   Application referenced does not match specified domain name.
-    *   Declared launch extension phase does not match the current registry
-        phase.
-
-## DomainApplicationInfoFlow
-
-### Description
-
-An EPP flow that returns information about a domain application.
-
-Only the registrar that owns the application can see its info. The flow can
-optionally include delegated hosts in its response.
-
-
-### Errors
-
-*   2003
-    *   Application id is required.
-*   2201
-    *   The specified resource belongs to another client.
-*   2303
-    *   Resource with this id does not exist.
-*   2306
-    *   Application referenced does not match specified domain name.
-    *   Declared launch extension phase does not match phase of the application.
-
-## DomainApplicationUpdateFlow
-
-### Description
-
-An EPP flow that updates a domain application.
-
-Updates can change contacts, nameservers and delegation signer data of an
-application. Updates cannot change the domain name that is being applied for.
-
-
-### Errors
-
-*   2003
-    *   At least one of 'add' or 'rem' is required on a secDNS update.
-    *   Admin contact is required.
-    *   Technical contact is required.
-*   2004
-    *   The specified status value cannot be set by clients.
-    *   The fees passed in the transform command do not match the fees that will
-        be charged.
-*   2102
-    *   Changing 'maxSigLife' is not supported.
-    *   The 'urgent' attribute is not supported.
-*   2103
-    *   Specified extension is not implemented.
-*   2201
-    *   The specified resource belongs to another client.
-    *   Registrar is not authorized to access this TLD.
-*   2303
-    *   Resource with this id does not exist.
-    *   Resource linked to this domain does not exist.
-*   2304
-    *   This resource has clientUpdateProhibited on it, and the update does not
-        clear that status.
-    *   Resource status prohibits this operation.
-    *   Nameservers are not whitelisted for this TLD.
-    *   Nameservers not specified for domain on TLD with nameserver whitelist.
-    *   Nameservers are not whitelisted for this domain.
-    *   Nameservers not specified for domain with nameserver-restricted
-        reservation.
-    *   Registrant is not whitelisted for this TLD.
-    *   Application status prohibits this domain update.
-*   2306
-    *   Cannot add and remove the same value.
-    *   Application referenced does not match specified domain name.
-    *   More than one contact for a given role is not allowed.
-    *   Missing type attribute for contact.
-    *   The secDNS:all element must have value 'true' if present.
-    *   Too many DS records set on a domain.
-    *   Too many nameservers set on this domain.
-
 ## DomainCheckFlow
 
 ### Description
@@ -498,7 +277,6 @@ An EPP flow that checks whether domain labels are trademarked.
 
 *   2002
     *   Command is not allowed in the current registry phase.
-    *   Claims checks are not allowed during sunrise.
     *   Claims checks are not allowed with allocation tokens.
 *   2004
     *   Domain name is under tld which doesn't exist.
@@ -564,7 +342,6 @@ An EPP flow that creates a new domain resource.
 *   2303
     *   Resource linked to this domain does not exist.
 *   2304
-    *   There is an open application for this domain.
     *   The claims period for this TLD has ended.
     *   Requested domain does not have nameserver-restricted reservation for a
         TLD that requires such a reservation to create domains.
@@ -944,12 +721,6 @@ Some status values (those of the form "serverSomethingProhibited") can only be
 applied by the superuser. As such, adding or removing these statuses incurs a
 billing event. There will be only one charge per update, even if several such
 statuses are updated at once.
-
-If a domain was created during the sunrise or landrush phases of a TLD, is still
-within the sunrushAddGracePeriod and has not yet been delegated in DNS, then it
-will not yet have been billed for. Any update that causes the name to be
-delegated (such * as adding nameservers or removing a hold status) will cause
-the domain to convert to a normal create and be billed for accordingly.
 
 
 ### Errors

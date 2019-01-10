@@ -26,6 +26,8 @@ import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.Registries.getTlds;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
@@ -69,7 +71,6 @@ import google.registry.model.billing.BillingEvent.Recurring;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainCommand.CreateOrUpdate;
@@ -132,14 +133,11 @@ import org.joda.time.Duration;
 public class DomainFlowUtils {
 
   /** Map from launch phases to the allowed tld states. */
-  private static final ImmutableMultimap<LaunchPhase, TldState> LAUNCH_PHASE_TO_TLD_STATES =
-      new ImmutableMultimap.Builder<LaunchPhase, TldState>()
-          .put(LaunchPhase.SUNRISE, TldState.SUNRISE)
-          .put(LaunchPhase.SUNRUSH, TldState.SUNRUSH)
-          .put(LaunchPhase.LANDRUSH, TldState.LANDRUSH)
-          .put(LaunchPhase.CLAIMS, TldState.GENERAL_AVAILABILITY)
-          .put(LaunchPhase.SUNRISE, TldState.START_DATE_SUNRISE)
-          .put(LaunchPhase.OPEN, TldState.GENERAL_AVAILABILITY)
+  private static final ImmutableMap<LaunchPhase, TldState> LAUNCH_PHASE_TO_TLD_STATES =
+      new ImmutableMap.Builder<LaunchPhase, TldState>()
+          .put(LaunchPhase.CLAIMS, GENERAL_AVAILABILITY)
+          .put(LaunchPhase.SUNRISE, START_DATE_SUNRISE)
+          .put(LaunchPhase.OPEN, GENERAL_AVAILABILITY)
           .build();
 
   /** Reservation types that are only allowed in sunrise by policy. */
@@ -153,14 +151,6 @@ public class DomainFlowUtils {
       "Domain on the name collision list was allocated. But by policy, the domain will not be "
           + "delegated. Please visit https://www.icann.org/namecollision  for more information on "
           + "name collision.";
-
-  /** Non-sunrise tld states. */
-  private static final ImmutableSet<TldState> DISALLOWED_TLD_STATES_FOR_APPLICATION_FLOWS =
-      Sets.immutableEnumSet(
-          TldState.PREDELEGATION,
-          TldState.QUIET_PERIOD,
-          TldState.START_DATE_SUNRISE,
-          TldState.GENERAL_AVAILABILITY);
 
   /** Strict validator for ascii lowercase letters, digits, and "-", allowing "." as a separator */
   private static final CharMatcher ALLOWED_CHARS =
@@ -474,18 +464,11 @@ public class DomainFlowUtils {
   /** Verifies that a launch extension's specified phase matches the specified registry's phase. */
   static void verifyLaunchPhaseMatchesRegistryPhase(
       Registry registry, LaunchExtension launchExtension, DateTime now) throws EppException {
-    if (!LAUNCH_PHASE_TO_TLD_STATES.containsEntry(
-        launchExtension.getPhase(), registry.getTldState(now))) {
+    if (!LAUNCH_PHASE_TO_TLD_STATES.containsKey(launchExtension.getPhase())
+        || LAUNCH_PHASE_TO_TLD_STATES.get(launchExtension.getPhase())
+            != registry.getTldState(now)) {
       // No launch operations are allowed during the quiet period or predelegation.
       throw new LaunchPhaseMismatchException();
-    }
-  }
-
-  /** Verifies that an application's domain name matches the target id (from a command). */
-  static void verifyApplicationDomainMatchesTargetId(DomainApplication application, String targetId)
-      throws EppException {
-    if (!application.getFullyQualifiedDomainName().equals(targetId)) {
-      throw new ApplicationDomainNameMismatchException();
     }
   }
 
@@ -601,7 +584,7 @@ public class DomainFlowUtils {
     String domainNameString = domain.toString();
     Registry registry = Registry.get(domain.parent().toString());
     int years = verifyUnitIsYears(feeRequest.getPeriod()).getValue();
-    boolean isSunrise = registry.getTldState(now).equals(TldState.SUNRISE);
+    boolean isSunrise = (registry.getTldState(now) == START_DATE_SUNRISE);
 
     if (feeRequest.getPhase() != null || feeRequest.getSubphase() != null) {
       throw new FeeChecksDontSupportPhasesException();
@@ -822,9 +805,8 @@ public class DomainFlowUtils {
   }
 
   /**
-   * Check whether a new registration period (via a create, allocate, or application create) does
-   * not extend beyond a maximum number of years (e.g. {@link
-   * DomainResource#MAX_REGISTRATION_YEARS}).
+   * Check that a new registration period (via a create) does not extend beyond a maximum number of
+   * years (e.g. {@link DomainResource#MAX_REGISTRATION_YEARS}).
    *
    * @throws ExceedsMaxRegistrationYearsException if the new registration period is too long
    */
@@ -879,7 +861,7 @@ public class DomainFlowUtils {
     return ImmutableSet.copyOf(union(difference(oldDsData, toRemove), toAdd));
   }
 
-  /** If a domain or application has "clientUpdateProhibited" set, updates must clear it or fail. */
+  /** If a domain "clientUpdateProhibited" set, updates must clear it or fail. */
   static void verifyClientUpdateNotProhibited(Update command, DomainBase existingResource)
       throws ResourceHasClientUpdateProhibitedException {
     if (existingResource.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)
@@ -905,14 +887,6 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Check that the registry phase is not incompatible with launch extension flows. */
-  static void verifyRegistryStateAllowsApplicationFlows(Registry registry, DateTime now)
-      throws BadCommandForRegistryPhaseException {
-    if (DISALLOWED_TLD_STATES_FOR_APPLICATION_FLOWS.contains(registry.getTldState(now))) {
-      throw new BadCommandForRegistryPhaseException();
-    }
-  }
-
   /** Check that the registry phase is not predelegation, during which some flows are forbidden. */
   public static void verifyNotInPredelegation(Registry registry, DateTime now)
       throws BadCommandForRegistryPhaseException {
@@ -921,7 +895,7 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Validate the contacts and nameservers specified in a domain or application create command. */
+  /** Validate the contacts and nameservers specified in a domain create command. */
   static void validateCreateCommandContactsAndNameservers(
       Create command, Registry registry, InternetDomainName domainName) throws EppException {
     verifyNotInPendingDelete(
@@ -993,7 +967,7 @@ public class DomainFlowUtils {
 
   /**
    * Check that if there's a claims notice it's on the claims list, and that if there's not one it's
-   * not on the claims list and is a sunrise application.
+   * not on the claims list.
    */
   static void verifyClaimsNoticeIfAndOnlyIfNeeded(
       InternetDomainName domainName, boolean hasSignedMarks, boolean hasClaimsNotice)
@@ -1016,7 +990,7 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Create a response extension listing the fees on a domain or application create. */
+  /** Create a response extension listing the fees on a domain create. */
   static FeeTransformResponseExtension createFeeCreateResponse(
       FeeTransformCommandExtension feeCreate, FeesAndCredits feesAndCredits) {
     return feeCreate
@@ -1182,13 +1156,6 @@ public class DomainFlowUtils {
   static class LaunchPhaseMismatchException extends ParameterValuePolicyErrorException {
     public LaunchPhaseMismatchException() {
       super("Declared launch extension phase does not match the current registry phase");
-    }
-  }
-
-  /** Application referenced does not match specified domain name. */
-  static class ApplicationDomainNameMismatchException extends ParameterValuePolicyErrorException {
-    public ApplicationDomainNameMismatchException() {
-      super("Application referenced does not match specified domain name");
     }
   }
 

@@ -18,11 +18,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
@@ -33,21 +31,18 @@ class CommandUtilities {
 
   /** A useful parameter enum for commands that operate on {@link EppResource} objects. */
   public enum ResourceType {
-    CONTACT,
-    HOST,
-    DOMAIN,
-    APPLICATION;
+    CONTACT(ContactResource.class),
+    HOST(HostResource.class),
+    DOMAIN(DomainResource.class);
+
+    private Class<? extends EppResource> clazz;
+
+    ResourceType(Class<? extends EppResource> clazz) {
+      this.clazz = clazz;
+    }
 
     public Key<? extends EppResource> getKey(String uniqueId, DateTime now) {
-      return this == APPLICATION
-          ? Key.create(DomainApplication.class, uniqueId)
-          : ForeignKeyIndex.loadAndGetKey(
-              ImmutableMap.of(
-                  CONTACT, ContactResource.class,
-                  HOST, HostResource.class,
-                  DOMAIN, DomainResource.class).get(this),
-              uniqueId,
-              now);
+      return ForeignKeyIndex.loadAndGetKey(clazz, uniqueId, now);
     }
   }
 

@@ -32,9 +32,7 @@ import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.domain.DomainRenewData;
-import google.registry.model.domain.launch.LaunchInfoResponseExtension;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
-import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PendingActionNotificationResponse.HostPendingActionNotificationResponse;
@@ -57,15 +55,14 @@ import org.joda.time.DateTime;
  *
  * <p>Poll messages are parented off of the {@link HistoryEntry} that resulted in their creation.
  * This means that poll messages are contained in the Datastore entity group of the parent {@link
- * EppResource} (which can be a domain, application, contact, or host). It is thus possible to
- * perform a strongly consistent query to find all poll messages associated with a given EPP
- * resource.
+ * EppResource} (which can be a domain, contact, or host). It is thus possible to perform a strongly
+ * consistent query to find all poll messages associated with a given EPP resource.
  *
  * <p>Poll messages are identified externally by registrars using the format defined in {@link
  * PollMessageExternalKeyConverter}.
  *
- * @see <a href="https://tools.ietf.org/html/rfc5730#section-2.9.2.3">
- *     RFC5730 - EPP - &ltpoll&gt Command</a>
+ * @see <a href="https://tools.ietf.org/html/rfc5730#section-2.9.2.3">RFC5730 - EPP - &ltpoll&gt
+ *     Command</a>
  */
 @Entity
 @ExternalMessagingName("message")
@@ -112,8 +109,6 @@ public abstract class PollMessage extends ImmutableObject
   }
 
   public abstract ImmutableList<ResponseData> getResponseData();
-
-  public abstract ImmutableList<ResponseExtension> getResponseExtensions();
 
   /** Override Buildable.asBuilder() to give this method stronger typing. */
   @Override
@@ -193,15 +188,6 @@ public abstract class PollMessage extends ImmutableObject
     List<DomainTransferResponse> domainTransferResponses;
     List<HostPendingActionNotificationResponse> hostPendingActionNotificationResponses;
 
-    // Extensions. Objectify cannot persist a base class type, so we must have a separate field
-    // to hold every possible derived type of ResponseExtensions that we might store.
-    //
-    // Note that we cannot store a list of LaunchInfoResponseExtension objects since it contains a
-    // list of embedded Mark objects, and embedded lists of lists are not allowed. This shouldn't
-    // matter since there's no scenario where multiple launch info response extensions are ever
-    // returned.
-    LaunchInfoResponseExtension launchInfoResponseExtension;
-
     @Override
     public Builder asBuilder() {
       return new Builder(clone(this));
@@ -218,17 +204,11 @@ public abstract class PollMessage extends ImmutableObject
           .build();
     }
 
-    @Override
-    public ImmutableList<ResponseExtension> getResponseExtensions() {
-      return (launchInfoResponseExtension == null)
-          ? ImmutableList.of()
-          : ImmutableList.of(launchInfoResponseExtension);
-    }
-
     /** A builder for {@link OneTime} since it is immutable. */
     public static class Builder extends PollMessage.Builder<OneTime, Builder> {
 
-      public Builder() {}
+      public Builder() {
+      }
 
       private Builder(OneTime instance) {
         super(instance);
@@ -272,18 +252,6 @@ public abstract class PollMessage extends ImmutableObject
                     .collect(toImmutableList()));
         return this;
       }
-
-      public Builder setResponseExtensions(
-          ImmutableList<? extends ResponseExtension> responseExtensions) {
-        getInstance().launchInfoResponseExtension =
-            responseExtensions
-                .stream()
-                .filter(LaunchInfoResponseExtension.class::isInstance)
-                .map(LaunchInfoResponseExtension.class::cast)
-                .findFirst()
-                .orElse(null);
-        return this;
-      }
     }
   }
 
@@ -318,11 +286,6 @@ public abstract class PollMessage extends ImmutableObject
       // response should be 1 year past that, since it denotes the new expiration time.
       return ImmutableList.of(
           DomainRenewData.create(getTargetId(), getEventTime().plusYears(1)));
-    }
-
-    @Override
-    public ImmutableList<ResponseExtension> getResponseExtensions() {
-      return ImmutableList.of();
     }
 
     @Override

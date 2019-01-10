@@ -21,5 +21,4 @@ import javax.xml.bind.annotation.XmlRootElement;
  * commands.
  */
 @XmlRootElement(name = "update")
-public class LaunchUpdateExtension
-    extends LaunchExtension implements ApplicationIdTargetExtension {}
+public class LaunchUpdateExtension extends LaunchExtension {}

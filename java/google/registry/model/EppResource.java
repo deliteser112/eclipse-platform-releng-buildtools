@@ -51,7 +51,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.joda.time.DateTime;
 
-/** An EPP entity object (i.e. a domain, application, contact, or host). */
+/** An EPP entity object (i.e. a domain, contact, or host). */
 public abstract class EppResource extends BackupGroupRoot implements Buildable {
 
   /**

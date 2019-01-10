@@ -84,11 +84,11 @@ public class NordnUploadActionTest {
       + "roid,domain-name,notice-id,registrar-id,registration-datetime,ack-datetime,"
       + "application-datetime\n"
       + "2-TLD,claims-landrush1.tld,landrush1tcn,99999,2010-05-01T10:11:12.000Z,"
-      + "1969-12-31T23:00:00.000Z,1969-12-31T00:00:00.000Z\n";
+      + "1969-12-31T23:00:00.000Z\n";
 
   private static final String SUNRISE_CSV = "1,2010-05-01T10:11:12.000Z,1\n"
       + "roid,domain-name,SMD-id,registrar-id,registration-datetime,application-datetime\n"
-      + "2-TLD,sunrise1.tld,my-smdid,99999,2010-05-01T10:11:12.000Z,1969-12-31T00:00:00.000Z\n";
+      + "2-TLD,sunrise1.tld,my-smdid,99999,2010-05-01T10:11:12.000Z\n";
 
   private static final String LOCATION_URL = "http://trololol";
 
@@ -272,20 +272,19 @@ public class NordnUploadActionTest {
 
   private void persistClaimsModeDomain() {
     DomainResource domain = newDomainResource("claims-landrush1.tld");
-    persistDomainAndEnqueueLordn(domain.asBuilder()
-        .setLaunchNotice(LaunchNotice.create(
-            "landrush1tcn", null, null, domain.getCreationTime().minusHours(1)))
-        .setApplicationTime(domain.getCreationTime().minusDays(1))
-        .build());
+    persistDomainAndEnqueueLordn(
+        domain
+            .asBuilder()
+            .setLaunchNotice(
+                LaunchNotice.create(
+                    "landrush1tcn", null, null, domain.getCreationTime().minusHours(1)))
+            .build());
   }
 
   private void persistSunriseModeDomain() {
     action.phase = "sunrise";
     DomainResource domain = newDomainResource("sunrise1.tld");
-    persistDomainAndEnqueueLordn(domain.asBuilder()
-        .setSmdId("my-smdid")
-        .setApplicationTime(domain.getCreationTime().minusDays(1))
-        .build());
+    persistDomainAndEnqueueLordn(domain.asBuilder().setSmdId("my-smdid").build());
   }
 
   private static TaskHandle makeTaskHandle(

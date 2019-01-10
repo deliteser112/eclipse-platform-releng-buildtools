@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowTestCase;
-import google.registry.flows.domain.DomainClaimsCheckFlow.DomainClaimsCheckNotAllowedInSunrise;
 import google.registry.flows.domain.DomainClaimsCheckFlow.DomainClaimsCheckNotAllowedWithAllocationTokens;
 import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
 import google.registry.flows.domain.DomainFlowUtils.ClaimsPeriodEndedException;
@@ -61,12 +60,6 @@ public class DomainClaimsCheckFlowTest
 
   @Test
   public void testSuccess_noClaims() throws Exception {
-    doSuccessfulTest("domain_check_claims_response_none.xml");
-  }
-
-  @Test
-  public void testSuccess_sunrush() throws Exception {
-    createTld("tld", TldState.SUNRUSH);
     doSuccessfulTest("domain_check_claims_response_none.xml");
   }
 
@@ -144,16 +137,8 @@ public class DomainClaimsCheckFlowTest
   }
 
   @Test
-  public void testFailure_sunrise() {
-    createTld("tld", TldState.SUNRISE);
-    setEppInput("domain_check_claims.xml");
-    EppException thrown = assertThrows(DomainClaimsCheckNotAllowedInSunrise.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
   public void testFailure_allocationToken() {
-    createTld("tld", TldState.SUNRISE);
+    createTld("tld");
     setEppInput("domain_check_claims_allocationtoken.xml");
     EppException thrown =
         assertThrows(DomainClaimsCheckNotAllowedWithAllocationTokens.class, this::runFlow);

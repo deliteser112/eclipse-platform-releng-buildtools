@@ -39,7 +39,6 @@ import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.flows.picker.FlowPicker;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.ProtocolDefinition;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
@@ -211,9 +210,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
           ((Function<GracePeriod, GracePeriod>)
                   gracePeriod ->
                       GracePeriod.create(
-                          gracePeriod.isSunrushAddGracePeriod()
-                              ? GracePeriodStatus.SUNRUSH_ADD
-                              : gracePeriod.getType(),
+                          gracePeriod.getType(),
                           gracePeriod.getExpirationTime(),
                           gracePeriod.getClientId(),
                           null))

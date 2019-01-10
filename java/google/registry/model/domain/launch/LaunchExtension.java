@@ -16,7 +16,6 @@ package google.registry.model.domain.launch;
 
 import google.registry.model.Buildable.GenericBuilder;
 import google.registry.model.ImmutableObject;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 /**
@@ -29,28 +28,16 @@ public abstract class LaunchExtension extends ImmutableObject {
   /** The launch phase that this domain application was created in. */
   LaunchPhase phase;
 
-  /** Application ID of the domain application. */
-  @XmlElement(name = "applicationID")
-  String applicationId;
-
   public LaunchPhase getPhase() {
     return phase;
-  }
-
-  public String getApplicationId() {
-    return applicationId;
   }
 
   /** A builder for constructing {@link LaunchExtension}. */
   public static class Builder<T extends LaunchExtension, B extends Builder<?, ?>>
       extends GenericBuilder<T, B> {
+
     public B setPhase(LaunchPhase phase) {
       getInstance().phase = phase;
-      return thisCastToDerived();
-    }
-
-    public B setApplicationId(String applicationId) {
-      getInstance().applicationId = applicationId;
       return thisCastToDerived();
     }
   }

@@ -14,15 +14,10 @@
 
 package google.registry.model.domain.launch;
 
-import static com.google.common.base.CaseFormat.LOWER_CAMEL;
-import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
-import static google.registry.util.TypeUtils.getTypesafeEnumMapping;
 import static java.util.Objects.hash;
 
-import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.ImmutableObject;
-import java.util.Map.Entry;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlValue;
@@ -48,9 +43,9 @@ import javax.xml.bind.annotation.XmlValue;
  * we will return an error if it's the wrong phase (or if the marks are invalid) even though we
  * didn't require them.
  *
- * <p>This is OK (?) because the Anchor Tenants field is set internally and manually.. The person
- * who sets it is the one that needs to make sure the domain isn't a trademark and that the fields
- * are correct.
+ * <p>This is OK (?) because the Anchor Tenants field is set internally and manually. The person who
+ * sets it is the one that needs to make sure the domain isn't a trademark and that the fields are
+ * correct.
  */
 @Embed
 public class LaunchPhase extends ImmutableObject {
@@ -58,75 +53,39 @@ public class LaunchPhase extends ImmutableObject {
   /**
    * The phase during which trademark holders can submit registrations or applications with
    * trademark information that can be validated by the server.
-   *
-   * This phase works for both start-date and end-data sunrise.
-   *
-   * TODO(b/74006379): maybe make this work for sunrush phase?
    */
-  public static final LaunchPhase SUNRISE = create("sunrise", null);
-
-  /**
-   * A post-Sunrise phase when non-trademark holders are allowed to register domain names with steps
-   * taken to address a large volume of initial registrations.
-   */
-  public static final LaunchPhase LANDRUSH = create("landrush", null);
-
-  /** A combined sunrise/landrush phase. */
-  public static final LaunchPhase SUNRUSH = create("sunrise", "landrush");
+  public static final LaunchPhase SUNRISE = create("sunrise");
 
   /**
    * The Trademark Claims phase, as defined in the TMCH Functional Specification, in which a Claims
    * Notice must be displayed to a prospective registrant of a domain name that matches trademarks.
    */
-  public static final LaunchPhase CLAIMS = create("claims", null);
+  public static final LaunchPhase CLAIMS = create("claims");
 
   /** A post-launch phase that is also referred to as "steady state". */
-  public static final LaunchPhase OPEN = create("open", null);
-
-  /** A custom server launch phase that is defined using the "name" attribute. */
-  public static final LaunchPhase CUSTOM = create("custom", null);
-
-  private static final ImmutableMap<String, LaunchPhase> LAUNCH_PHASES = initEnumMapping();
-
-  /**
-   * Returns a map of the static final fields to their values, case-converted.
-   */
-  private static ImmutableMap<String, LaunchPhase> initEnumMapping() {
-    ImmutableMap.Builder<String, LaunchPhase> builder = new ImmutableMap.Builder<>();
-    for (Entry<String, LaunchPhase> entry : getTypesafeEnumMapping(LaunchPhase.class).entrySet()) {
-      builder.put(UPPER_UNDERSCORE.to(LOWER_CAMEL, entry.getKey()), entry.getValue());
-    }
-    return builder.build();
-  }
+  public static final LaunchPhase OPEN = create("open");
 
   /** Private create function for the typesafe enum pattern. */
-  public static LaunchPhase create(String phase, String subphase) {
+  public static LaunchPhase create(String phase) {
     LaunchPhase instance = new LaunchPhase();
     instance.phase = phase;
-    instance.subphase = subphase;
     return instance;
   }
 
-  @XmlValue
-  String phase;
+  @XmlValue String phase;
 
   /**
    * Holds the name of a custom phase if the main phase is "custom", or a sub-phase for all other
    * values.
+   *
+   * <p>This is currently unused, but is retained so that incoming XMLs that include a subphase can
+   * have it be reflected back.
    */
   @XmlAttribute(name = "name")
   String subphase;
 
   public String getPhase() {
     return phase;
-  }
-
-  public String getSubphase() {
-    return subphase;
-  }
-
-  public static LaunchPhase fromValue(String value) {
-    return LAUNCH_PHASES.get(value);
   }
 
   /** A special equals implementation that only considers the string value. */

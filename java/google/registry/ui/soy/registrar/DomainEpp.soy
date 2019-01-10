@@ -15,7 +15,7 @@
 {namespace registry.soy.registrar.domainepp}
 
 
-/* General Availability.  Sunrush down below. */
+/* General Availability. */
 /**
  * Domain create request.
  */
@@ -137,107 +137,4 @@
     {/for}
   {/if}
 </{$tagName}>
-{/template}
-
-
-/* Sunrush. */
-/**
- * Domain create request for sunrush.
- */
-{template .createSunrush stricthtml="false"}
-  {@param item: ?}
-  {@param clTrid: ?}
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
-  <command>
-    <create>
-      <domain:create xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>{$item['domain:name']}</domain:name>
-        <domain:period unit="y">{$item['domain:period']}</domain:period>
-        {if isNonnull($item['domain:ns']['domain:hostObj'][0])}
-        <domain:ns>
-          <domain:hostObj>{$item['domain:ns']['domain:hostObj'][0]}</domain:hostObj>
-          {if isNonnull($item['domain:ns']['domain:hostObj'][1])}
-          <domain:hostObj>{$item['domain:ns']['domain:hostObj'][1]}</domain:hostObj>
-          {/if}
-        </domain:ns>
-        {/if}
-        <domain:registrant>{$item['domain:registrant']}</domain:registrant>
-        <domain:contact type="admin">{$item['domain:contact'][0]}</domain:contact>
-        <domain:contact type="tech">{$item['domain:contact'][1]}</domain:contact>
-        <domain:authInfo>
-          <domain:pw>{$item['domain:pw']}</domain:pw>
-        </domain:authInfo>
-      </domain:create>
-    </create>
-    <extension>
-      <launch:create xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
-        <launch:phase name="landrush">sunrise</launch:phase>
-        {if isNonnull($item['smd:encodedSignedMark'])}
-          <smd:encodedSignedMark xmlns:smd="urn:ietf:params:xml:ns:signedMark-1.0"
-              encoding="base64">{$item['smd:encodedSignedMark']}</smd:encodedSignedMark>
-        {/if}
-      </launch:create>
-    </extension>
-    <clTRID>{$clTrid}</clTRID>
-  </command>
-</epp>
-{/template}
-
-
-/**
- * Domain info request during sunrush.
- */
-{template .infoSunrush stricthtml="false"}
-  {@param name: ?}
-  {@param applicationID: ?}
-  {@param clTrid: ?}
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
-  <command>
-    <info>
-      <domain:info xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name hosts="all">{$name}</domain:name>
-      </domain:info>
-    </info>
-    <extension>
-      <launch:info
-         xmlns:launch="urn:ietf:params:xml:ns:launch-1.0"
-         includeMark="true">
-        <launch:phase name="landrush">sunrise</launch:phase>
-        <launch:applicationID>{$applicationID}</launch:applicationID>
-      </launch:info>
-    </extension>
-    <clTRID>{$clTrid}</clTRID>
-  </command>
-</epp>
-{/template}
-
-
-/**
- * Domain update request.
- */
-{template .updateSunrush stricthtml="false"}
-  {@param item: ?}
-  {@param clTrid: ?}
-<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
-  <command>
-    <update>
-      <domain:update xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>{$item['domain:name']}</domain:name>
-        <domain:chg>
-          <domain:registrant>{$item['domain:registrant']}</domain:registrant>
-          <domain:authInfo>
-            <domain:pw>{$item['domain:authInfo']['domain:pw']}</domain:pw>
-          </domain:authInfo>
-        </domain:chg>
-      </domain:update>
-    </update>
-    <extension>
-      <launch:update xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
-        <launch:phase>sunrise</launch:phase>
-        <launch:applicationID>{$item['launch:applicationID']}</launch:applicationID>
-      </launch:update>
-    </extension>
-    <clTRID>{$clTrid}</clTRID>
-  </command>
-</epp>
 {/template}

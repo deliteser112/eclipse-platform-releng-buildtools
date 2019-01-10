@@ -22,8 +22,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * commands.
  */
 @XmlRootElement(name = "info")
-public class LaunchInfoExtension
-    extends LaunchExtension implements ApplicationIdTargetExtension {
+public class LaunchInfoExtension extends LaunchExtension {
 
   /** Whether or not to include mark information in the response. */
   @XmlAttribute

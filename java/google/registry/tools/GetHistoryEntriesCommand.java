@@ -52,7 +52,7 @@ final class GetHistoryEntriesCommand implements CommandWithRemoteApi {
 
   @Parameter(
     names = "--id",
-    description = "Foreign key of the resource, or application ID of the domain application.")
+    description = "Foreign key of the resource.")
   private String uniqueId;
 
   @Override

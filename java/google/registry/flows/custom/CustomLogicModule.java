@@ -25,15 +25,6 @@ import google.registry.model.eppinput.EppInput;
 public class CustomLogicModule {
 
   @Provides
-  static DomainApplicationCreateFlowCustomLogic provideDomainApplicationCreateFlowCustomLogic(
-      CustomLogicFactory factory,
-      EppInput eppInput,
-      SessionMetadata sessionMetadata,
-      FlowMetadata flowMetadata) {
-    return factory.forDomainApplicationCreateFlow(eppInput, sessionMetadata, flowMetadata);
-  }
-
-  @Provides
   static DomainCreateFlowCustomLogic provideDomainCreateFlowCustomLogic(
       CustomLogicFactory factory,
       EppInput eppInput,

@@ -50,7 +50,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
-/** Shared base class for {@link DomainResource} and {@link DomainApplication}. */
+/** Base class for {@link DomainResource}. */
+// TODO(b/121028829): Squash DomainResource into this.
 @ReportedOn
 @Entity
 public abstract class DomainBase extends EppResource {

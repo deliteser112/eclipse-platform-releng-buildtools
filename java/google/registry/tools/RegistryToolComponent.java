@@ -90,7 +90,6 @@ interface RegistryToolComponent {
   void inject(DeploySpec11PipelineCommand command);
   void inject(EncryptEscrowDepositCommand command);
   void inject(GenerateAllocationTokensCommand command);
-  void inject(GenerateApplicationsReportCommand command);
   void inject(GenerateDnsReportCommand command);
   void inject(GenerateEscrowDepositCommand command);
   void inject(GetKeyringSecretCommand command);

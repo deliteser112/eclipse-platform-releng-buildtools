@@ -17,7 +17,6 @@ package google.registry.flows.host;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -284,18 +283,6 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     createTld("tld");
     persistResource(
         newDomainResource("example.tld")
-            .asBuilder()
-            .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.tld"))))
-            .build());
-    EppException thrown = assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testFailure_failfastWhenLinkedToApplication() {
-    createTld("tld");
-    persistResource(
-        newDomainApplication("example.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.tld"))))
             .build());

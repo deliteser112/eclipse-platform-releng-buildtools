@@ -21,7 +21,6 @@ import static google.registry.mapreduce.inputs.EppResourceInputs.createKeyInput;
 import static google.registry.model.index.EppResourceIndexBucket.getBucketKey;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newContactResource;
-import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
@@ -34,7 +33,6 @@ import com.google.appengine.tools.mapreduce.InputReader;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
@@ -224,41 +222,6 @@ public class EppResourceInputsTest {
   }
 
   @Test
-  public void testSuccess_entityReader_allowsPolymorphicMatches() throws Exception {
-    createTld("tld");
-    DomainResource domain = persistEppResourceInFirstBucket(newDomainResource("a.tld"));
-    DomainApplication application = persistEppResourceInFirstBucket(newDomainApplication("b.tld"));
-    Set<DomainBase> seen = new HashSet<>();
-    InputReader<DomainBase> reader = createEntityInput(DomainBase.class).createReaders().get(0);
-    reader.beginShard();
-    reader.beginSlice();
-    assertThat(reader.getProgress()).isWithin(EPSILON).of(0);
-    seen.add(reader.next());
-    assertThat(reader.getProgress()).isWithin(EPSILON).of(0.5);
-    seen.add(reader.next());
-    assertThat(reader.getProgress()).isWithin(EPSILON).of(1.0);
-    assertThat(seen).containsExactly(domain, application);
-    assertThrows(NoSuchElementException.class, reader::next);
-  }
-
-  @Test
-  public void testSuccess_entityReader_skipsPolymorphicMismatches() throws Exception {
-    createTld("tld");
-    persistEppResourceInFirstBucket(newDomainApplication("b.tld"));
-    DomainResource domainA = persistEppResourceInFirstBucket(newDomainResource("a.tld"));
-    InputReader<DomainResource> reader =
-        createEntityInput(DomainResource.class).createReaders().get(0);
-    reader.beginShard();
-    reader.beginSlice();
-    assertThat(reader.getProgress()).isWithin(EPSILON).of(0);
-    assertThat(reader.next()).isEqualTo(domainA);
-    // We can't reliably assert getProgress() here, since it counts before the postfilter that weeds
-    // out polymorphic mismatches, and so depending on whether the domain or the application was
-    // seen first it will be 0.5 or 1.0. However, there should be nothing left when we call next().
-    assertThrows(NoSuchElementException.class, reader::next);
-  }
-
-  @Test
   public void testSuccess_entityReader_filtersOnMultipleTypes() throws Exception {
     createTld("tld");
     DomainResource domain = persistEppResourceInFirstBucket(newDomainResource("a.tld"));
@@ -284,9 +247,8 @@ public class EppResourceInputsTest {
     createTld("tld");
     ContactResource contact = persistEppResourceInFirstBucket(newContactResource("contact"));
     // Specify the contact since persistActiveDomain{Application} creates a hidden one.
-    DomainResource domain = persistEppResourceInFirstBucket(newDomainResource("a.tld", contact));
-    DomainApplication application =
-        persistEppResourceInFirstBucket(newDomainApplication("b.tld", contact));
+    DomainResource domain1 = persistEppResourceInFirstBucket(newDomainResource("a.tld", contact));
+    DomainResource domain2 = persistEppResourceInFirstBucket(newDomainResource("b.tld", contact));
     HostResource host = persistEppResourceInFirstBucket(newHostResource("ns1.example.com"));
     Set<EppResource> seen = new HashSet<>();
     InputReader<EppResource> reader = createEntityInput(EppResource.class).createReaders().get(0);
@@ -301,7 +263,7 @@ public class EppResourceInputsTest {
     assertThat(reader.getProgress()).isWithin(EPSILON).of(0.75);
     seen.add(reader.next());
     assertThat(reader.getProgress()).isWithin(EPSILON).of(1.0);
-    assertThat(seen).containsExactly(domain, host, application, contact);
+    assertThat(seen).containsExactly(domain1, domain2, host, contact);
     assertThrows(NoSuchElementException.class, reader::next);
   }
 }

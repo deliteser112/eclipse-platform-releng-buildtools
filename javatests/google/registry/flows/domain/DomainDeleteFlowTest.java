@@ -375,12 +375,6 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     doImmediateDeleteTest(GracePeriodStatus.ADD, "domain_delete_response_fee.xml", FEE_12_MAP);
   }
 
-  @Test
-  public void testSuccess_sunrushAddGracePeriodResultsInImmediateDelete() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
-    doImmediateDeleteTest(GracePeriodStatus.SUNRUSH_ADD, "generic_success_response.xml");
-  }
-
   private void doSuccessfulTest_noAddGracePeriod(String responseFilename) throws Exception {
     doSuccessfulTest_noAddGracePeriod(responseFilename, ImmutableMap.of());
   }

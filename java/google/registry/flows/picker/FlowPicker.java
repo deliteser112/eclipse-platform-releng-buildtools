@@ -14,11 +14,8 @@
 
 package google.registry.flows.picker;
 
-import static google.registry.model.domain.launch.LaunchCreateExtension.CreateType.APPLICATION;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import google.registry.flows.EppException;
@@ -35,11 +32,6 @@ import google.registry.flows.contact.ContactTransferQueryFlow;
 import google.registry.flows.contact.ContactTransferRejectFlow;
 import google.registry.flows.contact.ContactTransferRequestFlow;
 import google.registry.flows.contact.ContactUpdateFlow;
-import google.registry.flows.domain.DomainAllocateFlow;
-import google.registry.flows.domain.DomainApplicationCreateFlow;
-import google.registry.flows.domain.DomainApplicationDeleteFlow;
-import google.registry.flows.domain.DomainApplicationInfoFlow;
-import google.registry.flows.domain.DomainApplicationUpdateFlow;
 import google.registry.flows.domain.DomainCheckFlow;
 import google.registry.flows.domain.DomainClaimsCheckFlow;
 import google.registry.flows.domain.DomainCreateFlow;
@@ -65,11 +57,8 @@ import google.registry.flows.session.LoginFlow;
 import google.registry.flows.session.LogoutFlow;
 import google.registry.model.contact.ContactCommand;
 import google.registry.model.domain.DomainCommand;
-import google.registry.model.domain.allocate.AllocateCreateExtension;
-import google.registry.model.domain.launch.ApplicationIdTargetExtension;
 import google.registry.model.domain.launch.LaunchCheckExtension;
 import google.registry.model.domain.launch.LaunchCheckExtension.CheckType;
-import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.rgp.RestoreCommand.RestoreOp;
 import google.registry.model.domain.rgp.RgpUpdateExtension;
@@ -229,74 +218,6 @@ public class FlowPicker {
       return resourceCommand == null ? null : resourceCrudFlows.get(resourceCommand.getClass());
     }};
 
-  /** The domain allocate flow has a specific extension. */
-  private static final FlowProvider ALLOCATE_FLOW_PROVIDER =
-      new FlowProvider() {
-        @Override
-        Class<? extends Flow> get(
-            EppInput eppInput, InnerCommand innerCommand, ResourceCommand resourceCommand) {
-          return (resourceCommand instanceof DomainCommand.Create
-                  && eppInput.getSingleExtension(AllocateCreateExtension.class).isPresent())
-              ? DomainAllocateFlow.class
-              : null;
-        }
-      };
-
-  private static final ImmutableSet<LaunchPhase> LAUNCH_PHASES_DEFAULTING_TO_APPLICATION =
-      ImmutableSet.of(LaunchPhase.SUNRUSH, LaunchPhase.LANDRUSH);
-
-  /**
-   * Application CRUD flows have an extension and are keyed on the type of their {@link
-   * ResourceCommand}.
-   */
-  private static final FlowProvider APPLICATION_CRUD_FLOW_PROVIDER =
-      new FlowProvider() {
-
-        private final Map<Class<? extends ResourceCommand>, Class<? extends Flow>>
-            applicationFlows =
-                ImmutableMap.of(
-                    DomainCommand.Create.class, DomainApplicationCreateFlow.class,
-                    DomainCommand.Delete.class, DomainApplicationDeleteFlow.class,
-                    DomainCommand.Info.class, DomainApplicationInfoFlow.class,
-                    DomainCommand.Update.class, DomainApplicationUpdateFlow.class);
-
-        @Override
-        Class<? extends Flow> get(
-            EppInput eppInput, InnerCommand innerCommand, ResourceCommand resourceCommand) {
-          if (eppInput.getSingleExtension(ApplicationIdTargetExtension.class).isPresent()) {
-            return applicationFlows.get(resourceCommand.getClass());
-          }
-          Optional<LaunchCreateExtension> createExtension =
-              eppInput.getSingleExtension(LaunchCreateExtension.class);
-          // Return a flow if the type is APPLICATION. If the type is REGISTRATION, return null.
-          if (createExtension.isPresent()) {
-            LaunchPhase launchPhase = createExtension.get().getPhase();
-            // <launch:create> has an optional type argument, that can take either "application" or
-            // "registration".
-            // https://tools.ietf.org/html/rfc8334#section-3.3.1
-            // We get that type via createExtension.get().getCreateType()
-            // If it isn't given, the function returns null.
-            // In that case, we need to decide based on the TLD. For now we can't do that - so we
-            // TEMPORARILY decide as follows:
-            // landrush and sunrush phases will default to APPLICATION, because there's no possible
-            // registration for it.
-            // sunrise defaults to REGISTRATION because we're currenly launching start-date sunrise
-            // that uses direct registration.
-            //
-            // TODO(b/76095570): if createExtension.get().getCreateType() isn't explicitly given,
-            // we need to set it according to the TldState (which means we need to know the TLD and
-            // load the Registry - which will probably result in a big refactoring since we can use
-            // TldState information to pick the flow)
-            if (APPLICATION.equals(createExtension.get().getCreateType())
-                || (createExtension.get().getCreateType() == null
-                    && LAUNCH_PHASES_DEFAULTING_TO_APPLICATION.contains(launchPhase))) {
-              return applicationFlows.get(resourceCommand.getClass());
-            }
-          }
-          return null;
-        }
-      };
-
   /** Transfer flows have an {@link InnerCommand} of type {@link Transfer}. */
   private static final FlowProvider TRANSFER_FLOW_PROVIDER = new FlowProvider() {
     private final Table<Class<?>, TransferOp, Class<? extends Flow>> transferFlows = ImmutableTable
@@ -327,8 +248,6 @@ public class FlowPicker {
           SESSION_FLOW_PROVIDER,
           POLL_FLOW_PROVIDER,
           DOMAIN_RESTORE_FLOW_PROVIDER,
-          ALLOCATE_FLOW_PROVIDER,
-          APPLICATION_CRUD_FLOW_PROVIDER,
           DOMAIN_CHECK_FLOW_PROVIDER,
           RESOURCE_CRUD_FLOW_PROVIDER,
           TRANSFER_FLOW_PROVIDER);

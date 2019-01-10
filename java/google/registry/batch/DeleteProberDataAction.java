@@ -41,7 +41,6 @@ import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResourceUtils;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.index.EppResourceIndex;
@@ -167,23 +166,17 @@ public class DeleteProberDataAction implements Runnable {
     }
 
     private void deleteDomain(final Key<DomainBase> domainKey) {
-      final DomainBase domainBase = ofy().load().key(domainKey).now();
+      final DomainResource domain = (DomainResource) ofy().load().key(domainKey).now();
 
       DateTime now = DateTime.now(UTC);
 
-      if (domainBase == null) {
+      if (domain == null) {
         // Depending on how stale Datastore indexes are, we can get keys to resources that are
         // already deleted (e.g. by a recent previous invocation of this mapreduce). So ignore them.
         getContext().incrementCounter("already deleted");
         return;
       }
-      if (domainBase instanceof DomainApplication) {
-        // Cover the case where we somehow have a domain application with a prober ROID suffix.
-        getContext().incrementCounter("skipped, domain application");
-        return;
-      }
 
-      DomainResource domain = (DomainResource) domainBase;
       String domainName = domain.getFullyQualifiedDomainName();
       if (domainName.equals("nic." + domain.getTld())) {
         getContext().incrementCounter("skipped, NIC domain");

@@ -58,11 +58,6 @@ public class DomainCommandTest extends ResourceCommandTestCase {
   }
 
   @Test
-  public void testCreate_landrush() throws Exception {
-    doXmlRoundtripTest("domain_create_landrush.xml");
-  }
-
-  @Test
   public void testCreate_fee() throws Exception {
     doXmlRoundtripTest("domain_create_fee.xml");
   }
@@ -156,16 +151,6 @@ public class DomainCommandTest extends ResourceCommandTestCase {
   @Test
   public void testInfo_sunrise() throws Exception {
     doXmlRoundtripTest("domain_info_sunrise.xml");
-  }
-
-  @Test
-  public void testInfo_landrush() throws Exception {
-    doXmlRoundtripTest("domain_info_landrush.xml");
-  }
-
-  @Test
-  public void testInfo_sunriseNoApplicationId() throws Exception {
-    doXmlRoundtripTest("domain_info_sunrise_no_application_id.xml");
   }
 
   @Test
