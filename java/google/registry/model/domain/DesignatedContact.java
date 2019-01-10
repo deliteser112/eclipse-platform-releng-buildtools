@@ -16,7 +16,6 @@ package google.registry.model.domain;
 
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
@@ -57,7 +56,6 @@ public class DesignatedContact extends ImmutableObject {
     REGISTRANT;
   }
 
-  @VisibleForTesting
   public static DesignatedContact create(Type type, Key<ContactResource> contact) {
     DesignatedContact instance = new DesignatedContact();
     instance.type = type;

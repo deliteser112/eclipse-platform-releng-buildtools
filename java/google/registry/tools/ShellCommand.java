@@ -297,7 +297,6 @@ public class ShellCommand implements Command {
     return resultBuilder.build().toArray(new String[0]);
   }
 
-  @VisibleForTesting
   static class JCommanderCompletor implements Completor {
 
     private static final ParamDoc DEFAULT_PARAM_DOC =

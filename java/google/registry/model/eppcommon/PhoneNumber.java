@@ -16,7 +16,6 @@ package google.registry.model.eppcommon;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.annotations.VisibleForTesting;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -66,7 +65,6 @@ public class PhoneNumber extends ImmutableObject {
   }
 
   /** A builder for constructing {@link PhoneNumber}. */
-  @VisibleForTesting
   public static class Builder<T extends PhoneNumber> extends Buildable.Builder<T> {
     @Override
     public T build() {

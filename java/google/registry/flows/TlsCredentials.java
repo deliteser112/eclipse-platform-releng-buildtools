@@ -60,7 +60,6 @@ public class TlsCredentials implements TransportCredentials {
   private final InetAddress clientInetAddr;
 
   @Inject
-  @VisibleForTesting
   public TlsCredentials(
       @Config("requireSslCertificates") boolean requireSslCertificates,
       @Header("X-SSL-Certificate") String clientCertificateHash,

@@ -21,7 +21,6 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.TransientFailureException;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.flogger.FluentLogger;
@@ -68,7 +67,6 @@ public final class AsyncTaskEnqueuer {
   private final AppEngineServiceUtils appEngineServiceUtils;
   private final Retrier retrier;
 
-  @VisibleForTesting
   @Inject
   public AsyncTaskEnqueuer(
       @Named(QUEUE_ASYNC_ACTIONS) Queue asyncActionsPushQueue,

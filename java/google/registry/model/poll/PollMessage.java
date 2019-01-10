@@ -129,6 +129,14 @@ public abstract class PollMessage extends ImmutableObject
       super(instance);
     }
 
+    /**
+     * Manually set the ID for testing or in special circumstances.
+     *
+     * <p>In general the ID is auto-created, and there should be no need to set it manually.
+     *
+     * <p>This is only here for testing and for one special situation in which we're making a new
+     * poll message to replace an existing one, so it has to have the same ID.
+     */
     public B setId(Long id) {
       getInstance().id = id;
       return thisCastToDerived();

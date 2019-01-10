@@ -14,7 +14,6 @@
 
 package google.registry.model.domain.secdns;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.ImmutableObject;
 import javax.xml.bind.DatatypeConverter;
@@ -76,7 +75,6 @@ public class DelegationSignerData
     return digest;
   }
 
-  @VisibleForTesting
   public static DelegationSignerData create(
       int keyTag, int algorithm, int digestType, byte[] digest) {
     DelegationSignerData instance = new DelegationSignerData();

@@ -32,7 +32,6 @@ import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.outputs.NoOutput;
 import com.google.appengine.tools.pipeline.Job0;
 import com.google.appengine.tools.pipeline.JobSetting;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.flogger.FluentLogger;
 import google.registry.mapreduce.inputs.ConcatenatingInput;
 import google.registry.request.Parameter;
@@ -86,7 +85,6 @@ public class MapreduceRunner {
    * @param reduceShards number of reduce shards; if omitted, uses {@link #defaultReduceShards}
    */
   @Inject
-  @VisibleForTesting
   public MapreduceRunner(
       @Parameter(PARAM_MAP_SHARDS) Optional<Integer> mapShards,
       @Parameter(PARAM_REDUCE_SHARDS) Optional<Integer> reduceShards) {

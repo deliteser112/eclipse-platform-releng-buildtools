@@ -17,7 +17,6 @@ package google.registry.request.auth;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.google.common.flogger.FluentLogger;
@@ -35,7 +34,6 @@ public class RequestAuthenticator {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  @VisibleForTesting
   @Inject
   public RequestAuthenticator(
       AppEngineInternalAuthenticationMechanism appEngineInternalAuthenticationMechanism,

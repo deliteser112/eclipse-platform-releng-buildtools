@@ -16,7 +16,6 @@ package google.registry.model.contact;
 
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.Buildable;
@@ -84,7 +83,6 @@ public class Disclose extends ImmutableObject {
       return type;
     }
 
-    @VisibleForTesting
     public static PostalInfoChoice create(PostalInfo.Type type) {
       PostalInfoChoice instance = new PostalInfoChoice();
       instance.type = type;
@@ -93,7 +91,6 @@ public class Disclose extends ImmutableObject {
   }
 
   /** A builder for {@link Disclose} since it is immutable. */
-  @VisibleForTesting
   public static class Builder extends Buildable.Builder<Disclose> {
     public Builder setNames(ImmutableList<PostalInfoChoice> names) {
       getInstance().name = names;

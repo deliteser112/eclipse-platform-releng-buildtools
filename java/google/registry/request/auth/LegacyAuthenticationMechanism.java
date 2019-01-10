@@ -22,7 +22,6 @@ import static google.registry.security.XsrfTokenManager.P_CSRF_TOKEN;
 import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 
 import com.google.appengine.api.users.UserService;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import google.registry.security.XsrfTokenManager;
 import javax.inject.Inject;
@@ -41,7 +40,6 @@ public class LegacyAuthenticationMechanism implements AuthenticationMechanism {
   /** HTTP methods which are considered safe, and do not require XSRF protection. */
   private static final ImmutableSet<String> SAFE_METHODS = ImmutableSet.of("GET", "HEAD");
 
-  @VisibleForTesting
   @Inject
   public LegacyAuthenticationMechanism(UserService userService, XsrfTokenManager xsrfTokenManager) {
     this.userService = userService;

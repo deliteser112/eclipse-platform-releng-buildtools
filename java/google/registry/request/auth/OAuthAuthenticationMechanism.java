@@ -22,7 +22,6 @@ import com.google.appengine.api.oauth.OAuthRequestException;
 import com.google.appengine.api.oauth.OAuthService;
 import com.google.appengine.api.oauth.OAuthServiceFailureException;
 import com.google.appengine.api.users.User;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
@@ -50,7 +49,6 @@ public class OAuthAuthenticationMechanism implements AuthenticationMechanism {
 
   private final ImmutableSet<String> allowedOauthClientIds;
 
-  @VisibleForTesting
   @Inject
   public OAuthAuthenticationMechanism(
       OAuthService oauthService,

@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting.Visibility;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -47,6 +48,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * oftentimes will not know the name of the field they're validating.
  */
 @NotThreadSafe
+@SuppressWarnings("OverrideThrowableToString")
 public final class FormFieldException extends FormException {
 
   private final List<Object> names = new ArrayList<>();
@@ -131,7 +133,7 @@ public final class FormFieldException extends FormException {
 
   /** Returns self with {@code name} prepended, for propagating exceptions up the stack. */
   @CheckReturnValue
-  @VisibleForTesting
+  @VisibleForTesting(productionVisibility = Visibility.PACKAGE_PRIVATE)
   public FormFieldException propagate(String name) {
     return propagateImpl(name);
   }

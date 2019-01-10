@@ -100,7 +100,6 @@ public class Address extends ImmutableObject implements Jsonifiable {
   }
 
   /** A builder for constructing {@link Address}. */
-  @VisibleForTesting
   public static class Builder<T extends Address> extends Buildable.Builder<T> {
 
     public Builder() {}

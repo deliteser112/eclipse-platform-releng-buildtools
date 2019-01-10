@@ -562,7 +562,6 @@ public class Registry extends ImmutableObject implements Buildable {
    * domain renewal, and all derived costs (i.e. autorenews, transfers, and the per-domain part of a
    * restore cost).
    */
-  @VisibleForTesting
   public Money getStandardRenewCost(DateTime now) {
     return renewBillingCostTransitions.getValueAtTime(now);
   }
