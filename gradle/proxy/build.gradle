@@ -44,52 +44,52 @@ task deployJar(type: Jar) {
 }
 
 dependencies {
-  compile 'com.beust:jcommander:1.48'
-  compile 'com.google.api-client:google-api-client:1.27.0'
-  compile 'com.google.api-client:google-api-client:1.27.0'
-  compile 'com.google.apis:google-api-services-cloudkms:v1-rev12-1.22.0'
-  compile 'com.google.apis:google-api-services-monitoring:v3-rev11-1.22.0'
-  compile 'com.google.apis:google-api-services-storage:v1-rev86-1.22.0'
-  compile 'com.google.auto.value:auto-value-annotations:1.6.2'
-  compile 'com.google.code.findbugs:jsr305:3.0.2'
-  compile 'com.google.code.gson:gson:2.8.5'
-  compile 'com.google.dagger:dagger:2.15'
-  compile 'com.google.flogger:flogger:0.1'
-  compile 'com.google.guava:guava:27.0-jre'
-  compile 'com.google.http-client:google-http-client:1.27.0'
-  compile 'com.google.monitoring-client:metrics:1.0.4'
-  compile 'com.google.monitoring-client:stackdriver:1.0.4'
-  compile 'io.netty:netty-buffer:4.1.31.Final'
-  compile 'io.netty:netty-codec-http:4.1.31.Final'
-  compile 'io.netty:netty-codec:4.1.31.Final'
-  compile 'io.netty:netty-common:4.1.31.Final'
-  compile 'io.netty:netty-handler:4.1.31.Final'
-  compile 'io.netty:netty-transport:4.1.31.Final'
-  compile 'javax.inject:javax.inject:1'
-  compile 'joda-time:joda-time:2.3'
-  compile 'org.bouncycastle:bcpkix-jdk15on:1.52'
-  compile 'org.bouncycastle:bcprov-jdk15on:1.52'
+  def deps = rootProject.dependencyMap
+
+  compile deps['com.beust:jcommander']
+  compile deps['com.google.api-client:google-api-client']
+  compile deps['com.google.apis:google-api-services-cloudkms']
+  compile deps['com.google.apis:google-api-services-monitoring']
+  compile deps['com.google.apis:google-api-services-storage']
+  compile deps['com.google.auto.value:auto-value-annotations']
+  compile deps['com.google.code.findbugs:jsr305']
+  compile deps['com.google.code.gson:gson']
+  compile deps['com.google.dagger:dagger']
+  compile deps['com.google.flogger:flogger']
+  compile deps['com.google.guava:guava']
+  compile deps['com.google.http-client:google-http-client']
+  compile deps['com.google.monitoring-client:metrics']
+  compile deps['com.google.monitoring-client:stackdriver']
+  compile deps['io.netty:netty-buffer']
+  compile deps['io.netty:netty-codec-http']
+  compile deps['io.netty:netty-codec']
+  compile deps['io.netty:netty-common']
+  compile deps['io.netty:netty-handler']
+  compile deps['io.netty:netty-transport']
+  compile deps['javax.inject:javax.inject']
+  compile deps['joda-time:joda-time']
+  compile deps['org.bouncycastle:bcpkix-jdk15on']
+  compile deps['org.bouncycastle:bcprov-jdk15on']
   compile project(':util')
 
-  runtime 'com.google.flogger:flogger-system-backend:0.1'
-  runtime 'com.google.auto.value:auto-value:1.6.2'
-  runtime group: 'io.netty', name: 'netty-tcnative-boringssl-static',
-      version: '2.0.20.Final', classifier: osdetector.classifier
+  runtime deps['com.google.flogger:flogger-system-backend']
+  runtime deps['com.google.auto.value:auto-value']
+  runtime deps['io.netty:netty-tcnative-boringssl-static'] + ":${osdetector.classifier}"
 
-  testCompile 'com.google.monitoring-client:contrib:1.0.4'
-  testCompile 'com.google.truth:truth:0.42'
-  testCompile 'org.yaml:snakeyaml:1.17'
-  testCompile 'junit:junit:4.12'
-  testCompile 'org.mockito:mockito-all:1.9.5'
+  testCompile deps['com.google.monitoring-client:contrib']
+  testCompile deps['com.google.truth:truth']
+  testCompile deps['org.yaml:snakeyaml']
+  testCompile deps['junit:junit']
+  testCompile deps['org.mockito:mockito-all']
   testCompile project(':third_party')
   testCompile project(path: ':core', configuration: 'testRuntime')
 
   // Include auto-value in compile until nebula-lint understands
   // annotationProcessor
-  annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
-  testAnnotationProcessor 'com.google.auto.value:auto-value:1.6.2'
-  annotationProcessor 'com.google.dagger:dagger-compiler:2.15'
-  testAnnotationProcessor 'com.google.dagger:dagger-compiler:2.15'
+  annotationProcessor deps['com.google.auto.value:auto-value']
+  testAnnotationProcessor deps['com.google.auto.value:auto-value']
+  annotationProcessor deps['com.google.dagger:dagger-compiler']
+  testAnnotationProcessor deps['com.google.dagger:dagger-compiler']
 }
 
 docker {

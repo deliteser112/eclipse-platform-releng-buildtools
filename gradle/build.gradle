@@ -20,6 +20,8 @@ plugins {
   id 'com.bmuschko.docker-java-application' version '4.0.4' apply false
 }
 
+apply from: 'dependencies.gradle'
+
 // Provide defaults for all of the project properties.
 
 // showAllOutput: boolean.  If true, dump all test output during the build.
