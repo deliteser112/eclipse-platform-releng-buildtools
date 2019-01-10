@@ -18,8 +18,6 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.annotations.VisibleForTesting.Visibility;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -131,9 +129,13 @@ public final class FormFieldException extends FormException {
     return result.toString();
   }
 
-  /** Returns self with {@code name} prepended, for propagating exceptions up the stack. */
+  /**
+   * Returns self with {@code name} prepended, for propagating exceptions up the stack.
+   *
+   * <p>This would be package-private except that it needs to be called by a test class in another
+   * package.
+   */
   @CheckReturnValue
-  @VisibleForTesting(productionVisibility = Visibility.PACKAGE_PRIVATE)
   public FormFieldException propagate(String name) {
     return propagateImpl(name);
   }
