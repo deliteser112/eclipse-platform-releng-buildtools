@@ -194,10 +194,15 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testSuccess_cachingDisabled() throws Exception {
-    RegistryConfig.overrideIsEppResourceCachingEnabledForTesting(false);
-    persistReferencedEntities();
-    persistDomain();
-    doSuccessfulTest();
+    boolean origIsCachingEnabled = RegistryConfig.isEppResourceCachingEnabled();
+    try {
+      RegistryConfig.overrideIsEppResourceCachingEnabledForTesting(false);
+      persistReferencedEntities();
+      persistDomain();
+      doSuccessfulTest();
+    } finally {
+      RegistryConfig.overrideIsEppResourceCachingEnabledForTesting(origIsCachingEnabled);
+    }
   }
 
   @Test

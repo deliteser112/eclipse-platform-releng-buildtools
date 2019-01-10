@@ -391,9 +391,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_cachingDisabled() throws Exception {
-    RegistryConfig.overrideIsEppResourceCachingEnabledForTesting(false);
-    persistContactsAndHosts();
-    doSuccessfulTest();
+    boolean origIsCachingEnabled = RegistryConfig.isEppResourceCachingEnabled();
+    try {
+      RegistryConfig.overrideIsEppResourceCachingEnabledForTesting(false);
+      persistContactsAndHosts();
+      doSuccessfulTest();
+    } finally {
+      RegistryConfig.overrideIsEppResourceCachingEnabledForTesting(origIsCachingEnabled);
+    }
   }
 
   @Test

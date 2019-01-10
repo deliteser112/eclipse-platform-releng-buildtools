@@ -14,6 +14,7 @@
 
 package google.registry.model.registrar;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -454,6 +455,11 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testSuccess_setAllowedTldsUncached_newTldNotInCache() {
+    int origSingletonCacheRefreshSeconds =
+        RegistryConfig.CONFIG_SETTINGS.get().caching.singletonCacheRefreshSeconds;
+    // Sanity check for Gradle-based open-source build.
+    checkState(
+        origSingletonCacheRefreshSeconds == 0, "singletonCacheRefreshSeconds expected to be 0.");
     try {
       // Cache duration in tests is 0. To make sure the data isn't in the cache we have to set it
       // to a higher value and reset the cache.
@@ -490,8 +496,8 @@ public class RegistrarTest extends EntityTestCase {
       // TLDs
       assertThat(Registries.getTlds()).doesNotContain("newtld");
     } finally {
-      // Set the cache duration back to 0 to satisfy other tests.
-      RegistryConfig.CONFIG_SETTINGS.get().caching.singletonCacheRefreshSeconds = 0;
+      RegistryConfig.CONFIG_SETTINGS.get().caching.singletonCacheRefreshSeconds =
+          origSingletonCacheRefreshSeconds;
       Registries.resetCache();
     }
   }
