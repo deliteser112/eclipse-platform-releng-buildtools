@@ -37,7 +37,6 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.util.PipelineUtils;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -83,16 +82,14 @@ public class DeleteLoadTestDataAction implements Runnable {
     checkState(
         registryEnvironment != PRODUCTION, "This mapreduce is not safe to run on PRODUCTION.");
 
-    response.sendJavaScriptRedirect(
-        PipelineUtils.createJobPath(
-            mrRunner
-                .setJobName("Delete load test data")
-                .setModuleName("backend")
-                .runMapOnly(
-                    new DeleteLoadTestDataMapper(isDryRun),
-                    ImmutableList.of(
-                        createEntityInput(ContactResource.class),
-                        createEntityInput(HostResource.class)))));
+    mrRunner
+        .setJobName("Delete load test data")
+        .setModuleName("backend")
+        .runMapOnly(
+            new DeleteLoadTestDataMapper(isDryRun),
+            ImmutableList.of(
+                createEntityInput(ContactResource.class), createEntityInput(HostResource.class)))
+        .sendLinkToMapreduceConsole(response);
   }
 
   /** Provides the map method that runs for each existing contact and host entity. */

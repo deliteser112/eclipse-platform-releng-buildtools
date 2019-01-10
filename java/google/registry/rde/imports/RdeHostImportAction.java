@@ -16,7 +16,6 @@ package google.registry.rde.imports;
 
 import static google.registry.mapreduce.MapreduceRunner.PARAM_MAP_SHARDS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
@@ -77,12 +76,13 @@ public class RdeHostImportAction implements Runnable {
 
   @Override
   public void run() {
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
+    mrRunner
         .setJobName("Import hosts from escrow file")
         .setModuleName("backend")
         .runMapOnly(
             new RdeHostImportMapper(importBucketName),
-            ImmutableList.of(new RdeHostInput(mapShards, importBucketName, importFileName)))));
+            ImmutableList.of(new RdeHostInput(mapShards, importBucketName, importFileName)))
+        .sendLinkToMapreduceConsole(response);
   }
 
   /** Mapper to import hosts from an escrow file. */

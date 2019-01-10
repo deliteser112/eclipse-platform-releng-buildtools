@@ -16,7 +16,6 @@ package google.registry.rde.imports;
 
 import static google.registry.mapreduce.MapreduceRunner.PARAM_MAP_SHARDS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
@@ -77,12 +76,11 @@ public class RdeContactImportAction implements Runnable {
 
   @Override
   public void run() {
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
+    mrRunner
         .setJobName("Import contacts from escrow file")
         .setModuleName("backend")
-        .runMapOnly(
-            createMapper(),
-            ImmutableList.of(createInput()))));
+        .runMapOnly(createMapper(), ImmutableList.of(createInput()))
+        .sendLinkToMapreduceConsole(response);
   }
 
   /**

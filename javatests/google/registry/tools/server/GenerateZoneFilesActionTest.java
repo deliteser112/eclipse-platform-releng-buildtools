@@ -16,7 +16,7 @@ package google.registry.tools.server;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
@@ -58,9 +58,7 @@ public class GenerateZoneFilesActionTest extends MapreduceTestCase<GenerateZoneF
   @Test
   public void testGenerate() throws Exception {
     DateTime now = DateTime.now(DateTimeZone.UTC).withTimeAtStartOfDay();
-
-    createTld("tld");
-    createTld("com");
+    createTlds("tld", "com");
 
     ImmutableSet<InetAddress> ips =
         ImmutableSet.of(InetAddress.getByName("127.0.0.1"), InetAddress.getByName("::1"));
@@ -126,12 +124,15 @@ public class GenerateZoneFilesActionTest extends MapreduceTestCase<GenerateZoneF
     action.dnsDefaultDsTtl = Duration.standardSeconds(3333);
     action.clock = new FakeClock(now.plusMinutes(2));  // Move past the actions' 2 minute check.
 
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.<String, Object>of(
-        "tlds", ImmutableList.of("tld"),
-        "exportTime", now));
-    assertThat(response).containsEntry(
-        "filenames",
-        ImmutableList.of("gs://zonefiles-bucket/tld-" + now + ".zone"));
+    Map<String, Object> response =
+        action.handleJsonRequest(
+            ImmutableMap.<String, Object>of("tlds", ImmutableList.of("tld"), "exportTime", now));
+    assertThat(response)
+        .containsEntry("filenames", ImmutableList.of("gs://zonefiles-bucket/tld-" + now + ".zone"));
+    assertThat(response).containsKey("mapreduceConsoleLink");
+    assertThat(response.get("mapreduceConsoleLink").toString())
+        .startsWith(
+            "Mapreduce console: https://backend.hostname.tld/_ah/pipeline/status.html?root=");
 
     executeTasksUntilEmpty("mapreduce");
 

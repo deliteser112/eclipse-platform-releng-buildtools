@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.PipelineUtils.createJobPath;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
@@ -88,17 +87,18 @@ public final class DeleteOldCommitLogsAction implements Runnable {
         "Processing asynchronous deletion of unreferenced CommitLogManifests older than %s",
         deletionThreshold);
 
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
-          .setJobName("Delete old commit logs")
-          .setModuleName("backend")
-          .setDefaultMapShards(NUM_MAP_SHARDS)
-          .setDefaultReduceShards(NUM_REDUCE_SHARDS)
-          .runMapreduce(
-              new DeleteOldCommitLogsMapper(deletionThreshold),
-              new DeleteOldCommitLogsReducer(deletionThreshold, isDryRun),
-              ImmutableList.of(
-                  new CommitLogManifestInput(deletionThreshold),
-                  EppResourceInputs.createKeyInput(EppResource.class)))));
+    mrRunner
+        .setJobName("Delete old commit logs")
+        .setModuleName("backend")
+        .setDefaultMapShards(NUM_MAP_SHARDS)
+        .setDefaultReduceShards(NUM_REDUCE_SHARDS)
+        .runMapreduce(
+            new DeleteOldCommitLogsMapper(deletionThreshold),
+            new DeleteOldCommitLogsReducer(deletionThreshold, isDryRun),
+            ImmutableList.of(
+                new CommitLogManifestInput(deletionThreshold),
+                EppResourceInputs.createKeyInput(EppResource.class)))
+        .sendLinkToMapreduceConsole(response);
   }
 
   /**

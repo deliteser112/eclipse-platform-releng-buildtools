@@ -18,7 +18,6 @@ import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInp
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.registry.Registries.assertTldsExist;
 import static google.registry.request.RequestParameters.PARAM_TLDS;
-import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -64,15 +63,14 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
   @Override
   public void run() {
     assertTldsExist(tlds);
-    response.sendJavaScriptRedirect(
-        createJobPath(
-            mrRunner
-                .setJobName("Refresh DNS for all domains")
-                .setModuleName("tools")
-                .setDefaultMapShards(10)
-                .runMapOnly(
-                    new RefreshDnsForAllDomainsActionMapper(tlds),
-                    ImmutableList.of(createEntityInput(DomainResource.class)))));
+    mrRunner
+        .setJobName("Refresh DNS for all domains")
+        .setModuleName("tools")
+        .setDefaultMapShards(10)
+        .runMapOnly(
+            new RefreshDnsForAllDomainsActionMapper(tlds),
+            ImmutableList.of(createEntityInput(DomainResource.class)))
+        .sendLinkToMapreduceConsole(response);
   }
 
   /** Mapper to refresh DNS for all active domain resources. */

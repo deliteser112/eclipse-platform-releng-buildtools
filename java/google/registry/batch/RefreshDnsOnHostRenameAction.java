@@ -27,7 +27,6 @@ import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.isDeleted;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.latestOf;
-import static google.registry.util.PipelineUtils.createJobPath;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.logging.Level.INFO;
@@ -159,18 +158,16 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
 
   private void runMapreduce(ImmutableList<DnsRefreshRequest> refreshRequests, Optional<Lock> lock) {
     try {
-      response.sendJavaScriptRedirect(
-          createJobPath(
-              mrRunner
-                  .setJobName("Enqueue DNS refreshes for domains referencing renamed hosts")
-                  .setModuleName("backend")
-                  .setDefaultReduceShards(1)
-                  .runMapreduce(
-                      new RefreshDnsOnHostRenameMapper(refreshRequests, retrier),
-                      new RefreshDnsOnHostRenameReducer(refreshRequests, lock.get(), retrier),
-                      // Add an extra NullInput so that the reducer always fires exactly once.
-                      ImmutableList.of(
-                          new NullInput<>(), createEntityInput(DomainResource.class)))));
+      mrRunner
+          .setJobName("Enqueue DNS refreshes for domains referencing renamed hosts")
+          .setModuleName("backend")
+          .setDefaultReduceShards(1)
+          .runMapreduce(
+              new RefreshDnsOnHostRenameMapper(refreshRequests, retrier),
+              new RefreshDnsOnHostRenameReducer(refreshRequests, lock.get(), retrier),
+              // Add an extra NullInput so that the reducer always fires exactly once.
+              ImmutableList.of(new NullInput<>(), createEntityInput(DomainResource.class)))
+          .sendLinkToMapreduceConsole(response);
     } catch (Throwable t) {
       logRespondAndUnlock(
           SEVERE, "Error starting mapreduce to refresh DNS for renamed hosts.", lock);

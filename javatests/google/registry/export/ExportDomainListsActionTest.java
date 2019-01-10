@@ -55,6 +55,7 @@ public class ExportDomainListsActionTest extends MapreduceTestCase<ExportDomainL
   private GcsService gcsService;
   private DriveConnection driveConnection = mock(DriveConnection.class);
   private ArgumentCaptor<byte[]> bytesExportedToDrive = ArgumentCaptor.forClass(byte[].class);
+  private final FakeResponse response = new FakeResponse();
 
   @Before
   public void init() {
@@ -67,7 +68,7 @@ public class ExportDomainListsActionTest extends MapreduceTestCase<ExportDomainL
 
     action = new ExportDomainListsAction();
     action.mrRunner = makeDefaultRunner();
-    action.response = new FakeResponse();
+    action.response = response;
     action.gcsBucket = "outputbucket";
     action.gcsBufferSize = 500;
     gcsService = createGcsService();
@@ -86,6 +87,14 @@ public class ExportDomainListsActionTest extends MapreduceTestCase<ExportDomainL
             eq(folderId),
             bytesExportedToDrive.capture());
     assertThat(new String(bytesExportedToDrive.getValue(), "UTF-8")).isEqualTo(domains);
+  }
+
+  @Test
+  public void test_writesLinkToMapreduceConsoleToResponse() throws Exception {
+    runMapreduce();
+    assertThat(response.getPayload())
+        .startsWith(
+            "Mapreduce console: https://backend.hostname.tld/_ah/pipeline/status.html?root=");
   }
 
   @Test

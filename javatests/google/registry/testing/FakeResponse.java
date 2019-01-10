@@ -80,16 +80,11 @@ public final class FakeResponse implements Response {
     headers.put(checkNotNull(header), checkNotNull(timestamp));
   }
 
-  @Override
-  public void sendJavaScriptRedirect(String redirectUrl) {
-    checkResponsePerformedOnce();
-    this.status = 200;
-    this.payload = "Javascript redirect to " + redirectUrl;
-  }
-
   private void checkResponsePerformedOnce() {
-    checkState(!wasMutuallyExclusiveResponseSet,
-        "Two responses were sent. Here's the previous call:\n%s", lastResponseStackTrace);
+    checkState(
+        !wasMutuallyExclusiveResponseSet,
+        "Two responses were sent. Here's the previous call:\n%s",
+        lastResponseStackTrace);
     wasMutuallyExclusiveResponseSet = true;
     lastResponseStackTrace = getStackTrace();
   }

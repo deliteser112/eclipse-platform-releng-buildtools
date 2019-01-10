@@ -52,7 +52,6 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.util.PipelineUtils;
 import java.util.List;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -87,12 +86,13 @@ public class DeleteProberDataAction implements Runnable {
     checkState(
         !Strings.isNullOrEmpty(registryAdminClientId),
         "Registry admin client ID must be configured for prober data deletion to work");
-    response.sendJavaScriptRedirect(PipelineUtils.createJobPath(mrRunner
+    mrRunner
         .setJobName("Delete prober data")
         .setModuleName("backend")
         .runMapOnly(
             new DeleteProberDataMapper(getProberRoidSuffixes(), isDryRun, registryAdminClientId),
-            ImmutableList.of(EppResourceInputs.createKeyInput(DomainBase.class)))));
+            ImmutableList.of(EppResourceInputs.createKeyInput(DomainBase.class)))
+        .sendLinkToMapreduceConsole(response);
   }
 
   private ImmutableSet<String> getProberRoidSuffixes() {

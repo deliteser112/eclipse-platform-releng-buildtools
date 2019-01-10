@@ -35,7 +35,8 @@ import com.google.appengine.tools.pipeline.JobSetting;
 import com.google.common.flogger.FluentLogger;
 import google.registry.mapreduce.inputs.ConcatenatingInput;
 import google.registry.request.Parameter;
-import google.registry.util.PipelineUtils;
+import google.registry.request.Response;
+import google.registry.util.AppEngineServiceUtils;
 import java.io.Serializable;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -58,8 +59,12 @@ public class MapreduceRunner {
   private static final String BASE_URL = "/_dr/mapreduce/";
   private static final String QUEUE_NAME = "mapreduce";
 
+  private static final String MAPREDUCE_CONSOLE_LINK_FORMAT =
+      "Mapreduce console: https://%s/_ah/pipeline/status.html?root=%s";
+
   private final Optional<Integer> httpParamMapShards;
   private final Optional<Integer> httpParamReduceShards;
+  private final AppEngineServiceUtils appEngineServiceUtils;
 
   // Default to 3 minutes since many slices will contain Datastore queries that time out at 4:30.
   private Duration sliceDuration = Duration.standardMinutes(3);
@@ -87,9 +92,11 @@ public class MapreduceRunner {
   @Inject
   public MapreduceRunner(
       @Parameter(PARAM_MAP_SHARDS) Optional<Integer> mapShards,
-      @Parameter(PARAM_REDUCE_SHARDS) Optional<Integer> reduceShards) {
+      @Parameter(PARAM_REDUCE_SHARDS) Optional<Integer> reduceShards,
+      AppEngineServiceUtils appEngineServiceUtils) {
     this.httpParamMapShards = mapShards;
     this.httpParamReduceShards = reduceShards;
+    this.appEngineServiceUtils = appEngineServiceUtils;
   }
 
   /** Set the max time to run a slice before serializing; defaults to 3 minutes. */
@@ -160,15 +167,13 @@ public class MapreduceRunner {
    * all work will be accomplished via side effects during the map phase.
    *
    * @see #createMapOnlyJob for creating and running a map-only mapreduce as part of a pipeline
-   *
    * @param mapper instance of a mapper class
    * @param inputs input sources for the mapper
    * @param <I> mapper input type
    * @return the job id
    */
-  public <I> String runMapOnly(
-      Mapper<I, Void, Void> mapper,
-      Iterable<? extends Input<? extends I>> inputs) {
+  public <I> MapreduceRunnerResult runMapOnly(
+      Mapper<I, Void, Void> mapper, Iterable<? extends Input<? extends I>> inputs) {
     return runAsPipeline(createMapOnlyJob(mapper, new NoOutput<Void, Void>(), inputs));
   }
 
@@ -220,7 +225,6 @@ public class MapreduceRunner {
    * all work will be accomplished via side effects during the map or reduce phases.
    *
    * @see #createMapreduceJob for creating and running a mapreduce as part of a pipeline
-   *
    * @param mapper instance of a mapper class
    * @param reducer instance of a reducer class
    * @param inputs input sources for the mapper
@@ -229,10 +233,11 @@ public class MapreduceRunner {
    * @param <V> emitted value type
    * @return the job id
    */
-  public final <I, K extends Serializable, V extends Serializable> String runMapreduce(
-      Mapper<I, K, V> mapper,
-      Reducer<K, V, Void> reducer,
-      Iterable<? extends Input<? extends I>> inputs) {
+  public final <I, K extends Serializable, V extends Serializable>
+      MapreduceRunnerResult runMapreduce(
+          Mapper<I, K, V> mapper,
+          Reducer<K, V, Void> reducer,
+          Iterable<? extends Input<? extends I>> inputs) {
     return runMapreduce(mapper, reducer, inputs, new NoOutput<Void, Void>());
   }
 
@@ -240,7 +245,6 @@ public class MapreduceRunner {
    * Kick off a mapreduce job with specified Output handler.
    *
    * @see #createMapreduceJob for creating and running a mapreduce as part of a pipeline
-   *
    * @param mapper instance of a mapper class
    * @param reducer instance of a reducer class
    * @param inputs input sources for the mapper
@@ -251,11 +255,12 @@ public class MapreduceRunner {
    * @param <R> return value of output
    * @return the job id
    */
-  public final <I, K extends Serializable, V extends Serializable, O, R> String runMapreduce(
-      Mapper<I, K, V> mapper,
-      Reducer<K, V, O> reducer,
-      Iterable<? extends Input<? extends I>> inputs,
-      Output<O, R> output) {
+  public final <I, K extends Serializable, V extends Serializable, O, R>
+      MapreduceRunnerResult runMapreduce(
+          Mapper<I, K, V> mapper,
+          Reducer<K, V, O> reducer,
+          Iterable<? extends Input<? extends I>> inputs,
+          Output<O, R> output) {
     return runAsPipeline(createMapreduceJob(mapper, reducer, inputs, output));
   }
 
@@ -266,14 +271,41 @@ public class MapreduceRunner {
     checkArgumentNotNull(mapper, "mapper");
   }
 
-  private String runAsPipeline(Job0<?> job) {
-    String jobId = newPipelineService().startNewPipeline(
-        job,
-        new JobSetting.OnModule(moduleName),
-        new JobSetting.OnQueue(QUEUE_NAME));
+  private MapreduceRunnerResult runAsPipeline(Job0<?> job) {
+    String jobId =
+        newPipelineService()
+            .startNewPipeline(
+                job, new JobSetting.OnModule(moduleName), new JobSetting.OnQueue(QUEUE_NAME));
     logger.atInfo().log(
         "Started '%s' %s job: %s",
-        jobName, job instanceof MapJob ? "map" : "mapreduce", PipelineUtils.createJobPath(jobId));
-    return jobId;
+        jobName, job instanceof MapJob ? "map" : "mapreduce", renderMapreduceConsoleLink(jobId));
+    return new MapreduceRunnerResult(jobId);
+  }
+
+  private String renderMapreduceConsoleLink(String jobId) {
+    return String.format(
+        MAPREDUCE_CONSOLE_LINK_FORMAT, appEngineServiceUtils.getServiceHostname("backend"), jobId);
+  }
+
+  /**
+   * Class representing the result of kicking off a mapreduce.
+   *
+   * <p>This is used to send a link to the mapreduce console.
+   */
+  public class MapreduceRunnerResult {
+
+    private final String jobId;
+
+    private MapreduceRunnerResult(String jobId) {
+      this.jobId = jobId;
+    }
+
+    public void sendLinkToMapreduceConsole(Response response) {
+      response.setPayload(getLinkToMapreduceConsole());
+    }
+
+    public String getLinkToMapreduceConsole() {
+      return renderMapreduceConsoleLink(jobId);
+    }
   }
 }

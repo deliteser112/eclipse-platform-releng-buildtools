@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.request.Action.Method.POST;
-import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.Mapper;
@@ -72,13 +71,12 @@ public class KillAllCommitLogsAction implements Runnable {
                         CommitLogBucket.getAllBucketKeys().stream())
                     .collect(toImmutableList()),
                 1));
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
+    mrRunner
         .setJobName("Delete all commit logs")
         .setModuleName("tools")
         .runMapreduce(
-            new KillAllCommitLogsMapper(),
-            new KillAllEntitiesReducer(),
-            ImmutableList.of(input))));
+            new KillAllCommitLogsMapper(), new KillAllEntitiesReducer(), ImmutableList.of(input))
+        .sendLinkToMapreduceConsole(response);
   }
 
   /**

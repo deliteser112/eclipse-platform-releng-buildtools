@@ -28,7 +28,6 @@ import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.earliestOf;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
-import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
@@ -102,7 +101,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
     logger.atInfo().log(
         "Running Recurring billing event expansion for billing time range [%s, %s).",
         cursorTime, executeTime);
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
+    mrRunner
         .setJobName("Expand Recurring billing events into synthetic OneTime events.")
         .setModuleName("backend")
         .runMapreduce(
@@ -112,7 +111,8 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
             ImmutableList.of(
                 new NullInput<>(),
                 createChildEntityInput(
-                    ImmutableSet.of(DomainResource.class), ImmutableSet.of(Recurring.class))))));
+                    ImmutableSet.of(DomainResource.class), ImmutableSet.of(Recurring.class))))
+        .sendLinkToMapreduceConsole(response);
   }
 
   /** Mapper to expand {@link Recurring} billing events into synthetic {@link OneTime} events. */

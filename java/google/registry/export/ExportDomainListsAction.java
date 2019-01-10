@@ -20,7 +20,6 @@ import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInp
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.registry.Registries.getTldsOfType;
 import static google.registry.request.Action.Method.POST;
-import static google.registry.util.PipelineUtils.createJobPath;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -78,14 +77,15 @@ public class ExportDomainListsAction implements Runnable {
   public void run() {
     ImmutableSet<String> realTlds = getTldsOfType(TldType.REAL);
     logger.atInfo().log("Exporting domain lists for tlds %s", realTlds);
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
+    mrRunner
         .setJobName("Export domain lists")
         .setModuleName("backend")
         .setDefaultReduceShards(Math.min(realTlds.size(), MAX_NUM_REDUCE_SHARDS))
         .runMapreduce(
             new ExportDomainListsMapper(DateTime.now(UTC), realTlds),
             new ExportDomainListsReducer(gcsBucket, gcsBufferSize),
-            ImmutableList.of(createEntityInput(DomainResource.class)))));
+            ImmutableList.of(createEntityInput(DomainResource.class)))
+        .sendLinkToMapreduceConsole(response);
   }
 
   static class ExportDomainListsMapper extends Mapper<DomainResource, String, String> {

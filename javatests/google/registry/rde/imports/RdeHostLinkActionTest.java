@@ -85,7 +85,7 @@ public class RdeHostLinkActionTest extends MapreduceTestCase<RdeHostLinkAction> 
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("test");
     response = new FakeResponse();
-    mrRunner = new MapreduceRunner(Optional.empty(), Optional.empty());
+    mrRunner = makeDefaultRunner();
     action =
         new RdeHostLinkAction(mrRunner, response, IMPORT_BUCKET_NAME, IMPORT_FILE_NAME, mapShards);
   }

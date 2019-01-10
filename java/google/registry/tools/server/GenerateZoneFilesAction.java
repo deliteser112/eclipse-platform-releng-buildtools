@@ -22,7 +22,6 @@ import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInp
 import static google.registry.model.EppResourceUtils.loadAtPointInTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.request.Action.Method.POST;
-import static google.registry.util.PipelineUtils.createJobPath;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -132,17 +131,17 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
     if (!exportTime.equals(exportTime.toDateTime(UTC).withTimeAtStartOfDay())) {
       throw new BadRequestException("Invalid export time: must be midnight UTC");
     }
-    String jobId = mrRunner
-        .setJobName("Generate bind file stanzas")
-        .setModuleName("tools")
-        .setDefaultReduceShards(tlds.size())
-        .runMapreduce(
-            new GenerateBindFileMapper(
-                tlds, exportTime, dnsDefaultATtl, dnsDefaultNsTtl, dnsDefaultDsTtl),
-            new GenerateBindFileReducer(bucket, exportTime, gcsBufferSize),
-            ImmutableList.of(
-                new NullInput<>(),
-                createEntityInput(DomainResource.class)));
+    String mapreduceConsoleLink =
+        mrRunner
+            .setJobName("Generate bind file stanzas")
+            .setModuleName("tools")
+            .setDefaultReduceShards(tlds.size())
+            .runMapreduce(
+                new GenerateBindFileMapper(
+                    tlds, exportTime, dnsDefaultATtl, dnsDefaultNsTtl, dnsDefaultDsTtl),
+                new GenerateBindFileReducer(bucket, exportTime, gcsBufferSize),
+                ImmutableList.of(new NullInput<>(), createEntityInput(DomainResource.class)))
+            .getLinkToMapreduceConsole();
     ImmutableList<String> filenames =
         tlds.stream()
             .map(
@@ -151,7 +150,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
                         GCS_PATH_FORMAT, bucket, String.format(FILENAME_FORMAT, tld, exportTime)))
             .collect(toImmutableList());
     return ImmutableMap.of(
-        "jobPath", createJobPath(jobId),
+        "mapreduceConsoleLink", mapreduceConsoleLink,
         "filenames", filenames);
   }
 

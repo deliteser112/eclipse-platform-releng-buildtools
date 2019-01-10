@@ -19,7 +19,6 @@ import static google.registry.mapreduce.MapreduceRunner.PARAM_MAP_SHARDS;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
-import static google.registry.util.PipelineUtils.createJobPath;
 import static java.util.stream.Collectors.joining;
 
 import com.google.appengine.tools.mapreduce.Mapper;
@@ -86,12 +85,13 @@ public class RdeHostLinkAction implements Runnable {
 
   @Override
   public void run() {
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
+    mrRunner
         .setJobName("Link hosts from escrow file")
         .setModuleName("backend")
         .runMapOnly(
             new RdeHostPostImportMapper(),
-            ImmutableList.of(new RdeHostInput(mapShards, importBucketName, importFileName)))));
+            ImmutableList.of(new RdeHostInput(mapShards, importBucketName, importFileName)))
+        .sendLinkToMapreduceConsole(response);
   }
 
   /** Mapper to link hosts from an escrow file to their superordinate domains. */

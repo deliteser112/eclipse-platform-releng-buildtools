@@ -51,12 +51,4 @@ public interface Response {
    * @see HttpServletResponse#setDateHeader(String, long)
    */
   void setDateHeader(String header, DateTime timestamp);
-
-  /**
-   * Sends a JavaScript redirect HTTP response.
-   *
-   * GAE handles a HTTP 302 status as an error, so using this is helpful for responses that might
-   * sometimes be consumed by GAE code, since it performs a redirect while also returning HTTP 200.
-   */
-  void sendJavaScriptRedirect(String redirectUrl);
 }

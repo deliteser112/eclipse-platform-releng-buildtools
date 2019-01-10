@@ -16,7 +16,6 @@ package google.registry.rde;
 
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
-import static google.registry.util.PipelineUtils.createJobPath;
 import static google.registry.xml.ValidationMode.LENIENT;
 import static google.registry.xml.ValidationMode.STRICT;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
@@ -228,7 +227,7 @@ public final class RdeStagingAction implements Runnable {
     }
     RdeStagingMapper mapper = new RdeStagingMapper(lenient ? LENIENT : STRICT, pendings);
 
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
+    mrRunner
         .setJobName("Stage escrow deposits for all TLDs")
         .setModuleName("backend")
         .setDefaultReduceShards(pendings.size())
@@ -237,8 +236,8 @@ public final class RdeStagingAction implements Runnable {
             reducer,
             ImmutableList.of(
                 // Add an extra shard that maps over a null resource. See the mapper code for why.
-                new NullInput<>(),
-                EppResourceInputs.createEntityInput(EppResource.class)))));
+                new NullInput<>(), EppResourceInputs.createEntityInput(EppResource.class)))
+        .sendLinkToMapreduceConsole(response);
   }
 
   private ImmutableSetMultimap<String, PendingDeposit> getStandardPendingDeposits() {

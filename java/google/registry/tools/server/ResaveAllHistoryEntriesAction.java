@@ -15,7 +15,6 @@
 package google.registry.tools.server;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
@@ -51,14 +50,15 @@ public class ResaveAllHistoryEntriesAction implements Runnable {
   @SuppressWarnings("unchecked")
   @Override
   public void run() {
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
+    mrRunner
         .setJobName("Re-save all HistoryEntry entities")
         .setModuleName("tools")
         .runMapOnly(
             new ResaveAllHistoryEntriesActionMapper(),
-            ImmutableList.of(EppResourceInputs.createChildEntityInput(
-                ImmutableSet.of(EppResource.class),
-                ImmutableSet.of(HistoryEntry.class))))));
+            ImmutableList.of(
+                EppResourceInputs.createChildEntityInput(
+                    ImmutableSet.of(EppResource.class), ImmutableSet.of(HistoryEntry.class))))
+        .sendLinkToMapreduceConsole(response);
   }
 
   /** Mapper to re-save all HistoryEntry entities. */

@@ -69,7 +69,7 @@ public class RdeHostImportActionTest extends MapreduceTestCase<RdeHostImportActi
   @Before
   public void before() {
     response = new FakeResponse();
-    mrRunner = new MapreduceRunner(Optional.empty(), Optional.empty());
+    mrRunner = makeDefaultRunner();
     action = new RdeHostImportAction(
         mrRunner,
         response,

@@ -23,10 +23,6 @@ import org.joda.time.DateTime;
 /** HTTP response object. */
 public final class ResponseImpl implements Response {
 
-  /** Code for a JavaScript redirect. */
-  private static final String REDIRECT_PAYLOAD_FORMAT =
-      "<script>window.location.replace(\"%1$s\");</script><a href=\"%1$s\">%1$s</a>";
-
   private final HttpServletResponse rsp;
 
   @Inject
@@ -61,10 +57,5 @@ public final class ResponseImpl implements Response {
   @Override
   public void setDateHeader(String header, DateTime timestamp) {
     rsp.setDateHeader(header, timestamp.getMillis());
-  }
-
-  @Override
-  public void sendJavaScriptRedirect(String redirectUrl) {
-    setPayload(String.format(REDIRECT_PAYLOAD_FORMAT, redirectUrl));
   }
 }

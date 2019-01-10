@@ -25,7 +25,6 @@ import static google.registry.rde.imports.RdeImportUtils.createAutoRenewBillingE
 import static google.registry.rde.imports.RdeImportUtils.createAutoRenewPollMessageForDomainImport;
 import static google.registry.rde.imports.RdeImportUtils.createHistoryEntryForDomainImport;
 import static google.registry.rde.imports.RdeImportsModule.PATH;
-import static google.registry.util.PipelineUtils.createJobPath;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -107,12 +106,11 @@ public class RdeDomainImportAction implements Runnable {
     logger.atInfo().log(
         "Launching domains import mapreduce: bucket=%s, filename=%s",
         this.importBucketName, this.importFileName);
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
+    mrRunner
         .setJobName("Import domains from escrow file")
         .setModuleName("backend")
-        .runMapOnly(
-            createMapper(),
-            ImmutableList.of(createInput()))));
+        .runMapOnly(createMapper(), ImmutableList.of(createInput()))
+        .sendLinkToMapreduceConsole(response);
   }
 
   /**

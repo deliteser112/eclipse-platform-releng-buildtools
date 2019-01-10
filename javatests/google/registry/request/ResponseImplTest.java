@@ -55,13 +55,4 @@ public class ResponseImplTest {
     new ResponseImpl(rsp).setPayload("hello world");
     assertThat(httpOutput.toString()).isEqualTo("hello world");
   }
-
-  @Test
-  public void testSendJavaScriptRedirect_producesHtmlScript() throws Exception {
-    StringWriter httpOutput = new StringWriter();
-    when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
-    new ResponseImpl(rsp).sendJavaScriptRedirect("/hello");
-    assertThat(httpOutput.toString()).isEqualTo(
-        "<script>window.location.replace(\"/hello\");</script><a href=\"/hello\">/hello</a>");
-  }
 }

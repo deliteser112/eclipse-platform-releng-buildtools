@@ -14,7 +14,6 @@
 
 package google.registry.testing.mapreduce;
 
-import static com.google.common.truth.Truth.assertThat;
 import static google.registry.config.RegistryConfig.getEppResourceIndexBucketCount;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.mockito.Mockito.mock;
@@ -24,11 +23,9 @@ import com.google.appengine.api.blobstore.dev.LocalBlobstoreService;
 import com.google.appengine.api.taskqueue.dev.LocalTaskQueue;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.HeaderWrapper;
-import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
 import com.google.appengine.tools.development.ApiProxyLocal;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.google.appengine.tools.mapreduce.MapReduceServlet;
-import com.google.appengine.tools.mapreduce.impl.shardedjob.ShardedJobHandler;
 import com.google.appengine.tools.pipeline.impl.servlets.PipelineServlet;
 import com.google.appengine.tools.pipeline.impl.servlets.TaskHandler;
 import com.google.apphosting.api.ApiProxy;
@@ -37,7 +34,9 @@ import com.google.common.flogger.FluentLogger;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.ShardableTestCase;
+import google.registry.util.AppEngineServiceUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.UnsupportedEncodingException;
@@ -52,13 +51,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.Before;
 import org.junit.Rule;
+import org.mockito.Mock;
 
 /**
- * Base test class for mapreduces.  Adapted from EndToEndTestCase with some modifications that
- * allow it to work with the Nomulus project, most notably inside knowledge of our
- * routing paths and our Datastore/Task Queue configurations.
+ * Base test class for mapreduces.
  *
- * <p>See https://github.com/GoogleCloudPlatform/appengine-mapreduce/blob/master/java/src/test/java/com/google/appengine/tools/mapreduce/EndToEndTestCase.java
+ * <p>Adapted from EndToEndTestCase with some modifications that allow it to work with Nomulus, most
+ * notably inside knowledge of our routing paths and our Datastore/Task Queue configurations.
+ *
+ * <p>See
+ * https://github.com/GoogleCloudPlatform/appengine-mapreduce/blob/master/java/src/test/java/com/google/appengine/tools/mapreduce/EndToEndTestCase.java
  *
  * @param <T> The type of the Action class that implements the mapreduce.
  */
@@ -79,16 +81,23 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
       .withTaskQueue()
       .build();
 
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+
+  @Mock
+  AppEngineServiceUtils appEngineServiceUtils;
+
   @Before
   public void setUp() {
     taskQueue = LocalTaskQueueTestConfig.getLocalTaskQueue();
     ApiProxyLocal proxy = (ApiProxyLocal) ApiProxy.getDelegate();
     // Creating files is not allowed in some test execution environments, so don't.
     proxy.setProperty(LocalBlobstoreService.NO_STORAGE_PROPERTY, "true");
+    when(appEngineServiceUtils.getServiceHostname("backend")).thenReturn("backend.hostname.tld");
   }
 
   protected MapreduceRunner makeDefaultRunner() {
-    return new MapreduceRunner(Optional.of(getEppResourceIndexBucketCount()), Optional.of(1));
+    return new MapreduceRunner(
+        Optional.of(getEppResourceIndexBucketCount()), Optional.of(1), appEngineServiceUtils);
   }
 
   protected List<QueueStateInfo.TaskStateInfo> getTasks(String queueName) {
@@ -210,14 +219,6 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
     }
   }
 
-  protected TaskStateInfo grabNextTaskFromQueue(String queueName) {
-    List<TaskStateInfo> taskInfo = getTasks(queueName);
-    assertThat(taskInfo).isNotEmpty();
-    TaskStateInfo taskStateInfo = taskInfo.get(0);
-    taskQueue.deleteTask(queueName, taskStateInfo.getTaskName());
-    return taskStateInfo;
-  }
-
   // Sadly there's no way to parse query string with JDK. This is a good enough approximation.
   private static Map<String, String> decodeParameters(String requestBody)
       throws UnsupportedEncodingException {
@@ -235,9 +236,5 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
     }
 
     return result;
-  }
-
-  protected String getTaskId(TaskStateInfo taskStateInfo) throws UnsupportedEncodingException {
-    return decodeParameters(taskStateInfo.getBody()).get(ShardedJobHandler.TASK_ID_PARAM);
   }
 }

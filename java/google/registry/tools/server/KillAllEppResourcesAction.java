@@ -17,7 +17,6 @@ package google.registry.tools.server;
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.request.Action.Method.POST;
-import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
@@ -58,13 +57,14 @@ public class KillAllEppResourcesAction implements Runnable {
         RegistryEnvironment.get() == RegistryEnvironment.CRASH
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,
         "DO NOT RUN ANYWHERE ELSE EXCEPT CRASH OR TESTS.");
-    response.sendJavaScriptRedirect(createJobPath(mrRunner
+    mrRunner
         .setJobName("Delete all EppResources, children, and indices")
         .setModuleName("tools")
         .runMapreduce(
             new KillAllEppResourcesMapper(),
             new KillAllEntitiesReducer(),
-            ImmutableList.of(EppResourceInputs.createIndexInput()))));
+            ImmutableList.of(EppResourceInputs.createIndexInput()))
+        .sendLinkToMapreduceConsole(response);
   }
 
   static class KillAllEppResourcesMapper extends Mapper<EppResourceIndex, Key<?>, Key<?>> {

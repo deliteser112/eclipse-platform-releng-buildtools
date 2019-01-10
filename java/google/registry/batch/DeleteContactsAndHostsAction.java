@@ -40,7 +40,6 @@ import static google.registry.model.reporting.HistoryEntry.Type.CONTACT_DELETE_F
 import static google.registry.model.reporting.HistoryEntry.Type.HOST_DELETE;
 import static google.registry.model.reporting.HistoryEntry.Type.HOST_DELETE_FAILURE;
 import static google.registry.model.transfer.TransferStatus.SERVER_CANCELLED;
-import static google.registry.util.PipelineUtils.createJobPath;
 import static java.math.RoundingMode.CEILING;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -215,20 +214,18 @@ public class DeleteContactsAndHostsAction implements Runnable {
     try {
       int numReducers =
           Math.min(MAX_REDUCE_SHARDS, divide(deletionRequests.size(), DELETES_PER_SHARD, CEILING));
-      response.sendJavaScriptRedirect(
-          createJobPath(
-              mrRunner
-                  .setJobName("Check for EPP resource references and then delete")
-                  .setModuleName("backend")
-                  .setDefaultReduceShards(numReducers)
-                  .runMapreduce(
-                      new DeleteContactsAndHostsMapper(deletionRequests),
-                      new DeleteEppResourceReducer(),
-                      ImmutableList.of(
-                          // Add an extra shard that maps over a null domain. See the mapper code
-                          // for why.
-                          new NullInput<>(), EppResourceInputs.createEntityInput(DomainBase.class)),
-                      new UnlockerOutput<Void>(lock.get()))));
+      mrRunner
+          .setJobName("Check for EPP resource references and then delete")
+          .setModuleName("backend")
+          .setDefaultReduceShards(numReducers)
+          .runMapreduce(
+              new DeleteContactsAndHostsMapper(deletionRequests),
+              new DeleteEppResourceReducer(),
+              ImmutableList.of(
+                  // Add an extra shard that maps over a null domain. See the mapper code for why.
+                  new NullInput<>(), EppResourceInputs.createEntityInput(DomainBase.class)),
+              new UnlockerOutput<Void>(lock.get()))
+          .sendLinkToMapreduceConsole(response);
     } catch (Throwable t) {
       logRespondAndUnlock(SEVERE, "Error starting mapreduce to delete contacts/hosts.", lock);
     }
