@@ -113,27 +113,9 @@ public final class OteAccountBuilder {
         RegistryEnvironment.get() != RegistryEnvironment.PRODUCTION,
         "Can't setup OT&E in production");
     clientIdToTld = createClientIdToTldMap(baseClientId);
-    sunriseTld =
-        createTld(
-            baseClientId + "-sunrise", TldState.START_DATE_SUNRISE, null, null, null, false, 0);
-    gaTld =
-        createTld(
-            baseClientId + "-ga",
-            TldState.GENERAL_AVAILABILITY,
-            SHORT_ADD_GRACE_PERIOD,
-            SHORT_REDEMPTION_GRACE_PERIOD,
-            SHORT_PENDING_DELETE_LENGTH,
-            false,
-            2);
-    eapTld =
-        createTld(
-            baseClientId + "-eap",
-            TldState.GENERAL_AVAILABILITY,
-            SHORT_ADD_GRACE_PERIOD,
-            SHORT_REDEMPTION_GRACE_PERIOD,
-            SHORT_PENDING_DELETE_LENGTH,
-            true,
-            3);
+    sunriseTld = createTld(baseClientId + "-sunrise", TldState.START_DATE_SUNRISE, false, 0);
+    gaTld = createTld(baseClientId + "-ga", TldState.GENERAL_AVAILABILITY, false, 2);
+    eapTld = createTld(baseClientId + "-eap", TldState.GENERAL_AVAILABILITY, true, 3);
     registrars =
         clientIdToTld.keySet().stream()
             .map(OteAccountBuilder::createRegistrar)
@@ -294,9 +276,6 @@ public final class OteAccountBuilder {
   private static Registry createTld(
       String tldName,
       TldState initialTldState,
-      Duration addGracePeriod,
-      Duration redemptionGracePeriod,
-      Duration pendingDeleteLength,
       boolean isEarlyAccess,
       int roidSuffix) {
     String tldNameAlphaNumerical = tldName.replaceAll("[^a-z0-9]", "");
@@ -313,16 +292,10 @@ public final class OteAccountBuilder {
                 String.format(
                     "%S%X",
                     tldNameAlphaNumerical.substring(0, Math.min(tldNameAlphaNumerical.length(), 7)),
-                    roidSuffix));
-    if (addGracePeriod != null) {
-      builder.setAddGracePeriodLength(addGracePeriod);
-    }
-    if (pendingDeleteLength != null) {
-      builder.setPendingDeleteLength(pendingDeleteLength);
-    }
-    if (redemptionGracePeriod != null) {
-      builder.setRedemptionGracePeriodLength(redemptionGracePeriod);
-    }
+                    roidSuffix))
+            .setAddGracePeriodLength(SHORT_ADD_GRACE_PERIOD)
+            .setPendingDeleteLength(SHORT_PENDING_DELETE_LENGTH)
+            .setRedemptionGracePeriodLength(SHORT_REDEMPTION_GRACE_PERIOD);
     if (isEarlyAccess) {
       builder.setEapFeeSchedule(EAP_FEE_SCHEDULE);
     }

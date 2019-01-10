@@ -70,12 +70,6 @@ public final class OteStatsTestHelper {
             .setType(Type.DOMAIN_DELETE)
             .setXmlBytes(getBytes("domain_delete.xml"))
             .build());
-    persistResource(
-        new HistoryEntry.Builder()
-            .setClientId("blobio-3")
-            .setType(Type.DOMAIN_DELETE)
-            .setXmlBytes(getBytes("domain_delete.xml"))
-            .build());
     domainRestoreHistoryEntry =
         persistResource(
             new HistoryEntry.Builder()
@@ -109,13 +103,13 @@ public final class OteStatsTestHelper {
             .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-4")
+            .setClientId("blobio-1")
             .setType(Type.DOMAIN_UPDATE)
             .setXmlBytes(getBytes("domain_update_with_secdns.xml"))
             .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-5")
+            .setClientId("blobio-1")
             .setType(Type.HOST_CREATE)
             .setXmlBytes(getBytes("host_create_complete.xml"))
             .build());

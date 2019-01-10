@@ -44,7 +44,7 @@ public class VerifyOteActionTest {
   @Test
   public void testSuccess_summarize_allPass() {
     assertThat(getResponse(true))
-        .isEqualTo("# actions:   31 - Reqs: [----------------] 16/16 - Overall: PASS");
+        .isEqualTo("# actions:   30 - Reqs: [----------------] 16/16 - Overall: PASS");
   }
 
   @Test
@@ -53,7 +53,7 @@ public class VerifyOteActionTest {
     OteStatsTestHelper.deleteDomainRestoreHistoryEntry();
     OteStatsTestHelper.deleteHostDeleteHistoryEntry();
     assertThat(getResponse(true))
-        .isEqualTo("# actions:   35 - Reqs: [-.-----.------.-] 13/16 - Overall: FAIL");
+        .isEqualTo("# actions:   34 - Reqs: [-.-----.------.-] 13/16 - Overall: FAIL");
   }
 
   @Test
@@ -65,7 +65,7 @@ public class VerifyOteActionTest {
             + "domain creates with fee: 1\n"
             + "domain creates with sec dns: 1\n"
             + ".*"
-            + "domain deletes: 2\n"
+            + "domain deletes: 1\n"
             + ".*"
             + "domain restores: 1\n"
             + "domain transfer approves: 1\n"
@@ -95,7 +95,7 @@ public class VerifyOteActionTest {
             + "domain creates with fee: 1\n"
             + "domain creates with sec dns: 1\n"
             + ".*"
-            + "domain deletes: 2\n"
+            + "domain deletes: 1\n"
             + ".*"
             + "domain restores: 1\n"
             + "domain transfer approves: 1\n"

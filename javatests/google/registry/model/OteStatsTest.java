@@ -38,7 +38,7 @@ public final class OteStatsTest {
   public void testSuccess_allPass() {
     OteStats stats = OteStats.getFromRegistrar("blobio");
     assertThat(stats.getFailures()).isEmpty();
-    assertThat(stats.getSize()).isEqualTo(31);
+    assertThat(stats.getSize()).isEqualTo(30);
   }
 
   @Test
@@ -51,7 +51,7 @@ public final class OteStatsTest {
         .containsExactly(
             StatType.DOMAIN_CREATES_IDN, StatType.DOMAIN_RESTORES, StatType.HOST_DELETES)
         .inOrder();
-    assertThat(stats.getSize()).isEqualTo(35);
+    assertThat(stats.getSize()).isEqualTo(34);
   }
 
   @Test
@@ -74,7 +74,7 @@ public final class OteStatsTest {
             + "domain creates with fee: 1\n"
             + "domain creates with sec dns: 1\n"
             + "domain creates without sec dns: 4\n"
-            + "domain deletes: 2\n"
+            + "domain deletes: 1\n"
             + "domain renews: 0\n"
             + "domain restores: 1\n"
             + "domain transfer approves: 1\n"
@@ -90,7 +90,7 @@ public final class OteStatsTest {
             + "host deletes: 1\n"
             + "host updates: 1\n"
             + "unclassified flows: 0\n"
-            + "TOTAL: 31";
+            + "TOTAL: 30";
     assertThat(stats.toString()).isEqualTo(expected);
   }
 
@@ -115,7 +115,7 @@ public final class OteStatsTest {
             + "domain creates with fee: 1\n"
             + "domain creates with sec dns: 1\n"
             + "domain creates without sec dns: 4\n"
-            + "domain deletes: 2\n"
+            + "domain deletes: 1\n"
             + "domain renews: 0\n"
             + "domain restores: 1\n"
             + "domain transfer approves: 1\n"
@@ -131,7 +131,7 @@ public final class OteStatsTest {
             + "host deletes: 0\n"
             + "host updates: 10\n"
             + "unclassified flows: 0\n"
-            + "TOTAL: 39";
+            + "TOTAL: 38";
     assertThat(stats.toString()).isEqualTo(expected);
   }
 }

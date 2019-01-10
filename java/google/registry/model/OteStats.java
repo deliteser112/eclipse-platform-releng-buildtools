@@ -114,7 +114,7 @@ public class OteStats {
         eppInput -> eppInput.getSingleExtension(FeeCreateCommandExtension.class).isPresent()),
     DOMAIN_CREATES_WITH_SEC_DNS(1, equalTo(Type.DOMAIN_CREATE), HAS_SEC_DNS),
     DOMAIN_CREATES_WITHOUT_SEC_DNS(0, equalTo(Type.DOMAIN_CREATE), HAS_SEC_DNS.negate()),
-    DOMAIN_DELETES(2, equalTo(Type.DOMAIN_DELETE)),
+    DOMAIN_DELETES(1, equalTo(Type.DOMAIN_DELETE)),
     DOMAIN_RENEWS(0, equalTo(Type.DOMAIN_RENEW)),
     DOMAIN_RESTORES(1, equalTo(Type.DOMAIN_RESTORE)),
     DOMAIN_TRANSFER_APPROVES(1, equalTo(Type.DOMAIN_TRANSFER_APPROVE)),

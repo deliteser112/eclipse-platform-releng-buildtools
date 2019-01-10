@@ -66,9 +66,6 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
       String tldName,
       String roidSuffix,
       TldState tldState,
-      Duration addGracePeriodLength,
-      Duration redemptionGracePeriodLength,
-      Duration pendingDeleteLength,
       boolean isEarlyAccess) {
     Registry registry = Registry.get(tldName);
     assertThat(registry).isNotNull();
@@ -77,9 +74,9 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     assertThat(registry.getDnsWriters()).containsExactly("VoidDnsWriter");
     assertThat(registry.getPremiumList()).isNotNull();
     assertThat(registry.getPremiumList().getName()).isEqualTo("default_sandbox_list");
-    assertThat(registry.getAddGracePeriodLength()).isEqualTo(addGracePeriodLength);
-    assertThat(registry.getRedemptionGracePeriodLength()).isEqualTo(redemptionGracePeriodLength);
-    assertThat(registry.getPendingDeleteLength()).isEqualTo(pendingDeleteLength);
+    assertThat(registry.getAddGracePeriodLength()).isEqualTo(Duration.standardMinutes(60));
+    assertThat(registry.getRedemptionGracePeriodLength()).isEqualTo(Duration.standardMinutes(10));
+    assertThat(registry.getPendingDeleteLength()).isEqualTo(Duration.standardMinutes(5));
     ImmutableSortedMap<DateTime, Money> eapFeeSchedule = registry.getEapFeeScheduleAsMap();
     if (!isEarlyAccess) {
       assertThat(eapFeeSchedule)
@@ -95,19 +92,6 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
                   DateTime.parse("2030-03-01T00:00:00Z"),
                   Money.of(CurrencyUnit.USD, 0)));
     }
-  }
-
-  /** Verify TLD creation with registry default durations. */
-  private void verifyTldCreation(
-      String tldName, String roidSuffix, TldState tldState) {
-    verifyTldCreation(
-        tldName,
-        roidSuffix,
-        tldState,
-        Registry.DEFAULT_ADD_GRACE_PERIOD,
-        Registry.DEFAULT_REDEMPTION_GRACE_PERIOD,
-        Registry.DEFAULT_PENDING_DELETE_LENGTH,
-        false);
   }
 
   private void verifyRegistrarCreation(
@@ -156,22 +140,9 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--email=contact@email.com",
         "--certfile=" + getCertFilename());
 
-    verifyTldCreation("blobio-sunrise", "BLOBIOS0", START_DATE_SUNRISE);
-    verifyTldCreation("blobio-ga",
-        "BLOBIOG2",
-        GENERAL_AVAILABILITY,
-        Duration.standardMinutes(60),
-        Duration.standardMinutes(10),
-        Duration.standardMinutes(5),
-        false);
-    verifyTldCreation(
-        "blobio-eap",
-        "BLOBIOE3",
-        GENERAL_AVAILABILITY,
-        Duration.standardMinutes(60),
-        Duration.standardMinutes(10),
-        Duration.standardMinutes(5),
-        true);
+    verifyTldCreation("blobio-sunrise", "BLOBIOS0", START_DATE_SUNRISE, false);
+    verifyTldCreation("blobio-ga", "BLOBIOG2", GENERAL_AVAILABILITY, false);
+    verifyTldCreation("blobio-eap", "BLOBIOE3", GENERAL_AVAILABILITY, true);
 
     ImmutableList<CidrAddressBlock> ipAddress = ImmutableList.of(
         CidrAddressBlock.create("1.1.1.1"));
@@ -195,22 +166,9 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--email=abc@email.com",
         "--certfile=" + getCertFilename());
 
-    verifyTldCreation("abc-sunrise", "ABCSUNR0", START_DATE_SUNRISE);
-    verifyTldCreation("abc-ga",
-        "ABCGA2",
-        GENERAL_AVAILABILITY,
-        Duration.standardMinutes(60),
-        Duration.standardMinutes(10),
-        Duration.standardMinutes(5),
-        false);
-    verifyTldCreation(
-        "abc-eap",
-        "ABCEAP3",
-        GENERAL_AVAILABILITY,
-        Duration.standardMinutes(60),
-        Duration.standardMinutes(10),
-        Duration.standardMinutes(5),
-        true);
+    verifyTldCreation("abc-sunrise", "ABCSUNR0", START_DATE_SUNRISE, false);
+    verifyTldCreation("abc-ga", "ABCGA2", GENERAL_AVAILABILITY, false);
+    verifyTldCreation("abc-eap", "ABCEAP3", GENERAL_AVAILABILITY, true);
 
     ImmutableList<CidrAddressBlock> ipAddress =
         ImmutableList.of(CidrAddressBlock.create("1.1.1.1"));
@@ -234,14 +192,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--email=contact@email.com",
         "--certhash=" + SAMPLE_CERT_HASH);
 
-    verifyTldCreation(
-        "blobio-eap",
-        "BLOBIOE3",
-        GENERAL_AVAILABILITY,
-        Duration.standardMinutes(60),
-        Duration.standardMinutes(10),
-        Duration.standardMinutes(5),
-        true);
+    verifyTldCreation("blobio-eap", "BLOBIOE3", GENERAL_AVAILABILITY, true);
 
     ImmutableList<CidrAddressBlock> ipAddress =
         ImmutableList.of(CidrAddressBlock.create("1.1.1.1"));
@@ -259,23 +210,9 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--email=contact@email.com",
         "--certfile=" + getCertFilename());
 
-    verifyTldCreation("blobio-sunrise", "BLOBIOS0", START_DATE_SUNRISE);
-    verifyTldCreation(
-        "blobio-ga",
-        "BLOBIOG2",
-        GENERAL_AVAILABILITY,
-        Duration.standardMinutes(60),
-        Duration.standardMinutes(10),
-        Duration.standardMinutes(5),
-        false);
-    verifyTldCreation(
-        "blobio-eap",
-        "BLOBIOE3",
-        GENERAL_AVAILABILITY,
-        Duration.standardMinutes(60),
-        Duration.standardMinutes(10),
-        Duration.standardMinutes(5),
-        true);
+    verifyTldCreation("blobio-sunrise", "BLOBIOS0", START_DATE_SUNRISE, false);
+    verifyTldCreation("blobio-ga", "BLOBIOG2", GENERAL_AVAILABILITY, false);
+    verifyTldCreation("blobio-eap", "BLOBIOE3", GENERAL_AVAILABILITY, true);
 
     ImmutableList<CidrAddressBlock> ipAddresses = ImmutableList.of(
         CidrAddressBlock.create("1.1.1.1"),
@@ -461,15 +398,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--email=contact@email.com",
         "--certfile=" + getCertFilename());
 
-    verifyTldCreation("blobio-sunrise", "BLOBIOS0", START_DATE_SUNRISE);
-    verifyTldCreation(
-        "blobio-ga",
-        "BLOBIOG2",
-        GENERAL_AVAILABILITY,
-        Duration.standardMinutes(60),
-        Duration.standardMinutes(10),
-        Duration.standardMinutes(5),
-        false);
+    verifyTldCreation("blobio-sunrise", "BLOBIOS0", START_DATE_SUNRISE, false);
+    verifyTldCreation("blobio-ga", "BLOBIOG2", GENERAL_AVAILABILITY, false);
   }
 
   @Test
