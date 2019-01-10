@@ -15,9 +15,9 @@
 package google.registry.flows;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_ACTIONS;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_DELETE;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -25,10 +25,10 @@ import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Subcomponent;
+import google.registry.batch.AsyncTaskEnqueuer;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.dns.DnsQueue;
-import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.custom.CustomLogicFactory;
 import google.registry.flows.custom.TestCustomLogicFactory;
 import google.registry.flows.domain.DomainFlowTmchUtils;
@@ -62,7 +62,7 @@ interface EppTestComponent {
   @Module
   class FakesAndMocksModule {
 
-    private AsyncFlowEnqueuer asyncFlowEnqueuer;
+    private AsyncTaskEnqueuer asyncTaskEnqueuer;
     private DnsQueue dnsQueue;
     private DomainFlowTmchUtils domainFlowTmchUtils;
     private EppMetric.Builder metricBuilder;
@@ -90,8 +90,8 @@ interface EppTestComponent {
       FakesAndMocksModule instance = new FakesAndMocksModule();
       AppEngineServiceUtils appEngineServiceUtils = mock(AppEngineServiceUtils.class);
       when(appEngineServiceUtils.getServiceHostname("backend")).thenReturn("backend.hostname.fake");
-      instance.asyncFlowEnqueuer =
-          new AsyncFlowEnqueuer(
+      instance.asyncTaskEnqueuer =
+          new AsyncTaskEnqueuer(
               getQueue(QUEUE_ASYNC_ACTIONS),
               getQueue(QUEUE_ASYNC_DELETE),
               getQueue(QUEUE_ASYNC_HOST_RENAME),
@@ -109,8 +109,8 @@ interface EppTestComponent {
     }
 
     @Provides
-    AsyncFlowEnqueuer provideAsyncFlowEnqueuer() {
-      return asyncFlowEnqueuer;
+    AsyncTaskEnqueuer provideAsyncTaskEnqueuer() {
+      return asyncTaskEnqueuer;
     }
 
     @Provides

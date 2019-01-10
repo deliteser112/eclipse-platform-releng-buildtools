@@ -32,6 +32,7 @@ import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.batch.AsyncTaskEnqueuer;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.ObjectAlreadyExistsException;
@@ -43,7 +44,6 @@ import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
-import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
@@ -116,7 +116,7 @@ public final class HostUpdateFlow implements TransactionalFlow {
   @Inject @TargetId String targetId;
   @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
-  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
+  @Inject AsyncTaskEnqueuer asyncTaskEnqueuer;
   @Inject DnsQueue dnsQueue;
   @Inject EppResponse.Builder responseBuilder;
   @Inject HostUpdateFlow() {}
@@ -271,7 +271,7 @@ public final class HostUpdateFlow implements TransactionalFlow {
       }
       // We must also enqueue updates for all domains that use this host as their nameserver so
       // that their NS records can be updated to point at the new name.
-      asyncFlowEnqueuer.enqueueAsyncDnsRefresh(existingHost, ofy().getTransactionTime());
+      asyncTaskEnqueuer.enqueueAsyncDnsRefresh(existingHost, ofy().getTransactionTime());
     }
   }
 

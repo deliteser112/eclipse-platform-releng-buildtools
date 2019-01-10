@@ -14,9 +14,13 @@
 
 package google.registry.batch;
 
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESAVE_TIMES;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
+import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESAVE_TIMES;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_ACTIONS;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_DELETE;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.request.RequestParameters.extractOptionalBooleanParameter;
 import static google.registry.request.RequestParameters.extractOptionalIntParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
@@ -24,6 +28,7 @@ import static google.registry.request.RequestParameters.extractRequiredDatetimeP
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static google.registry.request.RequestParameters.extractSetOfDatetimeParameters;
 
+import com.google.appengine.api.taskqueue.Queue;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import dagger.Module;
@@ -31,6 +36,7 @@ import dagger.Provides;
 import google.registry.model.ImmutableObject;
 import google.registry.request.Parameter;
 import java.util.Optional;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 
@@ -86,5 +92,23 @@ public class BatchModule {
   @Parameter(PARAM_RESAVE_TIMES)
   static ImmutableSet<DateTime> provideResaveTimes(HttpServletRequest req) {
     return extractSetOfDatetimeParameters(req, PARAM_RESAVE_TIMES);
+  }
+
+  @Provides
+  @Named(QUEUE_ASYNC_ACTIONS)
+  static Queue provideAsyncActionsPushQueue() {
+    return getQueue(QUEUE_ASYNC_ACTIONS);
+  }
+
+  @Provides
+  @Named(QUEUE_ASYNC_DELETE)
+  static Queue provideAsyncDeletePullQueue() {
+    return getQueue(QUEUE_ASYNC_DELETE);
+  }
+
+  @Provides
+  @Named(QUEUE_ASYNC_HOST_RENAME)
+  static Queue provideAsyncHostRenamePullQueue() {
+    return getQueue(QUEUE_ASYNC_HOST_RENAME);
   }
 }

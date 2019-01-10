@@ -25,6 +25,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.batch.AsyncTaskEnqueuer;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
@@ -32,7 +33,6 @@ import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
-import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -75,7 +75,7 @@ public final class ContactDeleteFlow implements TransactionalFlow {
   @Inject @Superuser boolean isSuperuser;
   @Inject Optional<AuthInfo> authInfo;
   @Inject HistoryEntry.Builder historyBuilder;
-  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
+  @Inject AsyncTaskEnqueuer asyncTaskEnqueuer;
   @Inject EppResponse.Builder responseBuilder;
   @Inject ContactDeleteFlow() {}
 
@@ -92,7 +92,7 @@ public final class ContactDeleteFlow implements TransactionalFlow {
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingContact);
     }
-    asyncFlowEnqueuer.enqueueAsyncDelete(
+    asyncTaskEnqueuer.enqueueAsyncDelete(
         existingContact, ofy().getTransactionTime(), clientId, trid, isSuperuser);
     ContactResource newContact =
         existingContact.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();

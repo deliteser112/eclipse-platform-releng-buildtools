@@ -17,10 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.flows.FlowUtils.persistEntityChanges;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
-import static google.registry.flows.ResourceFlowUtils.denyPendingTransfer;
-import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
-import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
@@ -28,6 +25,9 @@ import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToT
 import static google.registry.flows.domain.DomainFlowUtils.createCancelingRecords;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
+import static google.registry.model.ResourceTransferUtils.denyPendingTransfer;
+import static google.registry.model.ResourceTransferUtils.handlePendingTransferOnDelete;
+import static google.registry.model.ResourceTransferUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -42,6 +42,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
+import google.registry.batch.AsyncTaskEnqueuer;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AssociationProhibitsOperationException;
@@ -52,7 +53,6 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
-import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.custom.DomainDeleteFlowCustomLogic;
 import google.registry.flows.custom.DomainDeleteFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainDeleteFlowCustomLogic.BeforeResponseParameters;
@@ -129,7 +129,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject DnsQueue dnsQueue;
   @Inject Trid trid;
-  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
+  @Inject AsyncTaskEnqueuer asyncTaskEnqueuer;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainDeleteFlowCustomLogic flowCustomLogic;
   @Inject DomainDeleteFlow() {}
@@ -188,7 +188,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
       PollMessage.OneTime deletePollMessage =
           createDeletePollMessage(existingDomain, historyEntry, deletionTime);
       entitiesToSave.add(deletePollMessage);
-      asyncFlowEnqueuer.enqueueAsyncResave(
+      asyncTaskEnqueuer.enqueueAsyncResave(
           existingDomain, now, ImmutableSortedSet.of(redemptionTime, deletionTime));
       builder.setDeletionTime(deletionTime)
           .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))

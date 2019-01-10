@@ -17,10 +17,10 @@ package google.registry.batch;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
-import static google.registry.flows.async.AsyncFlowMetrics.OperationType.DNS_REFRESH;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_ACTIONS;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_DELETE;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_HOST_RENAME;
+import static google.registry.batch.AsyncTaskMetrics.OperationType.DNS_REFRESH;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
@@ -47,10 +47,8 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.batch.AsyncTaskMetrics.OperationResult;
 import google.registry.batch.RefreshDnsOnHostRenameAction.RefreshDnsOnHostRenameReducer;
-import google.registry.flows.async.AsyncFlowEnqueuer;
-import google.registry.flows.async.AsyncFlowMetrics;
-import google.registry.flows.async.AsyncFlowMetrics.OperationResult;
 import google.registry.model.host.HostResource;
 import google.registry.model.server.Lock;
 import google.registry.testing.FakeClock;
@@ -83,7 +81,7 @@ public class RefreshDnsOnHostRenameActionTest
   @Rule public final InjectRule inject = new InjectRule();
   @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
-  private AsyncFlowEnqueuer enqueuer;
+  private AsyncTaskEnqueuer enqueuer;
   private final FakeClock clock = new FakeClock(DateTime.parse("2015-01-15T11:22:33Z"));
   private final FakeResponse fakeResponse = new FakeResponse();
   @Mock private RequestStatusChecker requestStatusChecker;
@@ -92,18 +90,18 @@ public class RefreshDnsOnHostRenameActionTest
   public void setup() {
     createTld("tld");
     enqueuer =
-        new AsyncFlowEnqueuer(
+        new AsyncTaskEnqueuer(
             getQueue(QUEUE_ASYNC_ACTIONS),
             getQueue(QUEUE_ASYNC_DELETE),
             getQueue(QUEUE_ASYNC_HOST_RENAME),
             Duration.ZERO,
             mock(AppEngineServiceUtils.class),
             new Retrier(new FakeSleeper(clock), 1));
-    AsyncFlowMetrics asyncFlowMetricsMock = mock(AsyncFlowMetrics.class);
+    AsyncTaskMetrics asyncTaskMetricsMock = mock(AsyncTaskMetrics.class);
     action = new RefreshDnsOnHostRenameAction();
-    action.asyncFlowMetrics = asyncFlowMetricsMock;
+    action.asyncTaskMetrics = asyncTaskMetricsMock;
     inject.setStaticField(
-        RefreshDnsOnHostRenameReducer.class, "asyncFlowMetrics", asyncFlowMetricsMock);
+        RefreshDnsOnHostRenameReducer.class, "asyncTaskMetrics", asyncTaskMetricsMock);
     action.clock = clock;
     action.mrRunner = makeDefaultRunner();
     action.pullQueue = getQueue(QUEUE_ASYNC_HOST_RENAME);
@@ -152,10 +150,10 @@ public class RefreshDnsOnHostRenameActionTest
     runMapreduce();
     assertDnsTasksEnqueued("example.tld", "otherexample.tld");
     assertNoTasksEnqueued(QUEUE_ASYNC_HOST_RENAME);
-    verify(action.asyncFlowMetrics).recordDnsRefreshBatchSize(1L);
-    verify(action.asyncFlowMetrics)
+    verify(action.asyncTaskMetrics).recordDnsRefreshBatchSize(1L);
+    verify(action.asyncTaskMetrics)
         .recordAsyncFlowResult(DNS_REFRESH, OperationResult.SUCCESS, timeEnqueued);
-    verifyNoMoreInteractions(action.asyncFlowMetrics);
+    verifyNoMoreInteractions(action.asyncTaskMetrics);
   }
 
   @Test
@@ -174,12 +172,12 @@ public class RefreshDnsOnHostRenameActionTest
     runMapreduce();
     assertDnsTasksEnqueued("example1.tld", "example2.tld", "example3.tld");
     assertNoTasksEnqueued(QUEUE_ASYNC_HOST_RENAME);
-    verify(action.asyncFlowMetrics).recordDnsRefreshBatchSize(3L);
-    verify(action.asyncFlowMetrics, times(2))
+    verify(action.asyncTaskMetrics).recordDnsRefreshBatchSize(3L);
+    verify(action.asyncTaskMetrics, times(2))
         .recordAsyncFlowResult(DNS_REFRESH, OperationResult.SUCCESS, timeEnqueued);
-    verify(action.asyncFlowMetrics)
+    verify(action.asyncTaskMetrics)
         .recordAsyncFlowResult(DNS_REFRESH, OperationResult.SUCCESS, laterTimeEnqueued);
-    verifyNoMoreInteractions(action.asyncFlowMetrics);
+    verifyNoMoreInteractions(action.asyncTaskMetrics);
   }
 
   @Test
@@ -191,10 +189,10 @@ public class RefreshDnsOnHostRenameActionTest
     runMapreduce();
     assertNoDnsTasksEnqueued();
     assertNoTasksEnqueued(QUEUE_ASYNC_HOST_RENAME);
-    verify(action.asyncFlowMetrics).recordDnsRefreshBatchSize(1L);
-    verify(action.asyncFlowMetrics)
+    verify(action.asyncTaskMetrics).recordDnsRefreshBatchSize(1L);
+    verify(action.asyncTaskMetrics)
         .recordAsyncFlowResult(DNS_REFRESH, OperationResult.STALE, timeEnqueued);
-    verifyNoMoreInteractions(action.asyncFlowMetrics);
+    verifyNoMoreInteractions(action.asyncTaskMetrics);
   }
 
   @Test

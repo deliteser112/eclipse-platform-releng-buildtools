@@ -23,6 +23,7 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         ":soy_java_wrappers",
+        "//java/google/registry/batch",
         "//java/google/registry/config",
         "//java/google/registry/dns",
         "//java/google/registry/model",

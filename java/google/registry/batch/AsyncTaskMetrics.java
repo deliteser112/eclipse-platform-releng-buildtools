@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.flows.async;
+package google.registry.batch;
 
 import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
 import static com.google.monitoring.metrics.EventMetric.DEFAULT_FITTER;
-import static google.registry.flows.async.AsyncFlowMetrics.OperationType.CONTACT_AND_HOST_DELETE;
-import static google.registry.flows.async.AsyncFlowMetrics.OperationType.DNS_REFRESH;
+import static google.registry.batch.AsyncTaskMetrics.OperationType.CONTACT_AND_HOST_DELETE;
+import static google.registry.batch.AsyncTaskMetrics.OperationType.DNS_REFRESH;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -36,16 +36,16 @@ import org.joda.time.Duration;
 /**
  * Instrumentation for async flows (contact/host deletion and DNS refreshes).
  *
- * @see AsyncFlowEnqueuer
+ * @see AsyncTaskEnqueuer
  */
-public class AsyncFlowMetrics {
+public class AsyncTaskMetrics {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Clock clock;
 
   @Inject
-  public AsyncFlowMetrics(Clock clock) {
+  public AsyncTaskMetrics(Clock clock) {
     this.clock = clock;
   }
 

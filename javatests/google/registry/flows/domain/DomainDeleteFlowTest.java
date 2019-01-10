@@ -16,11 +16,11 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESAVE_TIMES;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PATH_RESAVE_ENTITY;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESAVE_TIMES;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.batch.AsyncTaskEnqueuer.PATH_RESAVE_ENTITY;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_ACTIONS;
 import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWithPendingTransfer;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;

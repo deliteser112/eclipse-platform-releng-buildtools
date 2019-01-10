@@ -1076,7 +1076,7 @@ public final class RegistryConfig {
      * duration should also be longer than that cache duration (eppResourceCachingSeconds).
      *
      * @see google.registry.config.RegistryConfigSettings.Caching
-     * @see google.registry.flows.async.AsyncFlowEnqueuer
+     * @see google.registry.batch.AsyncTaskEnqueuer
      */
     @Provides
     @Config("asyncDeleteFlowMapreduceDelay")

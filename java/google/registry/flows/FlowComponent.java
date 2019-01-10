@@ -17,8 +17,8 @@ package google.registry.flows;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Subcomponent;
+import google.registry.batch.BatchModule;
 import google.registry.dns.DnsModule;
-import google.registry.flows.async.AsyncFlowsModule;
 import google.registry.flows.contact.ContactCheckFlow;
 import google.registry.flows.contact.ContactCreateFlow;
 import google.registry.flows.contact.ContactDeleteFlow;
@@ -65,7 +65,7 @@ import google.registry.model.eppcommon.Trid;
 @FlowScope
 @Subcomponent(modules = {
     AllocationTokenModule.class,
-    AsyncFlowsModule.class,
+    BatchModule.class,
     CustomLogicModule.class,
     DnsModule.class,
     FlowModule.class,

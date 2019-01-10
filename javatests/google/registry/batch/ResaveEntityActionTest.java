@@ -16,12 +16,12 @@ package google.registry.batch;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PATH_RESAVE_ENTITY;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.batch.AsyncTaskEnqueuer.PATH_RESAVE_ENTITY;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_ACTIONS;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_DELETE;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.googlecode.objectify.Key;
-import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
@@ -78,14 +77,14 @@ public class ResaveEntityActionTest extends ShardableTestCase {
   @Mock private AppEngineServiceUtils appEngineServiceUtils;
   @Mock private Response response;
   private final FakeClock clock = new FakeClock(DateTime.parse("2016-02-11T10:00:00Z"));
-  private AsyncFlowEnqueuer asyncFlowEnqueuer;
+  private AsyncTaskEnqueuer asyncTaskEnqueuer;
 
   @Before
   public void before() {
     inject.setStaticField(Ofy.class, "clock", clock);
     when(appEngineServiceUtils.getServiceHostname("backend")).thenReturn("backend.hostname.fake");
-    asyncFlowEnqueuer =
-        new AsyncFlowEnqueuer(
+    asyncTaskEnqueuer =
+        new AsyncTaskEnqueuer(
             getQueue(QUEUE_ASYNC_ACTIONS),
             getQueue(QUEUE_ASYNC_DELETE),
             getQueue(QUEUE_ASYNC_HOST_RENAME),
@@ -101,7 +100,7 @@ public class ResaveEntityActionTest extends ShardableTestCase {
       ImmutableSortedSet<DateTime> resaveTimes) {
     ResaveEntityAction action =
         new ResaveEntityAction(
-            resourceKey, requestedTime, resaveTimes, asyncFlowEnqueuer, response);
+            resourceKey, requestedTime, resaveTimes, asyncTaskEnqueuer, response);
     action.run();
   }
 

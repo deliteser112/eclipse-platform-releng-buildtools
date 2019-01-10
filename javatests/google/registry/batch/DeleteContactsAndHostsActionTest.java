@@ -18,10 +18,10 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
-import static google.registry.flows.async.AsyncFlowMetrics.OperationResult.STALE;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_ACTIONS;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_DELETE;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_HOST_RENAME;
+import static google.registry.batch.AsyncTaskMetrics.OperationResult.STALE;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -67,11 +67,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
+import google.registry.batch.AsyncTaskMetrics.OperationResult;
+import google.registry.batch.AsyncTaskMetrics.OperationType;
 import google.registry.batch.DeleteContactsAndHostsAction.DeleteEppResourceReducer;
-import google.registry.flows.async.AsyncFlowEnqueuer;
-import google.registry.flows.async.AsyncFlowMetrics;
-import google.registry.flows.async.AsyncFlowMetrics.OperationResult;
-import google.registry.flows.async.AsyncFlowMetrics.OperationType;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -124,7 +122,7 @@ public class DeleteContactsAndHostsActionTest
   @Rule public final InjectRule inject = new InjectRule();
   @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
-  private AsyncFlowEnqueuer enqueuer;
+  private AsyncTaskEnqueuer enqueuer;
   private final FakeClock clock = new FakeClock(DateTime.parse("2015-01-15T11:22:33Z"));
   private final FakeResponse fakeResponse = new FakeResponse();
   @Mock private RequestStatusChecker requestStatusChecker;
@@ -155,17 +153,17 @@ public class DeleteContactsAndHostsActionTest
   public void setup() {
     inject.setStaticField(Ofy.class, "clock", clock);
     enqueuer =
-        new AsyncFlowEnqueuer(
+        new AsyncTaskEnqueuer(
             getQueue(QUEUE_ASYNC_ACTIONS),
             getQueue(QUEUE_ASYNC_DELETE),
             getQueue(QUEUE_ASYNC_HOST_RENAME),
             Duration.ZERO,
             mock(AppEngineServiceUtils.class),
             new Retrier(new FakeSleeper(clock), 1));
-    AsyncFlowMetrics asyncFlowMetricsMock = mock(AsyncFlowMetrics.class);
+    AsyncTaskMetrics asyncTaskMetricsMock = mock(AsyncTaskMetrics.class);
     action = new DeleteContactsAndHostsAction();
-    action.asyncFlowMetrics = asyncFlowMetricsMock;
-    inject.setStaticField(DeleteEppResourceReducer.class, "asyncFlowMetrics", asyncFlowMetricsMock);
+    action.asyncTaskMetrics = asyncTaskMetricsMock;
+    inject.setStaticField(DeleteEppResourceReducer.class, "asyncTaskMetrics", asyncTaskMetricsMock);
     action.clock = clock;
     action.mrRunner = makeDefaultRunner();
     action.requestStatusChecker = requestStatusChecker;
@@ -212,10 +210,10 @@ public class DeleteContactsAndHostsActionTest
         contact,
         Optional.of("fakeClientTrid"));
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
-    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
-    verify(action.asyncFlowMetrics)
+    verify(action.asyncTaskMetrics).recordContactHostDeletionBatchSize(1L);
+    verify(action.asyncTaskMetrics)
         .recordAsyncFlowResult(OperationType.CONTACT_DELETE, OperationResult.FAILURE, timeEnqueued);
-    verifyNoMoreInteractions(action.asyncFlowMetrics);
+    verifyNoMoreInteractions(action.asyncTaskMetrics);
   }
 
   @Test
@@ -293,10 +291,10 @@ public class DeleteContactsAndHostsActionTest
     assertPollMessageFor(
         historyEntry, "TheRegistrar", "Deleted contact jim919.", true, contact, clientTrid);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
-    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
-    verify(action.asyncFlowMetrics)
+    verify(action.asyncTaskMetrics).recordContactHostDeletionBatchSize(1L);
+    verify(action.asyncTaskMetrics)
         .recordAsyncFlowResult(OperationType.CONTACT_DELETE, OperationResult.SUCCESS, timeEnqueued);
-    verifyNoMoreInteractions(action.asyncFlowMetrics);
+    verifyNoMoreInteractions(action.asyncTaskMetrics);
 
   }
 
@@ -537,8 +535,8 @@ public class DeleteContactsAndHostsActionTest
         new TaskMatcher()
             .payload("gobbledygook=kljhadfgsd9f7gsdfh")
             .etaDelta(standardHours(23), standardHours(25)));
-    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
-    verifyNoMoreInteractions(action.asyncFlowMetrics);
+    verify(action.asyncTaskMetrics).recordContactHostDeletionBatchSize(1L);
+    verifyNoMoreInteractions(action.asyncTaskMetrics);
     assertThat(acquireLock()).isPresent();
   }
 
@@ -565,12 +563,12 @@ public class DeleteContactsAndHostsActionTest
     assertThat(loadByForeignKey(HostResource.class, "rustles.your.jimmies", clock.nowUtc()))
         .hasValue(host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
-    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(2L);
-    verify(action.asyncFlowMetrics)
+    verify(action.asyncTaskMetrics).recordContactHostDeletionBatchSize(2L);
+    verify(action.asyncTaskMetrics)
         .recordAsyncFlowResult(OperationType.CONTACT_DELETE, STALE, timeEnqueued);
-    verify(action.asyncFlowMetrics)
+    verify(action.asyncTaskMetrics)
         .recordAsyncFlowResult(OperationType.HOST_DELETE, STALE, timeEnqueued);
-    verifyNoMoreInteractions(action.asyncFlowMetrics);
+    verifyNoMoreInteractions(action.asyncTaskMetrics);
     assertThat(acquireLock()).isPresent();
   }
 
@@ -628,10 +626,10 @@ public class DeleteContactsAndHostsActionTest
         host,
         Optional.of("fakeClientTrid"));
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
-    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
-    verify(action.asyncFlowMetrics)
+    verify(action.asyncTaskMetrics).recordContactHostDeletionBatchSize(1L);
+    verify(action.asyncTaskMetrics)
         .recordAsyncFlowResult(OperationType.HOST_DELETE, OperationResult.FAILURE, timeEnqueued);
-    verifyNoMoreInteractions(action.asyncFlowMetrics);
+    verifyNoMoreInteractions(action.asyncTaskMetrics);
   }
 
   @Test
@@ -676,10 +674,10 @@ public class DeleteContactsAndHostsActionTest
         host,
         clientTrid);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
-    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
-    verify(action.asyncFlowMetrics)
+    verify(action.asyncTaskMetrics).recordContactHostDeletionBatchSize(1L);
+    verify(action.asyncTaskMetrics)
         .recordAsyncFlowResult(OperationType.HOST_DELETE, OperationResult.SUCCESS, timeEnqueued);
-    verifyNoMoreInteractions(action.asyncFlowMetrics);
+    verifyNoMoreInteractions(action.asyncTaskMetrics);
   }
 
   @Test

@@ -20,7 +20,6 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
@@ -121,7 +120,6 @@ public abstract class PollMessage extends ImmutableObject
   public abstract Builder<?, ?> asBuilder();
 
   /** Builder for {@link PollMessage} because it is immutable. */
-  @VisibleForTesting
   public abstract static class Builder<T extends PollMessage, B extends Builder<?, ?>>
       extends GenericBuilder<T, B> {
 
@@ -131,7 +129,6 @@ public abstract class PollMessage extends ImmutableObject
       super(instance);
     }
 
-    @VisibleForTesting
     public B setId(Long id) {
       getInstance().id = id;
       return thisCastToDerived();
@@ -221,7 +218,6 @@ public abstract class PollMessage extends ImmutableObject
     }
 
     /** A builder for {@link OneTime} since it is immutable. */
-    @VisibleForTesting
     public static class Builder extends PollMessage.Builder<OneTime, Builder> {
 
       public Builder() {}
@@ -327,7 +323,6 @@ public abstract class PollMessage extends ImmutableObject
     }
 
     /** A builder for {@link Autorenew} since it is immutable. */
-    @VisibleForTesting
     public static class Builder extends PollMessage.Builder<Autorenew, Builder> {
 
       public Builder() {}

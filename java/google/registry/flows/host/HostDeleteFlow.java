@@ -25,6 +25,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.batch.AsyncTaskEnqueuer;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
@@ -32,7 +33,6 @@ import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
-import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.model.EppResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -76,7 +76,7 @@ public final class HostDeleteFlow implements TransactionalFlow {
   @Inject Trid trid;
   @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
-  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
+  @Inject AsyncTaskEnqueuer asyncTaskEnqueuer;
   @Inject EppResponse.Builder responseBuilder;
   @Inject HostDeleteFlow() {}
 
@@ -100,7 +100,7 @@ public final class HostDeleteFlow implements TransactionalFlow {
               : existingHost;
       verifyResourceOwnership(clientId, owningResource);
     }
-    asyncFlowEnqueuer.enqueueAsyncDelete(
+    asyncTaskEnqueuer.enqueueAsyncDelete(
         existingHost, ofy().getTransactionTime(), clientId, trid, isSuperuser);
     HostResource newHost =
         existingHost.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();

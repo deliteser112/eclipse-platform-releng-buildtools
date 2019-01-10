@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.flows.async;
+package google.registry.batch;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESAVE_TIMES;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PATH_RESAVE_ENTITY;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESAVE_TIMES;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.batch.AsyncTaskEnqueuer.PATH_RESAVE_ENTITY;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_ACTIONS;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_DELETE;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
@@ -54,9 +54,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 
-/** Unit tests for {@link AsyncFlowEnqueuer}. */
+/** Unit tests for {@link AsyncTaskEnqueuer}. */
 @RunWith(JUnit4.class)
-public class AsyncFlowEnqueuerTest extends ShardableTestCase {
+public class AsyncTaskEnqueuerTest extends ShardableTestCase {
 
   @Rule
   public final AppEngineRule appEngine =
@@ -68,16 +68,16 @@ public class AsyncFlowEnqueuerTest extends ShardableTestCase {
 
   @Mock private AppEngineServiceUtils appEngineServiceUtils;
 
-  private AsyncFlowEnqueuer asyncFlowEnqueuer;
+  private AsyncTaskEnqueuer asyncTaskEnqueuer;
   private final CapturingLogHandler logHandler = new CapturingLogHandler();
   private final FakeClock clock = new FakeClock(DateTime.parse("2015-05-18T12:34:56Z"));
 
   @Before
   public void setUp() {
-    LoggerConfig.getConfig(AsyncFlowEnqueuer.class).addHandler(logHandler);
+    LoggerConfig.getConfig(AsyncTaskEnqueuer.class).addHandler(logHandler);
     when(appEngineServiceUtils.getServiceHostname("backend")).thenReturn("backend.hostname.fake");
-    asyncFlowEnqueuer =
-        new AsyncFlowEnqueuer(
+    asyncTaskEnqueuer =
+        new AsyncTaskEnqueuer(
             getQueue(QUEUE_ASYNC_ACTIONS),
             getQueue(QUEUE_ASYNC_DELETE),
             getQueue(QUEUE_ASYNC_HOST_RENAME),
@@ -89,7 +89,7 @@ public class AsyncFlowEnqueuerTest extends ShardableTestCase {
   @Test
   public void test_enqueueAsyncResave_success() {
     ContactResource contact = persistActiveContact("jd23456");
-    asyncFlowEnqueuer.enqueueAsyncResave(contact, clock.nowUtc(), clock.nowUtc().plusDays(5));
+    asyncTaskEnqueuer.enqueueAsyncResave(contact, clock.nowUtc(), clock.nowUtc().plusDays(5));
     assertTasksEnqueued(
         QUEUE_ASYNC_ACTIONS,
         new TaskMatcher()
@@ -108,7 +108,7 @@ public class AsyncFlowEnqueuerTest extends ShardableTestCase {
   public void test_enqueueAsyncResave_multipleResaves() {
     ContactResource contact = persistActiveContact("jd23456");
     DateTime now = clock.nowUtc();
-    asyncFlowEnqueuer.enqueueAsyncResave(
+    asyncTaskEnqueuer.enqueueAsyncResave(
         contact,
         now,
         ImmutableSortedSet.of(now.plusHours(24), now.plusHours(50), now.plusHours(75)));
@@ -132,7 +132,7 @@ public class AsyncFlowEnqueuerTest extends ShardableTestCase {
   @Test
   public void test_enqueueAsyncResave_ignoresTasksTooFarIntoFuture() throws Exception {
     ContactResource contact = persistActiveContact("jd23456");
-    asyncFlowEnqueuer.enqueueAsyncResave(contact, clock.nowUtc(), clock.nowUtc().plusDays(31));
+    asyncTaskEnqueuer.enqueueAsyncResave(contact, clock.nowUtc(), clock.nowUtc().plusDays(31));
     assertNoTasksEnqueued(QUEUE_ASYNC_ACTIONS);
     assertLogMessage(logHandler, Level.INFO, "Ignoring async re-save");
   }

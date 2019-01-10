@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.flows.async;
+package google.registry.batch;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
@@ -39,7 +39,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /** Helper class to enqueue tasks for handling asynchronous operations in flows. */
-public final class AsyncFlowEnqueuer {
+public final class AsyncTaskEnqueuer {
 
   /** The HTTP parameter names used by async flows. */
   public static final String PARAM_RESOURCE_KEY = "resourceKey";
@@ -70,7 +70,7 @@ public final class AsyncFlowEnqueuer {
 
   @VisibleForTesting
   @Inject
-  public AsyncFlowEnqueuer(
+  public AsyncTaskEnqueuer(
       @Named(QUEUE_ASYNC_ACTIONS) Queue asyncActionsPushQueue,
       @Named(QUEUE_ASYNC_DELETE) Queue asyncDeletePullQueue,
       @Named(QUEUE_ASYNC_HOST_RENAME) Queue asyncDnsRefreshPullQueue,

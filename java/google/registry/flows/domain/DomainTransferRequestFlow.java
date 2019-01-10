@@ -36,6 +36,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.batch.AsyncTaskEnqueuer;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
@@ -43,7 +44,6 @@ import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
-import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.InvalidTransferPeriodValueException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
@@ -128,7 +128,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject Trid trid;
-  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
+  @Inject AsyncTaskEnqueuer asyncTaskEnqueuer;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainPricingLogic pricingLogic;
   @Inject DomainTransferRequestFlow() {}
@@ -233,7 +233,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
             .setLastEppUpdateTime(now)
             .setLastEppUpdateClientId(gainingClientId)
             .build();
-    asyncFlowEnqueuer.enqueueAsyncResave(newDomain, now, automaticTransferTime);
+    asyncTaskEnqueuer.enqueueAsyncResave(newDomain, now, automaticTransferTime);
     ofy().save()
         .entities(new ImmutableSet.Builder<>()
             .add(newDomain, historyEntry, requestPollMessage)

@@ -14,16 +14,15 @@
 
 package google.registry.batch;
 
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESAVE_TIMES;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESAVE_TIMES;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESOURCE_KEY;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
-import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.request.Action;
@@ -39,15 +38,17 @@ import org.joda.time.DateTime;
  *
  * <p>{@link EppResource}s will be projected forward to the current time.
  */
-@Action(path = "/_dr/task/resaveEntity", auth = Auth.AUTH_INTERNAL_OR_ADMIN, method = Method.POST)
+@Action(path = ResaveEntityAction.PATH, auth = Auth.AUTH_INTERNAL_OR_ADMIN, method = Method.POST)
 public class ResaveEntityAction implements Runnable {
+
+  public static final String PATH = "/_dr/task/resaveEntity";
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Key<ImmutableObject> resourceKey;
   private final DateTime requestedTime;
   private final ImmutableSortedSet<DateTime> resaveTimes;
-  private final AsyncFlowEnqueuer asyncFlowEnqueuer;
+  private final AsyncTaskEnqueuer asyncTaskEnqueuer;
   private final Response response;
 
   @Inject
@@ -55,12 +56,12 @@ public class ResaveEntityAction implements Runnable {
       @Parameter(PARAM_RESOURCE_KEY) Key<ImmutableObject> resourceKey,
       @Parameter(PARAM_REQUESTED_TIME) DateTime requestedTime,
       @Parameter(PARAM_RESAVE_TIMES) ImmutableSet<DateTime> resaveTimes,
-      AsyncFlowEnqueuer asyncFlowEnqueuer,
+      AsyncTaskEnqueuer asyncTaskEnqueuer,
       Response response) {
     this.resourceKey = resourceKey;
     this.requestedTime = requestedTime;
     this.resaveTimes = ImmutableSortedSet.copyOf(resaveTimes);
-    this.asyncFlowEnqueuer = asyncFlowEnqueuer;
+    this.asyncTaskEnqueuer = asyncTaskEnqueuer;
     this.response = response;
   }
 
@@ -75,7 +76,7 @@ public class ResaveEntityAction implements Runnable {
               ? ((EppResource) entity).cloneProjectedAtTime(ofy().getTransactionTime()) : entity
       );
       if (!resaveTimes.isEmpty()) {
-        asyncFlowEnqueuer.enqueueAsyncResave(entity, requestedTime, resaveTimes);
+        asyncTaskEnqueuer.enqueueAsyncResave(entity, requestedTime, resaveTimes);
       }
     });
     response.setPayload("Entity re-saved.");

@@ -54,7 +54,6 @@ import google.registry.export.UpdateSnapshotViewAction;
 import google.registry.export.UploadDatastoreBackupAction;
 import google.registry.export.sheet.SheetModule;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
-import google.registry.flows.async.AsyncFlowsModule;
 import google.registry.mapreduce.MapreduceModule;
 import google.registry.monitoring.whitebox.WhiteboxModule;
 import google.registry.rde.BrdaCopyAction;
@@ -94,7 +93,6 @@ import google.registry.tmch.TmchSmdrlAction;
 @RequestScope
 @Subcomponent(
     modules = {
-        AsyncFlowsModule.class,
         BackendModule.class,
         BackupModule.class,
         BatchModule.class,

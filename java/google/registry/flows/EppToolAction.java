@@ -30,11 +30,13 @@ import javax.servlet.http.HttpServletRequest;
 
 /** Runs EPP commands directly without logging in, verifying an XSRF token from the tool. */
 @Action(
-  path = "/_dr/epptool",
+  path = EppToolAction.PATH,
   method = Method.POST,
   auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public class EppToolAction implements Runnable {
+
+  public static final String PATH = "/_dr/epptool";
 
   @Inject @Parameter("clientId") String clientId;
   @Inject @Parameter("superuser") boolean isSuperuser;

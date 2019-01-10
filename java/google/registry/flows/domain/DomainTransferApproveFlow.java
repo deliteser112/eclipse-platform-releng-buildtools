@@ -16,7 +16,6 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
-import static google.registry.flows.ResourceFlowUtils.approvePendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyHasPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
@@ -26,6 +25,7 @@ import static google.registry.flows.domain.DomainFlowUtils.createCancelingRecord
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainTransferUtils.createGainingTransferPollMessage;
 import static google.registry.flows.domain.DomainTransferUtils.createTransferResponse;
+import static google.registry.model.ResourceTransferUtils.approvePendingTransfer;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;

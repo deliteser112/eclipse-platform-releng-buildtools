@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.flows.async;
+package google.registry.batch;
 
 import static com.google.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
 import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
-import static google.registry.flows.async.AsyncFlowMetrics.OperationResult.SUCCESS;
-import static google.registry.flows.async.AsyncFlowMetrics.OperationType.CONTACT_AND_HOST_DELETE;
+import static google.registry.batch.AsyncTaskMetrics.OperationResult.SUCCESS;
+import static google.registry.batch.AsyncTaskMetrics.OperationType.CONTACT_AND_HOST_DELETE;
 
 import com.google.common.collect.ImmutableSet;
 import google.registry.testing.FakeClock;
@@ -26,24 +26,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Unit tests for {@link AsyncFlowMetrics}. */
+/** Unit tests for {@link AsyncTaskMetrics}. */
 @RunWith(JUnit4.class)
-public class AsyncFlowMetricsTest extends ShardableTestCase {
+public class AsyncTaskMetricsTest extends ShardableTestCase {
 
   private final FakeClock clock = new FakeClock();
-  private final AsyncFlowMetrics asyncFlowMetrics = new AsyncFlowMetrics(clock);
+  private final AsyncTaskMetrics asyncTaskMetrics = new AsyncTaskMetrics(clock);
 
   @Test
   public void testRecordAsyncFlowResult_calculatesDurationMillisCorrectly() {
-    asyncFlowMetrics.recordAsyncFlowResult(
+    asyncTaskMetrics.recordAsyncFlowResult(
         CONTACT_AND_HOST_DELETE,
         SUCCESS,
         clock.nowUtc().minusMinutes(10).minusSeconds(5).minusMillis(566));
-    assertThat(AsyncFlowMetrics.asyncFlowOperationCounts)
+    assertThat(AsyncTaskMetrics.asyncFlowOperationCounts)
         .hasValueForLabels(1, "contactAndHostDelete", "success")
         .and()
         .hasNoOtherValues();
-    assertThat(AsyncFlowMetrics.asyncFlowOperationProcessingTime)
+    assertThat(AsyncTaskMetrics.asyncFlowOperationProcessingTime)
         .hasDataSetForLabels(ImmutableSet.of(605566.0), "contactAndHostDelete", "success")
         .and()
         .hasNoOtherValues();

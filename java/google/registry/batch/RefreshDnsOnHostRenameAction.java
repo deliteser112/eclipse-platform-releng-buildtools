@@ -18,10 +18,10 @@ import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_HOST_KEY;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
-import static google.registry.flows.async.AsyncFlowMetrics.OperationType.DNS_REFRESH;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_HOST_KEY;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_HOST_RENAME;
+import static google.registry.batch.AsyncTaskMetrics.OperationType.DNS_REFRESH;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.isDeleted;
@@ -46,9 +46,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
+import google.registry.batch.AsyncTaskMetrics.OperationResult;
 import google.registry.dns.DnsQueue;
-import google.registry.flows.async.AsyncFlowMetrics;
-import google.registry.flows.async.AsyncFlowMetrics.OperationResult;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
 import google.registry.model.domain.DomainResource;
@@ -83,7 +82,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final Duration LEASE_LENGTH = standardHours(4);
 
-  @Inject AsyncFlowMetrics asyncFlowMetrics;
+  @Inject AsyncTaskMetrics asyncTaskMetrics;
   @Inject Clock clock;
   @Inject MapreduceRunner mrRunner;
   @Inject @Named(QUEUE_ASYNC_HOST_RENAME) Queue pullQueue;
@@ -114,7 +113,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
         LeaseOptions.Builder.withCountLimit(maxLeaseCount())
             .leasePeriod(LEASE_LENGTH.getStandardSeconds(), SECONDS);
     List<TaskHandle> tasks = pullQueue.leaseTasks(options);
-    asyncFlowMetrics.recordDnsRefreshBatchSize(tasks.size());
+    asyncTaskMetrics.recordDnsRefreshBatchSize(tasks.size());
 
     // Check if there are no tasks to process, and if so, return early.
     if (tasks.isEmpty()) {
@@ -146,7 +145,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
     }
 
     deleteTasksWithRetry(
-        requestsToDelete, pullQueue, asyncFlowMetrics, retrier, OperationResult.STALE);
+        requestsToDelete, pullQueue, asyncTaskMetrics, retrier, OperationResult.STALE);
     ImmutableList<DnsRefreshRequest> refreshRequests = requestsBuilder.build();
     if (refreshRequests.isEmpty()) {
       logRespondAndUnlock(
@@ -245,7 +244,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
     private static final long serialVersionUID = 9077366205249562118L;
 
     @NonFinalForTesting
-    private static AsyncFlowMetrics asyncFlowMetrics = new AsyncFlowMetrics(new SystemClock());
+    private static AsyncTaskMetrics asyncTaskMetrics = new AsyncTaskMetrics(new SystemClock());
 
     private final Lock lock;
     private final Retrier retrier;
@@ -265,7 +264,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
       deleteTasksWithRetry(
           refreshRequests,
           getQueue(QUEUE_ASYNC_HOST_RENAME),
-          asyncFlowMetrics,
+          asyncTaskMetrics,
           retrier,
           OperationResult.SUCCESS);
 
@@ -277,7 +276,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
   private static void deleteTasksWithRetry(
       final List<DnsRefreshRequest> refreshRequests,
       final Queue queue,
-      AsyncFlowMetrics asyncFlowMetrics,
+      AsyncTaskMetrics asyncTaskMetrics,
       Retrier retrier,
       OperationResult result) {
     if (refreshRequests.isEmpty()) {
@@ -287,7 +286,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
         refreshRequests.stream().map(DnsRefreshRequest::task).collect(toImmutableList());
     retrier.callWithRetry(() -> queue.deleteTask(tasks), TransientFailureException.class);
     refreshRequests.forEach(
-        r -> asyncFlowMetrics.recordAsyncFlowResult(DNS_REFRESH, result, r.requestedTime()));
+        r -> asyncTaskMetrics.recordAsyncFlowResult(DNS_REFRESH, result, r.requestedTime()));
   }
 
   /** A class that encapsulates the values of a request to refresh DNS for a renamed host. */

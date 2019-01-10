@@ -21,18 +21,18 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.math.IntMath.divide;
 import static com.googlecode.objectify.Key.getKind;
-import static google.registry.flows.ResourceFlowUtils.denyPendingTransfer;
-import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
-import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_CLIENT_TRANSACTION_ID;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_IS_SUPERUSER;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTING_CLIENT_ID;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
-import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_SERVER_TRANSACTION_ID;
-import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_CLIENT_TRANSACTION_ID;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_IS_SUPERUSER;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_REQUESTING_CLIENT_ID;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.batch.AsyncTaskEnqueuer.PARAM_SERVER_TRANSACTION_ID;
+import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_DELETE;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.isDeleted;
+import static google.registry.model.ResourceTransferUtils.denyPendingTransfer;
+import static google.registry.model.ResourceTransferUtils.handlePendingTransferOnDelete;
+import static google.registry.model.ResourceTransferUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.reporting.HistoryEntry.Type.CONTACT_DELETE;
@@ -63,11 +63,10 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Multiset;
 import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
+import google.registry.batch.AsyncTaskMetrics.OperationResult;
+import google.registry.batch.AsyncTaskMetrics.OperationType;
 import google.registry.batch.DeleteContactsAndHostsAction.DeletionResult.Type;
 import google.registry.dns.DnsQueue;
-import google.registry.flows.async.AsyncFlowMetrics;
-import google.registry.flows.async.AsyncFlowMetrics.OperationResult;
-import google.registry.flows.async.AsyncFlowMetrics.OperationType;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.UnlockerOutput;
 import google.registry.mapreduce.inputs.EppResourceInputs;
@@ -124,7 +123,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
   private static final int MAX_REDUCE_SHARDS = 50;
   private static final int DELETES_PER_SHARD = 5;
 
-  @Inject AsyncFlowMetrics asyncFlowMetrics;
+  @Inject AsyncTaskMetrics asyncTaskMetrics;
   @Inject Clock clock;
   @Inject MapreduceRunner mrRunner;
   @Inject @Named(QUEUE_ASYNC_DELETE) Queue queue;
@@ -154,7 +153,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
         LeaseOptions.Builder.withCountLimit(maxLeaseCount())
             .leasePeriod(LEASE_LENGTH.getStandardSeconds(), SECONDS);
     List<TaskHandle> tasks = queue.leaseTasks(options);
-    asyncFlowMetrics.recordContactHostDeletionBatchSize(tasks.size());
+    asyncTaskMetrics.recordContactHostDeletionBatchSize(tasks.size());
 
     // Check if there are no tasks to process, and if so, return early.
     if (tasks.isEmpty()) {
@@ -210,7 +209,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
     retrier.callWithRetry(() -> queue.deleteTask(tasks), TransientFailureException.class);
     deletionRequests.forEach(
         deletionRequest ->
-            asyncFlowMetrics.recordAsyncFlowResult(
+            asyncTaskMetrics.recordAsyncFlowResult(
                 deletionRequest.getMetricOperationType(),
                 OperationResult.STALE,
                 deletionRequest.requestedTime()));
@@ -306,7 +305,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
     private static final DnsQueue dnsQueue = DnsQueue.create();
 
     @NonFinalForTesting
-    private static AsyncFlowMetrics asyncFlowMetrics = new AsyncFlowMetrics(new SystemClock());
+    private static AsyncTaskMetrics asyncTaskMetrics = new AsyncTaskMetrics(new SystemClock());
 
     @Override
     public void reduce(final DeletionRequest deletionRequest, ReducerInput<Boolean> values) {
@@ -321,7 +320,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
                     getQueue(QUEUE_ASYNC_DELETE).deleteTask(deletionRequest.task());
                     return deletionResult;
                   });
-      asyncFlowMetrics.recordAsyncFlowResult(
+      asyncTaskMetrics.recordAsyncFlowResult(
           deletionRequest.getMetricOperationType(),
           result.getMetricOperationResult(),
           deletionRequest.requestedTime());

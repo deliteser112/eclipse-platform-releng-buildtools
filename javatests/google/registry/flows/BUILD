@@ -24,6 +24,7 @@ java_library(
     ]),
     resources = glob(["**/testdata/*.xml"]),
     deps = [
+        "//java/google/registry/batch",
         "//java/google/registry/config",
         "//java/google/registry/dns",
         "//java/google/registry/flows",
