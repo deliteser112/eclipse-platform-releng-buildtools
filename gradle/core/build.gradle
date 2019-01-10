@@ -453,6 +453,11 @@ test {
   exclude fragileTestPatterns
   exclude outcastTestPatterns
 
+  // Run every test class in its own process.
+  // TODO: Figure out why we need to do this, fix it and then stop doing it.
+  // This setting makes the build take 35 minutes, without it it takes about 10.
+  forkEvery 1
+
   // Sets the maximum number of test executors that may exist at the same time.
   maxParallelForks 5
 }.dependsOn(fragileTest, outcastTest)
