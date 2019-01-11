@@ -113,7 +113,7 @@
             {param name: 'clientId' /}
             {param value: $baseClientId /}
             {param placeholder: 'registrar\'s ID' /}
-            {param readonly: false /}
+            {param required: true /}
           {/call}
           <span class="{css('description')}">
             Must:
@@ -136,16 +136,22 @@
         {param description kind="text"}
           Will be granted web-console access to the OTE registrars.
         {/param}
-        {param readonly: false /}
+        {param required: true /}
       {/call}
+      <tr>
+        <td colspan="2">
+          <hr>
+          <h1>Optional fields</h1>
+          Don't fill unless you have a good reason to.
+        </td>
+      </tr>
       {call registry.soy.forms.inputFieldRowWithValue}
-        {param label: 'Password (optional)' /}
+        {param label: 'EPP password' /}
         {param name: 'password' /}
-        {param placeholder: 'Optional password' /}
+        {param placeholder: 'Optional' /}
         {param description kind="text"}
-          The password used to for EPP login. Leave blank to auto-generate a password.
+          The password used to for EPP login. Leave blank to auto-generate.
         {/param}
-        {param readonly: false /}
       {/call}
       {call registry.soy.forms.submitRow}
         {param label: 'create' /}

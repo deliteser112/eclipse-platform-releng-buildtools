@@ -107,6 +107,7 @@
 {template .inputFieldValue}
   {@param name: string}
   {@param? readonly: bool}
+  {@param? required: bool}
   {@param? value: ?}
   {@param? namePrefix: string}
   {@param? placeholder: string}
@@ -119,6 +120,7 @@
          {if isNonnull($placeholder) and not $readonly}
          placeholder="{$placeholder}"
          {/if}
+         {if $required}required{/if}
          {if $readonly}readonly{/if}>
 {/template}
 
@@ -128,6 +130,7 @@
   {@param label: string}
   {@param name: string}
   {@param? readonly: bool}
+  {@param? required: bool}
   {@param? namePrefix: string}
   {@param? value: ?}
   {@param? description: string}

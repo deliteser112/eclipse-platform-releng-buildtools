@@ -95,7 +95,7 @@ public final class ConsoleOteSetupAction implements Runnable {
   @Inject SendEmailUtils sendEmailUtils;
   @Inject @Config("logoFilename") String logoFilename;
   @Inject @Config("productName") String productName;
-  @Inject @Config("base64StringGenerator") StringGenerator passwordGenerator;
+  @Inject @Config("base58StringGenerator") StringGenerator passwordGenerator;
   @Inject @Parameter("clientId") Optional<String> clientId;
   @Inject @Parameter("email") Optional<String> email;
   @Inject @Parameter("password") Optional<String> optionalPassword;
@@ -163,14 +163,12 @@ public final class ConsoleOteSetupAction implements Runnable {
   }
 
   private void runPost(HashMap<String, Object> data) {
-    // This is intentionally outside of the "try/catch", since not having these fields means someone
-    // tried to "manually" POST to this page. No need to send out a "pretty" result in that case.
-    checkState(clientId.isPresent() && email.isPresent(), "Must supply clientId and email");
-
-    data.put("baseClientId", clientId.get());
-    data.put("contactEmail", email.get());
-
     try {
+      checkState(clientId.isPresent() && email.isPresent(), "Must supply clientId and email");
+
+      data.put("baseClientId", clientId.get());
+      data.put("contactEmail", email.get());
+
       String password = optionalPassword.orElse(passwordGenerator.createString(PASSWORD_LENGTH));
       ImmutableMap<String, String> clientIdToTld =
           OteAccountBuilder.forClientId(clientId.get())
