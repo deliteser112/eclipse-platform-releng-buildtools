@@ -60,7 +60,7 @@ public class SetNumInstancesCommandTest extends CommandTestCase<SetNumInstancesC
         assertThrows(
             IllegalArgumentException.class,
             () -> runCommand("--services=", "--versions=version", "--num_instances=5"));
-    assertThat(thrown).hasMessageThat().contains("Invalid service(s): []");
+    assertThat(thrown).hasMessageThat().contains("Invalid service ''");
   }
 
   @Test
@@ -71,7 +71,7 @@ public class SetNumInstancesCommandTest extends CommandTestCase<SetNumInstancesC
             () ->
                 runCommand(
                     "--services=INVALID,DEFAULT", "--versions=version", "--num_instances=5"));
-    assertThat(thrown).hasMessageThat().contains("Invalid service(s): [INVALID]");
+    assertThat(thrown).hasMessageThat().contains("Invalid service 'INVALID'");
   }
 
   @Test

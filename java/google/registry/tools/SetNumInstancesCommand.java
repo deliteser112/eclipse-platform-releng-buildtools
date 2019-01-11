@@ -15,28 +15,27 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.ImmutableSetMultimap.flatteningToImmutableSetMultimap;
+import static google.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.api.services.appengine.v1.Appengine;
+import com.google.common.base.Enums;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.MultimapBuilder;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.tools.AppEngineConnection.Service;
 import google.registry.util.AppEngineServiceUtils;
 import java.io.IOException;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 
 /** A command to set the number of instances for an App Engine service. */
@@ -49,11 +48,12 @@ final class SetNumInstancesCommand implements CommandWithRemoteApi {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private static final ImmutableSet<String> ALL_VALID_SERVICES =
-      Arrays.stream(Service.values()).map(Service::name).collect(toImmutableSet());
+  private static final ImmutableSet<Service> ALL_DEPLOYED_SERVICES =
+      ImmutableSet.copyOf(Service.values());
 
-  private static final ImmutableSet<String> ALL_DEPLOYED_SERVICE_IDS =
-      Arrays.stream(Service.values()).map(Service::getServiceId).collect(toImmutableSet());
+  private static final ImmutableMap<String, Service> SERVICE_ID_TO_SERVICE =
+      ALL_DEPLOYED_SERVICES.stream()
+          .collect(toImmutableMap(service -> service.getServiceId(), service -> service));
 
   // TODO(b/119629679): Use List<Service> after upgrading jcommander to latest version.
   @Parameter(
@@ -61,7 +61,7 @@ final class SetNumInstancesCommand implements CommandWithRemoteApi {
       description =
           "Comma-delimited list of App Engine services to set. "
               + "Allowed values: [DEFAULT, TOOLS, BACKEND, PUBAPI]")
-  private List<String> services = ImmutableList.of();
+  private List<String> serviceNames = ImmutableList.of();
 
   @Parameter(
       names = "--versions",
@@ -93,103 +93,98 @@ final class SetNumInstancesCommand implements CommandWithRemoteApi {
 
   @Override
   public void run() throws Exception {
-    Set<String> invalidServiceIds =
-        Sets.difference(ImmutableSet.copyOf(services), ALL_VALID_SERVICES);
-    checkArgument(invalidServiceIds.isEmpty(), "Invalid service(s): %s", invalidServiceIds);
 
-    Set<String> serviceIds =
-        services.stream()
-            .map(service -> Service.valueOf(service).getServiceId())
+    ImmutableSet<Service> services =
+        serviceNames.stream()
+            .map(
+                name ->
+                    checkArgumentPresent(
+                        Enums.getIfPresent(Service.class, name).toJavaUtil(),
+                        "Invalid service '%s'. Allowed values are %s",
+                        name,
+                        ALL_DEPLOYED_SERVICES))
             .collect(toImmutableSet());
 
     if (nonLiveVersions) {
       checkArgument(versions.isEmpty(), "--versions cannot be set if --non_live_versions is set");
 
-      serviceIds = serviceIds.isEmpty() ? ALL_DEPLOYED_SERVICE_IDS : serviceIds;
-      Multimap<String, String> allLiveVersionsMap = getAllLiveVersionsMap(serviceIds);
-      Multimap<String, String> manualScalingVersionsMap = getManualScalingVersionsMap(serviceIds);
+      services = services.isEmpty() ? ALL_DEPLOYED_SERVICES : services;
+      ImmutableSetMultimap<Service, String> allLiveVersionsMap = getAllLiveVersionsMap(services);
+      ImmutableSetMultimap<Service, String> manualScalingVersionsMap =
+          getManualScalingVersionsMap(services);
 
       // Set number of instances for versions which are manual scaling and non-live
       manualScalingVersionsMap.forEach(
-          (serviceId, versionId) -> {
-            if (!allLiveVersionsMap.containsEntry(serviceId, versionId)) {
-              setNumInstances(serviceId, versionId, numInstances);
+          (service, versionId) -> {
+            if (!allLiveVersionsMap.containsEntry(service, versionId)) {
+              setNumInstances(service, versionId, numInstances);
             }
           });
     } else {
-      checkArgument(!serviceIds.isEmpty(), "Service must be specified");
+      checkArgument(!services.isEmpty(), "Service must be specified");
       checkArgument(!versions.isEmpty(), "Version must be specified");
       checkArgument(numInstances > 0, "Number of instances must be greater than zero");
 
-      Multimap<String, String> manualScalingVersionsMap = getManualScalingVersionsMap(serviceIds);
+      ImmutableSetMultimap<Service, String> manualScalingVersionsMap =
+          getManualScalingVersionsMap(services);
 
-      for (String serviceId : serviceIds) {
+      for (Service service : services) {
         for (String versionId : versions) {
           checkArgument(
-              manualScalingVersionsMap.containsEntry(serviceId, versionId),
+              manualScalingVersionsMap.containsEntry(service, versionId),
               "Version %s of service %s is not managed through manual scaling",
               versionId,
-              serviceId);
-          setNumInstances(serviceId, versionId, numInstances);
+              service);
+          setNumInstances(service, versionId, numInstances);
         }
       }
     }
   }
 
-  private void setNumInstances(String service, String version, long numInstances) {
-    appEngineServiceUtils.setNumInstances(service, version, numInstances);
+  private void setNumInstances(Service service, String version, long numInstances) {
+    appEngineServiceUtils.setNumInstances(service.getServiceId(), version, numInstances);
     logger.atInfo().log(
         "Successfully set version %s of service %s to %d instances.",
         version, service, numInstances);
   }
 
-  private Multimap<String, String> getAllLiveVersionsMap(Set<String> services) {
+  private ImmutableSetMultimap<Service, String> getAllLiveVersionsMap(Set<Service> services) {
     try {
-      return Stream.of(appengine.apps().services().list(projectId).execute().getServices())
-          .flatMap(Collection::stream)
-          .filter(service -> services.contains(service.getId()))
-          .flatMap(
+      return nullToEmpty(appengine.apps().services().list(projectId).execute().getServices())
+          .stream()
+          .filter(
               service ->
-                  // getAllocations returns only live versions or null
-                  Stream.of(service.getSplit().getAllocations())
-                      .flatMap(
-                          allocations ->
-                              allocations.keySet().stream()
-                                  .map(versionId -> new SimpleEntry<>(service.getId(), versionId))))
+                  services.contains(SERVICE_ID_TO_SERVICE.getOrDefault(service.getId(), null)))
           .collect(
-              Multimaps.toMultimap(
-                  SimpleEntry::getKey,
-                  SimpleEntry::getValue,
-                  MultimapBuilder.treeKeys().arrayListValues()::build));
+              flatteningToImmutableSetMultimap(
+                  service -> SERVICE_ID_TO_SERVICE.get(service.getId()),
+                  service -> nullToEmpty(service.getSplit().getAllocations()).keySet().stream()));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private Multimap<String, String> getManualScalingVersionsMap(Set<String> services) {
+  private ImmutableSetMultimap<Service, String> getManualScalingVersionsMap(Set<Service> services) {
     return services.stream()
-        .flatMap(
-            serviceId -> {
-              try {
-                return Stream.of(
-                        appengine
-                            .apps()
-                            .services()
-                            .versions()
-                            .list(projectId, serviceId)
-                            .execute()
-                            .getVersions())
-                    .flatMap(Collection::stream)
-                    .filter(version -> version.getManualScaling() != null)
-                    .map(version -> new SimpleEntry<>(serviceId, version.getId()));
-              } catch (IOException e) {
-                throw new RuntimeException(e);
-              }
-            })
         .collect(
-            Multimaps.toMultimap(
-                SimpleEntry::getKey,
-                SimpleEntry::getValue,
-                MultimapBuilder.treeKeys().arrayListValues()::build));
+            flatteningToImmutableSetMultimap(
+                service -> service,
+                service -> {
+                  try {
+                    return nullToEmpty(
+                            appengine
+                                .apps()
+                                .services()
+                                .versions()
+                                .list(projectId, service.getServiceId())
+                                .execute()
+                                .getVersions())
+                        .stream()
+                        .filter(version -> version.getManualScaling() != null)
+                        .map(version -> version.getId());
+                  } catch (IOException e) {
+                    throw new RuntimeException(e);
+                  }
+                }));
   }
 }
