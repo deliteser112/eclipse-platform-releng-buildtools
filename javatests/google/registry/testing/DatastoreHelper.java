@@ -28,6 +28,7 @@ import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.EppResourceUtils.createRepoId;
 import static google.registry.model.ResourceTransferUtils.createTransferResponse;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
 import static google.registry.model.registry.label.PremiumListUtils.parentPremiumListEntriesOnRevision;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.difference;
@@ -179,8 +180,7 @@ public class DatastoreHelper {
   }
 
   public static Registry newRegistry(String tld, String roidSuffix) {
-    return newRegistry(
-        tld, roidSuffix, ImmutableSortedMap.of(START_OF_TIME, TldState.GENERAL_AVAILABILITY));
+    return newRegistry(tld, roidSuffix, ImmutableSortedMap.of(START_OF_TIME, GENERAL_AVAILABILITY));
   }
 
   public static Registry newRegistry(
@@ -332,17 +332,17 @@ public class DatastoreHelper {
 
   /** Creates and persists a tld. */
   public static void createTld(String tld) {
-    createTld(tld, TldState.GENERAL_AVAILABILITY);
+    createTld(tld, GENERAL_AVAILABILITY);
   }
 
   public static void createTld(String tld, String roidSuffix) {
-    createTld(tld, roidSuffix, ImmutableSortedMap.of(START_OF_TIME, TldState.GENERAL_AVAILABILITY));
+    createTld(tld, roidSuffix, ImmutableSortedMap.of(START_OF_TIME, GENERAL_AVAILABILITY));
   }
 
   /** Creates and persists the given TLDs. */
   public static void createTlds(String... tlds) {
     for (String tld : tlds) {
-      createTld(tld, TldState.GENERAL_AVAILABILITY);
+      createTld(tld, GENERAL_AVAILABILITY);
     }
   }
 

@@ -16,6 +16,7 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.AVAILABLE;
 import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.REGISTERED;
 import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.RESERVED;
@@ -28,7 +29,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.mockito.Mockito.verify;
 
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.monitoring.whitebox.CheckApiMetric;
 import google.registry.monitoring.whitebox.CheckApiMetric.Availability;
 import google.registry.monitoring.whitebox.CheckApiMetric.Status;
@@ -151,7 +151,7 @@ public class CheckApiActionTest {
 
   @Test
   public void testFailure_tldInPredelegation() {
-    createTld("predelegated", TldState.PREDELEGATION);
+    createTld("predelegated", PREDELEGATION);
     assertThat(getCheckResponse("foo.predelegated"))
         .containsExactly(
             "status", "error",

@@ -24,6 +24,7 @@ import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_ACTIONS;
 import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWithPendingTransfer;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.DELETED_DOMAINS_GRACE;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.DELETED_DOMAINS_NOGRACE;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.NET_ADDS_10_YR;
@@ -86,7 +87,6 @@ import google.registry.model.host.HostResource;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
@@ -723,7 +723,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testFailure_predelegation() throws Exception {
-    createTld("tld", TldState.PREDELEGATION);
+    createTld("tld", PREDELEGATION);
     setUpSuccessfulTest();
     EppException thrown = assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -731,7 +731,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testSuccess_superuserPredelegation() throws Exception {
-    createTld("tld", TldState.PREDELEGATION);
+    createTld("tld", PREDELEGATION);
     setUpSuccessfulTest();
     clock.advanceOneMilli();
     runFlowAssertResponse(

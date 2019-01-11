@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
@@ -130,7 +131,7 @@ public class DomainClaimsCheckFlowTest
 
   @Test
   public void testFailure_predelgation() {
-    createTld("tld", TldState.PREDELEGATION);
+    createTld("tld", PREDELEGATION);
     setEppInput("domain_check_claims.xml");
     EppException thrown = assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();

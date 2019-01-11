@@ -27,6 +27,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.Registries.getTlds;
 import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
@@ -890,7 +891,7 @@ public class DomainFlowUtils {
   /** Check that the registry phase is not predelegation, during which some flows are forbidden. */
   public static void verifyNotInPredelegation(Registry registry, DateTime now)
       throws BadCommandForRegistryPhaseException {
-    if (registry.getTldState(now) == TldState.PREDELEGATION) {
+    if (registry.getTldState(now) == PREDELEGATION) {
       throw new BadCommandForRegistryPhaseException();
     }
   }

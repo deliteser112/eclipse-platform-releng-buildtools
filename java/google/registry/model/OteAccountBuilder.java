@@ -19,6 +19,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
@@ -113,9 +115,9 @@ public final class OteAccountBuilder {
         RegistryEnvironment.get() != RegistryEnvironment.PRODUCTION,
         "Can't setup OT&E in production");
     clientIdToTld = createClientIdToTldMap(baseClientId);
-    sunriseTld = createTld(baseClientId + "-sunrise", TldState.START_DATE_SUNRISE, false, 0);
-    gaTld = createTld(baseClientId + "-ga", TldState.GENERAL_AVAILABILITY, false, 2);
-    eapTld = createTld(baseClientId + "-eap", TldState.GENERAL_AVAILABILITY, true, 3);
+    sunriseTld = createTld(baseClientId + "-sunrise", START_DATE_SUNRISE, false, 0);
+    gaTld = createTld(baseClientId + "-ga", GENERAL_AVAILABILITY, false, 2);
+    eapTld = createTld(baseClientId + "-eap", GENERAL_AVAILABILITY, true, 3);
     registrars =
         clientIdToTld.keySet().stream()
             .map(OteAccountBuilder::createRegistrar)

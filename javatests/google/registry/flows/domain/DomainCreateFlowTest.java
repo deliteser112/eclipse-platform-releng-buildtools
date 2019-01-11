@@ -21,11 +21,14 @@ import static google.registry.flows.FlowTestCase.UserPrivileges.SUPERUSER;
 import static google.registry.model.billing.BillingEvent.Flag.ANCHOR_TENANT;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.eppcommon.StatusValue.OK;
+import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
 import static google.registry.model.eppcommon.StatusValue.SERVER_HOLD;
 import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
+import static google.registry.model.registry.Registry.TldState.QUIET_PERIOD;
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
@@ -139,13 +142,11 @@ import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.domain.token.AllocationToken;
-import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
@@ -1165,10 +1166,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     persistResource(
-        newHostResource("ns2.example.net")
-            .asBuilder()
-            .addStatusValue(StatusValue.PENDING_DELETE)
-            .build());
+        newHostResource("ns2.example.net").asBuilder().addStatusValue(PENDING_DELETE).build());
     clock.advanceOneMilli();
     LinkedResourceInPendingDeleteProhibitsOperationException thrown =
         assertThrows(LinkedResourceInPendingDeleteProhibitsOperationException.class, this::runFlow);
@@ -1191,10 +1189,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistActiveHost("ns2.example.net");
     persistActiveContact("sh8013");
     persistResource(
-        newContactResource("jd1234")
-            .asBuilder()
-            .addStatusValue(StatusValue.PENDING_DELETE)
-            .build());
+        newContactResource("jd1234").asBuilder().addStatusValue(PENDING_DELETE).build());
     clock.advanceOneMilli();
     LinkedResourceInPendingDeleteProhibitsOperationException thrown =
         assertThrows(LinkedResourceInPendingDeleteProhibitsOperationException.class, this::runFlow);
@@ -1211,7 +1206,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_predelegation() {
-    createTld("tld", TldState.PREDELEGATION);
+    createTld("tld", PREDELEGATION);
     persistContactsAndHosts();
     EppException thrown =
         assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
@@ -1229,7 +1224,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_quietPeriod() {
-    createTld("tld", TldState.QUIET_PERIOD);
+    createTld("tld", QUIET_PERIOD);
     persistContactsAndHosts();
     EppException thrown =
         assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
@@ -1238,7 +1233,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_superuserPredelegation() throws Exception {
-    createTld("tld", TldState.PREDELEGATION);
+    createTld("tld", PREDELEGATION);
     persistContactsAndHosts();
     doSuccessfulTest(
         "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
@@ -1254,7 +1249,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_superuserQuietPeriod() throws Exception {
-    createTld("tld", TldState.QUIET_PERIOD);
+    createTld("tld", QUIET_PERIOD);
     persistContactsAndHosts();
     doSuccessfulTest(
         "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));

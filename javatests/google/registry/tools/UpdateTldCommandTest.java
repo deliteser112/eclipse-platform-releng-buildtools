@@ -16,6 +16,9 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
+import static google.registry.model.registry.Registry.TldState.QUIET_PERIOD;
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
@@ -34,7 +37,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.PremiumList;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -75,18 +77,16 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         "xn--q9jyb4c");
 
     Registry registry = Registry.get("xn--q9jyb4c");
-    assertThat(registry.getTldState(sunriseStart.minusMillis(1))).isEqualTo(TldState.PREDELEGATION);
+    assertThat(registry.getTldState(sunriseStart.minusMillis(1))).isEqualTo(PREDELEGATION);
     assertThat(registry.getTldState(sunriseStart)).isEqualTo(START_DATE_SUNRISE);
     assertThat(registry.getTldState(sunriseStart.plusMillis(1))).isEqualTo(START_DATE_SUNRISE);
     assertThat(registry.getTldState(quietPeriodStart.minusMillis(1))).isEqualTo(START_DATE_SUNRISE);
-    assertThat(registry.getTldState(quietPeriodStart)).isEqualTo(TldState.QUIET_PERIOD);
-    assertThat(registry.getTldState(quietPeriodStart.plusMillis(1)))
-        .isEqualTo(TldState.QUIET_PERIOD);
-    assertThat(registry.getTldState(gaStart.minusMillis(1))).isEqualTo(TldState.QUIET_PERIOD);
-    assertThat(registry.getTldState(gaStart)).isEqualTo(TldState.GENERAL_AVAILABILITY);
-    assertThat(registry.getTldState(gaStart.plusMillis(1)))
-        .isEqualTo(TldState.GENERAL_AVAILABILITY);
-    assertThat(registry.getTldState(END_OF_TIME)).isEqualTo(TldState.GENERAL_AVAILABILITY);
+    assertThat(registry.getTldState(quietPeriodStart)).isEqualTo(QUIET_PERIOD);
+    assertThat(registry.getTldState(quietPeriodStart.plusMillis(1))).isEqualTo(QUIET_PERIOD);
+    assertThat(registry.getTldState(gaStart.minusMillis(1))).isEqualTo(QUIET_PERIOD);
+    assertThat(registry.getTldState(gaStart)).isEqualTo(GENERAL_AVAILABILITY);
+    assertThat(registry.getTldState(gaStart.plusMillis(1))).isEqualTo(GENERAL_AVAILABILITY);
+    assertThat(registry.getTldState(END_OF_TIME)).isEqualTo(GENERAL_AVAILABILITY);
   }
 
   @Test
@@ -94,7 +94,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     persistResource(
         Registry.get("xn--q9jyb4c")
             .asBuilder()
-            .setTldStateTransitions(ImmutableSortedMap.of(START_OF_TIME, TldState.PREDELEGATION))
+            .setTldStateTransitions(ImmutableSortedMap.of(START_OF_TIME, PREDELEGATION))
             .build());
     runCommandForced("--set_current_tld_state=START_DATE_SUNRISE", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getTldState(now.plusDays(1)))
@@ -569,8 +569,8 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         Registry.get("xn--q9jyb4c").asBuilder()
             .setTldStateTransitions(
                 ImmutableSortedMap.of(
-                    START_OF_TIME, TldState.PREDELEGATION,
-                    now.minusMonths(1), TldState.GENERAL_AVAILABILITY))
+                    START_OF_TIME, PREDELEGATION,
+                    now.minusMonths(1), GENERAL_AVAILABILITY))
             .build());
     IllegalArgumentException thrown =
         assertThrows(
@@ -585,8 +585,8 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         Registry.get("xn--q9jyb4c").asBuilder()
             .setTldStateTransitions(
                 ImmutableSortedMap.of(
-                    START_OF_TIME, TldState.PREDELEGATION,
-                    now.plusMonths(1), TldState.GENERAL_AVAILABILITY))
+                    START_OF_TIME, PREDELEGATION,
+                    now.plusMonths(1), GENERAL_AVAILABILITY))
             .build());
     IllegalArgumentException thrown =
         assertThrows(
@@ -603,8 +603,8 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         Registry.get("xn--q9jyb4c").asBuilder()
             .setTldStateTransitions(
                 ImmutableSortedMap.of(
-                    START_OF_TIME, TldState.PREDELEGATION,
-                    now.minusMonths(1), TldState.GENERAL_AVAILABILITY))
+                    START_OF_TIME, PREDELEGATION,
+                    now.minusMonths(1), GENERAL_AVAILABILITY))
             .build());
     IllegalArgumentException thrown =
         assertThrows(

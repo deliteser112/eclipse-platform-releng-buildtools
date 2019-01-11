@@ -40,7 +40,6 @@ import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
@@ -98,7 +97,7 @@ public class RdapJsonFormatterTest {
 
     // Create the registrar in 1999, then update it in 2000.
     clock.setTo(DateTime.parse("1999-01-01T00:00:00Z"));
-    createTld("xn--q9jyb4c", TldState.GENERAL_AVAILABILITY);
+    createTld("xn--q9jyb4c");
     registrar = persistResource(makeRegistrar("unicoderegistrar", "みんな", Registrar.State.ACTIVE));
     clock.setTo(DateTime.parse("2000-01-01T00:00:00Z"));
     registrar = persistResource(registrar);

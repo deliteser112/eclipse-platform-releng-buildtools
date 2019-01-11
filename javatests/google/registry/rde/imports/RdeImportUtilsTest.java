@@ -17,6 +17,7 @@ package google.registry.rde.imports;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
@@ -47,7 +48,6 @@ import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.registrar.Registrar;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.ShardableTestCase;
@@ -89,8 +89,8 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     clock = new FakeClock();
     clock.setTo(DateTime.now(UTC));
     rdeImportUtils = new RdeImportUtils(ofy(), clock, "import-bucket", gcsUtils);
-    createTld("test", TldState.PREDELEGATION);
-    createTld("getld", TldState.GENERAL_AVAILABILITY);
+    createTld("test", PREDELEGATION);
+    createTld("getld");
     persistNewRegistrar("RegistrarX", "RegistrarX", Registrar.Type.REAL, 1L);
   }
 

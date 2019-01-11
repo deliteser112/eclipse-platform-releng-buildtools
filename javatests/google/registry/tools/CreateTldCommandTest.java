@@ -16,6 +16,8 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -31,7 +33,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import com.googlecode.objectify.Key;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.Registry.TldState;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.math.BigDecimal;
@@ -68,7 +69,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     assertThat(registry.getCreationTime()).isIn(Range.closed(before, after));
     assertThat(registry.getDomainCreateRestricted()).isFalse();
     assertThat(registry.getDnsWriters()).containsExactly("FooDnsWriter");
-    assertThat(registry.getTldState(registry.getCreationTime())).isEqualTo(TldState.PREDELEGATION);
+    assertThat(registry.getTldState(registry.getCreationTime())).isEqualTo(PREDELEGATION);
     assertThat(registry.getRedemptionGracePeriodLength())
         .isEqualTo(Registry.DEFAULT_REDEMPTION_GRACE_PERIOD);
     assertThat(registry.getPendingDeleteLength()).isEqualTo(Registry.DEFAULT_PENDING_DELETE_LENGTH);
@@ -104,7 +105,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getTldState(DateTime.now(UTC)))
-        .isEqualTo(TldState.GENERAL_AVAILABILITY);
+        .isEqualTo(GENERAL_AVAILABILITY);
   }
 
   @Test
@@ -256,7 +257,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced("co.uk", "--roid_suffix=COUK", "--dns_writers=VoidDnsWriter");
 
     Registry registry = Registry.get("co.uk");
-    assertThat(registry.getTldState(new DateTime())).isEqualTo(TldState.PREDELEGATION);
+    assertThat(registry.getTldState(new DateTime())).isEqualTo(PREDELEGATION);
     assertThat(registry.getAddGracePeriodLength()).isEqualTo(Registry.DEFAULT_ADD_GRACE_PERIOD);
     assertThat(registry.getRedemptionGracePeriodLength())
         .isEqualTo(Registry.DEFAULT_REDEMPTION_GRACE_PERIOD);

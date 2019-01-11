@@ -17,6 +17,7 @@ package google.registry.rde.imports;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
@@ -155,7 +156,7 @@ public class RdeImportUtils {
           Registry registry = Registry.get(tld);
           TldState currentState = registry.getTldState(clock.nowUtc());
           checkArgument(
-              currentState == TldState.PREDELEGATION,
+              currentState == PREDELEGATION,
               "TLD '%s' is in state %s and cannot be imported",
               tld,
               currentState);

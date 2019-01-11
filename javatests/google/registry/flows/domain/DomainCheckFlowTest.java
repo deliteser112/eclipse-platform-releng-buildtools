@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static google.registry.model.eppoutput.CheckData.DomainCheck.create;
+import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
@@ -377,7 +378,7 @@ public class DomainCheckFlowTest
 
   @Test
   public void testFailure_predelegation() {
-    createTld("tld", TldState.PREDELEGATION);
+    createTld("tld", PREDELEGATION);
     EppException thrown = assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -917,9 +918,7 @@ public class DomainCheckFlowTest
 
   @Test
   public void testIcannActivityReportField_getsLogged() throws Exception {
-    createTld("com", TldState.GENERAL_AVAILABILITY);
-    createTld("net", TldState.GENERAL_AVAILABILITY);
-    createTld("org", TldState.GENERAL_AVAILABILITY);
+    createTlds("com", "net", "org");
     setEppInput("domain_check.xml");
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-check");

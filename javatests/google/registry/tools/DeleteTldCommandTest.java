@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
 import static google.registry.testing.DatastoreHelper.allowRegistrarAccess;
 import static google.registry.testing.DatastoreHelper.newRegistry;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
@@ -25,7 +26,6 @@ import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableSortedMap;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.RegistryNotFoundException;
-import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.Registry.TldType;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -43,13 +43,13 @@ public class DeleteTldCommandTest extends CommandTestCase<DeleteTldCommand> {
         newRegistry(
             TLD_REAL,
             Ascii.toUpperCase(TLD_REAL),
-            ImmutableSortedMap.of(START_OF_TIME, TldState.GENERAL_AVAILABILITY),
+            ImmutableSortedMap.of(START_OF_TIME, GENERAL_AVAILABILITY),
             TldType.REAL));
     persistResource(
         newRegistry(
             TLD_TEST,
             Ascii.toUpperCase(TLD_TEST),
-            ImmutableSortedMap.of(START_OF_TIME, TldState.GENERAL_AVAILABILITY),
+            ImmutableSortedMap.of(START_OF_TIME, GENERAL_AVAILABILITY),
             TldType.TEST));
   }
 
