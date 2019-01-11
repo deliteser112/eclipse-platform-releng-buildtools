@@ -28,6 +28,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.base.Throwables;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
@@ -37,7 +38,6 @@ import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.whois.WhoisMetrics.WhoisMetric;
 import google.registry.whois.WhoisResponse.WhoisResponseResults;
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -158,9 +158,10 @@ public final class WhoisHttpAction implements Runnable {
       metricBuilder.setStatus(e.getStatus());
       metricBuilder.setNumResults(0);
       sendResponse(e.getStatus(), e);
-    } catch (IOException e) {
+    } catch (Throwable e) {
       metricBuilder.setStatus(SC_INTERNAL_SERVER_ERROR);
       metricBuilder.setNumResults(0);
+      Throwables.throwIfUnchecked(e);
       throw new RuntimeException(e);
     } finally {
       whoisMetrics.recordWhoisMetric(metricBuilder.build());
