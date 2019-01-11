@@ -354,6 +354,12 @@ task soyToJava {
         }.filter {
           it.name.endsWith(".soy")
         })
+
+    soyToJava('google.registry.reporting.spec11.soy',
+        "${generatedDir}/google/registry/reporting/spec11/soy",
+        fileTree(
+            dir: "${javaDir}/google/registry/reporting/spec11/soy",
+            include: ['**/*.soy']))
   }
 }
 

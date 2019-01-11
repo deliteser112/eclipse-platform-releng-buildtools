@@ -14,6 +14,7 @@
 
 package google.registry.reporting.spec11;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
@@ -22,17 +23,24 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.services.dataflow.Dataflow;
 import com.google.api.services.dataflow.model.Job;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
+import com.google.template.soy.parseinfo.SoyTemplateInfo;
+import google.registry.beam.spec11.ThreatMatch;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.reporting.ReportingModule;
+import google.registry.reporting.spec11.soy.Spec11EmailSoyInfo;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.joda.time.LocalDate;
 import org.json.JSONException;
@@ -41,8 +49,8 @@ import org.json.JSONException;
  * Retries until a {@code Dataflow} job with a given {@code jobId} completes, continuing the Spec11
  * pipeline accordingly.
  *
- * <p>This calls {@link Spec11EmailUtils#emailSpec11Reports(String, String, List)} ()} on success or
- * {@link Spec11EmailUtils#sendAlertEmail(String, String)} on failure.
+ * <p>This calls {@link Spec11EmailUtils#emailSpec11Reports(SoyTemplateInfo, String, Set)} on
+ * success or {@link Spec11EmailUtils#sendAlertEmail(String, String)} on failure.
  */
 @Action(path = PublishSpec11ReportAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class PublishSpec11ReportAction implements Runnable {
@@ -54,7 +62,7 @@ public class PublishSpec11ReportAction implements Runnable {
   private static final String JOB_FAILED = "JOB_STATE_FAILED";
 
   private final String projectId;
-  private final String spec11EmailBodyTemplate;
+  private final String registryName;
   private final String jobId;
   private final Spec11EmailUtils emailUtils;
   private final Spec11RegistrarThreatMatchesParser spec11RegistrarThreatMatchesParser;
@@ -65,7 +73,7 @@ public class PublishSpec11ReportAction implements Runnable {
   @Inject
   PublishSpec11ReportAction(
       @Config("projectId") String projectId,
-      @Config("spec11EmailBodyTemplate") String spec11EmailBodyTemplate,
+      @Config("registryName") String registryName,
       @Parameter(ReportingModule.PARAM_JOB_ID) String jobId,
       Spec11EmailUtils emailUtils,
       Spec11RegistrarThreatMatchesParser spec11RegistrarThreatMatchesParser,
@@ -73,7 +81,7 @@ public class PublishSpec11ReportAction implements Runnable {
       Response response,
       LocalDate date) {
     this.projectId = projectId;
-    this.spec11EmailBodyTemplate = spec11EmailBodyTemplate;
+    this.registryName = registryName;
     this.jobId = jobId;
     this.emailUtils = emailUtils;
     this.spec11RegistrarThreatMatchesParser = spec11RegistrarThreatMatchesParser;
@@ -90,14 +98,22 @@ public class PublishSpec11ReportAction implements Runnable {
       String state = job.getCurrentState();
       switch (state) {
         case JOB_DONE:
-          logger.atInfo().log(
-              "Dataflow job %s finished successfully, publishing results if appropriate.", jobId);
+          logger.atInfo().log("Dataflow job %s finished successfully, publishing results.", jobId);
           response.setStatus(SC_OK);
-          if (shouldSendSpec11Email()) {
-            ImmutableList<RegistrarThreatMatches> matchesList =
-                spec11RegistrarThreatMatchesParser.getRegistrarThreatMatches();
-            String subject = String.format("Google Registry Monthly Threat Detector [%s]", date);
-            emailUtils.emailSpec11Reports(spec11EmailBodyTemplate, subject, matchesList);
+          if (shouldSendMonthlySpec11Email()) {
+            sendMonthlyEmail();
+          } else {
+            Optional<LocalDate> previousDate =
+                spec11RegistrarThreatMatchesParser.getPreviousDateWithMatches(date);
+            if (previousDate.isPresent()) {
+              processDailyDiff(previousDate.get());
+            } else {
+              emailUtils.sendAlertEmail(
+                  String.format("Spec11 Diff Error %s", date),
+                  String.format(
+                      "Could not find a previous file within the past month of %s", date));
+              response.setStatus(SC_NO_CONTENT);
+            }
           }
           break;
         case JOB_FAILED:
@@ -123,8 +139,51 @@ public class PublishSpec11ReportAction implements Runnable {
     }
   }
 
-  private boolean shouldSendSpec11Email() {
-    // TODO(b/120496893): send emails every day with the diff content
+  private void sendMonthlyEmail() throws IOException, JSONException {
+    ImmutableSet<RegistrarThreatMatches> monthlyMatchesSet =
+        spec11RegistrarThreatMatchesParser.getRegistrarThreatMatches(date);
+    String subject = String.format("%s Monthly Threat Detector [%s]", registryName, date);
+    emailUtils.emailSpec11Reports(
+        Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL, subject, monthlyMatchesSet);
+  }
+
+  private void processDailyDiff(LocalDate previousDate) throws IOException, JSONException {
+    ImmutableSet<RegistrarThreatMatches> previousMatches =
+        spec11RegistrarThreatMatchesParser.getRegistrarThreatMatches(previousDate);
+    ImmutableSet<RegistrarThreatMatches> currentMatches =
+        spec11RegistrarThreatMatchesParser.getRegistrarThreatMatches(date);
+    String dailySubject = String.format("%s Daily Threat Detector [%s]", registryName, date);
+    emailUtils.emailSpec11Reports(
+        Spec11EmailSoyInfo.DAILY_SPEC_11_EMAIL,
+        dailySubject,
+        getNewMatches(previousMatches, currentMatches));
+  }
+
+  private ImmutableSet<RegistrarThreatMatches> getNewMatches(
+      Set<RegistrarThreatMatches> previousMatchesSet,
+      Set<RegistrarThreatMatches> currentMatchesSet) {
+    Map<String, List<ThreatMatch>> currentMatchMap =
+        currentMatchesSet.stream()
+            .collect(
+                Collectors.toMap(
+                    RegistrarThreatMatches::registrarEmailAddress,
+                    RegistrarThreatMatches::threatMatches));
+    previousMatchesSet.forEach(
+        previousMatches ->
+            currentMatchMap.computeIfPresent(
+                previousMatches.registrarEmailAddress(),
+                (email, currentMatches) ->
+                    currentMatches.stream()
+                        .filter(
+                            currentMatch -> !previousMatches.threatMatches().contains(currentMatch))
+                        .collect(Collectors.toList())));
+    return currentMatchMap.entrySet().stream()
+        .filter(entry -> !entry.getValue().isEmpty())
+        .map(entry -> RegistrarThreatMatches.create(entry.getKey(), entry.getValue()))
+        .collect(toImmutableSet());
+  }
+
+  private boolean shouldSendMonthlySpec11Email() {
     return date.getDayOfMonth() == 2;
   }
 }

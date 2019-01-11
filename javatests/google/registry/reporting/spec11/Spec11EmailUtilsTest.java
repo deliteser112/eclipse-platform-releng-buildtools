@@ -25,6 +25,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
+import google.registry.reporting.spec11.soy.Spec11EmailSoyInfo;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
 import google.registry.util.Retrier;
@@ -53,6 +55,7 @@ import org.mockito.stubbing.Answer;
 public class Spec11EmailUtilsTest {
 
   private static final int RETRY_COUNT = 2;
+  private static final ImmutableList<String> FAKE_RESOURCES = ImmutableList.of("foo");
 
   private SendEmailService emailService;
   private Spec11EmailUtils emailUtils;
@@ -66,50 +69,75 @@ public class Spec11EmailUtilsTest {
         .thenAnswer((args) -> new MimeMessage(Session.getInstance(new Properties(), null)));
 
     parser = mock(Spec11RegistrarThreatMatchesParser.class);
-    when(parser.getRegistrarThreatMatches()).thenReturn(sampleThreatMatches());
+    LocalDate date = new LocalDate(2018, 7, 15);
+    when(parser.getRegistrarThreatMatches(date)).thenReturn(sampleThreatMatches());
 
     gotMessage = ArgumentCaptor.forClass(Message.class);
 
     emailUtils =
         new Spec11EmailUtils(
             emailService,
-            new LocalDate(2018, 7, 15),
+            date,
             "my-sender@test.com",
             "my-receiver@test.com",
             "my-reply-to@test.com",
+            FAKE_RESOURCES,
+            "Super Cool Registry",
             new Retrier(new FakeSleeper(new FakeClock()), RETRY_COUNT));
   }
 
   @Test
   public void testSuccess_emailSpec11Reports() throws Exception {
     emailUtils.emailSpec11Reports(
-        "{LIST_OF_THREATS}\n{REPLY_TO_EMAIL}",
-        "Google Registry Monthly Threat Detector [2018-07-15]",
+        Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL,
+        "Super Cool Registry Monthly Threat Detector [2018-07-15]",
         sampleThreatMatches());
     // We inspect individual parameters because Message doesn't implement equals().
     verify(emailService, times(3)).sendMessage(gotMessage.capture());
     List<Message> capturedMessages = gotMessage.getAllValues();
+    String emailFormat =
+        "Dear registrar partner,<p>Super Cool Registry previously notified you when the following "
+            + "domains managed by your registrar were flagged for potential security concerns."
+            + "</p><p>The following domains that you manage continue to be flagged by our analysis "
+            + "for potential security concerns. This may be because the registrants have not "
+            + "completed the requisite steps to mitigate the potential security abuse and/or have "
+            + "it reviewed and delisted.</p><table><tr><th>Domain Name</th><th>Threat Type</th>"
+            + "</tr>%s</table><p>Please work with the registrant to mitigate any security issues "
+            + "and have the domains delisted.</p>Some helpful resources for getting off a blocked "
+            + "list include:<ul><li>foo</li></ul><p>You will continue to receive a monthly summary "
+            + "of all domains managed by your registrar that remain on our lists of potential "
+            + "security threats. You will additionally receive a daily notice when any new domains "
+            + "that are added to these lists. Once the registrant has resolved the security issues "
+            + "and followed the steps to have his or her domain reviewed and delisted it will "
+            + "automatically be removed from our monthly reporting.</p><p>If you have any q"
+            + "uestions regarding this notice, please contact my-reply-to@test.com.</p>";
+
     validateMessage(
         capturedMessages.get(0),
         "my-sender@test.com",
         "a@fake.com",
         "my-reply-to@test.com",
-        "Google Registry Monthly Threat Detector [2018-07-15]",
-        "a.com - MALWARE\n\nmy-reply-to@test.com");
+        "Super Cool Registry Monthly Threat Detector [2018-07-15]",
+        String.format(emailFormat, "<tr><td>a.com</td><td>MALWARE</td></tr>"),
+        "text/html");
     validateMessage(
         capturedMessages.get(1),
         "my-sender@test.com",
         "b@fake.com",
         "my-reply-to@test.com",
-        "Google Registry Monthly Threat Detector [2018-07-15]",
-        "b.com - MALWARE\nc.com - MALWARE\n\nmy-reply-to@test.com");
+        "Super Cool Registry Monthly Threat Detector [2018-07-15]",
+        String.format(
+            emailFormat,
+            "<tr><td>b.com</td><td>MALWARE</td></tr><tr><td>c.com</td><td>MALWARE</td></tr>"),
+        "text/html");
     validateMessage(
         capturedMessages.get(2),
         "my-sender@test.com",
         "my-receiver@test.com",
         null,
         "Spec11 Pipeline Success 2018-07-15",
-        "Spec11 reporting completed successfully.");
+        "Spec11 reporting completed successfully.",
+        "text/plain");
   }
 
   @Test
@@ -139,7 +167,9 @@ public class Spec11EmailUtilsTest {
     RuntimeException thrown =
         assertThrows(
             RuntimeException.class,
-            () -> emailUtils.emailSpec11Reports("foo", "bar", sampleThreatMatches()));
+            () ->
+                emailUtils.emailSpec11Reports(
+                    Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL, "bar", sampleThreatMatches()));
     assertThat(thrown).hasMessageThat().isEqualTo("Emailing spec11 report failed");
     assertThat(thrown)
         .hasCauseThat()
@@ -155,7 +185,8 @@ public class Spec11EmailUtilsTest {
         "my-receiver@test.com",
         null,
         "Spec11 Emailing Failure 2018-07-15",
-        "Emailing spec11 reports failed due to expected");
+        "Emailing spec11 reports failed due to expected",
+        "text/plain");
   }
 
   @Test
@@ -168,7 +199,8 @@ public class Spec11EmailUtilsTest {
         "my-receiver@test.com",
         null,
         "Spec11 Pipeline Alert: 2018-07",
-        "Alert!");
+        "Alert!",
+        "text/plain");
   }
 
   private void validateMessage(
@@ -177,7 +209,8 @@ public class Spec11EmailUtilsTest {
       String recipient,
       @Nullable String replyTo,
       String subject,
-      String body)
+      String body,
+      String contentType)
       throws MessagingException, IOException {
     assertThat(message.getFrom()).asList().containsExactly(new InternetAddress(from));
     assertThat(message.getRecipients(RecipientType.TO))
@@ -192,7 +225,7 @@ public class Spec11EmailUtilsTest {
     }
     assertThat(message.getRecipients(RecipientType.CC)).isNull();
     assertThat(message.getSubject()).isEqualTo(subject);
-    assertThat(message.getContentType()).isEqualTo("text/plain");
-    assertThat(message.getContent().toString()).isEqualTo(body);
+    assertThat(message.getContentType()).isEqualTo(contentType);
+    assertThat(message.getContent()).isEqualTo(body);
   }
 }

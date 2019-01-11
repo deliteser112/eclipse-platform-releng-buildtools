@@ -92,7 +92,8 @@ public class RegistryConfigSettings {
     public String whoisDisclaimer;
     public String rdapTos;
     public String rdapTosStaticUrl;
-    public String spec11EmailBodyTemplate;
+    public String registryName;
+    public List<String> spec11WebResources;
     public boolean requireSslCertificates;
   }
 

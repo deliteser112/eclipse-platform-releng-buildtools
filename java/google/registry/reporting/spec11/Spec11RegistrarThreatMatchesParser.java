@@ -18,6 +18,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.CharStreams;
 import google.registry.beam.spec11.Spec11Pipeline;
 import google.registry.beam.spec11.ThreatMatch;
@@ -26,6 +28,7 @@ import google.registry.gcs.GcsUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.LocalDate;
 import org.json.JSONArray;
@@ -35,25 +38,53 @@ import org.json.JSONObject;
 /** Parser to retrieve which registrar-threat matches we should notify via email */
 public class Spec11RegistrarThreatMatchesParser {
 
-  private final LocalDate date;
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final GcsUtils gcsUtils;
   private final String reportingBucket;
 
   @Inject
   public Spec11RegistrarThreatMatchesParser(
-      LocalDate date, GcsUtils gcsUtils, @Config("reportingBucket") String reportingBucket) {
-    this.date = date;
+      GcsUtils gcsUtils, @Config("reportingBucket") String reportingBucket) {
     this.gcsUtils = gcsUtils;
     this.reportingBucket = reportingBucket;
   }
 
-  /** Gets the list of registrar:set-of-threat-match pairings from the file in GCS. */
-  public ImmutableList<RegistrarThreatMatches> getRegistrarThreatMatches()
+  /**
+   * Gets the entire set of registrar:set-of-threat-match pairings from the most recent report file
+   * in GCS.
+   */
+  public ImmutableSet<RegistrarThreatMatches> getRegistrarThreatMatches(LocalDate date)
       throws IOException, JSONException {
-    // TODO(b/120078223): this should only be the diff of this run and the prior run.
-    GcsFilename spec11ReportFilename =
-        new GcsFilename(reportingBucket, Spec11Pipeline.getSpec11ReportFilePath(date));
-    ImmutableList.Builder<RegistrarThreatMatches> builder = ImmutableList.builder();
+    return getFromFile(getGcsFilename(date));
+  }
+
+  public Optional<LocalDate> getPreviousDateWithMatches(LocalDate date) {
+    LocalDate yesterday = date.minusDays(1);
+    GcsFilename gcsFilename = getGcsFilename(yesterday);
+    if (gcsUtils.existsAndNotEmpty(gcsFilename)) {
+      return Optional.of(yesterday);
+    }
+    logger.atWarning().log("Could not find previous file from date %s", yesterday);
+
+    for (LocalDate dateToCheck = yesterday.minusDays(1);
+        !dateToCheck.isBefore(date.minusMonths(1));
+        dateToCheck = dateToCheck.minusDays(1)) {
+      gcsFilename = getGcsFilename(dateToCheck);
+      if (gcsUtils.existsAndNotEmpty(gcsFilename)) {
+        return Optional.of(dateToCheck);
+      }
+    }
+    return Optional.empty();
+  }
+
+  private GcsFilename getGcsFilename(LocalDate localDate) {
+    return new GcsFilename(reportingBucket, Spec11Pipeline.getSpec11ReportFilePath(localDate));
+  }
+
+  private ImmutableSet<RegistrarThreatMatches> getFromFile(GcsFilename spec11ReportFilename)
+      throws IOException, JSONException {
+    ImmutableSet.Builder<RegistrarThreatMatches> builder = ImmutableSet.builder();
     try (InputStream in = gcsUtils.openInputStream(spec11ReportFilename)) {
       ImmutableList<String> reportLines =
           ImmutableList.copyOf(CharStreams.toString(new InputStreamReader(in, UTF_8)).split("\n"));

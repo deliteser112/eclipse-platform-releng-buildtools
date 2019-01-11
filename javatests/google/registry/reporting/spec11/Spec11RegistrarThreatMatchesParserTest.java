@@ -15,20 +15,20 @@
 package google.registry.reporting.spec11;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import google.registry.beam.spec11.ThreatMatch;
 import google.registry.gcs.GcsUtils;
 import google.registry.testing.TestDataHelper;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import org.joda.time.LocalDate;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,61 +39,96 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class Spec11RegistrarThreatMatchesParserTest {
 
+  private static final String TODAY = "2018-07-21";
+  private static final String YESTERDAY = "2018-07-20";
+
   private final GcsUtils gcsUtils = mock(GcsUtils.class);
   private final Spec11RegistrarThreatMatchesParser parser =
-      new Spec11RegistrarThreatMatchesParser(new LocalDate(2018, 7, 21), gcsUtils, "test-bucket");
+      new Spec11RegistrarThreatMatchesParser(gcsUtils, "test-bucket");
 
   @Before
   public void setUp() {
-    when(gcsUtils.openInputStream(
-            new GcsFilename(
-                "test-bucket", "icann/spec11/2018-07/SPEC11_MONTHLY_REPORT_2018-07-21")))
-        .thenAnswer(
-            (args) ->
-                new ByteArrayInputStream(
-                    loadFile("spec11_fake_report").getBytes(StandardCharsets.UTF_8)));
+    setupFile("spec11_fake_report", TODAY);
   }
 
   @Test
   public void testSuccess_retrievesReport() throws Exception {
-    List<RegistrarThreatMatches> matches = parser.getRegistrarThreatMatches();
-    assertThat(matches).isEqualTo(sampleThreatMatches());
+    assertThat(parser.getRegistrarThreatMatches(LocalDate.parse(TODAY)))
+        .isEqualTo(sampleThreatMatches());
   }
 
-  /** Returns a {@link String} from a file in the {@code spec11/testdata/} directory. */
-  public static String loadFile(String filename) {
-    return TestDataHelper.loadFile(Spec11EmailUtils.class, filename);
+  @Test
+  public void testFindPrevious_exists() throws Exception {
+    setupFile("spec11_fake_report_previous_day", YESTERDAY);
+    assertThat(parser.getPreviousDateWithMatches(LocalDate.parse(TODAY)))
+        .hasValue(LocalDate.parse(YESTERDAY));
+  }
+
+  @Test
+  public void testFindPrevious_notFound() {
+    assertThat(parser.getPreviousDateWithMatches(LocalDate.parse(TODAY))).isEmpty();
+  }
+
+  @Test
+  public void testFindPrevious_olderThanYesterdayFound() throws Exception {
+    setupFile("spec11_fake_report_previous_day", "2018-07-14");
+
+    assertThat(parser.getPreviousDateWithMatches(LocalDate.parse(TODAY)))
+        .hasValue(LocalDate.parse("2018-07-14"));
   }
 
   /** The expected contents of the sample spec11 report file */
-  public static ImmutableList<RegistrarThreatMatches> sampleThreatMatches() throws JSONException {
-    return ImmutableList.of(
-        RegistrarThreatMatches.create(
-            "a@fake.com",
-            ImmutableList.of(
-                ThreatMatch.fromJSON(
-                    new JSONObject(
-                        ImmutableMap.of(
-                            "threatType", "MALWARE",
-                            "platformType", "ANY_PLATFORM",
-                            "threatEntryMetadata", "NONE",
-                            "fullyQualifiedDomainName", "a.com"))))),
-        RegistrarThreatMatches.create(
-            "b@fake.com",
-            ImmutableList.of(
-                ThreatMatch.fromJSON(
-                    new JSONObject(
-                        ImmutableMap.of(
-                            "threatType", "MALWARE",
-                            "platformType", "ANY_PLATFORM",
-                            "threatEntryMetadata", "NONE",
-                            "fullyQualifiedDomainName", "b.com"))),
-                ThreatMatch.fromJSON(
-                    new JSONObject(
-                        ImmutableMap.of(
-                            "threatType", "MALWARE",
-                            "platformType", "ANY_PLATFORM",
-                            "threatEntryMetadata", "NONE",
-                            "fullyQualifiedDomainName", "c.com"))))));
+  public static ImmutableSet<RegistrarThreatMatches> sampleThreatMatches() throws Exception {
+    return ImmutableSet.of(getMatchA(), getMatchB());
+  }
+
+  private void setupFile(String fileWithContent, String fileDate) {
+    GcsFilename gcsFilename =
+        new GcsFilename(
+            "test-bucket",
+            String.format("icann/spec11/2018-07/SPEC11_MONTHLY_REPORT_%s", fileDate));
+    when(gcsUtils.existsAndNotEmpty(gcsFilename)).thenReturn(true);
+    when(gcsUtils.openInputStream(gcsFilename))
+        .thenAnswer(
+            (args) ->
+                new ByteArrayInputStream(
+                    loadFile(fileWithContent).getBytes(StandardCharsets.UTF_8)));
+  }
+
+  private static String loadFile(String filename) {
+    return TestDataHelper.loadFile(Spec11EmailUtils.class, filename);
+  }
+
+  private static RegistrarThreatMatches getMatchA() throws Exception {
+    return RegistrarThreatMatches.create(
+        "a@fake.com",
+        ImmutableList.of(
+            ThreatMatch.fromJSON(
+                new JSONObject(
+                    ImmutableMap.of(
+                        "threatType", "MALWARE",
+                        "platformType", "ANY_PLATFORM",
+                        "threatEntryMetadata", "NONE",
+                        "fullyQualifiedDomainName", "a.com")))));
+  }
+
+  private static RegistrarThreatMatches getMatchB() throws Exception {
+    return RegistrarThreatMatches.create(
+        "b@fake.com",
+        ImmutableList.of(
+            ThreatMatch.fromJSON(
+                new JSONObject(
+                    ImmutableMap.of(
+                        "threatType", "MALWARE",
+                        "platformType", "ANY_PLATFORM",
+                        "threatEntryMetadata", "NONE",
+                        "fullyQualifiedDomainName", "b.com"))),
+            ThreatMatch.fromJSON(
+                new JSONObject(
+                    ImmutableMap.of(
+                        "threatType", "MALWARE",
+                        "platformType", "ANY_PLATFORM",
+                        "threatEntryMetadata", "NONE",
+                        "fullyQualifiedDomainName", "c.com")))));
   }
 }

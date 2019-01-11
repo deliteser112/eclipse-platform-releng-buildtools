@@ -900,14 +900,25 @@ public final class RegistryConfig {
     }
 
     /**
-     * Returns the template for the body of the spec 11 email to the registrars.
+     * Returns the name of the registry, for use in spec 11 emails.
      *
      * @see google.registry.reporting.spec11.Spec11EmailUtils
      */
     @Provides
-    @Config("spec11EmailBodyTemplate")
-    public static String provideSpec11EmailBodyTemplate(RegistryConfigSettings config) {
-      return config.registryPolicy.spec11EmailBodyTemplate;
+    @Config("registryName")
+    public static String provideRegistryName(RegistryConfigSettings config) {
+      return config.registryPolicy.registryName;
+    }
+
+    /**
+     * Returns a list of resources we send to registrars when informing them of spec 11 threats.
+     *
+     * @see google.registry.reporting.spec11.Spec11EmailUtils
+     */
+    @Provides
+    @Config("spec11WebResources")
+    public static ImmutableList<String> provideSpec11WebResources(RegistryConfigSettings config) {
+      return ImmutableList.copyOf(config.registryPolicy.spec11WebResources);
     }
 
     /**

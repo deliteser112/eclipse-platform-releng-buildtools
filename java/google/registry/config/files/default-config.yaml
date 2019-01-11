@@ -160,32 +160,12 @@ registryPolicy:
   # responses. If null, no static Web page link is generated.
   rdapTosStaticUrl: null
 
-  # Body of the spec 11 email sent to registrars.
-  # Items in braces are to be replaced.
-  spec11EmailBodyTemplate: |
-    Dear registrar partner,
+  # Name of the registry for use in spec 11 emails
+  registryName: Example Registry
 
-    The registry conducts periodic technical analyses of all domains registered
-    in its TLDs. As part of this analysis, the following domains that you
-    manage were flagged for potential security concerns:
-
-    {LIST_OF_THREATS}
-
-    Please communicate these findings to the registrant and work with the
-    registrant to mitigate any security issues and have the domains delisted.
-
-    Some helpful sites for getting off a blocked list include:
-
-      - Google Search Console (https://search.google.com/search-console/about)
-        -- includes information and tools for webmasters to learn about and
-        mitigate security threats and have their websites delisted
-      - first.org -- a registry of Computer Emergency Response Teams (CERTs)
-        that may be able to assist in mitigation
-      - stopbadware.org -- a non-profit anti-malware organization that provides
-        support and information for webmasters dealing with security threats
-
-    If you have any questions regarding this notice, please contact
-    {REPLY_TO_EMAIL}.
+  # A list of resources we send to registrars when informing them of
+  # spec 11 threats
+  spec11WebResources: []
 
   # Whether to require an SSL certificate hash in order to be able to log in
   # via EPP and run commands. This can be false for testing environments but
@@ -259,11 +239,11 @@ caching:
 oAuth:
   # OAuth scopes to detect on access tokens. Superset of requiredOauthScopes.
   availableOauthScopes:
-    - https://www.googleapis.com/auth/userinfo.email
+  - https://www.googleapis.com/auth/userinfo.email
 
   # OAuth scopes required for authenticating. Subset of availableOauthScopes.
   requiredOauthScopes:
-    - https://www.googleapis.com/auth/userinfo.email
+  - https://www.googleapis.com/auth/userinfo.email
 
   # OAuth client IDs that are allowed to authenticate and communicate with
   # backend services, e. g. nomulus tool, EPP proxy, etc. The client_id value
@@ -276,10 +256,10 @@ credentialOAuth:
   # OAuth scopes required for accessing Google APIs using the default
   # credential.
   defaultCredentialOauthScopes:
-    # View and manage data in all Google Cloud APIs.
-    - https://www.googleapis.com/auth/cloud-platform
-    # View and manage files in Google Drive, e.g., Docs and Sheets.
-    - https://www.googleapis.com/auth/drive
+  # View and manage data in all Google Cloud APIs.
+  - https://www.googleapis.com/auth/cloud-platform
+  # View and manage files in Google Drive, e.g., Docs and Sheets.
+  - https://www.googleapis.com/auth/drive
   # OAuth scopes required for delegated admin access to G Suite domain.
   # Deployment of changes to this list must be coordinated with G Suite admin
   # configuration, which can be managed in the admin console:
@@ -288,20 +268,20 @@ credentialOAuth:
   # - Removed scopes must remain on G Suite domain configuration until the
   #   release is deployed.
   delegatedCredentialOauthScopes:
-    # View and manage groups on your domain in Directory API.
-    - https://www.googleapis.com/auth/admin.directory.group
-    # View and manage group settings in Group Settings API.
-    - https://www.googleapis.com/auth/apps.groups.settings
+  # View and manage groups on your domain in Directory API.
+  - https://www.googleapis.com/auth/admin.directory.group
+  # View and manage group settings in Group Settings API.
+  - https://www.googleapis.com/auth/apps.groups.settings
   # OAuth scopes required to create a credential locally in for the nomulus tool.
   localCredentialOauthScopes:
-    # View and manage data in all Google Cloud APIs.
-    - https://www.googleapis.com/auth/cloud-platform
-    # Call App Engine APIs locally.
-    - https://www.googleapis.com/auth/appengine.apis
-    # View your email address.
-    - https://www.googleapis.com/auth/userinfo.email
-    # View and manage your applications deployed on Google App Engine
-    - https://www.googleapis.com/auth/appengine.admin
+  # View and manage data in all Google Cloud APIs.
+  - https://www.googleapis.com/auth/cloud-platform
+  # Call App Engine APIs locally.
+  - https://www.googleapis.com/auth/appengine.apis
+  # View your email address.
+  - https://www.googleapis.com/auth/userinfo.email
+  # View and manage your applications deployed on Google App Engine
+  - https://www.googleapis.com/auth/appengine.admin
 
 icannReporting:
   # URL we PUT monthly ICANN transactions reports to.

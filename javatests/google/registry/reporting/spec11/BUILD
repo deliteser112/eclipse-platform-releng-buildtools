@@ -15,6 +15,7 @@ java_library(
         "//java/google/registry/beam/spec11",
         "//java/google/registry/gcs",
         "//java/google/registry/reporting/spec11",
+        "//java/google/registry/reporting/spec11/soy:soy_java_wrappers",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
         "@com_google_apis_google_api_services_dataflow",

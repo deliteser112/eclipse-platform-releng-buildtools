@@ -30,9 +30,12 @@ import com.google.api.services.dataflow.Dataflow.Projects;
 import com.google.api.services.dataflow.Dataflow.Projects.Jobs;
 import com.google.api.services.dataflow.Dataflow.Projects.Jobs.Get;
 import com.google.api.services.dataflow.model.Job;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
+import google.registry.reporting.spec11.soy.Spec11EmailSoyInfo;
 import google.registry.testing.FakeResponse;
 import java.io.IOException;
+import java.util.Optional;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +46,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class PublishSpec11ReportActionTest {
 
-  private final String spec11BodyTemplate = "{LIST_OF_THREATS}\n{REPLY_TO_EMAIL}";
   private final LocalDate date = new LocalDate(2018, 6, 5);
 
   private Dataflow dataflow;
@@ -69,41 +71,44 @@ public class PublishSpec11ReportActionTest {
     expectedJob = new Job();
     when(get.execute()).thenReturn(expectedJob);
     emailUtils = mock(Spec11EmailUtils.class);
+    parser = mock(Spec11RegistrarThreatMatchesParser.class);
     response = new FakeResponse();
     parser = mock(Spec11RegistrarThreatMatchesParser.class);
-    when(parser.getRegistrarThreatMatches()).thenReturn(sampleThreatMatches());
     publishAction =
         new PublishSpec11ReportAction(
             "test-project",
-            spec11BodyTemplate,
+            "Super Cool Registry",
             "12345",
             emailUtils,
-            mock(Spec11RegistrarThreatMatchesParser.class),
+            parser,
             dataflow,
             response,
             date);
   }
 
   @Test
-  public void testJobDone_emailsResultsOnSecondOfMonth() throws Exception {
+  public void testJobDone_emailsOnlyMonthlyResultsOnSecondOfMonth() throws Exception {
+    LocalDate secondOfMonth = date.withDayOfMonth(2);
+    when(parser.getRegistrarThreatMatches(secondOfMonth)).thenReturn(sampleThreatMatches());
     expectedJob.setCurrentState("JOB_STATE_DONE");
     publishAction =
         new PublishSpec11ReportAction(
             "test-project",
-            spec11BodyTemplate,
+            "Super Cool Registry",
             "12345",
             emailUtils,
             parser,
             dataflow,
             response,
-            date.withDayOfMonth(2));
+            secondOfMonth);
     publishAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
     verify(emailUtils)
         .emailSpec11Reports(
-            spec11BodyTemplate,
-            "Google Registry Monthly Threat Detector [2018-06-02]",
+            Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL,
+            "Super Cool Registry Monthly Threat Detector [2018-06-02]",
             sampleThreatMatches());
+    verifyNoMoreInteractions(emailUtils);
   }
 
   @Test
@@ -139,10 +144,31 @@ public class PublishSpec11ReportActionTest {
   }
 
   @Test
-  public void testJobDone_doesNotEmailResults() {
+  public void testJobDone_onlyDailyResults() throws Exception {
+    LocalDate yesterday = date.minusDays(1);
+    when(parser.getPreviousDateWithMatches(date)).thenReturn(Optional.of(yesterday));
+    when(parser.getRegistrarThreatMatches(date)).thenReturn(sampleThreatMatches());
+    when(parser.getRegistrarThreatMatches(yesterday)).thenReturn(ImmutableSet.of());
     expectedJob.setCurrentState("JOB_STATE_DONE");
     publishAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
+    verify(emailUtils)
+        .emailSpec11Reports(
+            Spec11EmailSoyInfo.DAILY_SPEC_11_EMAIL,
+            "Super Cool Registry Daily Threat Detector [2018-06-05]",
+            sampleThreatMatches());
     verifyNoMoreInteractions(emailUtils);
+  }
+
+  @Test
+  public void testJobDone_failsDueToNoPreviousResults() {
+    when(parser.getPreviousDateWithMatches(date)).thenReturn(Optional.empty());
+    expectedJob.setCurrentState("JOB_STATE_DONE");
+    publishAction.run();
+    assertThat(response.getStatus()).isEqualTo(SC_NO_CONTENT);
+    verify(emailUtils)
+        .sendAlertEmail(
+            String.format("Spec11 Diff Error %s", date),
+            String.format("Could not find a previous file within the past month of %s", date));
   }
 }
