@@ -137,6 +137,12 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
       createCachePremiumLists(getDomainLabelListCacheDuration());
 
   @VisibleForTesting
+  public static void setPremiumListCacheForTest(Optional<Duration> expiry) {
+    Duration effectiveExpiry = expiry.orElse(getDomainLabelListCacheDuration());
+    cachePremiumLists = createCachePremiumLists(effectiveExpiry);
+  }
+
+  @VisibleForTesting
   static LoadingCache<String, PremiumList> createCachePremiumLists(Duration cachePersistDuration) {
     return CacheBuilder.newBuilder()
         .expireAfterWrite(cachePersistDuration.getMillis(), MILLISECONDS)
@@ -188,9 +194,15 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
    * that exist, as well as those that might exist according to the Bloom filter, must be cached).
    * The entries judged least likely to be accessed again will be evicted first.
    */
-  @NonFinalForTesting @VisibleForTesting
+  @NonFinalForTesting
   static LoadingCache<Key<PremiumListEntry>, Optional<PremiumListEntry>> cachePremiumListEntries =
       createCachePremiumListEntries(getSingletonCachePersistDuration());
+
+  @VisibleForTesting
+  public static void setPremiumListEntriesCacheForTest(Optional<Duration> expiry) {
+    Duration effectiveExpiry = expiry.orElse(getSingletonCachePersistDuration());
+    cachePremiumListEntries = createCachePremiumListEntries(effectiveExpiry);
+  }
 
   @VisibleForTesting
   static LoadingCache<Key<PremiumListEntry>, Optional<PremiumListEntry>>

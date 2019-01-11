@@ -14,6 +14,7 @@
 
 package google.registry.tools.server;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -30,6 +31,7 @@ import google.registry.testing.InjectRule;
 import google.registry.testing.mapreduce.MapreduceTestCase;
 import google.registry.tools.server.RefreshDnsForAllDomainsAction.RefreshDnsForAllDomainsActionMapper;
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,14 +46,21 @@ public class RefreshDnsForAllDomainsActionTest
   @Rule public final InjectRule inject = new InjectRule();
 
   private final DnsQueue dnsQueue = mock(DnsQueue.class);
+  private DnsQueue origDnsQueue;
 
   @Before
   public void init() {
-    inject.setStaticField(RefreshDnsForAllDomainsActionMapper.class, "dnsQueue", dnsQueue);
+    origDnsQueue = RefreshDnsForAllDomainsActionMapper.setDnsQueueForTest(dnsQueue);
 
     action = new RefreshDnsForAllDomainsAction();
     action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
+  }
+
+  @After
+  public void restoreDnsQueue() {
+    assertThat(RefreshDnsForAllDomainsActionMapper.setDnsQueueForTest(origDnsQueue))
+        .isEqualTo(dnsQueue);
   }
 
   private void runMapreduce() throws Exception {

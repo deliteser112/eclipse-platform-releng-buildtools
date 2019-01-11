@@ -34,6 +34,7 @@ import google.registry.testing.InjectRule;
 import google.registry.util.RequestStatusChecker;
 import java.util.Optional;
 import org.joda.time.Duration;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,6 +50,8 @@ public class LockTest {
   private static final Duration TWO_MILLIS = Duration.millis(2);
   private static final RequestStatusChecker requestStatusChecker = mock(RequestStatusChecker.class);
   private static final FakeClock clock = new FakeClock();
+
+  private LockMetrics origLockMetrics;
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
   @Rule public final InjectRule inject = new InjectRule();
@@ -73,9 +76,15 @@ public class LockTest {
 
   @Before public void setUp() {
     inject.setStaticField(Ofy.class, "clock", clock);
+    origLockMetrics = Lock.lockMetrics;
     Lock.lockMetrics = null;
     when(requestStatusChecker.getLogId()).thenReturn("current-request-id");
     when(requestStatusChecker.isRunning("current-request-id")).thenReturn(true);
+  }
+
+  @After
+  public void restoreLockMetric() {
+    Lock.lockMetrics = origLockMetrics;
   }
 
   @Test

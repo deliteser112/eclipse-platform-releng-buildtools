@@ -33,6 +33,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,6 +50,8 @@ public final class TaskQueueUtilsTest {
   public final AppEngineRule appEngine =
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
+  private int origBatchSize;
+
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
   private final FakeSleeper sleeper = new FakeSleeper(clock);
   private final TaskQueueUtils taskQueueUtils =
@@ -59,7 +62,13 @@ public final class TaskQueueUtilsTest {
 
   @Before
   public void before() {
+    origBatchSize = TaskQueueUtils.BATCH_SIZE;
     TaskQueueUtils.BATCH_SIZE = 2;
+  }
+
+  @After
+  public void after() {
+    TaskQueueUtils.BATCH_SIZE = origBatchSize;
   }
 
   @Test

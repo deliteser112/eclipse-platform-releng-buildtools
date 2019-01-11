@@ -20,21 +20,25 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static java.util.concurrent.TimeUnit.DAYS;
 
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.host.HostResource;
+import google.registry.testing.TestCacheRule;
+import org.joda.time.Duration;
+import org.junit.Rule;
 import org.junit.Test;
 
 /** Unit tests for {@link EppResource}. */
 public class EppResourceTest extends EntityTestCase {
 
+  @Rule
+  public final TestCacheRule testCacheRule =
+      new TestCacheRule.Builder().withEppResourceCache(Duration.standardDays(1)).build();
+
   @Test
   public void test_loadCached_ignoresContactChange() {
-    setNonZeroCachingInterval();
     ContactResource originalContact = persistActiveContact("contact123");
     assertThat(EppResource.loadCached(ImmutableList.of(Key.create(originalContact))))
         .containsExactly(Key.create(originalContact), originalContact);
@@ -48,7 +52,6 @@ public class EppResourceTest extends EntityTestCase {
 
   @Test
   public void test_loadCached_ignoresHostChange() {
-    setNonZeroCachingInterval();
     HostResource originalHost = persistActiveHost("ns1.example.com");
     assertThat(EppResource.loadCached(ImmutableList.of(Key.create(originalHost))))
         .containsExactly(Key.create(originalHost), originalHost);
@@ -59,9 +62,5 @@ public class EppResourceTest extends EntityTestCase {
         .containsExactly(Key.create(originalHost), originalHost);
     assertThat(loadByForeignKey(HostResource.class, "ns1.example.com", clock.nowUtc()))
         .hasValue(modifiedHost);
-  }
-
-  private static void setNonZeroCachingInterval() {
-    EppResource.setCacheForTest(CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS));
   }
 }

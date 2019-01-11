@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /** An EPP entity object (i.e. a domain, contact, or host). */
 public abstract class EppResource extends BackupGroupRoot implements Buildable {
@@ -343,14 +344,20 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
    */
   @NonFinalForTesting
   private static LoadingCache<Key<? extends EppResource>, EppResource> cacheEppResources =
-      CacheBuilder.newBuilder()
-          .expireAfterWrite(getEppResourceCachingDuration().getMillis(), MILLISECONDS)
-          .maximumSize(getEppResourceMaxCachedEntries())
-          .build(CACHE_LOADER);
+      createEppResourcesCache(getEppResourceCachingDuration());
+
+  private static LoadingCache<Key<? extends EppResource>, EppResource> createEppResourcesCache(
+      Duration expiry) {
+    return CacheBuilder.newBuilder()
+        .expireAfterWrite(expiry.getMillis(), MILLISECONDS)
+        .maximumSize(getEppResourceMaxCachedEntries())
+        .build(CACHE_LOADER);
+  }
 
   @VisibleForTesting
-  public static void setCacheForTest(CacheBuilder<Object, Object> cacheBuilder) {
-    cacheEppResources = cacheBuilder.build(CACHE_LOADER);
+  public static void setCacheForTest(Optional<Duration> expiry) {
+    Duration effectiveExpiry = expiry.orElse(getEppResourceCachingDuration());
+    cacheEppResources = createEppResourcesCache(effectiveExpiry);
   }
 
   private static ImmutableMap<Key<? extends EppResource>, EppResource> loadMultiple(

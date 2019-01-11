@@ -79,9 +79,7 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
 
     private static final long serialVersionUID = 1455544013508953083L;
 
-    @NonFinalForTesting
-    @VisibleForTesting
-    static DnsQueue dnsQueue = DnsQueue.create();
+    @NonFinalForTesting private static DnsQueue dnsQueue = DnsQueue.create();
 
     private final ImmutableSet<String> tlds;
 
@@ -108,6 +106,13 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
       } else {
         getContext().incrementCounter("domains on non-targeted TLDs skipped");
       }
+    }
+
+    @VisibleForTesting
+    public static DnsQueue setDnsQueueForTest(DnsQueue testQueue) {
+      DnsQueue currentQueue = dnsQueue;
+      dnsQueue = testQueue;
+      return currentQueue;
     }
   }
 }

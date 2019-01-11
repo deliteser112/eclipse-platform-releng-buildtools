@@ -31,7 +31,6 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResourc
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.whois.WhoisTestData.loadFile;
-import static java.util.concurrent.TimeUnit.DAYS;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -43,15 +42,12 @@ import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.datastore.DatastoreFailureException;
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
-import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
@@ -62,12 +58,14 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.InjectRule;
+import google.registry.testing.TestCacheRule;
 import google.registry.util.Retrier;
 import google.registry.whois.WhoisMetrics.WhoisMetric;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -81,6 +79,13 @@ public class WhoisActionTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
   @Rule public final InjectRule inject = new InjectRule();
+
+  @Rule
+  public final TestCacheRule testCacheRule =
+      new TestCacheRule.Builder()
+          .withEppResourceCache(Duration.standardDays(1))
+          .withForeignIndexKeyCache(Duration.standardDays(1))
+          .build();
 
   private final FakeResponse response = new FakeResponse();
   private FakeClock clock;
@@ -104,10 +109,6 @@ public class WhoisActionTest {
     clock = new FakeClock(DateTime.parse("2009-06-29T20:13:00Z"));
     createTlds("lol", "xn--q9jyb4c", "1.test");
     inject.setStaticField(Ofy.class, "clock", clock);
-
-    // Set caches with long intervals, to test caching.
-    EppResource.setCacheForTest(CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS));
-    ForeignKeyIndex.setCacheForTest(CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS));
   }
 
   @Test

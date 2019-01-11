@@ -48,6 +48,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * Class to map a foreign key to the active instance of {@link EppResource} whose unique id matches
@@ -220,15 +221,20 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
    */
   @NonFinalForTesting
   private static LoadingCache<Key<ForeignKeyIndex<?>>, Optional<ForeignKeyIndex<?>>>
-      cacheForeignKeyIndexes =
-          CacheBuilder.newBuilder()
-              .expireAfterWrite(getEppResourceCachingDuration().getMillis(), MILLISECONDS)
-              .maximumSize(getEppResourceMaxCachedEntries())
-              .build(CACHE_LOADER);
+      cacheForeignKeyIndexes = createForeignKeyIndexesCache(getEppResourceCachingDuration());
+
+  private static LoadingCache<Key<ForeignKeyIndex<?>>, Optional<ForeignKeyIndex<?>>>
+      createForeignKeyIndexesCache(Duration expiry) {
+    return CacheBuilder.newBuilder()
+        .expireAfterWrite(expiry.getMillis(), MILLISECONDS)
+        .maximumSize(getEppResourceMaxCachedEntries())
+        .build(CACHE_LOADER);
+  }
 
   @VisibleForTesting
-  public static void setCacheForTest(CacheBuilder<Object, Object> cacheBuilder) {
-    cacheForeignKeyIndexes = cacheBuilder.build(CACHE_LOADER);
+  public static void setCacheForTest(Optional<Duration> expiry) {
+    Duration effectiveExpiry = expiry.orElse(getEppResourceCachingDuration());
+    cacheForeignKeyIndexes = createForeignKeyIndexesCache(effectiveExpiry);
   }
 
   /**

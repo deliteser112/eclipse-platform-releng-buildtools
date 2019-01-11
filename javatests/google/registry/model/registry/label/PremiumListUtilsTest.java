@@ -26,7 +26,6 @@ import static google.registry.model.registry.label.DomainLabelMetrics.PremiumLis
 import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.UNCACHED_POSITIVE;
 import static google.registry.model.registry.label.DomainLabelMetrics.premiumListChecks;
 import static google.registry.model.registry.label.DomainLabelMetrics.premiumListProcessingTime;
-import static google.registry.model.registry.label.PremiumList.createCachePremiumLists;
 import static google.registry.model.registry.label.PremiumListUtils.deletePremiumList;
 import static google.registry.model.registry.label.PremiumListUtils.doesPremiumListExist;
 import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
@@ -48,6 +47,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 import google.registry.model.registry.label.PremiumList.PremiumListRevision;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.TestCacheRule;
 import java.util.Map;
 import org.joda.money.Money;
 import org.junit.Before;
@@ -62,13 +62,17 @@ public class PremiumListUtilsTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
+  // Set long persist times on caches so they can be tested (cache times default to 0 in tests).
+  @Rule
+  public final TestCacheRule testCacheRule =
+      new TestCacheRule.Builder()
+          .withPremiumListsCache(standardDays(1))
+          .withPremiumListEntriesCache(standardDays(1))
+          .build();
+
   @Before
   public void before() {
-    // Set long persist times on caches so they can be tested (cache times default to 0 in tests).
-    PremiumList.cachePremiumListEntries =
-        PremiumList.createCachePremiumListEntries(standardDays(1));
-    PremiumList.cachePremiumLists = createCachePremiumLists(standardDays(1));
-    // createTld() overwrites the premium list, so call it first.
+    // createTld() overwrites the premium list, so call it before persisting pl.
     createTld("tld");
     PremiumList pl =
         persistPremiumList(

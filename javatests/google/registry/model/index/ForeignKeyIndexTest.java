@@ -25,20 +25,25 @@ import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
-import static java.util.concurrent.TimeUnit.DAYS;
 
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
+import google.registry.testing.TestCacheRule;
+import org.joda.time.Duration;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 /** Unit tests for {@link ForeignKeyIndex}. */
 public class ForeignKeyIndexTest extends EntityTestCase {
+
+  @Rule
+  public final TestCacheRule testCacheRule =
+      new TestCacheRule.Builder().withForeignIndexKeyCache(Duration.standardDays(1)).build();
 
   @Before
   public void setUp() {
@@ -120,7 +125,6 @@ public class ForeignKeyIndexTest extends EntityTestCase {
 
   @Test
   public void test_loadCached_cachesNonexistenceOfHosts() {
-    setNonZeroCachingInterval();
     assertThat(
             ForeignKeyIndex.loadCached(
                 HostResource.class,
@@ -141,7 +145,6 @@ public class ForeignKeyIndexTest extends EntityTestCase {
 
   @Test
   public void test_loadCached_cachesExistenceOfHosts() {
-    setNonZeroCachingInterval();
     HostResource host1 = persistActiveHost("ns1.example.com");
     HostResource host2 = persistActiveHost("ns2.example.com");
     assertThat(
@@ -149,8 +152,11 @@ public class ForeignKeyIndexTest extends EntityTestCase {
                 HostResource.class,
                 ImmutableList.of("ns1.example.com", "ns2.example.com"),
                 clock.nowUtc()))
-        .containsExactly("ns1.example.com", loadHostFki("ns1.example.com"),
-            "ns2.example.com", loadHostFki("ns2.example.com"));
+        .containsExactly(
+            "ns1.example.com",
+            loadHostFki("ns1.example.com"),
+            "ns2.example.com",
+            loadHostFki("ns2.example.com"));
     deleteResource(host1);
     deleteResource(host2);
     persistActiveHost("ns3.example.com");
@@ -167,7 +173,6 @@ public class ForeignKeyIndexTest extends EntityTestCase {
 
   @Test
   public void test_loadCached_doesntSeeHostChangesWhileCacheIsValid() {
-    setNonZeroCachingInterval();
     HostResource originalHost = persistActiveHost("ns1.example.com");
     ForeignKeyIndex<HostResource> originalFki = loadHostFki("ns1.example.com");
     clock.advanceOneMilli();
@@ -191,7 +196,6 @@ public class ForeignKeyIndexTest extends EntityTestCase {
 
   @Test
   public void test_loadCached_filtersOutSoftDeletedHosts() {
-    setNonZeroCachingInterval();
     persistActiveHost("ns1.example.com");
     persistDeletedHost("ns2.example.com", clock.nowUtc().minusDays(1));
     assertThat(
@@ -204,7 +208,6 @@ public class ForeignKeyIndexTest extends EntityTestCase {
 
   @Test
   public void test_loadCached_cachesContactFkis() {
-    setNonZeroCachingInterval();
     persistActiveContact("contactid1");
     ForeignKeyIndex<ContactResource> fki1 = loadContactFki("contactid1");
     assertThat(
@@ -227,9 +230,5 @@ public class ForeignKeyIndexTest extends EntityTestCase {
             ImmutableList.of("contactid1", "contactid2"),
             clock.nowUtc()))
         .containsExactly("contactid2", loadContactFki("contactid2"));
-  }
-
-  private static void setNonZeroCachingInterval() {
-    ForeignKeyIndex.setCacheForTest(CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS));
   }
 }
