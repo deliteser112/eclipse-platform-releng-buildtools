@@ -106,7 +106,6 @@ def domain_registry_repositories(
         omit_com_sun_xml_bind_jaxb_xjc = False,
         omit_com_thoughtworks_paranamer = False,
         omit_commons_codec = False,
-        omit_commons_io = False,
         omit_commons_logging = False,
         omit_dnsjava = False,
         omit_io_netty_buffer = False,
@@ -338,8 +337,6 @@ def domain_registry_repositories(
         com_thoughtworks_paranamer()
     if not omit_commons_codec:
         commons_codec()
-    if not omit_commons_io:
-        commons_io()
     if not omit_commons_logging:
         commons_logging()
     if not omit_dnsjava:
@@ -1799,17 +1796,6 @@ def commons_codec():
         jar_urls = [
             "http://repo1.maven.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10.jar",
             "http://maven.ibiblio.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10.jar",
-        ],
-    )
-
-def commons_io():
-    java_import_external(
-        name = "commons_io",
-        licenses = ["notice"],  # Apache License, Version 2.0
-        jar_sha256 = "a10418348d234968600ccb1d988efcbbd08716e1d96936ccc1880e7d22513474",
-        jar_urls = [
-            "http://maven.ibiblio.org/maven2/commons-io/commons-io/2.5/commons-io-2.5.jar",
-            "http://repo1.maven.org/maven2/commons-io/commons-io/2.5/commons-io-2.5.jar",
         ],
     )
 

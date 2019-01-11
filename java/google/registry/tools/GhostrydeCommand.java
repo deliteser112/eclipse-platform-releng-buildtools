@@ -15,24 +15,23 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.rde.Ghostryde;
 import google.registry.tools.params.PathParameter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Provider;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
 
@@ -62,9 +61,11 @@ final class GhostrydeCommand implements CommandWithRemoteApi {
           "Output file. If this is a directory: (a) in --encrypt mode, the output "
               + "filename will be the input filename with '.ghostryde' appended, and will have an "
               + "extra '<filename>.length' file with the original file's length; (b) In --decrypt "
-              + "mode, the output filename will be the input filename with '.decrypt' appended.",
+              + "mode, the output filename will be the input filename with '.decrypt' appended. "
+              + "Defaults to stdout in --decrypt mode.",
       validateWith = PathParameter.class)
-  private Path output = Paths.get("/dev/stdout");
+  @Nullable
+  private Path output;
 
   @Inject
   @Key("rdeStagingEncryptionKey")
@@ -78,38 +79,40 @@ final class GhostrydeCommand implements CommandWithRemoteApi {
   public final void run() throws Exception {
     checkArgument(encrypt ^ decrypt, "Please specify either --encrypt or --decrypt");
     if (encrypt) {
+      checkArgumentNotNull(output, "--output path is required in --encrypt mode");
       runEncrypt();
     } else {
       runDecrypt();
     }
   }
 
-  private void runEncrypt() throws IOException, PGPException {
-    Path outFile = Files.isDirectory(output)
-        ? output.resolve(input.getFileName() + ".ghostryde")
-        : output;
-    Path lenOutFile =
-        Files.isDirectory(output) ? output.resolve(input.getFileName() + ".length") : null;
-    try (OutputStream out = Files.newOutputStream(outFile);
-        OutputStream lenOut = lenOutFile == null ? null : Files.newOutputStream(lenOutFile);
+  private void runEncrypt() throws IOException {
+    boolean isOutputToDir = output.toFile().isDirectory();
+    Path outFile = isOutputToDir ? output.resolve(input.getFileName() + ".ghostryde") : output;
+    Path lenOutFile = isOutputToDir ? output.resolve(input.getFileName() + ".length") : null;
+    try (OutputStream out = Files.asByteSink(outFile.toFile()).openBufferedStream();
+        OutputStream lenOut =
+            (lenOutFile == null)
+                ? null
+                : Files.asByteSink(lenOutFile.toFile()).openBufferedStream();
         OutputStream ghostrydeEncoder =
             Ghostryde.encoder(out, rdeStagingEncryptionKey.get(), lenOut);
-        InputStream in = Files.newInputStream(input)) {
+        InputStream in = Files.asByteSource(input.toFile()).openBufferedStream()) {
       ByteStreams.copy(in, ghostrydeEncoder);
     }
   }
 
-  private void runDecrypt() throws IOException, PGPException {
-    try (InputStream in = Files.newInputStream(input);
+  private void runDecrypt() throws IOException {
+    try (InputStream in = Files.asByteSource(input.toFile()).openBufferedStream();
         InputStream ghostDecoder = Ghostryde.decoder(in, rdeStagingDecryptionKey.get())) {
-      System.err.println("output = " + output);
-      if (output.toString().equals("/dev/stdout")) {
-        System.err.println("doing copy");
-        IOUtils.copy(ghostDecoder, System.out);
+      if (output == null) {
+        ByteStreams.copy(ghostDecoder, System.out);
       } else {
         Path outFile =
-            Files.isDirectory(output) ? output.resolve(input.getFileName() + ".decrypt") : output;
-        Files.copy(ghostDecoder, outFile, REPLACE_EXISTING);
+            output.toFile().isDirectory()
+                ? output.resolve(input.getFileName() + ".decrypt")
+                : output;
+        Files.asByteSink(outFile.toFile()).writeFrom(ghostDecoder);
       }
     }
   }

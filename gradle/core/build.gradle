@@ -150,7 +150,6 @@ dependencies {
   maybeRuntime deps['com.sun.activation:javax.activation']
   maybeRuntime deps['com.thoughtworks.paranamer:paranamer']
   maybeRuntime deps['commons-codec:commons-codec']
-  compile deps['commons-io:commons-io']
   maybeRuntime deps['commons-logging:commons-logging']
   compile deps['dnsjava:dnsjava']
   maybeRuntime deps['io.netty:netty-buffer']
