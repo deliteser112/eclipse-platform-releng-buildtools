@@ -99,7 +99,7 @@ public class SetNumInstancesCommandTest extends CommandTestCase<SetNumInstancesC
             ParameterException.class, () -> runCommand("--services=DEFAULT", "--versions=version"));
     assertThat(thrown)
         .hasMessageThat()
-        .contains("The following option is required: --num_instances");
+        .contains("The following option is required: -n, --num_instances");
   }
 
   @Test
@@ -153,6 +153,19 @@ public class SetNumInstancesCommandTest extends CommandTestCase<SetNumInstancesC
             .getAppengine();
 
     runCommand("--services=DEFAULT", "--versions=version", "--num_instances=10");
+    verify(appEngineServiceUtils, times(1)).setNumInstances("default", "version", 10L);
+  }
+
+  @Test
+  public void test_validShortParametersAndLowercaseService_succeeds() throws Exception {
+    command.appengine =
+        new AppEngineAdminApiHelper.Builder()
+            .setAppId(projectId)
+            .setManualScalingVersionsMap(ImmutableMultimap.of("default", "version"))
+            .build()
+            .getAppengine();
+
+    runCommand("-s default", "-v version", "-n 10");
     verify(appEngineServiceUtils, times(1)).setNumInstances("default", "version", 10L);
   }
 

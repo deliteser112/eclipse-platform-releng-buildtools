@@ -35,6 +35,7 @@ import google.registry.tools.AppEngineConnection.Service;
 import google.registry.util.AppEngineServiceUtils;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import javax.inject.Inject;
 
@@ -57,21 +58,21 @@ final class SetNumInstancesCommand implements CommandWithRemoteApi {
 
   // TODO(b/119629679): Use List<Service> after upgrading jcommander to latest version.
   @Parameter(
-      names = "--services",
+      names = {"-s", "--services"},
       description =
           "Comma-delimited list of App Engine services to set. "
               + "Allowed values: [DEFAULT, TOOLS, BACKEND, PUBAPI]")
   private List<String> serviceNames = ImmutableList.of();
 
   @Parameter(
-      names = "--versions",
+      names = {"-v", "--versions"},
       description =
           "Comma-delimited list of App Engine versions to set, e.g., canary. "
               + "Cannot be set if --non_live_versions is set.")
   private List<String> versions = ImmutableList.of();
 
   @Parameter(
-      names = "--num_instances",
+      names = {"-n", "--num_instances"},
       description =
           "The new number of instances for the given versions "
               + "or for all non-live versions if --non_live_versions is set.",
@@ -92,10 +93,11 @@ final class SetNumInstancesCommand implements CommandWithRemoteApi {
   String projectId;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
 
     ImmutableSet<Service> services =
         serviceNames.stream()
+            .map(s -> s.toUpperCase(Locale.US))
             .map(
                 name ->
                     checkArgumentPresent(
