@@ -105,9 +105,9 @@ public final class OteStatusActionTest {
 
   @Test
   public void testFailure_noRegistrar() {
-    assertThat(action.handleJsonRequest(ImmutableMap.of("clientId", "nonexistent-id-3")))
+    assertThat(action.handleJsonRequest(ImmutableMap.of("clientId", "nonexistent-3")))
         .containsExactlyEntriesIn(
-            errorResultWithMessage("TestUserId doesn't have access to registrar nonexistent-id-3"));
+            errorResultWithMessage("TestUserId doesn't have access to registrar nonexistent-3"));
   }
 
   @Test
@@ -121,10 +121,10 @@ public final class OteStatusActionTest {
 
   @Test
   public void testFailure_malformedRegistrarName() {
-    assertThat(action.handleJsonRequest(ImmutableMap.of("clientId", "bad-client-id")))
+    assertThat(action.handleJsonRequest(ImmutableMap.of("clientId", "badclient-id")))
         .containsExactlyEntriesIn(
             errorResultWithMessage(
-                "ID bad-client-id is not one of the OT&E client IDs for base bad-client"));
+                "ID badclient-id is not one of the OT&E client IDs for base badclient"));
   }
 
   @Test

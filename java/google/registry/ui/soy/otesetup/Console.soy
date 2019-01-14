@@ -116,15 +116,7 @@
             {param required: true /}
           {/call}
           <span class="{css('description')}">
-            Must:
-            <ol type="1">
-              <li>consist of only lowercase letters, numbers, or hyphens,</li>
-              <li>start with a letter, and</li>
-              <li>be between 3 and 14 characters (inclusive).</li>
-            </ol>
-            We require 1 and 2 since the registrar name will be used to create TLDs, and we
-            require 3 since we append "-[12345]" to the name to create client IDs which are
-            required by the EPP XML schema to be between 3-16 chars.
+            Must consist of 3-14 lower-case letters and numbers.
           </span>
         </td>
       </tr>

@@ -192,9 +192,9 @@ public final class OteAccountBuilderTest {
   public void testCreateOteEntities_invalidClientId_fails() {
     assertThat(
             assertThrows(
-                IllegalArgumentException.class, () -> OteAccountBuilder.forClientId("3blobio")))
+                IllegalArgumentException.class, () -> OteAccountBuilder.forClientId("3blo-bio")))
         .hasMessageThat()
-        .isEqualTo("Invalid registrar name: 3blobio");
+        .isEqualTo("Invalid registrar name: 3blo-bio");
   }
 
   @Test
@@ -317,11 +317,6 @@ public final class OteAccountBuilderTest {
   @Test
   public void testGetBaseClientId_validOteId() {
     assertThat(OteAccountBuilder.getBaseClientId("myclientid-4")).isEqualTo("myclientid");
-  }
-
-  @Test
-  public void testGetBaseClientId_multipleDashesValid() {
-    assertThat(OteAccountBuilder.getBaseClientId("two-dashes-3")).isEqualTo("two-dashes");
   }
 
   @Test

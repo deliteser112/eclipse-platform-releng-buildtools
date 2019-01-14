@@ -40,51 +40,41 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
   private static final int PASSWORD_LENGTH = 16;
 
   @Parameter(
-    names = {"-r", "--registrar"},
-    description =
-        "must 1) consist of only lowercase letters, numbers, or hyphens, "
-            + "2) start with a letter, and 3) be between 3 and 14 characters (inclusive). "
-            + "We require 1 and 2 since the registrar name will be used to create TLDs,"
-            + "and we require 3 since we append \"-[1234]\" to the name to create client"
-            + "IDs which are required by the EPP XML schema to be between 3-16 chars.",
-    required = true
-  )
+      names = {"-r", "--registrar"},
+      description = "The registrar client ID, consisting of 3-14 lowercase letters and numbers.",
+      required = true)
   private String registrar;
 
   @Parameter(
-    names = {"-w", "--ip_whitelist"},
-    description = "comma separated list of IP addreses or CIDR ranges",
-    required = true
-  )
+      names = {"-w", "--ip_whitelist"},
+      description = "Comma-separated list of IP addreses or CIDR ranges.",
+      required = true)
   private List<String> ipWhitelist = new ArrayList<>();
 
   @Parameter(
       names = {"--email"},
       description =
-          "the registrar's account to use for console access. "
+          "The registrar's account to use for console access. "
               + "Must be on the registry's G Suite domain.",
       required = true)
   private String email;
 
   @Parameter(
-    names = {"-c", "--certfile"},
-    description = "full path to cert file in PEM format (best if on local storage)",
-    validateWith = PathParameter.InputFile.class
-  )
+      names = {"-c", "--certfile"},
+      description = "Full path to cert file in PEM format (best if on local storage).",
+      validateWith = PathParameter.InputFile.class)
   private Path certFile;
 
   @Parameter(
-    names = {"-h", "--certhash"},
-    description =
-        "Hash of client certificate (SHA256 base64 no padding). Do not use this unless "
-            + "you want to store ONLY the hash and not the full certificate"
-  )
+      names = {"-h", "--certhash"},
+      description =
+          "Hash of client certificate (SHA256 base64 no padding). Do not use this unless "
+              + "you want to store ONLY the hash and not the full certificate.")
   private String certHash;
 
   @Parameter(
-    names = {"--overwrite"},
-    description = "whether to replace existing entities if we encounter any, instead of failing"
-  )
+      names = {"--overwrite"},
+      description = "Whether to replace existing entities if we encounter any, instead of failing.")
   private boolean overwrite = false;
 
   @Inject

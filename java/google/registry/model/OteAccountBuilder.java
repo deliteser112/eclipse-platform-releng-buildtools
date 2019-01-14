@@ -72,8 +72,18 @@ import org.joda.time.Duration;
  */
 public final class OteAccountBuilder {
 
-  // Regex: 3-14 lower-case alphanumeric characters or hyphens, the first of which must be a letter.
-  private static final Pattern REGISTRAR_PATTERN = Pattern.compile("^[a-z][-a-z0-9]{2,13}$");
+  /**
+   * Validation regex for registrar base client IDs (3-14 lowercase alphanumeric characters).
+   *
+   * <p>The base client ID is appended with numbers to create four different test registrar accounts
+   * (e.g. reg-1, reg-3, reg-4, reg-5).  Registrar client IDs are of type clIDType in eppcom.xsd
+   * which is limited to 16 characters, hence the limit of 14 here to account for the dash and
+   * numbers.
+   *
+   * <p>The base client ID is also used to generate the OT&E TLDs, hence the restriction to
+   * lowercase alphanumeric characters.
+   */
+  private static final Pattern REGISTRAR_PATTERN = Pattern.compile("^[a-z0-9]{3,14}$");
 
   // Durations are short so that registrars can test with quick transfer (etc.) turnaround.
   private static final Duration SHORT_ADD_GRACE_PERIOD = Duration.standardMinutes(60);

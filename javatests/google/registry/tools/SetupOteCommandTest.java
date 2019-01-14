@@ -324,10 +324,10 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
             () ->
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1",
-                    "--registrar=3blobio",
+                    "--registrar=3blo-bio",
                     "--email=contact@email.com",
                     "--certfile=" + getCertFilename()));
-    assertThat(thrown).hasMessageThat().contains("Invalid registrar name: 3blobio");
+    assertThat(thrown).hasMessageThat().contains("Invalid registrar name: 3blo-bio");
   }
 
   @Test
