@@ -79,6 +79,7 @@ public final class RegistryTool {
           .put("hash_certificate", HashCertificateCommand.class)
           .put("import_datastore", ImportDatastoreCommand.class)
           .put("list_cursors", ListCursorsCommand.class)
+          .put("list_datastore_operations", ListDatastoreOperationsCommand.class)
           .put("list_domains", ListDomainsCommand.class)
           .put("list_hosts", ListHostsCommand.class)
           .put("list_premium_lists", ListPremiumListsCommand.class)

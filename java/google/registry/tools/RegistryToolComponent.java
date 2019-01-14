@@ -97,6 +97,7 @@ interface RegistryToolComponent {
   void inject(GhostrydeCommand command);
   void inject(ImportDatastoreCommand command);
   void inject(ListCursorsCommand command);
+  void inject(ListDatastoreOperationsCommand command);
   void inject(LoadSnapshotCommand command);
   void inject(LockDomainCommand command);
   void inject(LoginCommand command);
