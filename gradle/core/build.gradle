@@ -6,6 +6,30 @@ plugins {
 // used for easy inspection.
 def generatedDir = "${project.buildDir}/generated/source/custom/main"
 
+// Tests that conflict with (mostly unidentified) members of the main test
+// suite. It is unclear if they are offenders (i.e., those that pollute global
+// state) or victims.
+// TODO(weiminyu): identify cause and fix offending tests.
+def outcastTestPatterns = [
+    "google/registry/batch/DeleteContactsAndHostsActionTest.*",
+    "google/registry/batch/RefreshDnsOnHostRenameActionTest.*",
+    "google/registry/flows/CheckApiActionTest.*",
+    "google/registry/flows/EppLifecycleHostTest.*",
+    "google/registry/flows/domain/DomainCreateFlowTest.*",
+    "google/registry/flows/domain/DomainUpdateFlowTest.*",
+    "google/registry/tools/CreateDomainCommandTest.*",
+    "google/registry/tools/server/CreatePremiumListActionTest.*",
+    // Conflicts with WhoisActionTest
+    "google/registry/whois/WhoisHttpActionTest.*",
+]
+
+// Tests that conflict with members of both the main test suite and the
+// outcast suite.
+// TODO(weiminyu): identify cause and fix offending tests.
+def fragileTestPatterns = [
+    "google/registry/cron/TldFanoutActionTest.*"
+]
+
 sourceSets {
   main {
     java {
@@ -404,13 +428,41 @@ artifacts {
   testRuntime testJar
 }
 
-test {
+task fragileTest(type: Test) {
   // Common exclude pattern. See README in parent directory for explanation.
   exclude "**/*TestCase.*", "**/*TestSuite.*"
+  include fragileTestPatterns
+
+  // Run every test class in a freshly started process.
+  forkEvery 1
+
+  // Uncomment to see test outputs in stdout.
+  //testLogging.showStandardStreams = true
+}
+
+task outcastTest(type: Test) {
+  // Common exclude pattern. See README in parent directory for explanation.
+  exclude "**/*TestCase.*", "**/*TestSuite.*"
+  include outcastTestPatterns
 
   // Sets the maximum number of test executors that may exist at the same time.
   maxParallelForks 5
 }
+
+test {
+  // Common exclude pattern. See README in parent directory for explanation.
+  exclude "**/*TestCase.*", "**/*TestSuite.*"
+  exclude fragileTestPatterns
+  exclude outcastTestPatterns
+
+  // Run every test class in its own process.
+  // TODO: Figure out why we need to do this, fix it and then stop doing it.
+  // This setting makes the build take 35 minutes, without it it takes about 10.
+  forkEvery 1
+
+  // Sets the maximum number of test executors that may exist at the same time.
+  maxParallelForks 5
+}.dependsOn(fragileTest, outcastTest)
 
 task nomulus(type: Jar) {
   manifest {
