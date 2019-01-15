@@ -21,8 +21,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 import static google.registry.model.common.Cursor.getCursorTimeOrStartOfTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.xml.ValidationMode.LENIENT;
-import static google.registry.xml.ValidationMode.STRICT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
@@ -39,13 +37,13 @@ import google.registry.model.rde.RdeMode;
 import google.registry.model.rde.RdeNamingUtils;
 import google.registry.model.rde.RdeRevision;
 import google.registry.model.registry.Registry;
-import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.lock.LockHandler;
 import google.registry.tldconfig.idn.IdnTableEnum;
 import google.registry.util.TaskQueueUtils;
 import google.registry.xjc.rdeheader.XjcRdeHeader;
 import google.registry.xjc.rdeheader.XjcRdeHeaderElement;
+import google.registry.xml.ValidationMode;
 import google.registry.xml.XmlException;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -76,22 +74,21 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
   private final byte[] stagingKeyBytes;
   private final RdeMarshaller marshaller;
 
-  @Inject
-  RdeStagingReducer(
+  private RdeStagingReducer(
       TaskQueueUtils taskQueueUtils,
       LockHandler lockHandler,
-      @Config("gcsBufferSize") int gcsBufferSize,
-      @Config("rdeBucket") String bucket,
-      @Config("rdeStagingLockTimeout") Duration lockTimeout,
-      @KeyModule.Key("rdeStagingEncryptionKey") byte[] stagingKeyBytes,
-      @Parameter(RdeModule.PARAM_LENIENT) boolean lenient) {
+      int gcsBufferSize,
+      String bucket,
+      Duration lockTimeout,
+      byte[] stagingKeyBytes,
+      ValidationMode validationMode) {
     this.taskQueueUtils = taskQueueUtils;
     this.lockHandler = lockHandler;
     this.gcsBufferSize = gcsBufferSize;
     this.bucket = bucket;
     this.lockTimeout = lockTimeout;
     this.stagingKeyBytes = stagingKeyBytes;
-    this.marshaller = new RdeMarshaller(lenient ? LENIENT : STRICT);
+    this.marshaller = new RdeMarshaller(validationMode);
   }
 
   @Override
@@ -239,5 +236,29 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
                         .param(RdeModule.PARAM_WATERMARK, watermark.toString()));
               }
             });
+  }
+
+  /** Injectible factory for creating {@link RdeStagingReducer}. */
+  static class Factory {
+    TaskQueueUtils taskQueueUtils;
+    LockHandler lockHandler;
+    @Config("gcsBufferSize") int gcsBufferSize;
+    @Config("rdeBucket") String bucket;
+    @Config("rdeStagingLockTimeout") Duration lockTimeout;
+    @KeyModule.Key("rdeStagingEncryptionKey") byte[] stagingKeyBytes;
+
+    @Inject
+    Factory() {}
+
+    RdeStagingReducer create(ValidationMode validationMode) {
+      return new RdeStagingReducer(
+          taskQueueUtils,
+          lockHandler,
+          gcsBufferSize,
+          bucket,
+          lockTimeout,
+          stagingKeyBytes,
+          validationMode);
+    }
   }
 }

@@ -45,6 +45,7 @@ import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
+import google.registry.xml.ValidationMode;
 import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -203,7 +204,7 @@ public final class RdeStagingAction implements Runnable {
 
   @Inject Clock clock;
   @Inject PendingDepositChecker pendingDepositChecker;
-  @Inject RdeStagingReducer reducer;
+  @Inject RdeStagingReducer.Factory reducerFactory;
   @Inject Response response;
   @Inject MapreduceRunner mrRunner;
   @Inject @Config("transactionCooldown") Duration transactionCooldown;
@@ -231,7 +232,9 @@ public final class RdeStagingAction implements Runnable {
     for (PendingDeposit pending : pendings.values()) {
       logger.atInfo().log("Pending deposit: %s", pending);
     }
-    RdeStagingMapper mapper = new RdeStagingMapper(lenient ? LENIENT : STRICT, pendings);
+    ValidationMode validationMode = lenient ? LENIENT : STRICT;
+    RdeStagingMapper mapper = new RdeStagingMapper(validationMode, pendings);
+    RdeStagingReducer reducer = reducerFactory.create(validationMode);
 
     mrRunner
         .setJobName("Stage escrow deposits for all TLDs")
