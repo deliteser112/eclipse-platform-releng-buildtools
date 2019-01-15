@@ -119,13 +119,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
   @Nullable
   @Parameter(
-      names = "--premium_price_ack_required",
-      description = "Whether operations on premium domains require explicit ack of prices",
-      arity = 1)
-  private Boolean premiumPriceAckRequired;
-
-  @Nullable
-  @Parameter(
       names = "--create_billing_cost",
       description = "Per-year billing cost for creating a domain")
   Money createBillingCost;
@@ -335,7 +328,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       Optional.ofNullable(serverStatusChangeCost)
           .ifPresent(builder::setServerStatusChangeBillingCost);
       Optional.ofNullable(tldType).ifPresent(builder::setTldType);
-      Optional.ofNullable(premiumPriceAckRequired).ifPresent(builder::setPremiumPriceAckRequired);
       Optional.ofNullable(lordnUsername).ifPresent(u -> builder.setLordnUsername(u.orElse(null)));
       Optional.ofNullable(claimsPeriodEnd).ifPresent(builder::setClaimsPeriodEnd);
       Optional.ofNullable(domainCreateRestricted).ifPresent(builder::setDomainCreateRestricted);

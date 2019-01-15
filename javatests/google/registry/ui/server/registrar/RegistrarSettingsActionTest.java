@@ -346,15 +346,6 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_premiumPriceAck() {
-    doTestUpdate(
-        Role.OWNER,
-        Registrar::getPremiumPriceAckRequired,
-        true,
-        Registrar.Builder::setPremiumPriceAckRequired);
-  }
-
-  @Test
   public void testUpdate_whoisServer() {
     doTestUpdate(
         Role.OWNER,

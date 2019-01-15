@@ -115,7 +115,6 @@ function testNavToResources() {
     path: 'resources',
     xsrfToken: test.testXsrfToken,
     technicalDocsUrl: 'http://example.com/techdocs',
-    premiumPriceAckRequired: false,
     readonly: true,
   });
   const xhr = goog.testing.net.XhrIo.getSendInstances().pop();

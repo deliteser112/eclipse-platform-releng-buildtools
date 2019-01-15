@@ -11,6 +11,12 @@
         <domain:exDate>2001-04-03T22:00:00.0Z</domain:exDate>
       </domain:creData>
     </resData>
+    <extension>
+      <fee:creData xmlns:fee="urn:ietf:params:xml:ns:fee-0.12">
+        <fee:currency>USD</fee:currency>
+        <fee:fee description="create">200.00</fee:fee>
+      </fee:creData>
+    </extension>
     <trID>
       <clTRID>ABC-12345</clTRID>
       <svTRID>server-trid</svTRID>

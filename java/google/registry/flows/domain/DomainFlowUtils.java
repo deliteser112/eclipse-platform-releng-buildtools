@@ -672,18 +672,11 @@ public class DomainFlowUtils {
    */
   public static void validateFeeChallenge(
       String domainName,
-      String tld,
-      String clientId,
       DateTime priceTime,
       final Optional<? extends FeeTransformCommandExtension> feeCommand,
       FeesAndCredits feesAndCredits)
       throws EppException {
-
-    Registry registry = Registry.get(tld);
-    Registrar registrar = Registrar.loadByClientIdCached(clientId).get();
-    boolean premiumAckRequired =
-        registry.getPremiumPriceAckRequired() || registrar.getPremiumPriceAckRequired();
-    if (premiumAckRequired && isDomainPremium(domainName, priceTime) && !feeCommand.isPresent()) {
+    if (isDomainPremium(domainName, priceTime) && !feeCommand.isPresent()) {
       throw new FeesRequiredForPremiumNameException();
     }
     validateFeesAckedIfPresent(feeCommand, feesAndCredits);

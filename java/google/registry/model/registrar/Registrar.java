@@ -394,13 +394,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    */
   boolean contactsRequireSyncing = true;
 
-  /** Whether the registrar must acknowledge the price to register non-standard-priced domains. */
-  boolean premiumPriceAckRequired;
-
-  public boolean getPremiumPriceAckRequired() {
-    return premiumPriceAckRequired;
-  }
-
   @NonFinalForTesting
   private static Supplier<byte[]> saltSupplier =
       () -> {
@@ -593,7 +586,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
         .put("emailAddress", emailAddress)
         .put("whoisServer", getWhoisServer())
         .put("blockPremiumNames", blockPremiumNames)
-        .put("premiumPriceAckRequired", premiumPriceAckRequired)
         .put("url", url)
         .put("icannReferralEmail", getIcannReferralEmail())
         .put("driveFolderId", driveFolderId)
@@ -863,11 +855,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
           || PHONE_PASSCODE_PATTERN.matcher(phonePasscode).matches(),
           "Not a valid telephone passcode (must be 5 digits long): %s", phonePasscode);
       getInstance().phonePasscode = phonePasscode;
-      return this;
-    }
-
-    public Builder setPremiumPriceAckRequired(boolean premiumPriceAckRequired) {
-      getInstance().premiumPriceAckRequired = premiumPriceAckRequired;
       return this;
     }
 

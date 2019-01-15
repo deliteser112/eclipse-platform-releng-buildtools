@@ -279,9 +279,6 @@ public final class RegistrarFormFields {
               args, L10N_STREET_FIELD, L10N_CITY_FIELD, L10N_STATE_FIELD, L10N_ZIP_FIELD))
           .build();
 
-  public static final FormField<Boolean, Boolean> PREMIUM_PRICE_ACK_REQUIRED =
-      FormField.named("premiumPriceAckRequired", Boolean.class).build();
-
   private static @Nullable RegistrarAddress toNewAddress(
       @Nullable Map<String, ?> args,
       final FormField<List<String>, List<String>> streetField,

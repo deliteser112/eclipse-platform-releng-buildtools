@@ -313,27 +313,11 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testSuccess_premiumPriceAckRequired() throws Exception {
-    assertThat(loadRegistrar("NewRegistrar").getPremiumPriceAckRequired()).isFalse();
-    runCommandForced("--premium_price_ack_required=true", "NewRegistrar");
-    assertThat(loadRegistrar("NewRegistrar").getPremiumPriceAckRequired()).isTrue();
-  }
-
-  @Test
-  public void testSuccess_resetPremiumPriceAckRequired() throws Exception {
-    persistResource(
-        loadRegistrar("NewRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
-    runCommandForced("--premium_price_ack_required=false", "NewRegistrar");
-    assertThat(loadRegistrar("NewRegistrar").getPremiumPriceAckRequired()).isFalse();
-  }
-
-  @Test
   public void testSuccess_unspecifiedBooleansArentChanged() throws Exception {
     persistResource(
         loadRegistrar("NewRegistrar")
             .asBuilder()
             .setBlockPremiumNames(true)
-            .setPremiumPriceAckRequired(true)
             .setContactsRequireSyncing(true)
             .build());
     // Make some unrelated change where we don't specify the flags for the booleans.
@@ -341,7 +325,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     // Make sure that the boolean fields didn't get reset back to false.
     Registrar reloadedRegistrar = loadRegistrar("NewRegistrar");
     assertThat(reloadedRegistrar.getBlockPremiumNames()).isTrue();
-    assertThat(reloadedRegistrar.getPremiumPriceAckRequired()).isTrue();
     assertThat(reloadedRegistrar.getContactsRequireSyncing()).isTrue();
   }
 

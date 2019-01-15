@@ -1150,21 +1150,35 @@ public class DomainTransferRequestFlowTest
   @Test
   public void testSuccess_premiumNotBlocked() throws Exception {
     setupDomain("rich", "example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
     clock.advanceOneMilli();
     // We don't verify the results; just check that the flow doesn't fail.
-    runTest("domain_transfer_request_premium.xml", UserPrivileges.NORMAL);
+    runTest(
+        "domain_transfer_request_fee.xml",
+        UserPrivileges.NORMAL,
+        ImmutableMap.of(
+            "DOMAIN", "rich.example",
+            "YEARS", "1",
+            "AMOUNT", "100.00",
+            "FEE_VERSION", "0.12",
+            "FEE_NS", "fee12"));
   }
 
   @Test
   public void testSuccess_premiumNotBlockedInSuperuserMode() throws Exception {
     setupDomain("rich", "example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
     clock.advanceOneMilli();
     // Modify the Registrar to block premium names.
     persistResource(loadRegistrar("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
     // We don't verify the results; just check that the flow doesn't fail.
-    runTest("domain_transfer_request_premium.xml", UserPrivileges.SUPERUSER);
+    runTest(
+        "domain_transfer_request_fee.xml",
+        UserPrivileges.SUPERUSER,
+        ImmutableMap.of(
+            "DOMAIN", "rich.example",
+            "YEARS", "1",
+            "AMOUNT", "100.00",
+            "FEE_VERSION", "0.12",
+            "FEE_NS", "fee12"));
   }
 
   private void runWrongCurrencyTest(Map<String, String> substitutions) {
@@ -1275,22 +1289,8 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_registryRequiresAcking_feeNotProvidedOnPremiumName() {
+  public void testFailure_feeNotProvidedOnPremiumName() {
     setupDomain("rich", "example");
-    EppException thrown =
-        assertThrows(
-            FeesRequiredForPremiumNameException.class,
-            () -> doFailingTest("domain_transfer_request_premium.xml"));
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testFailure_registrarRequiresAcking_feeNotProvidedOnPremiumName() {
-    setupDomain("rich", "example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
-    persistResource(
-        loadRegistrar("NewRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
-    clock.advanceOneMilli();
     EppException thrown =
         assertThrows(
             FeesRequiredForPremiumNameException.class,

@@ -167,7 +167,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
             ? Optional.empty()
             : Optional.of(pricingLogic.getTransferPrice(registry, targetId, now));
     if (feesAndCredits.isPresent()) {
-      validateFeeChallenge(targetId, tld, gainingClientId, now, feeTransfer, feesAndCredits.get());
+      validateFeeChallenge(targetId, now, feeTransfer, feesAndCredits.get());
     }
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, registry, now, period);
     DateTime automaticTransferTime =

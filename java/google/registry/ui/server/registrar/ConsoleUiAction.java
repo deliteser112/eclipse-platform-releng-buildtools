@@ -35,7 +35,6 @@ import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.shared.SoyCssRenamingMap;
 import com.google.template.soy.tofu.SoyTofu;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
@@ -149,8 +148,7 @@ public final class ConsoleUiAction implements Runnable {
       // since we double check the access to the registrar on any read / update request. We have to
       // - since the access might get revoked between the initial page load and the request! (also
       // because the requests come from the browser, and can easily be faked)
-      Registrar registrar = registrarAccessor.getRegistrar(clientId);
-      data.put("requireFeeExtension", registrar.getPremiumPriceAckRequired());
+      registrarAccessor.getRegistrar(clientId);
     } catch (RegistrarAccessDeniedException e) {
       logger.atWarning().withCause(e).log(
           "User %s doesn't have access to registrar console.", authResult.userIdForLogging());

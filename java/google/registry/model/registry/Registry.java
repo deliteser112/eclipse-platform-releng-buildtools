@@ -334,9 +334,6 @@ public class Registry extends ImmutableObject implements Buildable {
   /** Whether the pull queue that writes to authoritative DNS is paused for this TLD. */
   boolean dnsPaused = DEFAULT_DNS_PAUSED;
 
-  /** Whether the price must be acknowledged to register premium names on this TLD. */
-  boolean premiumPriceAckRequired = true;
-
   /**
    * Whether only domains with {@link ReservationType#NAMESERVER_RESTRICTED} reservation type in a
    * reserved list can be registered on this TLD.
@@ -460,10 +457,6 @@ public class Registry extends ImmutableObject implements Buildable {
 
   public String getDriveFolderId() {
     return driveFolderId;
-  }
-
-  public boolean getPremiumPriceAckRequired() {
-    return premiumPriceAckRequired;
   }
 
   /**
@@ -655,11 +648,6 @@ public class Registry extends ImmutableObject implements Buildable {
 
     public Builder setDriveFolderId(String driveFolderId) {
       getInstance().driveFolderId = driveFolderId;
-      return this;
-    }
-
-    public Builder setPremiumPriceAckRequired(boolean premiumPriceAckRequired) {
-      getInstance().premiumPriceAckRequired = premiumPriceAckRequired;
       return this;
     }
 

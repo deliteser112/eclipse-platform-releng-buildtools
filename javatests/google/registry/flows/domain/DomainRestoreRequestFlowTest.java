@@ -88,7 +88,7 @@ public class DomainRestoreRequestFlowTest
   @Before
   public void initDomainTest() {
     createTld("tld");
-    setEppInput("domain_update_restore_request.xml");
+    setEppInput("domain_update_restore_request.xml", ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   void persistPendingDeleteDomain() throws Exception {
@@ -123,14 +123,14 @@ public class DomainRestoreRequestFlowTest
 
   @Test
   public void testDryRun() throws Exception {
-    setEppInput("domain_update_restore_request.xml");
+    setEppInput("domain_update_restore_request.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistPendingDeleteDomain();
     dryRunFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   @Test
   public void testSuccess() throws Exception {
-    setEppInput("domain_update_restore_request.xml");
+    setEppInput("domain_update_restore_request.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistPendingDeleteDomain();
     assertTransactionalFlow(true);
     // Double check that we see a poll message in the future for when the delete happens.
@@ -321,10 +321,9 @@ public class DomainRestoreRequestFlowTest
   @Test
   public void testSuccess_premiumNotBlocked() throws Exception {
     createTld("example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
     setEppInput("domain_update_restore_request_premium.xml");
     persistPendingDeleteDomain();
-    runFlow();
+    runFlowAssertResponse(loadFile("domain_update_restore_request_response_premium.xml"));
   }
 
   @Test
@@ -342,13 +341,14 @@ public class DomainRestoreRequestFlowTest
   @Test
   public void testSuccess_superuserOverridesPremiumNameBlock() throws Exception {
     createTld("example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
     setEppInput("domain_update_restore_request_premium.xml");
     persistPendingDeleteDomain();
     // Modify the Registrar to block premium names.
     persistResource(loadRegistrar("TheRegistrar").asBuilder().setBlockPremiumNames(true).build());
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
+        CommitMode.LIVE,
+        UserPrivileges.SUPERUSER,
+        loadFile("domain_update_restore_request_response_premium.xml"));
   }
 
   @Test
@@ -591,21 +591,9 @@ public class DomainRestoreRequestFlowTest
   }
 
   @Test
-  public void testFailure_premiumNotAcked_whenRegistryRequiresFeeAcking() throws Exception {
+  public void testFailure_premiumNotAcked() throws Exception {
     createTld("example");
-    setEppInput("domain_update_restore_request_premium.xml");
-    persistPendingDeleteDomain();
-    EppException thrown = assertThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testFailure_premiumNotAcked_whenRegistrarRequiresFeeAcking() throws Exception {
-    createTld("example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
-    persistResource(
-        loadRegistrar("TheRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
-    setEppInput("domain_update_restore_request_premium.xml");
+    setEppInput("domain_update_restore_request.xml", ImmutableMap.of("DOMAIN", "rich.example"));
     persistPendingDeleteDomain();
     EppException thrown = assertThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();

@@ -409,7 +409,6 @@ class google.registry.model.registrar.Registrar {
   @Parent com.googlecode.objectify.Key<google.registry.model.common.EntityGroupRoot> parent;
   boolean blockPremiumNames;
   boolean contactsRequireSyncing;
-  boolean premiumPriceAckRequired;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp lastUpdateTime;
   google.registry.model.registrar.Registrar$State state;
@@ -491,7 +490,6 @@ class google.registry.model.registry.Registry {
   boolean dnsPaused;
   boolean domainCreateRestricted;
   boolean escrowEnabled;
-  boolean premiumPriceAckRequired;
   com.googlecode.objectify.Key<google.registry.model.registry.label.PremiumList> premiumList;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.common.TimedTransitionProperty<google.registry.model.registry.Registry$TldState, google.registry.model.registry.Registry$TldStateTransition> tldStateTransitions;

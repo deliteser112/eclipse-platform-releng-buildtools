@@ -276,16 +276,6 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testSuccess_setPremiumPriceAckRequired() throws Exception {
-    runCommandForced(
-        "--premium_price_ack_required=true",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getPremiumPriceAckRequired()).isTrue();
-  }
-
-  @Test
   public void testFailure_invalidAddGracePeriod() {
     IllegalArgumentException thrown =
         assertThrows(

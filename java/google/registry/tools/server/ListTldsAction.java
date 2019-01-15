@@ -57,8 +57,7 @@ public final class ListTldsAction extends ListObjectsAction<Registry> {
     return ImmutableBiMap.of(
         "TLD", "tldStr",
         "dns", "dnsPaused",
-        "escrow", "escrowEnabled",
-        "premiumPricing", "premiumPriceAckRequired");
+        "escrow", "escrowEnabled");
   }
 
   @Override
@@ -67,7 +66,6 @@ public final class ListTldsAction extends ListObjectsAction<Registry> {
     return new ImmutableMap.Builder<String, String>()
         .put("dnsPaused", registry.getDnsPaused() ? "paused" : "-")
         .put("escrowEnabled", registry.getEscrowEnabled() ? "enabled" : "-")
-        .put("premiumPriceAckRequired", registry.getPremiumPriceAckRequired() ? "ack req'd" : "-")
         .put("tldState", registry.isPdt(now) ? "PDT" : registry.getTldState(now).toString())
         .put("tldStateTransitions", registry.getTldStateTransitions().toString())
         .put("renewBillingCost", registry.getStandardRenewCost(now).toString())

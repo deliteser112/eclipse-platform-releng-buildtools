@@ -260,11 +260,6 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
     Registrar.Builder builder = initialRegistrar.asBuilder();
 
-    // BILLING
-    RegistrarFormFields.PREMIUM_PRICE_ACK_REQUIRED
-        .extractUntyped(args)
-        .ifPresent(builder::setPremiumPriceAckRequired);
-
     // WHOIS
     //
     // Because of how whoisServer handles "default value", it's possible that setting the existing

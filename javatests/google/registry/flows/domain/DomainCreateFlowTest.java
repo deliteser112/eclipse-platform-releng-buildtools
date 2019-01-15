@@ -657,19 +657,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_premium() throws Exception {
-    createTld("example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
-    setEppInput("domain_create_premium.xml");
-    persistContactsAndHosts("net");
-    doSuccessfulTest(
-        "example", "domain_create_response_premium.xml", ImmutableMap.of("DOMAIN", "rich.example"));
-  }
-
-  @Test
   public void testSuccess_premiumAndEap() throws Exception {
     createTld("example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(true).build());
     setEppInput("domain_create_premium_eap.xml");
     persistContactsAndHosts("net");
     persistResource(
@@ -1258,7 +1247,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testSuccess_superuserOverridesPremiumNameBlock() throws Exception {
     createTld("example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
     setEppInput("domain_create_premium.xml");
     persistContactsAndHosts("net");
     // Modify the Registrar to block premium names.
@@ -1421,7 +1409,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testFailure_premiumBlocked() {
     createTld("example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
     setEppInput("domain_create_premium.xml");
     persistContactsAndHosts("net");
     // Modify the Registrar to block premium names.
@@ -1431,34 +1418,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_premiumNotAcked_byRegistryRequiringAcking() {
+  public void testFailure_premiumNotAcked() {
     createTld("example");
-    assertThat(Registry.get("example").getPremiumPriceAckRequired()).isTrue();
-    setEppInput("domain_create_premium.xml");
-    persistContactsAndHosts("net");
-    EppException thrown = assertThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testFailure_premiumNotAcked_byRegistrarRequiringAcking() {
-    createTld("example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
-    persistResource(
-        loadRegistrar("TheRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
-    setEppInput("domain_create_premium.xml");
-    persistContactsAndHosts("net");
-    EppException thrown = assertThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testFailure_premiumNotAcked_whenRegistrarAndRegistryRequireAcking() {
-    createTld("example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(true).build());
-    persistResource(
-        loadRegistrar("TheRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
-    setEppInput("domain_create_premium.xml");
+    setEppInput("domain_create.xml", ImmutableMap.of("DOMAIN", "rich.example"));
     persistContactsAndHosts("net");
     EppException thrown = assertThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();

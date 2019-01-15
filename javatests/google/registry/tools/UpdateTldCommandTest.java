@@ -230,19 +230,6 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   }
 
   @Test
-  public void testSuccess_setPremiumPriceAckRequired() throws Exception {
-    runCommandForced("--premium_price_ack_required=true", "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getPremiumPriceAckRequired()).isTrue();
-  }
-
-  @Test
-  public void testSuccess_clearPremiumPriceAckRequired() throws Exception {
-    persistResource(Registry.get("xn--q9jyb4c").asBuilder().setPremiumPriceAckRequired(true).build());
-    runCommandForced("--premium_price_ack_required=false", "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getPremiumPriceAckRequired()).isFalse();
-  }
-
-  @Test
   public void testSuccess_setLordnUsername() throws Exception {
     runCommandForced("--lordn_username=lordn000", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getLordnUsername()).isEqualTo("lordn000");

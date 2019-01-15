@@ -259,13 +259,6 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       description = "Hostname of registrar WHOIS server. (Default: whois.nic.google)")
   String whoisServer;
 
-  @Nullable
-  @Parameter(
-      names = "--premium_price_ack_required",
-      description = "Whether operations on premium domains require explicit ack of prices",
-      arity = 1)
-  private Boolean premiumPriceAckRequired;
-
   /** Returns the existing registrar (for update) or null (for creates). */
   @Nullable
   abstract Registrar getOldRegistrar(String clientId);
@@ -392,7 +385,6 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       Optional.ofNullable(phonePasscode).ifPresent(builder::setPhonePasscode);
       Optional.ofNullable(icannReferralEmail).ifPresent(builder::setIcannReferralEmail);
       Optional.ofNullable(whoisServer).ifPresent(builder::setWhoisServer);
-      Optional.ofNullable(premiumPriceAckRequired).ifPresent(builder::setPremiumPriceAckRequired);
 
       // If the registrarName is being set, verify that it is either null or it normalizes uniquely.
       String oldRegistrarName = (oldRegistrar == null) ? null : oldRegistrar.getRegistrarName();
