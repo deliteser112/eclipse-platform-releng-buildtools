@@ -30,11 +30,11 @@ import org.bouncycastle.openpgp.PGPException;
 
 /** Action to download the latest signed mark revocation list from MarksDB. */
 @Action(
-  path = "/_dr/task/tmchSmdrl",
-  method = POST,
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/tmchSmdrl",
+    method = POST,
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class TmchSmdrlAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

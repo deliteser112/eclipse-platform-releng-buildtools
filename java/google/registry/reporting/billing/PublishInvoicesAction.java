@@ -43,10 +43,15 @@ import org.joda.time.YearMonth;
  * <p>This relies on the retry semantics in {@code queue.xml} to ensure proper upload, in spite of
  * fluctuations in generation timing.
  *
- * @see <a href=https://cloud.google.com/dataflow/docs/reference/rest/v1b3/projects.jobs#Job.JobState>
- *   Job States</a>
+ * @see <a
+ *     href=https://cloud.google.com/dataflow/docs/reference/rest/v1b3/projects.jobs#Job.JobState>
+ *     Job States</a>
  */
-@Action(path = PublishInvoicesAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
+@Action(
+    service = Action.Service.BACKEND,
+    path = PublishInvoicesAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class PublishInvoicesAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

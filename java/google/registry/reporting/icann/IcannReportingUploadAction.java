@@ -52,7 +52,11 @@ import javax.inject.Inject;
  * example: "manual/dir" means reports will be stored under gs://[project-id]-reporting/manual/dir.
  * Defaults to "icann/monthly/[last month in yyyy-MM format]".
  */
-@Action(path = IcannReportingUploadAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
+@Action(
+    service = Action.Service.BACKEND,
+    path = IcannReportingUploadAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public final class IcannReportingUploadAction implements Runnable {
 
   static final String PATH = "/_dr/task/icannReportingUpload";

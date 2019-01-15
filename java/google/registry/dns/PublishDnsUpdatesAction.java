@@ -48,11 +48,11 @@ import org.joda.time.Duration;
 
 /** Task that sends domain and host updates to the DNS server. */
 @Action(
-  path = PublishDnsUpdatesAction.PATH,
-  method = POST,
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = PublishDnsUpdatesAction.PATH,
+    method = POST,
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   public static final String PATH = "/_dr/task/publishDnsUpdates";

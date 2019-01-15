@@ -31,11 +31,11 @@ import javax.inject.Inject;
  * ARIN, not domain registries.
  */
 @Action(
-  path = RdapIpAction.PATH,
-  method = {GET, HEAD},
-  isPrefix = true,
-  auth = Auth.AUTH_PUBLIC_ANONYMOUS
-)
+    service = Action.Service.PUBAPI,
+    path = RdapIpAction.PATH,
+    method = {GET, HEAD},
+    isPrefix = true,
+    auth = Auth.AUTH_PUBLIC_ANONYMOUS)
 public class RdapIpAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/ip/";

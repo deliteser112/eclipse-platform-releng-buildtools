@@ -28,6 +28,28 @@ public @interface Action {
   /** HTTP methods recognized by the request processor. */
   enum Method { GET, HEAD, POST }
 
+  /** App Engine services supported by the request processor. */
+  enum Service {
+    DEFAULT("default"),
+    TOOLS("tools"),
+    BACKEND("backend"),
+    PUBAPI("pubapi");
+
+    private final String serviceId;
+
+    Service(String serviceId) {
+      this.serviceId = serviceId;
+    }
+
+    /** Returns the actual service id in App Engine. */
+    public String getServiceId() {
+      return serviceId;
+    }
+  }
+
+  /** Which App Engine service this action lives on. */
+  Service service();
+
   /** HTTP path to serve the action from. The path components must be percent-escaped. */
   String path();
 

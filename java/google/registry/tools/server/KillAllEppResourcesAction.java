@@ -41,10 +41,10 @@ import javax.inject.Inject;
  * the drastic consequences of accidental execution.
  */
 @Action(
-  path = "/_dr/task/killAllEppResources",
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.TOOLS,
+    path = "/_dr/task/killAllEppResources",
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class KillAllEppResourcesAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;

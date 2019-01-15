@@ -30,7 +30,11 @@ import google.registry.request.auth.Auth;
 import javax.inject.Inject;
 
 /** Action to poll the status of a mapreduce job. */
-@Action(path = PollMapreduceAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
+@Action(
+    service = Action.Service.TOOLS,
+    path = PollMapreduceAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class PollMapreduceAction implements Runnable {
 
   public static final String PATH = "/_dr/task/pollMapreduce";

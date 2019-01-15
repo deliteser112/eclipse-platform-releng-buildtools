@@ -61,38 +61,38 @@ public final class RequestHandlerTest {
           .build();
 
   @Action(
-    path = "/bumblebee",
-    method = {GET, POST},
-    isPrefix = true,
-    auth = AUTH_PUBLIC
-  )
+      service = Action.Service.DEFAULT,
+      path = "/bumblebee",
+      method = {GET, POST},
+      isPrefix = true,
+      auth = AUTH_PUBLIC)
   public static class BumblebeeTask implements Runnable {
     @Override
     public void run() {}
   }
 
   @Action(
-    path = "/sloth",
-    method = POST,
-    automaticallyPrintOk = true,
-    auth = AUTH_PUBLIC
-  )
+      service = Action.Service.DEFAULT,
+      path = "/sloth",
+      method = POST,
+      automaticallyPrintOk = true,
+      auth = AUTH_PUBLIC)
   public static class SlothTask implements Runnable {
     @Override
     public void run() {}
   }
 
   @Action(
-    path = "/safe-sloth",
-    method = {GET, POST},
-    auth = AUTH_PUBLIC
-  )
+      service = Action.Service.DEFAULT,
+      path = "/safe-sloth",
+      method = {GET, POST},
+      auth = AUTH_PUBLIC)
   public static class SafeSlothTask implements Runnable {
     @Override
     public void run() {}
   }
 
-  @Action(path = "/fail", auth = AUTH_PUBLIC)
+  @Action(service = Action.Service.DEFAULT, path = "/fail", auth = AUTH_PUBLIC)
   public static final class FailTask implements Runnable {
     @Override
     public void run() {
@@ -100,7 +100,7 @@ public final class RequestHandlerTest {
     }
   }
 
-  @Action(path = "/failAtConstruction", auth = AUTH_PUBLIC)
+  @Action(service = Action.Service.DEFAULT, path = "/failAtConstruction", auth = AUTH_PUBLIC)
   public static final class FailAtConstructionTask implements Runnable {
     public FailAtConstructionTask() {
       throw new ServiceUnavailableException("Fail at construction");
@@ -125,11 +125,7 @@ public final class RequestHandlerTest {
     }
   }
 
-  @Action(
-    path = "/auth/none",
-    auth = AUTH_PUBLIC,
-    method = GET
-  )
+  @Action(service = Action.Service.DEFAULT, path = "/auth/none", auth = AUTH_PUBLIC, method = GET)
   public class AuthNoneAction extends AuthBase {
     AuthNoneAction(AuthResult authResult) {
       super(authResult);
@@ -137,6 +133,7 @@ public final class RequestHandlerTest {
   }
 
   @Action(
+      service = Action.Service.DEFAULT,
       path = "/auth/adminUser",
       auth = AUTH_INTERNAL_OR_ADMIN,
       method = GET)

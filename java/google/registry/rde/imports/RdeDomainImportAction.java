@@ -69,9 +69,9 @@ import org.joda.time.DateTime;
  * <p>Specify the escrow file to import with the "path" parameter.
  */
 @Action(
-  path = "/_dr/task/importRdeDomains",
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/importRdeDomains",
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class RdeDomainImportAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

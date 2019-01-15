@@ -34,6 +34,7 @@ import javax.inject.Inject;
  * OT&amp;E commands that have been run just previously to verification may not be picked up yet.
  */
 @Action(
+    service = Action.Service.TOOLS,
     path = VerifyOteAction.PATH,
     method = Action.Method.POST,
     auth = Auth.AUTH_INTERNAL_OR_ADMIN)

@@ -45,10 +45,10 @@ import javax.inject.Inject;
  * the drastic consequences of accidental execution.
  */
 @Action(
-  path = "/_dr/task/killAllCommitLogs",
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.TOOLS,
+    path = "/_dr/task/killAllCommitLogs",
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class KillAllCommitLogsAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;

@@ -61,7 +61,11 @@ import org.joda.time.DateTime;
  * <p>Each TLD's active domain names are exported as a newline-delimited flat text file with the
  * name TLD.txt into the domain-lists bucket. Note that this overwrites the files in place.
  */
-@Action(path = "/_dr/task/exportDomainLists", method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
+@Action(
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/exportDomainLists",
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class ExportDomainListsAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

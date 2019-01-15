@@ -44,13 +44,17 @@ import javax.inject.Inject;
  * Hard deletes load-test ContactResources, HostResources, their subordinate history entries, and
  * the associated ForeignKey and EppResourceIndex entities.
  *
- * <p>This only deletes contacts and hosts, NOT domains. To delete domains, use
- * {@link DeleteLoadTestDataAction} and pass it the TLD(s) that the load test domains were created
- * on. Note that DeleteLoadTestDataAction is safe enough to run in production whereas this mapreduce
- * is not, but this one does not need to be runnable in production because load testing isn't run
- * against production.
+ * <p>This only deletes contacts and hosts, NOT domains. To delete domains, use {@link
+ * DeleteLoadTestDataAction} and pass it the TLD(s) that the load test domains were created on. Note
+ * that DeleteLoadTestDataAction is safe enough to run in production whereas this mapreduce is not,
+ * but this one does not need to be runnable in production because load testing isn't run against
+ * production.
  */
-@Action(path = "/_dr/task/deleteLoadTestData", method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
+@Action(
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/deleteLoadTestData",
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class DeleteLoadTestDataAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

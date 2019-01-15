@@ -62,29 +62,32 @@ import javax.inject.Inject;
  * <h3>Parameters Reference</h3>
  *
  * <ul>
- * <li>{@code endpoint} (Required) URL path of servlet to launch. This may contain pathargs.
- * <li>{@code queue} (Required) Name of the App Engine push queue to which this task should be sent.
- * <li>{@code forEachRealTld} Launch the task in each real TLD namespace.
- * <li>{@code forEachTestTld} Launch the task in each test TLD namespace.
- * <li>{@code runInEmpty} Launch the task once, without the TLD argument.
- * <li>{@code exclude} TLDs to exclude.
- * <li>{@code jitterSeconds} Randomly delay each task by up to this many seconds.
- * <li>Any other parameters specified will be passed through as POST parameters to the called task.
+ *   <li>{@code endpoint} (Required) URL path of servlet to launch. This may contain pathargs.
+ *   <li>{@code queue} (Required) Name of the App Engine push queue to which this task should be
+ *       sent.
+ *   <li>{@code forEachRealTld} Launch the task in each real TLD namespace.
+ *   <li>{@code forEachTestTld} Launch the task in each test TLD namespace.
+ *   <li>{@code runInEmpty} Launch the task once, without the TLD argument.
+ *   <li>{@code exclude} TLDs to exclude.
+ *   <li>{@code jitterSeconds} Randomly delay each task by up to this many seconds.
+ *   <li>Any other parameters specified will be passed through as POST parameters to the called
+ *       task.
  * </ul>
  *
  * <h3>Patharg Reference</h3>
  *
  * <p>The following values may be specified inside the "endpoint" param.
+ *
  * <ul>
- * <li>{@code :tld} Substituted with an ASCII tld, if tld fanout is enabled.
- *   This patharg is mostly useful for aesthetic purposes, since tasks are already namespaced.
+ *   <li>{@code :tld} Substituted with an ASCII tld, if tld fanout is enabled. This patharg is
+ *       mostly useful for aesthetic purposes, since tasks are already namespaced.
  * </ul>
  */
 @Action(
-  path = "/_dr/cron/fanout",
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/cron/fanout",
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class TldFanoutAction implements Runnable {
 
   /** A set of control params to TldFanoutAction that aren't passed down to the executing action. */

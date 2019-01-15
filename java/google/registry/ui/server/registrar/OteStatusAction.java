@@ -41,7 +41,11 @@ import javax.inject.Inject;
  * Admin servlet that allows creating or updating a registrar. Deletes are not allowed so as to
  * preserve history.
  */
-@Action(path = OteStatusAction.PATH, method = Action.Method.POST, auth = Auth.AUTH_PUBLIC_LOGGED_IN)
+@Action(
+    service = Action.Service.DEFAULT,
+    path = OteStatusAction.PATH,
+    method = Action.Method.POST,
+    auth = Auth.AUTH_PUBLIC_LOGGED_IN)
 public final class OteStatusAction implements Runnable, JsonActionRunner.JsonAction {
 
   public static final String PATH = "/registrar-ote-status";

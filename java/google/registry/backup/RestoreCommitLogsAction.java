@@ -57,11 +57,11 @@ import org.joda.time.DateTime;
 
 /** Restore Registry 2 commit logs from GCS to Datastore. */
 @Action(
-  path = RestoreCommitLogsAction.PATH,
-  method = Action.Method.POST,
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = RestoreCommitLogsAction.PATH,
+    method = Action.Method.POST,
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class RestoreCommitLogsAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

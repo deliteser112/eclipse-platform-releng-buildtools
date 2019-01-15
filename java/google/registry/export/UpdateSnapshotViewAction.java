@@ -35,7 +35,11 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 /** Update a well-known view to point at a certain Datastore snapshot table in BigQuery. */
-@Action(path = UpdateSnapshotViewAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
+@Action(
+    service = Action.Service.BACKEND,
+    path = UpdateSnapshotViewAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class UpdateSnapshotViewAction implements Runnable {
 
   /** Headers for passing parameters into the servlet. */

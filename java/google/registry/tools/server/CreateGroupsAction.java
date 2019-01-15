@@ -41,10 +41,10 @@ import javax.inject.Inject;
 
 /** Action that creates Google Groups for a registrar's mailing lists. */
 @Action(
-  path = CreateGroupsAction.PATH,
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = CreateGroupsAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class CreateGroupsAction implements Runnable {
 
   public static final String PATH = "/_dr/admin/createGroups";

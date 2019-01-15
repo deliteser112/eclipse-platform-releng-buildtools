@@ -67,15 +67,14 @@ import org.joda.time.DateTime;
 /**
  * A mapreduce that expands {@link Recurring} billing events into synthetic {@link OneTime} events.
  *
- * <p>The cursor used throughout this mapreduce (overridden if necessary using the parameter
- * {@code cursorTime}) represents the inclusive lower bound on the range of billing times that will
- * be expanded as a result of the job (the exclusive upper bound being the execution time of the
- * job).
+ * <p>The cursor used throughout this mapreduce (overridden if necessary using the parameter {@code
+ * cursorTime}) represents the inclusive lower bound on the range of billing times that will be
+ * expanded as a result of the job (the exclusive upper bound being the execution time of the job).
  */
 @Action(
-  path = "/_dr/task/expandRecurringBillingEvents",
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/expandRecurringBillingEvents",
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class ExpandRecurringBillingEventsAction implements Runnable {
 
   public static final String PARAM_CURSOR_TIME = "cursorTime";

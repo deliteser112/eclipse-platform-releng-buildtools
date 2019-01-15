@@ -35,11 +35,11 @@ import org.joda.time.DateTime;
 
 /** RDAP (new WHOIS) action for domain requests. */
 @Action(
-  path = RdapDomainAction.PATH,
-  method = {GET, HEAD},
-  isPrefix = true,
-  auth = Auth.AUTH_PUBLIC
-)
+    service = Action.Service.PUBAPI,
+    path = RdapDomainAction.PATH,
+    method = {GET, HEAD},
+    isPrefix = true,
+    auth = Auth.AUTH_PUBLIC)
 public class RdapDomainAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/domain/";

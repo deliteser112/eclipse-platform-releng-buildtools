@@ -34,19 +34,19 @@ import org.joda.time.DateTime;
 /**
  * Action that saves commit log checkpoints to Datastore and kicks off a diff export task.
  *
- * <p>We separate computing and saving the checkpoint from exporting it because the export to GCS
- * is retryable but should not require the computation of a new checkpoint. Saving the checkpoint
- * and enqueuing the export task are done transactionally, so any checkpoint that is saved will be
+ * <p>We separate computing and saving the checkpoint from exporting it because the export to GCS is
+ * retryable but should not require the computation of a new checkpoint. Saving the checkpoint and
+ * enqueuing the export task are done transactionally, so any checkpoint that is saved will be
  * exported to GCS very soon.
  *
  * <p>This action's supported method is GET rather than POST because it gets invoked via cron.
  */
 @Action(
-  path = "/_dr/cron/commitLogCheckpoint",
-  method = Action.Method.GET,
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/cron/commitLogCheckpoint",
+    method = Action.Method.GET,
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class CommitLogCheckpointAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

@@ -65,14 +65,14 @@ import org.joda.time.Duration;
  * MapReduce that requests generation of BIND zone files for a set of TLDs at a given time.
  *
  * <p>Zone files for each requested TLD are written to GCS. TLDs without entries produce zone files
- * with only a header. The export time must be at least two minutes in the past and no more than
- * 29 days in the past, and must be at midnight UTC.
+ * with only a header. The export time must be at least two minutes in the past and no more than 29
+ * days in the past, and must be at midnight UTC.
  */
 @Action(
-  path = GenerateZoneFilesAction.PATH,
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = GenerateZoneFilesAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonAction {
 
   public static final String PATH = "/_dr/task/generateZoneFiles";

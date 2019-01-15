@@ -32,10 +32,10 @@ import javax.inject.Inject;
 
 /** Action that manually triggers refresh of DNS information. */
 @Action(
-  path = "/_dr/dnsRefresh",
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/dnsRefresh",
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class RefreshDnsAction implements Runnable {
 
   @Inject Clock clock;

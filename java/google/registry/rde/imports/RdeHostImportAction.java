@@ -45,9 +45,9 @@ import javax.inject.Inject;
  * <p>Specify the escrow file to import with the "path" parameter.
  */
 @Action(
-  path = "/_dr/task/importRdeHosts",
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/importRdeHosts",
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class RdeHostImportAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

@@ -47,11 +47,11 @@ import org.joda.time.Duration;
  * completion state; otherwise it will return a failure code so that the task will be retried.
  */
 @Action(
-  path = BigqueryPollJobAction.PATH,
-  method = {Action.Method.GET, Action.Method.POST},
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = BigqueryPollJobAction.PATH,
+    method = {Action.Method.GET, Action.Method.POST},
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class BigqueryPollJobAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

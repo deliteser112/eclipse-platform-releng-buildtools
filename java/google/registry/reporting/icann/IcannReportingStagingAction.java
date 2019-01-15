@@ -55,7 +55,11 @@ import org.joda.time.YearMonth;
  * <p>reportTypes: the type of reports to generate. You can specify either 'activity' or
  * 'transactions'. Defaults to generating both.
  */
-@Action(path = IcannReportingStagingAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
+@Action(
+    service = Action.Service.BACKEND,
+    path = IcannReportingStagingAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class IcannReportingStagingAction implements Runnable {
 
   static final String PATH = "/_dr/task/icannReportingStaging";

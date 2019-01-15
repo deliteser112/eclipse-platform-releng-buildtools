@@ -61,6 +61,7 @@ import javax.servlet.http.HttpServletRequest;
  * Methods), separate this class to 2 Actions.
  */
 @Action(
+    service = Action.Service.DEFAULT,
     path = ConsoleOteSetupAction.PATH,
     method = {Method.POST, Method.GET},
     auth = Auth.AUTH_PUBLIC)

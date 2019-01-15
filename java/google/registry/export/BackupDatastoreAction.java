@@ -43,6 +43,7 @@ import javax.inject.Inject;
  * </ol>
  */
 @Action(
+    service = Action.Service.BACKEND,
     path = BackupDatastoreAction.PATH,
     method = POST,
     automaticallyPrintOk = true,

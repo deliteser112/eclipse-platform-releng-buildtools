@@ -33,6 +33,7 @@ import com.google.common.net.MediaType;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import google.registry.config.RegistryConfig;
+import google.registry.request.Action.Service;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -63,24 +64,6 @@ class AppEngineConnection {
   private AppEngineConnection(Service service, HttpRequestFactory requestFactory) {
     this.service = service;
     this.requestFactory = requestFactory;
-  }
-
-  enum Service {
-    DEFAULT("default"),
-    TOOLS("tools"),
-    BACKEND("backend"),
-    PUBAPI("pubapi");
-
-    private final String serviceId;
-
-    Service(String serviceId) {
-      this.serviceId = serviceId;
-    }
-
-    /** Returns the actual service id in App Engine. */
-    String getServiceId() {
-      return serviceId;
-    }
   }
 
   /** Returns a copy of this connection that talks to a different service. */

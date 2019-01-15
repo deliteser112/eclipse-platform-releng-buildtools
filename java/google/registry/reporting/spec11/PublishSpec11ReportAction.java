@@ -52,7 +52,11 @@ import org.json.JSONException;
  * <p>This calls {@link Spec11EmailUtils#emailSpec11Reports(SoyTemplateInfo, String, Set)} on
  * success or {@link Spec11EmailUtils#sendAlertEmail(String, String)} on failure.
  */
-@Action(path = PublishSpec11ReportAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
+@Action(
+    service = Action.Service.BACKEND,
+    path = PublishSpec11ReportAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class PublishSpec11ReportAction implements Runnable {
 
   static final String PATH = "/_dr/task/publishSpec11";

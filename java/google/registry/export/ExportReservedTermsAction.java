@@ -34,10 +34,10 @@ import javax.inject.Inject;
 
 /** Action that exports the publicly viewable reserved terms list for a TLD to Google Drive. */
 @Action(
-  path = "/_dr/task/exportReservedTerms",
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/exportReservedTerms",
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class ExportReservedTermsAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

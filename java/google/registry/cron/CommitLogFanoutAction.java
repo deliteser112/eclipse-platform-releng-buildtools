@@ -30,10 +30,10 @@ import javax.inject.Inject;
 
 /** Action for fanning out cron tasks for each commit log bucket. */
 @Action(
-  path = "/_dr/cron/commitLogFanout",
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/cron/commitLogFanout",
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class CommitLogFanoutAction implements Runnable {
 
   public static final String BUCKET_PARAM = "bucket";

@@ -47,11 +47,11 @@ import org.joda.time.format.PeriodFormat;
  * Action that checks the status of a snapshot, and if complete, trigger loading it into BigQuery.
  */
 @Action(
-  path = CheckSnapshotAction.PATH,
-  method = {POST, GET},
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = CheckSnapshotAction.PATH,
+    method = {POST, GET},
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class CheckSnapshotAction implements Runnable {
 
   /** Parameter names for passing parameters into this action. */

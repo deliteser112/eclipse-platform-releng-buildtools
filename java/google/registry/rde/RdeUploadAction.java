@@ -76,14 +76,14 @@ import org.joda.time.Duration;
  * <p>This action is invoked by {@link RdeStagingAction} once it's created the files we need. The
  * date is calculated from {@link CursorType#RDE_UPLOAD}.
  *
- * <p>Once this action completes, it rolls the cursor forward a day and triggers
- * {@link RdeReportAction}.
+ * <p>Once this action completes, it rolls the cursor forward a day and triggers {@link
+ * RdeReportAction}.
  */
 @Action(
-  path = RdeUploadAction.PATH,
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = RdeUploadAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class RdeUploadAction implements Runnable, EscrowTask {
 
   static final String PATH = "/_dr/task/rdeUpload";

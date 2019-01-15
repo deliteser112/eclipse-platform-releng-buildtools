@@ -48,9 +48,9 @@ import javax.inject.Inject;
  * exists an entity-specific deletion command, then use that one instead.
  */
 @Action(
-  path = DeleteEntityAction.PATH,
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = DeleteEntityAction.PATH,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class DeleteEntityAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

@@ -14,7 +14,10 @@
 
 package google.registry.module.pubapi;
 
+import static com.google.common.truth.Truth.assertThat;
 
+import google.registry.request.Action;
+import google.registry.request.RouterDisplayHelper;
 import google.registry.testing.GoldenFileTestHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,5 +32,13 @@ public class PubApiRequestComponentTest {
     GoldenFileTestHelper.assertThatRoutesFromComponent(PubApiRequestComponent.class)
         .describedAs("pubapi routing map")
         .isEqualToGolden(PubApiRequestComponentTest.class, "pubapi_routing.txt");
+  }
+
+  @Test
+  public void testRoutingService() {
+    assertThat(
+            RouterDisplayHelper.extractHumanReadableRoutesWithWrongService(
+                PubApiRequestComponent.class, Action.Service.PUBAPI))
+        .isEmpty();
   }
 }

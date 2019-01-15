@@ -68,6 +68,7 @@ import org.joda.time.Duration;
  * @see NordnVerifyAction
  */
 @Action(
+    service = Action.Service.BACKEND,
     path = NordnUploadAction.PATH,
     method = Action.Method.POST,
     automaticallyPrintOk = true,

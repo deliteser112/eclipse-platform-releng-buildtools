@@ -51,10 +51,10 @@ import org.joda.time.DateTime;
 
 /** Action to load a Datastore snapshot from Google Cloud Storage into BigQuery. */
 @Action(
-  path = LoadSnapshotAction.PATH,
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = LoadSnapshotAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class LoadSnapshotAction implements Runnable {
 
   /** Parameter names for passing parameters into the servlet. */

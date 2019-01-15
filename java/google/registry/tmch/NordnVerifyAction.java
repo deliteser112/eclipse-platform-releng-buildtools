@@ -42,21 +42,21 @@ import javax.inject.Inject;
 /**
  * NORDN CSV uploading system, verify operation.
  *
- * <p>Every three hours (max twenty-six hours) we generate CSV files for each TLD which we need
- * to upload to MarksDB. The upload is a two-phase process. We send the CSV data as a POST request
- * and get back a 202 Accepted. This response will give us a URL in the Location header, where
- * we'll check back later for the actual result.
+ * <p>Every three hours (max twenty-six hours) we generate CSV files for each TLD which we need to
+ * upload to MarksDB. The upload is a two-phase process. We send the CSV data as a POST request and
+ * get back a 202 Accepted. This response will give us a URL in the Location header, where we'll
+ * check back later for the actual result.
  *
  * @see NordnUploadAction
  * @see <a href="http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-5.2.3.3">
- *      http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-5.2.3.3</a>
+ *     http://tools.ietf.org/html/draft-lozano-tmch-func-spec-08#section-5.2.3.3</a>
  */
 @Action(
-  path = NordnVerifyAction.PATH,
-  method = Action.Method.POST,
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = NordnVerifyAction.PATH,
+    method = Action.Method.POST,
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class NordnVerifyAction implements Runnable {
 
   static final String PATH = "/_dr/task/nordnVerify";

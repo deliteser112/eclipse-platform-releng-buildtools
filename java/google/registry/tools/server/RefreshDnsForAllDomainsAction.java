@@ -48,9 +48,9 @@ import org.joda.time.DateTimeZone;
  * which only admin users can do.
  */
 @Action(
-  path = "/_dr/task/refreshDnsForAllDomains",
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = "/_dr/task/refreshDnsForAllDomains",
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class RefreshDnsForAllDomainsAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

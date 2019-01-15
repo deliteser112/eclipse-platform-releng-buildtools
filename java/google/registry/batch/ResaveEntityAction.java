@@ -38,7 +38,11 @@ import org.joda.time.DateTime;
  *
  * <p>{@link EppResource}s will be projected forward to the current time.
  */
-@Action(path = ResaveEntityAction.PATH, auth = Auth.AUTH_INTERNAL_OR_ADMIN, method = Method.POST)
+@Action(
+    service = Action.Service.BACKEND,
+    path = ResaveEntityAction.PATH,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN,
+    method = Method.POST)
 public class ResaveEntityAction implements Runnable {
 
   public static final String PATH = "/_dr/task/resaveEntity";

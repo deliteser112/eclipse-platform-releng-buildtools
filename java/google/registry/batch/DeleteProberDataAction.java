@@ -64,10 +64,10 @@ import org.joda.time.Duration;
  * <p>See: https://www.youtube.com/watch?v=xuuv0syoHnM
  */
 @Action(
-  path = "/_dr/task/deleteProberData",
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/deleteProberData",
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class DeleteProberDataAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

@@ -27,11 +27,11 @@ import javax.inject.Inject;
 
 /** RDAP (new WHOIS) action for help requests. */
 @Action(
-  path = RdapHelpAction.PATH,
-  method = {GET, HEAD},
-  isPrefix = true,
-  auth = Auth.AUTH_PUBLIC_ANONYMOUS
-)
+    service = Action.Service.PUBAPI,
+    path = RdapHelpAction.PATH,
+    method = {GET, HEAD},
+    isPrefix = true,
+    auth = Auth.AUTH_PUBLIC_ANONYMOUS)
 public class RdapHelpAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/help";

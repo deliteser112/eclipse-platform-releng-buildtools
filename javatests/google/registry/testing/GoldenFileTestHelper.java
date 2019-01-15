@@ -75,8 +75,11 @@ public class GoldenFileTestHelper {
     checkNotNull(goldenFileDescription, "Didn't set description");
     checkNotNull(context);
     checkNotNull(filename);
-    if (!actualValue.equals(loadFile(context, filename).trim())) {
-      logger.atWarning().log("Actual routing map was:\n\n%s", actualValue);
+    String expectedValue = loadFile(context, filename).trim();
+    if (!actualValue.equals(expectedValue)) {
+      logger.atWarning().log(
+          "Actual routing map was:\n%s\n\nExpected routing map was:\n%s\n",
+          actualValue, expectedValue);
       assert_()
           .fail(
               String.format(

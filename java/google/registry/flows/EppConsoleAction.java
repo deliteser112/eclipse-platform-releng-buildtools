@@ -27,10 +27,10 @@ import javax.servlet.http.HttpSession;
 
 /** Runs EPP from the console and requires GAE user authentication. */
 @Action(
-  path = "/registrar-xhr",
-  method = Method.POST,
-  auth = Auth.AUTH_PUBLIC_LOGGED_IN
-)
+    service = Action.Service.DEFAULT,
+    path = "/registrar-xhr",
+    method = Method.POST,
+    auth = Auth.AUTH_PUBLIC_LOGGED_IN)
 public class EppConsoleAction implements Runnable {
 
   @Inject @Payload byte[] inputXmlBytes;

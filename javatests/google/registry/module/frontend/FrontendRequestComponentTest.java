@@ -14,7 +14,10 @@
 
 package google.registry.module.frontend;
 
+import static com.google.common.truth.Truth.assertThat;
 
+import google.registry.request.Action;
+import google.registry.request.RouterDisplayHelper;
 import google.registry.testing.GoldenFileTestHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,5 +32,13 @@ public class FrontendRequestComponentTest {
     GoldenFileTestHelper.assertThatRoutesFromComponent(FrontendRequestComponent.class)
         .describedAs("frontend routing map")
         .isEqualToGolden(FrontendRequestComponentTest.class, "frontend_routing.txt");
+  }
+
+  @Test
+  public void testRoutingService() {
+    assertThat(
+            RouterDisplayHelper.extractHumanReadableRoutesWithWrongService(
+                FrontendRequestComponent.class, Action.Service.DEFAULT))
+        .isEmpty();
   }
 }

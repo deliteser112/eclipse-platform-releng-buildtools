@@ -46,7 +46,11 @@ import org.joda.time.YearMonth;
  * staged at gs://<projectId>-beam/templates/invoicing. The pipeline then generates invoices for the
  * month and stores them on GCS.
  */
-@Action(path = GenerateInvoicesAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
+@Action(
+    service = Action.Service.BACKEND,
+    path = GenerateInvoicesAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class GenerateInvoicesAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

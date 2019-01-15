@@ -46,11 +46,11 @@ import org.joda.time.DateTime;
  * Registrar ID registry. The type value of the publicID object MUST be equal to IANA Registrar ID.
  */
 @Action(
-  path = RdapEntityAction.PATH,
-  method = {GET, HEAD},
-  isPrefix = true,
-  auth = Auth.AUTH_PUBLIC
-)
+    service = Action.Service.PUBAPI,
+    path = RdapEntityAction.PATH,
+    method = {GET, HEAD},
+    isPrefix = true,
+    auth = Auth.AUTH_PUBLIC)
 public class RdapEntityAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/entity/";

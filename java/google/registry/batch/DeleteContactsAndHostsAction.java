@@ -107,7 +107,10 @@ import org.joda.time.Duration;
  * A mapreduce that processes batch asynchronous deletions of contact and host resources by mapping
  * over all domains and checking for any references to the contacts/hosts in pending deletion.
  */
-@Action(path = "/_dr/task/deleteContactsAndHosts", auth = Auth.AUTH_INTERNAL_ONLY)
+@Action(
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/deleteContactsAndHosts",
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class DeleteContactsAndHostsAction implements Runnable {
 
   static final String KIND_CONTACT = getKind(ContactResource.class);

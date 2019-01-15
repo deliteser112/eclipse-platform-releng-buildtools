@@ -57,10 +57,10 @@ import org.joda.time.DateTime;
  *     Data Access Protocol (RDAP)</a>
  */
 @Action(
-  path = RdapNameserverSearchAction.PATH,
-  method = {GET, HEAD},
-  auth = Auth.AUTH_PUBLIC_ANONYMOUS
-)
+    service = Action.Service.PUBAPI,
+    path = RdapNameserverSearchAction.PATH,
+    method = {GET, HEAD},
+    auth = Auth.AUTH_PUBLIC_ANONYMOUS)
 public class RdapNameserverSearchAction extends RdapSearchActionBase {
 
   public static final String PATH = "/rdap/nameservers";

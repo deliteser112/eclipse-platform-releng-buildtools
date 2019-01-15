@@ -28,11 +28,11 @@ import javax.inject.Inject;
 
 /** Action to download the latest ICANN TMCH CRL from MarksDB. */
 @Action(
-  path = "/_dr/task/tmchCrl",
-  method = POST,
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/tmchCrl",
+    method = POST,
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class TmchCrlAction implements Runnable {
 
   @Inject Marksdb marksdb;

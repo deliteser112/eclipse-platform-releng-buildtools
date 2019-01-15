@@ -15,11 +15,11 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.request.Action.Service.BACKEND;
+import static google.registry.request.Action.Service.DEFAULT;
+import static google.registry.request.Action.Service.PUBAPI;
+import static google.registry.request.Action.Service.TOOLS;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.tools.AppEngineConnection.Service.BACKEND;
-import static google.registry.tools.AppEngineConnection.Service.DEFAULT;
-import static google.registry.tools.AppEngineConnection.Service.PUBAPI;
-import static google.registry.tools.AppEngineConnection.Service.TOOLS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -35,7 +35,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 
-/** Unit tests for {@link RefreshDnsForAllDomainsCommand}. */
+/** Unit tests for {@link CurlCommand}. */
 public class CurlCommandTest extends CommandTestCase<CurlCommand> {
   @Mock private AppEngineConnection connection;
   @Mock private AppEngineConnection connectionForService;

@@ -52,11 +52,11 @@ import org.joda.time.DateTime;
  * least one must be specified in order for load testing to do anything.
  */
 @Action(
-  path = LoadTestAction.PATH,
-  method = Action.Method.POST,
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = LoadTestAction.PATH,
+    method = Action.Method.POST,
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class LoadTestAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

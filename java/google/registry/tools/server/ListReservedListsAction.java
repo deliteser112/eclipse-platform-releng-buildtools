@@ -27,10 +27,10 @@ import javax.inject.Inject;
 
 /** A that lists reserved lists, for use by the {@code nomulus list_reserved_lists} command. */
 @Action(
-  path = ListReservedListsAction.PATH,
-  method = {GET, POST},
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = ListReservedListsAction.PATH,
+    method = {GET, POST},
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public final class ListReservedListsAction extends ListObjectsAction<ReservedList> {
 
   public static final String PATH = "/_dr/admin/list/reservedLists";

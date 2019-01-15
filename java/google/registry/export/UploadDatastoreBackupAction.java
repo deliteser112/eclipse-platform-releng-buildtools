@@ -48,7 +48,11 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 /** Action to load a Datastore backup from Google Cloud Storage into BigQuery. */
-@Action(path = UploadDatastoreBackupAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
+@Action(
+    service = Action.Service.BACKEND,
+    path = UploadDatastoreBackupAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class UploadDatastoreBackupAction implements Runnable {
 
   /** Parameter names for passing parameters into the servlet. */

@@ -52,10 +52,10 @@ import javax.inject.Inject;
  * <p>This uses the <a href="https://developers.google.com/admin-sdk/directory/">Directory API</a>.
  */
 @Action(
-  path = "/_dr/task/syncGroupMembers",
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/syncGroupMembers",
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class SyncGroupMembersAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

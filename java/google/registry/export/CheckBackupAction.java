@@ -55,6 +55,7 @@ import org.joda.time.format.PeriodFormat;
  * Action that checks the status of a snapshot, and if complete, trigger loading it into BigQuery.
  */
 @Action(
+    service = Action.Service.BACKEND,
     path = CheckBackupAction.PATH,
     method = {POST, GET},
     automaticallyPrintOk = true,

@@ -50,10 +50,10 @@ import org.joda.time.Duration;
  * Action that uploads a small XML RDE report to ICANN after {@link RdeUploadAction} has finished.
  */
 @Action(
-  path = RdeReportAction.PATH,
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = RdeReportAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class RdeReportAction implements Runnable, EscrowTask {
 
   static final String PATH = "/_dr/task/rdeReport";

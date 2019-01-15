@@ -70,10 +70,10 @@ import org.joda.time.DateTime;
  * preserve history.
  */
 @Action(
-  path = RegistrarSettingsAction.PATH,
-  method = Action.Method.POST,
-  auth = Auth.AUTH_PUBLIC_LOGGED_IN
-)
+    service = Action.Service.DEFAULT,
+    path = RegistrarSettingsAction.PATH,
+    method = Action.Method.POST,
+    auth = Auth.AUTH_PUBLIC_LOGGED_IN)
 public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonAction {
 
   public static final String PATH = "/registrar-settings";

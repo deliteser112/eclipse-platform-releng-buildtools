@@ -41,6 +41,7 @@ import org.joda.time.DateTime;
 
 /** An action that lists domains, for use by the {@code nomulus list_domains} command. */
 @Action(
+    service = Action.Service.TOOLS,
     path = ListDomainsAction.PATH,
     method = {GET, POST},
     auth = Auth.AUTH_INTERNAL_OR_ADMIN)

@@ -75,10 +75,10 @@ import org.joda.time.DateTime;
  *     Data Access Protocol (RDAP)</a>
  */
 @Action(
-  path = RdapEntitySearchAction.PATH,
-  method = {GET, HEAD},
-  auth = Auth.AUTH_PUBLIC
-)
+    service = Action.Service.PUBAPI,
+    path = RdapEntitySearchAction.PATH,
+    method = {GET, HEAD},
+    auth = Auth.AUTH_PUBLIC)
 public class RdapEntitySearchAction extends RdapSearchActionBase {
 
   public static final String PATH = "/rdap/entities";

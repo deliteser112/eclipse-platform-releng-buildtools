@@ -45,7 +45,11 @@ import java.util.SortedSet;
 import javax.inject.Inject;
 
 /** Action that exports the premium terms list for a TLD to Google Drive. */
-@Action(path = "/_dr/task/exportPremiumTerms", method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
+@Action(
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/exportPremiumTerms",
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class ExportPremiumTermsAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

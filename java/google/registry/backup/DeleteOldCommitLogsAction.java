@@ -53,20 +53,18 @@ import org.joda.time.Duration;
  * except to reconstruct point-in-time snapshots of the database. To make that possible, {@link
  * EppResource}s have a {@link EppResource#getRevisions} method that returns the commit logs for
  * older points in time. But that functionality is not useful after a certain amount of time, e.g.
- * thirty days, so unneeded revisions are deleted
- * (see {@link CommitLogRevisionsTranslatorFactory}). This leaves commit logs in the system that are
- * unneeded (have no revisions pointing to them). So this task runs periodically to delete the
- * "orphan" commit logs.
+ * thirty days, so unneeded revisions are deleted (see {@link CommitLogRevisionsTranslatorFactory}).
+ * This leaves commit logs in the system that are unneeded (have no revisions pointing to them). So
+ * this task runs periodically to delete the "orphan" commit logs.
  *
  * <p>This action runs a mapreduce that goes over all existing {@link EppResource} and all {@link
  * CommitLogManifest} older than commitLogDatastreRetention, and erases the commit logs aren't in an
  * EppResource.
- *
  */
 @Action(
-  path = "/_dr/task/deleteOldCommitLogs",
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/deleteOldCommitLogs",
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class DeleteOldCommitLogsAction implements Runnable {
 
   private static final int NUM_MAP_SHARDS = 20;

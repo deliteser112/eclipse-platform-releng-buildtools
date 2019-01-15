@@ -60,11 +60,11 @@ import org.joda.time.DateTime;
 
 /** Action that exports the diff between two commit log checkpoints to GCS. */
 @Action(
-  path = ExportCommitLogDiffAction.PATH,
-  method = Action.Method.POST,
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = ExportCommitLogDiffAction.PATH,
+    method = Action.Method.POST,
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class ExportCommitLogDiffAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

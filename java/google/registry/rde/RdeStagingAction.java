@@ -78,8 +78,8 @@ import org.joda.time.Duration;
  * <p>Once a deposit is successfully generated, an {@link RdeUploadAction} is enqueued which will
  * upload it via SFTP to the third-party escrow provider.
  *
- * <p>To generate escrow deposits manually and locally, use the {@code nomulus} tool command
- * {@code GenerateEscrowDepositCommand}.
+ * <p>To generate escrow deposits manually and locally, use the {@code nomulus} tool command {@code
+ * GenerateEscrowDepositCommand}.
  *
  * <h3>Logging</h3>
  *
@@ -95,9 +95,9 @@ import org.joda.time.Duration;
  * <p>If a deposit fails, an error is emitted to the logs for each broken entity. It tells you the
  * key and shows you its representation in lenient XML.
  *
- * <p>Failed deposits will be retried indefinitely. This is because RDE and BRDA each have a
- * {@link Cursor} for each TLD. Even if the cursor lags for days, it'll catch up gradually on its
- * own, once the data becomes valid.
+ * <p>Failed deposits will be retried indefinitely. This is because RDE and BRDA each have a {@link
+ * Cursor} for each TLD. Even if the cursor lags for days, it'll catch up gradually on its own, once
+ * the data becomes valid.
  *
  * <p>The third-party escrow provider will validate each deposit we send them. They do both schema
  * validation and reference checking.
@@ -143,21 +143,24 @@ import org.joda.time.Duration;
  *
  * <h3>Determinism</h3>
  *
- * <p>The filename of an escrow deposit is determistic for a given (TLD, watermark,
- * {@linkplain RdeMode mode}) triplet. Its generated contents is deterministic in all the ways that
- * we care about. Its view of the database is strongly consistent.
+ * <p>The filename of an escrow deposit is determistic for a given (TLD, watermark, {@linkplain
+ * RdeMode mode}) triplet. Its generated contents is deterministic in all the ways that we care
+ * about. Its view of the database is strongly consistent.
  *
  * <p>This is because:
+ *
  * <ol>
- * <li>{@code EppResource} queries are strongly consistent thanks to {@link EppResourceIndex}
- * <li>{@code EppResource} entities are rewinded to the point-in-time of the watermark
+ *   <li>{@code EppResource} queries are strongly consistent thanks to {@link EppResourceIndex}
+ *   <li>{@code EppResource} entities are rewinded to the point-in-time of the watermark
  * </ol>
  *
  * <p>Here's what's not deterministic:
+ *
  * <ul>
- * <li>Ordering of XML fragments. We don't care about this.
- * <li>Information about registrars. There's no point-in-time for these objects. So in order to
- *   guarantee referential correctness of your deposits, you must never delete a registrar entity.
+ *   <li>Ordering of XML fragments. We don't care about this.
+ *   <li>Information about registrars. There's no point-in-time for these objects. So in order to
+ *       guarantee referential correctness of your deposits, you must never delete a registrar
+ *       entity.
  * </ul>
  *
  * <h3>Manual Operation</h3>
@@ -167,13 +170,14 @@ import org.joda.time.Duration;
  * will be stored in a subdirectory of the "manual" directory, to avoid overwriting regular deposit
  * files. Cursors and revision numbers will not be updated, and the upload task will not be kicked
  * off. The parameters are:
+ *
  * <ul>
- * <li>manual: if present and true, manual operation is indicated
- * <li>directory: the subdirectory of "manual" into which the files should be placed
- * <li>mode: the mode(s) to generate: FULL for RDE deposits, THIN for BRDA deposits
- * <li>tld: the tld(s) for which deposits should be generated
- * <li>watermark: the date(s) for which deposits should be generated; dates should be start-of-day
- * <li>revision: optional; if not specified, the next available revision number will be used
+ *   <li>manual: if present and true, manual operation is indicated
+ *   <li>directory: the subdirectory of "manual" into which the files should be placed
+ *   <li>mode: the mode(s) to generate: FULL for RDE deposits, THIN for BRDA deposits
+ *   <li>tld: the tld(s) for which deposits should be generated
+ *   <li>watermark: the date(s) for which deposits should be generated; dates should be start-of-day
+ *   <li>revision: optional; if not specified, the next available revision number will be used
  * </ul>
  *
  * <p>The manual, directory, mode, tld and watermark parameters must be present for manual
@@ -181,14 +185,16 @@ import org.joda.time.Duration;
  * set to false). The revision parameter is optional in manual operation, and must be absent for
  * standard operation.
  *
- * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-registry-data-escrow-06">Registry Data Escrow Specification</a>
- * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-dnrd-objects-mapping-05">Domain Name Registration Data Objects Mapping</a>
+ * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-registry-data-escrow-06">Registry
+ *     Data Escrow Specification</a>
+ * @see <a href="https://tools.ietf.org/html/draft-arias-noguchi-dnrd-objects-mapping-05">Domain
+ *     Name Registration Data Objects Mapping</a>
  */
 @Action(
-  path = RdeStagingAction.PATH,
-  method = {GET, POST},
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = RdeStagingAction.PATH,
+    method = {GET, POST},
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class RdeStagingAction implements Runnable {
 
   public static final String PATH = "/_dr/task/rdeStaging";

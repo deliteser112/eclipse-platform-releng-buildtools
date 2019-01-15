@@ -29,10 +29,10 @@ import javax.inject.Inject;
  * An action that lists premium lists, for use by the {@code nomulus list_premium_lists} command.
  */
 @Action(
-  path = ListPremiumListsAction.PATH,
-  method = {GET, POST},
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = ListPremiumListsAction.PATH,
+    method = {GET, POST},
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public final class ListPremiumListsAction extends ListObjectsAction<PremiumList> {
 
   public static final String PATH = "/_dr/admin/list/premiumLists";

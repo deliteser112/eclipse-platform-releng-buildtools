@@ -39,7 +39,11 @@ import java.util.Optional;
 import javax.inject.Inject;
 
 /** Copy all registrar detail reports in a given bucket's subdirectory from GCS to Drive. */
-@Action(path = CopyDetailReportsAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
+@Action(
+    service = Action.Service.BACKEND,
+    path = CopyDetailReportsAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public final class CopyDetailReportsAction implements Runnable {
 
   public static final String PATH = "/_dr/task/copyDetailReports";

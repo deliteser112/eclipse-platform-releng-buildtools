@@ -31,10 +31,10 @@ import org.joda.time.DateTime;
 
 /** An action that lists top-level domains, for use by the {@code nomulus list_tlds} command. */
 @Action(
-  path = ListTldsAction.PATH,
-  method = {GET, POST},
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = ListTldsAction.PATH,
+    method = {GET, POST},
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public final class ListTldsAction extends ListObjectsAction<Registry> {
 
   public static final String PATH = "/_dr/admin/list/tlds";

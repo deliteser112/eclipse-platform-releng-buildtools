@@ -73,9 +73,9 @@ import org.joda.time.Duration;
 
 /** Performs batched DNS refreshes for applicable domains following a host rename. */
 @Action(
-  path = "/_dr/task/refreshDnsOnHostRename",
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/refreshDnsOnHostRename",
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class RefreshDnsOnHostRenameAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

@@ -43,7 +43,11 @@ import org.joda.time.LocalDate;
  * <p>This action runs the {@link google.registry.beam.spec11.Spec11Pipeline} template, which
  * generates the specified month's Spec11 report and stores it on GCS.
  */
-@Action(path = GenerateSpec11ReportAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
+@Action(
+    service = Action.Service.BACKEND,
+    path = GenerateSpec11ReportAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class GenerateSpec11ReportAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

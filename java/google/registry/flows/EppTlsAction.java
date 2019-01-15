@@ -27,10 +27,10 @@ import javax.servlet.http.HttpSession;
  * to RFC 5730. Commands must be requested via POST.
  */
 @Action(
-  path = "/_dr/epp",
-  method = Method.POST,
-  auth = Auth.AUTH_PUBLIC_OR_INTERNAL
-)
+    service = Action.Service.DEFAULT,
+    path = "/_dr/epp",
+    method = Method.POST,
+    auth = Auth.AUTH_PUBLIC_OR_INTERNAL)
 public class EppTlsAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

@@ -26,7 +26,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
-import google.registry.tools.AppEngineConnection.Service;
+import google.registry.request.Action.Service;
 import java.util.List;
 
 @Parameters(separators = " =", commandDescription = "Send an HTTP command to the nomulus server.")

@@ -15,7 +15,9 @@ java_library(
     ],
     deps = [
         "//java/google/registry/module/frontend",
+        "//java/google/registry/request",
         "//javatests/google/registry/testing",
+        "//third_party/java/truth",
         "@javax_servlet_api",
         "@junit",
         "@org_mockito_all",

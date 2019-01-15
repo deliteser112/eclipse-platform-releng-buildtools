@@ -27,10 +27,10 @@ import javax.inject.Inject;
 
 /** An action that lists registrars, for use by the {@code nomulus list_registrars} command. */
 @Action(
-  path = ListRegistrarsAction.PATH,
-  method = {GET, POST},
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = ListRegistrarsAction.PATH,
+    method = {GET, POST},
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public final class ListRegistrarsAction extends ListObjectsAction<Registrar> {
 
   public static final String PATH = "/_dr/admin/list/registrars";

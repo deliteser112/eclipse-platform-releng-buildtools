@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.tools.AppEngineConnection.Service;
+import google.registry.request.Action.Service;
 import google.registry.util.AppEngineServiceUtils;
 import java.io.IOException;
 import java.util.List;

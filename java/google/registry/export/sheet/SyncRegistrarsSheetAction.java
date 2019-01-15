@@ -57,10 +57,10 @@ import org.joda.time.Duration;
  * @see SyncRegistrarsSheet
  */
 @Action(
-  path = SyncRegistrarsSheetAction.PATH,
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = SyncRegistrarsSheetAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class SyncRegistrarsSheetAction implements Runnable {
 
   private enum Result {

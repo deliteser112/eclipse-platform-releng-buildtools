@@ -73,14 +73,14 @@ import org.joda.time.Duration;
  * <h3>Parameters Reference</h3>
  *
  * <ul>
- * <li>{@code jitterSeconds} Randomly delay each task by up to this many seconds.
+ *   <li>{@code jitterSeconds} Randomly delay each task by up to this many seconds.
  * </ul>
  */
 @Action(
-  path = "/_dr/cron/readDnsQueue",
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/cron/readDnsQueue",
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class ReadDnsQueueAction implements Runnable {
 
   private static final String PARAM_JITTER_SECONDS = "jitterSeconds";

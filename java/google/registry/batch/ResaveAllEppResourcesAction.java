@@ -40,9 +40,9 @@ import javax.inject.Inject;
  * which only admin users can do.
  */
 @Action(
-  path = "/_dr/task/resaveAllEppResources",
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.BACKEND,
+    path = "/_dr/task/resaveAllEppResources",
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class ResaveAllEppResourcesAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;

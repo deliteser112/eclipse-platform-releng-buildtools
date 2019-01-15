@@ -35,10 +35,10 @@ import javax.inject.Inject;
  * command.
  */
 @Action(
-  path = CreatePremiumListAction.PATH,
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = CreatePremiumListAction.PATH,
+    method = POST,
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();

@@ -14,6 +14,10 @@
 
 package google.registry.module.tools;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import google.registry.request.Action;
+import google.registry.request.RouterDisplayHelper;
 import google.registry.testing.GoldenFileTestHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,5 +32,13 @@ public class ToolsRequestComponentTest {
     GoldenFileTestHelper.assertThatRoutesFromComponent(ToolsRequestComponent.class)
         .describedAs("tools routing map")
         .isEqualToGolden(ToolsRequestComponentTest.class, "tools_routing.txt");
+  }
+
+  @Test
+  public void testRoutingService() {
+    assertThat(
+            RouterDisplayHelper.extractHumanReadableRoutesWithWrongService(
+                ToolsRequestComponent.class, Action.Service.TOOLS))
+        .isEmpty();
   }
 }

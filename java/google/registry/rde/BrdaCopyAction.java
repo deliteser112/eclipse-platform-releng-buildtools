@@ -49,14 +49,16 @@ import org.joda.time.DateTime;
  * This bucket is special because a separate script will rsync it to the third party escrow provider
  * SFTP server. This is why the internal staging files are stored in the separate RDE bucket.
  *
- * @see <a href="http://newgtlds.icann.org/en/applicants/agb/agreement-approved-09jan14-en.htm">Registry Agreement</a>
+ * @see <a
+ *     href="http://newgtlds.icann.org/en/applicants/agb/agreement-approved-09jan14-en.htm">Registry
+ *     Agreement</a>
  */
 @Action(
-  path = BrdaCopyAction.PATH,
-  method = POST,
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = BrdaCopyAction.PATH,
+    method = POST,
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public final class BrdaCopyAction implements Runnable {
 
   static final String PATH = "/_dr/task/brdaCopy";

@@ -39,11 +39,11 @@ import javax.inject.Inject;
  * </ol>
  */
 @Action(
-  path = ExportSnapshotAction.PATH,
-  method = POST,
-  automaticallyPrintOk = true,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+    service = Action.Service.BACKEND,
+    path = ExportSnapshotAction.PATH,
+    method = POST,
+    automaticallyPrintOk = true,
+    auth = Auth.AUTH_INTERNAL_ONLY)
 public class ExportSnapshotAction implements Runnable {
 
   /** Queue to use for enqueuing the task that will actually launch the backup. */

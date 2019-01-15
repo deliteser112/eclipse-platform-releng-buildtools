@@ -32,10 +32,10 @@ import org.joda.time.DateTime;
 
 /** An action that lists hosts, for use by the {@code nomulus list_hosts} command. */
 @Action(
-  path = ListHostsAction.PATH,
-  method = {GET, POST},
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = ListHostsAction.PATH,
+    method = {GET, POST},
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public final class ListHostsAction extends ListObjectsAction<HostResource> {
 
   public static final String PATH = "/_dr/admin/list/hosts";

@@ -38,9 +38,9 @@ import javax.inject.Inject;
  * which only admin users can do.
  */
 @Action(
-  path = "/_dr/task/resaveAllHistoryEntries",
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    service = Action.Service.TOOLS,
+    path = "/_dr/task/resaveAllHistoryEntries",
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class ResaveAllHistoryEntriesAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;
