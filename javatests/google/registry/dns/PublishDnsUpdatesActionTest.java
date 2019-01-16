@@ -115,13 +115,15 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsWriter).publishHost("ns1.example.xn--q9jyb4c");
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
-    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.ACCEPTED);
-    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).incrementPublishHostRequests(1, PublishStatus.ACCEPTED);
-    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 0, 1);
+    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", 0, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", 0, PublishStatus.REJECTED);
+    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", 1, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", 0, PublishStatus.REJECTED);
+    verify(dnsMetrics)
+        .recordCommit("xn--q9jyb4c", "correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 0, 1);
     verify(dnsMetrics)
         .recordActionResult(
+            "xn--q9jyb4c",
             "correctWriter",
             ActionStatus.SUCCESS,
             1,
@@ -141,13 +143,15 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsWriter).publishDomain("example.xn--q9jyb4c");
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
-    verify(dnsMetrics).incrementPublishDomainRequests(1, PublishStatus.ACCEPTED);
-    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.ACCEPTED);
-    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 1, 0);
+    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", 1, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", 0, PublishStatus.REJECTED);
+    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", 0, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", 0, PublishStatus.REJECTED);
+    verify(dnsMetrics)
+        .recordCommit("xn--q9jyb4c", "correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 1, 0);
     verify(dnsMetrics)
         .recordActionResult(
+            "xn--q9jyb4c",
             "correctWriter",
             ActionStatus.SUCCESS,
             1,
@@ -186,13 +190,15 @@ public class PublishDnsUpdatesActionTest {
 
     assertThrows(RuntimeException.class, action::run);
 
-    verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.ACCEPTED);
-    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.ACCEPTED);
-    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.FAILURE, Duration.ZERO, 2, 3);
+    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", 2, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", 0, PublishStatus.REJECTED);
+    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", 3, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", 0, PublishStatus.REJECTED);
+    verify(dnsMetrics)
+        .recordCommit("xn--q9jyb4c", "correctWriter", CommitStatus.FAILURE, Duration.ZERO, 2, 3);
     verify(dnsMetrics)
         .recordActionResult(
+            "xn--q9jyb4c",
             "correctWriter",
             ActionStatus.COMMIT_FAILURE,
             5,
@@ -218,13 +224,15 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsWriter).publishHost("ns1.example2.xn--q9jyb4c");
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
-    verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.ACCEPTED);
-    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.ACCEPTED);
-    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 2, 3);
+    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", 2, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", 0, PublishStatus.REJECTED);
+    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", 3, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", 0, PublishStatus.REJECTED);
+    verify(dnsMetrics)
+        .recordCommit("xn--q9jyb4c", "correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 2, 3);
     verify(dnsMetrics)
         .recordActionResult(
+            "xn--q9jyb4c",
             "correctWriter",
             ActionStatus.SUCCESS,
             5,
@@ -244,13 +252,15 @@ public class PublishDnsUpdatesActionTest {
 
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
-    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.ACCEPTED);
-    verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.REJECTED);
-    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.ACCEPTED);
-    verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.REJECTED);
-    verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 0, 0);
+    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", 0, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", 2, PublishStatus.REJECTED);
+    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", 0, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", 3, PublishStatus.REJECTED);
+    verify(dnsMetrics)
+        .recordCommit("xn--q9jyb4c", "correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 0, 0);
     verify(dnsMetrics)
         .recordActionResult(
+            "xn--q9jyb4c",
             "correctWriter",
             ActionStatus.SUCCESS,
             5,
@@ -274,6 +284,7 @@ public class PublishDnsUpdatesActionTest {
     verifyNoMoreInteractions(dnsWriter);
     verify(dnsMetrics)
         .recordActionResult(
+            "xn--q9jyb4c",
             "correctWriter",
             ActionStatus.LOCK_FAILURE,
             5,
@@ -297,6 +308,7 @@ public class PublishDnsUpdatesActionTest {
     verifyNoMoreInteractions(dnsWriter);
     verify(dnsMetrics)
         .recordActionResult(
+            "xn--q9jyb4c",
             "correctWriter",
             ActionStatus.BAD_LOCK_INDEX,
             2,
@@ -322,6 +334,7 @@ public class PublishDnsUpdatesActionTest {
     verifyNoMoreInteractions(dnsWriter);
     verify(dnsMetrics)
         .recordActionResult(
+            "xn--q9jyb4c",
             "correctWriter",
             ActionStatus.BAD_LOCK_INDEX,
             2,
@@ -345,6 +358,7 @@ public class PublishDnsUpdatesActionTest {
     verifyNoMoreInteractions(dnsWriter);
     verify(dnsMetrics)
         .recordActionResult(
+            "xn--q9jyb4c",
             "wrongWriter",
             ActionStatus.BAD_WRITER,
             5,

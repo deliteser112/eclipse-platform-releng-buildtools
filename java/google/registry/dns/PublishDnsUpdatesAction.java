@@ -96,6 +96,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     DateTime now = clock.nowUtc();
 
     dnsMetrics.recordActionResult(
+        tld,
         dnsWriter,
         status,
         nullToEmpty(domains).size() + nullToEmpty(hosts).size(),
@@ -197,8 +198,8 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
         domainsPublished += 1;
       }
     }
-    dnsMetrics.incrementPublishDomainRequests(domainsPublished, PublishStatus.ACCEPTED);
-    dnsMetrics.incrementPublishDomainRequests(domainsRejected, PublishStatus.REJECTED);
+    dnsMetrics.incrementPublishDomainRequests(tld, domainsPublished, PublishStatus.ACCEPTED);
+    dnsMetrics.incrementPublishDomainRequests(tld, domainsRejected, PublishStatus.REJECTED);
 
     int hostsPublished = 0;
     int hostsRejected = 0;
@@ -213,8 +214,8 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
         hostsPublished += 1;
       }
     }
-    dnsMetrics.incrementPublishHostRequests(hostsPublished, PublishStatus.ACCEPTED);
-    dnsMetrics.incrementPublishHostRequests(hostsRejected, PublishStatus.REJECTED);
+    dnsMetrics.incrementPublishHostRequests(tld, hostsPublished, PublishStatus.ACCEPTED);
+    dnsMetrics.incrementPublishHostRequests(tld, hostsRejected, PublishStatus.REJECTED);
 
     // If we got here it means we managed to stage the entire batch without any errors.
     // Next we will commit the batch.
@@ -229,11 +230,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
       recordActionResult(actionStatus);
       Duration duration = new Duration(timeAtStart, clock.nowUtc());
       dnsMetrics.recordCommit(
-          dnsWriter,
-          commitStatus,
-          duration,
-          domainsPublished,
-          hostsPublished);
+          tld, dnsWriter, commitStatus, duration, domainsPublished, hostsPublished);
       logger.atInfo().log(
           "writer.commit() statistics: TLD: %s, dnsWriter: %s, commitStatus: %s, duration: %s, "
               + "domainsPublished: %d, domainsRejected: %d, hostsPublished: %d, hostsRejected: %d",

@@ -14,8 +14,6 @@
 
 package google.registry.dns;
 
-import static google.registry.request.RequestParameters.PARAM_TLD;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.monitoring.metrics.DistributionFitter;
 import com.google.monitoring.metrics.EventMetric;
@@ -25,7 +23,6 @@ import com.google.monitoring.metrics.IncrementableMetric;
 import com.google.monitoring.metrics.LabelDescriptor;
 import com.google.monitoring.metrics.MetricRegistryImpl;
 import google.registry.config.RegistryEnvironment;
-import google.registry.request.Parameter;
 import javax.inject.Inject;
 import org.joda.time.Duration;
 
@@ -184,7 +181,6 @@ public class DnsMetrics {
               EXPONENTIAL_FITTER);
 
   @Inject RegistryEnvironment registryEnvironment;
-  @Inject @Parameter(PARAM_TLD) String tld;
 
   @Inject
   DnsMetrics() {}
@@ -193,7 +189,7 @@ public class DnsMetrics {
    * Increment a monotonic counter that tracks calls to {@link
    * google.registry.dns.writer.DnsWriter#publishDomain(String)}, per TLD.
    */
-  public void incrementPublishDomainRequests(long numRequests, PublishStatus status) {
+  public void incrementPublishDomainRequests(String tld, long numRequests, PublishStatus status) {
     if (numRequests > 0) {
       publishDomainRequests.incrementBy(numRequests, tld, status.name());
     }
@@ -203,7 +199,7 @@ public class DnsMetrics {
    * Increment a monotonic counter that tracks calls to {@link
    * google.registry.dns.writer.DnsWriter#publishHost(String)}, per TLD.
    */
-  public void incrementPublishHostRequests(long numRequests, PublishStatus status) {
+  public void incrementPublishHostRequests(String tld, long numRequests, PublishStatus status) {
     if (numRequests > 0) {
       publishHostRequests.incrementBy(numRequests, tld, status.name());
     }
@@ -212,12 +208,13 @@ public class DnsMetrics {
   /**
    * Measures information about the entire batched commit, per TLD.
    *
-   * The information includes running times (per item and per commit), and batch sizes (per item and
-   * per commit)
+   * <p>The information includes running times (per item and per commit), and batch sizes (per item
+   * and per commit)
    *
-   * This is to be used for load testing the system, and will not measure anything in prod.
+   * <p>This is to be used for load testing the system, and will not measure anything in prod.
    */
   void recordCommit(
+      String tld,
       String dnsWriter,
       CommitStatus status,
       Duration processingDuration,
@@ -254,6 +251,7 @@ public class DnsMetrics {
   }
 
   void recordActionResult(
+      String tld,
       String dnsWriter,
       ActionStatus status,
       int numberOfItems,
