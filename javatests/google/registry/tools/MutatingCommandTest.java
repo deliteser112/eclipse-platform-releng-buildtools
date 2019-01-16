@@ -114,7 +114,7 @@ public class MutatingCommandTest {
 
   @Test
   public void testSuccess_create() throws Exception {
-    ofy().deleteWithoutBackup().entities(Arrays.asList(host1, host2, registrar1, registrar2));
+    ofy().deleteWithoutBackup().entities(Arrays.asList(host1, host2, registrar1, registrar2)).now();
     MutatingCommand command = new MutatingCommand() {
       @Override
       protected void init() {
