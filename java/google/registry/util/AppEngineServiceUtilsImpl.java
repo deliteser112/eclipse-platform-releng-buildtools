@@ -18,10 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.appengine.api.modules.ModulesService;
-import com.google.appengine.api.modules.ModulesServiceFactory;
-import dagger.Binds;
-import dagger.Module;
-import dagger.Provides;
 import javax.inject.Inject;
 
 /** A wrapper for {@link ModulesService} that provides a saner API. */
@@ -59,21 +55,5 @@ public class AppEngineServiceUtilsImpl implements AppEngineServiceUtils {
     checkArgumentNotNull(version, "Must specify the version");
     checkArgument(numInstances > 0, "Number of instances must be greater than 0");
     modulesService.setNumInstances(service, version, numInstances);
-  }
-
-  /** Dagger module for AppEngineServiceUtils. */
-  @Module
-  public abstract static class AppEngineServiceUtilsModule {
-
-    private static final ModulesService modulesService = ModulesServiceFactory.getModulesService();
-
-    @Provides
-    static ModulesService provideModulesService() {
-      return modulesService;
-    }
-
-    @Binds
-    abstract AppEngineServiceUtils provideAppEngineServiceUtils(
-        AppEngineServiceUtilsImpl appEngineServiceUtilsImpl);
   }
 }

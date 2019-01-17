@@ -20,12 +20,12 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.template.soy.data.SoyMapData;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.tools.params.PhoneNumberParameter;
 import google.registry.tools.soy.ContactCreateSoyInfo;
 import google.registry.util.StringGenerator;
 import java.util.List;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 /** A command to create a new contact via EPP. */
 @Parameters(separators = " =", commandDescription = "Create a new contact via EPP.")
@@ -104,7 +104,7 @@ final class CreateContactCommand extends MutatingEppToolCommand {
   private String password;
 
   @Inject
-  @Config("base64StringGenerator")
+  @Named("base64StringGenerator")
   StringGenerator passwordGenerator;
 
   private static final int PASSWORD_LENGTH = 16;

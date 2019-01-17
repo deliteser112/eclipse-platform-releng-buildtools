@@ -60,6 +60,7 @@ import google.registry.xjc.rdedomain.XjcRdeDomain;
 import google.registry.xjc.rdedomain.XjcRdeDomainElement;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.inject.Named;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
@@ -92,7 +93,7 @@ public class RdeDomainImportAction implements Runnable {
       @Config("rdeImportBucket") String importBucketName,
       @Parameter(PATH) String importFileName,
       @Parameter(PARAM_MAP_SHARDS) Optional<Integer> mapShards,
-      @Config("base64StringGenerator") StringGenerator stringGenerator) {
+      @Named("base64StringGenerator") StringGenerator stringGenerator) {
     this.mrRunner = mrRunner;
     this.response = response;
     this.importBucketName = importBucketName;

@@ -17,8 +17,6 @@ package google.registry.util;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.util.concurrent.Uninterruptibles;
-import dagger.Module;
-import dagger.Provides;
 import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
@@ -44,16 +42,5 @@ public final class SystemSleeper implements Sleeper, Serializable {
   public void sleepUninterruptibly(ReadableDuration duration) {
     checkArgument(duration.getMillis() >= 0);
     Uninterruptibles.sleepUninterruptibly(duration.getMillis(), TimeUnit.MILLISECONDS);
-  }
-
-  /** Dagger module for {@link SystemSleeper}. */
-  @Module
-  public static final class SystemSleeperModule {
-    private static final Sleeper sleeper = new SystemSleeper();
-
-    @Provides
-    static Sleeper provideSleeper() {
-      return sleeper;
-    }
   }
 }

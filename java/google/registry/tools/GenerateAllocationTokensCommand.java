@@ -31,7 +31,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.googlecode.objectify.Key;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.model.domain.token.AllocationToken;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.Retrier;
@@ -41,6 +40,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Deque;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 /** Command to generate and persist {@link AllocationToken}s. */
 @Parameters(
@@ -81,7 +81,7 @@ class GenerateAllocationTokensCommand implements CommandWithRemoteApi {
   boolean dryRun;
 
   @Inject
-  @Config("base58StringGenerator")
+  @Named("base58StringGenerator")
   StringGenerator stringGenerator;
 
   @Inject Retrier retrier;

@@ -22,7 +22,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.MoreFiles;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.OteAccountBuilder;
 import google.registry.tools.params.PathParameter;
@@ -32,6 +31,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 /** Composite command to set up OT&E TLDs and accounts. */
 @Parameters(separators = " =", commandDescription = "Set up OT&E TLDs and registrars")
@@ -78,7 +78,7 @@ final class SetupOteCommand extends ConfirmingCommand implements CommandWithRemo
   private boolean overwrite = false;
 
   @Inject
-  @Config("base64StringGenerator")
+  @Named("base64StringGenerator")
   StringGenerator passwordGenerator;
 
   @Inject Clock clock;

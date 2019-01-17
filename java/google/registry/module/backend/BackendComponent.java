@@ -42,16 +42,13 @@ import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.request.auth.AuthModule;
-import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
-import google.registry.util.SystemClock.SystemClockModule;
-import google.registry.util.SystemSleeper.SystemSleeperModule;
+import google.registry.util.UtilsModule;
 import javax.inject.Singleton;
 
 /** Dagger component with instance lifetime for "backend" App Engine module. */
 @Singleton
 @Component(
     modules = {
-      AppEngineServiceUtilsModule.class,
       AuthModule.class,
       BackendRequestComponentModule.class,
       BigqueryModule.class,
@@ -73,12 +70,11 @@ import javax.inject.Singleton;
       NetHttpTransportModule.class,
       SheetsServiceModule.class,
       StackdriverModule.class,
-      SystemClockModule.class,
-      SystemSleeperModule.class,
       URLFetchServiceModule.class,
       UrlFetchTransportModule.class,
       UserServiceModule.class,
       VoidDnsWriterModule.class,
+      UtilsModule.class
     })
 interface BackendComponent {
   BackendRequestHandler requestHandler();

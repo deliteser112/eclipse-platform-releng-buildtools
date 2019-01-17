@@ -50,6 +50,7 @@ import google.registry.util.StringGenerator;
 import java.util.HashMap;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -97,7 +98,7 @@ public final class ConsoleOteSetupAction implements Runnable {
   @Inject SendEmailUtils sendEmailUtils;
   @Inject @Config("logoFilename") String logoFilename;
   @Inject @Config("productName") String productName;
-  @Inject @Config("base58StringGenerator") StringGenerator passwordGenerator;
+  @Inject @Named("base58StringGenerator") StringGenerator passwordGenerator;
   @Inject @Parameter("clientId") Optional<String> clientId;
   @Inject @Parameter("email") Optional<String> email;
   @Inject @Parameter("password") Optional<String> optionalPassword;

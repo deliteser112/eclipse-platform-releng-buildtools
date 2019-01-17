@@ -52,6 +52,7 @@ import google.registry.util.TaskQueueUtils;
 import google.registry.util.UrlFetchException;
 import java.io.IOException;
 import java.net.URL;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -90,7 +91,7 @@ public final class NordnUploadAction implements Runnable {
 
   @Inject Clock clock;
   @Inject Retrier retrier;
-  @Inject @Config("insecureRandom") Random random;
+  @Inject SecureRandom random;
   @Inject LordnRequestInitializer lordnRequestInitializer;
   @Inject URLFetchService fetchService;
   @Inject @Config("tmchMarksdbUrl") String tmchMarksdbUrl;

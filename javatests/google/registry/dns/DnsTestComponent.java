@@ -20,19 +20,20 @@ import google.registry.cron.CronModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.module.backend.BackendModule;
 import google.registry.request.RequestModule;
-import google.registry.util.SystemClock.SystemClockModule;
-import google.registry.util.SystemSleeper.SystemSleeperModule;
+import google.registry.util.UtilsModule;
+import javax.inject.Singleton;
 
-@Component(modules = {
-    SystemClockModule.class,
-    ConfigModule.class,
-    BackendModule.class,
-    DnsModule.class,
-    RequestModule.class,
-    VoidDnsWriterModule.class,
-    SystemSleeperModule.class,
-    CronModule.class,
-})
+@Singleton
+@Component(
+    modules = {
+      BackendModule.class,
+      ConfigModule.class,
+      CronModule.class,
+      DnsModule.class,
+      RequestModule.class,
+      UtilsModule.class,
+      VoidDnsWriterModule.class,
+    })
 interface DnsTestComponent {
   DnsQueue dnsQueue();
   RefreshDnsAction refreshDns();

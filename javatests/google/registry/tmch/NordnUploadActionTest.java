@@ -63,9 +63,9 @@ import google.registry.util.Retrier;
 import google.registry.util.TaskQueueUtils;
 import google.registry.util.UrlFetchException;
 import java.net.URL;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -125,7 +125,7 @@ public class NordnUploadActionTest {
     action.taskQueueUtils = new TaskQueueUtils(new Retrier(new FakeSleeper(clock), 3));
     action.tld = "tld";
     action.tmchMarksdbUrl = "http://127.0.0.1";
-    action.random = new Random();
+    action.random = new SecureRandom();
     action.retrier = new Retrier(new FakeSleeper(clock), 3);
   }
 

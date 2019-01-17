@@ -34,9 +34,7 @@ import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.tools.AuthModule.LocalCredentialModule;
-import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
-import google.registry.util.SystemClock.SystemClockModule;
-import google.registry.util.SystemSleeper.SystemSleeperModule;
+import google.registry.util.UtilsModule;
 import google.registry.whois.WhoisModule;
 import javax.annotation.Nullable;
 import javax.inject.Named;
@@ -52,7 +50,6 @@ import javax.inject.Singleton;
 @Component(
     modules = {
       AppEngineAdminApiModule.class,
-      AppEngineServiceUtilsModule.class,
       AuthModule.class,
       BigqueryModule.class,
       ConfigModule.class,
@@ -68,11 +65,10 @@ import javax.inject.Singleton;
       LocalCredentialModule.class,
       RdeModule.class,
       RequestFactoryModule.class,
-      SystemClockModule.class,
-      SystemSleeperModule.class,
       URLFetchServiceModule.class,
       UrlFetchTransportModule.class,
       UserServiceModule.class,
+      UtilsModule.class,
       VoidDnsWriterModule.class,
       WhoisModule.class,
     })

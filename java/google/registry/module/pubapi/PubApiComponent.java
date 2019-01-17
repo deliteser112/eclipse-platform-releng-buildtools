@@ -35,16 +35,13 @@ import google.registry.request.Modules.NetHttpTransportModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.request.auth.AuthModule;
-import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
-import google.registry.util.SystemClock.SystemClockModule;
-import google.registry.util.SystemSleeper.SystemSleeperModule;
+import google.registry.util.UtilsModule;
 import javax.inject.Singleton;
 
 /** Dagger component with instance lifetime for "pubapi" App Engine module. */
 @Singleton
 @Component(
     modules = {
-      AppEngineServiceUtilsModule.class,
       AuthModule.class,
       ConfigModule.class,
       CredentialModule.class,
@@ -61,10 +58,9 @@ import javax.inject.Singleton;
       PubApiRequestComponentModule.class,
       ServerTridProviderModule.class,
       StackdriverModule.class,
-      SystemClockModule.class,
-      SystemSleeperModule.class,
       UrlFetchTransportModule.class,
       UserServiceModule.class,
+      UtilsModule.class
     })
 interface PubApiComponent {
   PubApiRequestHandler requestHandler();

@@ -59,6 +59,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.money.CurrencyUnit;
 
@@ -108,8 +109,8 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
   @Inject SendEmailUtils sendEmailUtils;
   @Inject @Config("logoFilename") String logoFilename;
   @Inject @Config("productName") String productName;
-  @Inject @Config("base58StringGenerator") StringGenerator passwordGenerator;
-  @Inject @Config("digitOnlyStringGenerator") StringGenerator passcodeGenerator;
+  @Inject @Named("base58StringGenerator") StringGenerator passwordGenerator;
+  @Inject @Named("digitOnlyStringGenerator") StringGenerator passcodeGenerator;
   @Inject @Parameter("clientId") Optional<String> clientId;
   @Inject @Parameter("name") Optional<String> name;
   @Inject @Parameter("billingAccount") Optional<String> billingAccount;

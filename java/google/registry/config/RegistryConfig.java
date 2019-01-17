@@ -29,19 +29,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.util.RandomStringGenerator;
-import google.registry.util.StringGenerator;
 import google.registry.util.TaskQueueUtils;
 import google.registry.util.YamlUtils;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
 import java.net.URL;
-import java.security.NoSuchAlgorithmException;
-import java.security.ProviderException;
-import java.security.SecureRandom;
 import java.util.Optional;
-import java.util.Random;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Named;
@@ -57,6 +51,9 @@ import org.joda.time.Duration;
  * meant for settings that need to be configured <i>once</i></b>. Settings which may be subject to
  * change in the future, should instead be retrieved from Datastore. The {@link
  * google.registry.model.registry.Registry Registry} class is one such example of this.
+ *
+ * <p>Note: Only settings that are actually configurable belong in this file. It's not a catch-all
+ * for anything widely used throughout the code base.
  */
 public final class RegistryConfig {
 
@@ -1355,54 +1352,6 @@ public final class RegistryConfig {
                   .setLinkHrefUrlString(rdapTosStaticUrl)
                   .build())
           .build();
-    }
-
-    /**
-     * Returns a singleton insecure random number generator that is fast.
-     *
-     * <p>This binding is intentionally qualified so that any requester must explicitly acknowledge
-     * that using an insecure random number generator is fine for its use case.
-     */
-    @Singleton
-    @Provides
-    @Config("insecureRandom")
-    public static Random provideInsecureRandom() {
-      return new Random();
-    }
-
-    /** Returns a singleton secure random number generator this is slow. */
-    @Singleton
-    @Provides
-    public static SecureRandom provideSecureRandom() {
-      try {
-        return SecureRandom.getInstance("NativePRNG");
-      } catch (NoSuchAlgorithmException e) {
-        throw new ProviderException(e);
-      }
-    }
-
-    /** Returns a singleton random string generator that uses digits only. */
-    @Singleton
-    @Provides
-    @Config("digitOnlyStringGenerator")
-    public static StringGenerator provideDigitsOnlyStringGenerator(SecureRandom secureRandom) {
-      return new RandomStringGenerator(StringGenerator.Alphabets.DIGITS_ONLY, secureRandom);
-    }
-
-    /** Returns a singleton random string generator using Base58 encoding. */
-    @Singleton
-    @Provides
-    @Config("base58StringGenerator")
-    public static StringGenerator provideBase58StringGenerator(SecureRandom secureRandom) {
-      return new RandomStringGenerator(StringGenerator.Alphabets.BASE_58, secureRandom);
-    }
-
-    /** Returns a singleton random string generator using Base58 encoding. */
-    @Singleton
-    @Provides
-    @Config("base64StringGenerator")
-    public static StringGenerator provideBase64StringGenerator(SecureRandom secureRandom) {
-      return new RandomStringGenerator(StringGenerator.Alphabets.BASE_64, secureRandom);
     }
   }
 

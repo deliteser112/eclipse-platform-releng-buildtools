@@ -17,18 +17,17 @@ package google.registry.whois;
 import dagger.Component;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.request.RequestModule;
-import google.registry.util.SystemClock.SystemClockModule;
-import google.registry.util.SystemSleeper.SystemSleeperModule;
+import google.registry.util.UtilsModule;
 import javax.inject.Singleton;
 
 @Singleton
-@Component(modules = {
-    ConfigModule.class,
-    RequestModule.class,
-    SystemClockModule.class,
-    SystemSleeperModule.class,
-    WhoisModule.class,
-})
+@Component(
+    modules = {
+      ConfigModule.class,
+      RequestModule.class,
+      UtilsModule.class,
+      WhoisModule.class,
+    })
 interface WhoisTestComponent {
   WhoisHttpAction whoisHttpAction();
 
