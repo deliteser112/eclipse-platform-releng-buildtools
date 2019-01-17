@@ -109,39 +109,35 @@ OAuth defines the concept of a *client id*, which identifies the application
 which the user wants to authorize. This is so that, when a user clicks in an
 OAuth permission dialog and grants access to data, they are not granting access
 to every application on their computer (including potentially malicious ones),
-but only to the application which they agree needs access. Each installation of
-the Nomulus system should have its own client id. The same client id can be used
-for all environments.
+but only to the application which they agree needs access. Each environment of
+the Nomulus system should have its own client id. Multiple installations of the
+`nomulus` tool application can share the same client id for the same
+environment.
 
 There are three steps to configuration.
 
-*   **Create the client id in App Engine:** Go to your project's ["Credentials"
-    page](https://console.developers.google.com/apis/credentials) in the
-    Developer's Console. Click "Create credentials" and select "OAuth client ID"
-    from the dropdown. In the create credentials window, select an application
-    type of "Other". After creating the client id, return to the main
-    Credentials page and click the download icon to the right of the client id
-    that you just created. This will download a json file called the *client
+*   **Create the client id in App Engine:** Go to your project's
+    ["Credentials" page](https://console.developers.google.com/apis/credentials)
+    in the Developer's Console. Click "Create credentials" and select "OAuth
+    client ID" from the dropdown. In the create credentials window, select an
+    application type of "Other". After creating the client id, return to the
+    main Credentials page and click the download icon to the right of the client
+    id that you just created. This will download a json file called the *client
     secret file*.
 
-*   **Copy the client secret file to the proper location:** The client secret
-    file is used by the `nomulus` tool to authenticate itself to the system. The
-    file should be placed in the location specified by the
-    `registryTool.clientSecretFilename` configuration parameter. By default,
-    this is `/google/registry/tools/resources/client_secret.json`. Don't
-    overwrite the file named `client_secret_UNITTEST.json` in that same
-    directory; otherwise, the unit tests will break. If you want to use a
-    different client id for each environment, copy all the client secret files
-    to this directory, with a different name, and specify the file path
-    separately in each environment's configuration file.
+*   **Copy the client secret information to the config file:** The *client
+    secret file* contains both the client ID and the client secret. Copy the
+    respective values to the config file for the environment that the credential
+    is created for (e. g. `nomulus-config-production.yaml`) under the
+    `registryTool` section. This will make the `nomulus` tool use this
+    credential to authenticate itself to the system.
 
 *   **Add the new client id to the configured list of allowed client ids:** The
     configuration files include an `oAuth` section, which defines a parameter
     called `allowedOauthClientIds`, specifying a list of client ids which are
-    permitted to connect. Get the appropriate client id string from each client
-    secret json file (which is just a json text file) and add it to the list.
-    You will need to rebuild and redeploy the project so that the configuration
-    changes take effect.
+    permitted to connect. Add the client ID to the list. You will need to
+    rebuild and redeploy the project so that the configuration changes take
+    effect.
 
 Once these steps are taken, the `nomulus` tool will use a client id which the
 server is configured to accept, and authentication should succeed. Note that
