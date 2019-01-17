@@ -36,6 +36,9 @@ public abstract class StringGenerator implements Serializable {
     /** An alphanumeric alphabet that omits visually similar characters. */
     public static final String BASE_58 =
         "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+    /** Digit-only alphabet. */
+    public static final String DIGITS_ONLY = "0123456789";
   }
 
   protected String alphabet;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.ui.server.otesetup;
+package google.registry.ui.server.registrar;
 
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.truth.Truth.assertThat;
@@ -97,6 +97,7 @@ public final class ConsoleOteSetupActionTest {
     action.productName = "Nomulus";
     action.clientId = Optional.empty();
     action.email = Optional.empty();
+
     action.optionalPassword = Optional.empty();
     action.passwordGenerator = new DeterministicStringGenerator("abcdefghijklmnopqrstuvwxyz");
 
@@ -116,7 +117,7 @@ public final class ConsoleOteSetupActionTest {
   @Test
   public void testGet_authorized() {
     action.run();
-    assertThat(response.getPayload()).contains("<h1>OT&E Setup Page</h1>");
+    assertThat(response.getPayload()).contains("<h1>Setup OT&E</h1>");
   }
 
   @Test

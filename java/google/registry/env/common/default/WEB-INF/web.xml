@@ -43,6 +43,12 @@
     <url-pattern>/registrar-ote-setup</url-pattern>
   </servlet-mapping>
 
+  <!-- Registrar creation console. -->
+  <servlet-mapping>
+    <servlet-name>frontend-servlet</servlet-name>
+    <url-pattern>/registrar-create</url-pattern>
+  </servlet-mapping>
+
   <!-- Security config -->
   <security-constraint>
     <web-resource-collection>

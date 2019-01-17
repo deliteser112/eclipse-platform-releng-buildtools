@@ -1381,6 +1381,14 @@ public final class RegistryConfig {
       }
     }
 
+    /** Returns a singleton random string generator that uses digits only. */
+    @Singleton
+    @Provides
+    @Config("digitOnlyStringGenerator")
+    public static StringGenerator provideDigitsOnlyStringGenerator(SecureRandom secureRandom) {
+      return new RandomStringGenerator(StringGenerator.Alphabets.DIGITS_ONLY, secureRandom);
+    }
+
     /** Returns a singleton random string generator using Base58 encoding. */
     @Singleton
     @Provides

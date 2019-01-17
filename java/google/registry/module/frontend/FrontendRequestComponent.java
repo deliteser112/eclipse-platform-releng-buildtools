@@ -25,7 +25,8 @@ import google.registry.monitoring.whitebox.WhiteboxModule;
 import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
-import google.registry.ui.server.otesetup.ConsoleOteSetupAction;
+import google.registry.ui.server.registrar.ConsoleOteSetupAction;
+import google.registry.ui.server.registrar.ConsoleRegistrarCreatorAction;
 import google.registry.ui.server.registrar.ConsoleUiAction;
 import google.registry.ui.server.registrar.OteStatusAction;
 import google.registry.ui.server.registrar.RegistrarConsoleModule;
@@ -43,6 +44,7 @@ import google.registry.ui.server.registrar.RegistrarSettingsAction;
     })
 interface FrontendRequestComponent {
   ConsoleOteSetupAction consoleOteSetupAction();
+  ConsoleRegistrarCreatorAction consoleRegistrarCreatorAction();
   ConsoleUiAction consoleUiAction();
   EppConsoleAction eppConsoleAction();
   EppTlsAction eppTlsAction();

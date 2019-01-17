@@ -21,7 +21,6 @@ java_library(
         "//java/google/registry/request:modules",
         "//java/google/registry/request/auth",
         "//java/google/registry/ui",
-        "//java/google/registry/ui/server/otesetup",
         "//java/google/registry/ui/server/registrar",
         "//java/google/registry/util",
         "@com_google_appengine_api_1_0_sdk",

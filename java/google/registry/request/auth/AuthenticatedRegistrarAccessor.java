@@ -329,7 +329,8 @@ public class AuthenticatedRegistrarAccessor {
           .load()
           .type(Registrar.class)
           .forEach(registrar -> {
-            if (!Registrar.Type.REAL.equals(registrar.getType())) {
+            if (registrar.getType() != Registrar.Type.REAL
+                || registrar.getState() == Registrar.State.PENDING) {
               builder.put(registrar.getClientId(), Role.OWNER);
             }
             builder.put(registrar.getClientId(), Role.ADMIN);

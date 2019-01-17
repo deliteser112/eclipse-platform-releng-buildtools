@@ -15,6 +15,7 @@
 package google.registry.ui.server.registrar;
 
 
+import static google.registry.request.RequestParameters.extractOptionalIntParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
@@ -43,6 +44,36 @@ public final class RegistrarConsoleModule {
   }
 
   @Provides
+  @Parameter("ianaId")
+  static Optional<Integer> provideOptionalIanaId(HttpServletRequest req) {
+    return extractOptionalIntParameter(req, "ianaId");
+  }
+
+  @Provides
+  @Parameter("billingAccount")
+  static Optional<String> provideOptionalBillingAccount(HttpServletRequest req) {
+    return extractOptionalParameter(req, "billingAccount");
+  }
+
+  @Provides
+  @Parameter("name")
+  static Optional<String> provideOptionalName(HttpServletRequest req) {
+    return extractOptionalParameter(req, "name");
+  }
+
+  @Provides
+  @Parameter("driveId")
+  static Optional<String> provideOptionalDriveId(HttpServletRequest req) {
+    return extractOptionalParameter(req, "driveId");
+  }
+
+  @Provides
+  @Parameter("referralEmail")
+  static Optional<String> provideOptionalReferralEmail(HttpServletRequest req) {
+    return extractOptionalParameter(req, "referralEmail");
+  }
+
+  @Provides
   @Parameter("email")
   static Optional<String> provideOptionalEmail(HttpServletRequest req) {
     return extractOptionalParameter(req, "email");
@@ -55,8 +86,56 @@ public final class RegistrarConsoleModule {
   }
 
   @Provides
+  @Parameter("street1")
+  static Optional<String> provideOptionalStreet1(HttpServletRequest req) {
+    return extractOptionalParameter(req, "street1");
+  }
+
+  @Provides
+  @Parameter("street2")
+  static Optional<String> provideOptionalStreet2(HttpServletRequest req) {
+    return extractOptionalParameter(req, "street2");
+  }
+
+  @Provides
+  @Parameter("street3")
+  static Optional<String> provideOptionalStreet3(HttpServletRequest req) {
+    return extractOptionalParameter(req, "street3");
+  }
+
+  @Provides
+  @Parameter("city")
+  static Optional<String> provideOptionalCity(HttpServletRequest req) {
+    return extractOptionalParameter(req, "city");
+  }
+
+  @Provides
+  @Parameter("state")
+  static Optional<String> provideOptionalState(HttpServletRequest req) {
+    return extractOptionalParameter(req, "state");
+  }
+
+  @Provides
+  @Parameter("zip")
+  static Optional<String> provideOptionalZip(HttpServletRequest req) {
+    return extractOptionalParameter(req, "zip");
+  }
+
+  @Provides
+  @Parameter("countryCode")
+  static Optional<String> provideOptionalCountryCode(HttpServletRequest req) {
+    return extractOptionalParameter(req, "countryCode");
+  }
+
+  @Provides
   @Parameter("password")
   static Optional<String> provideOptionalPassword(HttpServletRequest req) {
     return extractOptionalParameter(req, "password");
+  }
+
+  @Provides
+  @Parameter("passcode")
+  static Optional<String> provideOptionalPasscode(HttpServletRequest req) {
+    return extractOptionalParameter(req, "passcode");
   }
 }

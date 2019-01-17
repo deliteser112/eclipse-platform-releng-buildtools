@@ -341,12 +341,6 @@ task soyToJava {
             dir: "${javaDir}/google/registry/ui/soy/registrar",
             include: ['**/*.soy']))
 
-    soyToJava('google.registry.ui.soy.otesetup',
-        "${generatedDir}/google/registry/ui/soy/otesetup",
-        fileTree(
-            dir: "${javaDir}/google/registry/ui/soy/otesetup",
-            include: ['**/*.soy']))
-
     soyToJava('google.registry.ui.soy',
         "${generatedDir}/google/registry/ui/soy",
         files {

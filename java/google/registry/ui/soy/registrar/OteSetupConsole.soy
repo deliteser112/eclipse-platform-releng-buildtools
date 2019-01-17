@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-{namespace registry.soy.registrar.console}
+{namespace registry.soy.registrar.otesetup}
 
 
 /**
@@ -35,7 +35,7 @@
   {call registry.soy.console.googlebar data="all" /}
   <div id="reg-content-and-footer">
     <div id="reg-content">
-      <h1>OT&E Setup Page</h1>
+      <h1>Setup OT&E</h1>
       {if isNonnull($errorMessage)}
         <h2 class="{css('kd-errormessage')}">Failed: {$errorMessage}</h2>
       {/if}

@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.ui.server.otesetup;
+package google.registry.ui.server.registrar;
+
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
@@ -44,7 +45,7 @@ import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.security.XsrfTokenManager;
 import google.registry.ui.server.SendEmailUtils;
 import google.registry.ui.server.SoyTemplateUtils;
-import google.registry.ui.soy.otesetup.ConsoleSoyInfo;
+import google.registry.ui.soy.registrar.OteSetupConsoleSoyInfo;
 import google.registry.util.StringGenerator;
 import java.util.HashMap;
 import java.util.Optional;
@@ -77,7 +78,7 @@ public final class ConsoleOteSetupAction implements Runnable {
       SoyTemplateUtils.createTofuSupplier(
           google.registry.ui.soy.ConsoleSoyInfo.getInstance(),
           google.registry.ui.soy.FormsSoyInfo.getInstance(),
-          google.registry.ui.soy.otesetup.ConsoleSoyInfo.getInstance());
+          google.registry.ui.soy.registrar.OteSetupConsoleSoyInfo.getInstance());
 
   @VisibleForTesting  // webdriver and screenshot tests need this
   public static final Supplier<SoyCssRenamingMap> CSS_RENAMING_MAP_SUPPLIER =
@@ -145,7 +146,7 @@ public final class ConsoleOteSetupAction implements Runnable {
       response.setPayload(
           TOFU_SUPPLIER
               .get()
-              .newRenderer(ConsoleSoyInfo.WHOAREYOU)
+              .newRenderer(OteSetupConsoleSoyInfo.WHOAREYOU)
               .setCssRenamingMap(CSS_RENAMING_MAP_SUPPLIER.get())
               .setData(data)
               .render());
@@ -185,7 +186,7 @@ public final class ConsoleOteSetupAction implements Runnable {
       response.setPayload(
           TOFU_SUPPLIER
               .get()
-              .newRenderer(ConsoleSoyInfo.RESULT_SUCCESS)
+              .newRenderer(OteSetupConsoleSoyInfo.RESULT_SUCCESS)
               .setCssRenamingMap(CSS_RENAMING_MAP_SUPPLIER.get())
               .setData(data)
               .render());
@@ -196,7 +197,7 @@ public final class ConsoleOteSetupAction implements Runnable {
       response.setPayload(
           TOFU_SUPPLIER
           .get()
-          .newRenderer(ConsoleSoyInfo.FORM_PAGE)
+          .newRenderer(OteSetupConsoleSoyInfo.FORM_PAGE)
           .setCssRenamingMap(CSS_RENAMING_MAP_SUPPLIER.get())
           .setData(data)
           .render());
@@ -211,7 +212,7 @@ public final class ConsoleOteSetupAction implements Runnable {
     response.setPayload(
         TOFU_SUPPLIER
             .get()
-            .newRenderer(ConsoleSoyInfo.FORM_PAGE)
+            .newRenderer(OteSetupConsoleSoyInfo.FORM_PAGE)
             .setCssRenamingMap(CSS_RENAMING_MAP_SUPPLIER.get())
             .setData(data)
             .render());
