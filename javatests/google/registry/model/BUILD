@@ -16,6 +16,8 @@ java_library(
         "**/*.java",
     ]),
     resources = [
+        "//java/google/registry/config/files/premium:all_lists",
+        "//java/google/registry/config/files/reserved:all_lists",
     ] + glob(["**/testdata/*"]),
     deps = [
         "//java/google/registry/config",

@@ -31,6 +31,9 @@ reconstruct a premium list .txt file from the premium list that is loaded into
 Datastore (though in principle it would be easy to do by writing a tool to do
 so), so don't lose those .txt files.
 
+An example premium list can be found at
+`java/google/registry/model/registry/config/files/premium/example.txt`.
+
 ## Creating a premium list
 
 Once the file containing the premium prices is ready, run the
