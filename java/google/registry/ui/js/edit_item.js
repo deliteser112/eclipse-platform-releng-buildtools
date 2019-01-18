@@ -128,6 +128,7 @@ registry.EditItem.prototype.renderItem = function(objArgs) {
   goog.soy.renderElement(goog.dom.getRequiredElement('reg-content'),
                          this.itemTmpl,
                          objArgs);
+  this.runAfterRender(objArgs);
 };
 
 
@@ -263,9 +264,20 @@ registry.EditItem.prototype.cancel = function() {
 /**
  * Called after this.renderItem(), to allow for further setup of
  * editing.
+ *
+ * TODO(b/122661518): merge this with runAfterRender so we don't have two
+ * similar methods
  * @param {!Object} objArgs
  */
 registry.EditItem.prototype.setupEditor = function(objArgs) {};
+
+/**
+ * Called at the end of this.renderItem() to allow for registration
+ * of listeners and other tasks that depend on the existence of the items in the
+ * DOM
+ * @param {!Object} objArgs
+ */
+registry.EditItem.prototype.runAfterRender = function(objArgs) {};
 
 
 // XXX: These should really take @param {object} which is the form. Alas the

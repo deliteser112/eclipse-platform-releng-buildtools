@@ -85,7 +85,7 @@ goog.inherits(registry.Component, goog.events.EventHandler);
 
 
 /**
- * Subclasses shold override this to implement panel display.
+ * Subclasses should override this to implement panel display.
  * @param {string} id The target resource id.
  */
 registry.Component.prototype.bindToDom = function(id) {

@@ -34,6 +34,7 @@ java_library(
     srcs = ["Fixture.java"],
     deps = [
         "//java/google/registry/model",
+        "//javatests/google/registry/model",
         "//javatests/google/registry/testing",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk",

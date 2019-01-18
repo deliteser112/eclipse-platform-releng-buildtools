@@ -19,7 +19,6 @@
  * @externs
  */
 
-
 /**
  * @suppress {duplicate}
  */
@@ -31,6 +30,24 @@ var registry = {};
  */
 registry.json = {};
 
+registry.json.ote = {};
+
+/**
+ * @typedef {{
+ *   clientId: string,
+ *   completed: boolean
+ * }}
+ */
+registry.json.ote.OteStatusResult;
+
+/**
+ * @typedef {{
+ *   status: string,
+ *   message: string,
+ *   results: !Array.<registry.json.ote.OteStatusResult>
+ * }}
+ */
+registry.json.ote.OteStatusResponse;
 
 
 /**

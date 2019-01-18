@@ -52,11 +52,11 @@ public final class OteStatusActionTest {
 
   @Before
   public void init() throws Exception {
-    OteStatsTestHelper.setupHistoryEntries();
+    OteStatsTestHelper.setupHistoryEntries(BASE_CLIENT_ID);
     persistNewRegistrar(CLIENT_ID, "SomeRegistrar", Type.OTE, null);
 
     ImmutableSetMultimap<String, Role> authValues =
-        OteAccountBuilder.createClientIdToTldMap("blobio").keySet().stream()
+        OteAccountBuilder.createClientIdToTldMap(BASE_CLIENT_ID).keySet().stream()
             .collect(toImmutableSetMultimap(Function.identity(), ignored -> Role.OWNER));
     action.registrarAccessor = AuthenticatedRegistrarAccessor.createForTesting(authValues);
   }

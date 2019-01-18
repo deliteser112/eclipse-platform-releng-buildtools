@@ -31,10 +31,10 @@
     <url-pattern>/registrar</url-pattern>
   </servlet-mapping>
 
-  <!-- Registrar Self-serve Settings. -->
+  <!-- Registrar creation console. -->
   <servlet-mapping>
     <servlet-name>frontend-servlet</servlet-name>
-    <url-pattern>/registrar-settings</url-pattern>
+    <url-pattern>/registrar-create</url-pattern>
   </servlet-mapping>
 
   <!-- OT&E creation console. -->
@@ -43,10 +43,16 @@
     <url-pattern>/registrar-ote-setup</url-pattern>
   </servlet-mapping>
 
-  <!-- Registrar creation console. -->
+  <!-- OT&E status console. -->
   <servlet-mapping>
     <servlet-name>frontend-servlet</servlet-name>
-    <url-pattern>/registrar-create</url-pattern>
+    <url-pattern>/registrar-ote-status</url-pattern>
+  </servlet-mapping>
+
+  <!-- Registrar Self-serve Settings. -->
+  <servlet-mapping>
+    <servlet-name>frontend-servlet</servlet-name>
+    <url-pattern>/registrar-settings</url-pattern>
   </servlet-mapping>
 
   <!-- Security config -->

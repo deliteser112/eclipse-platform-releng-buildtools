@@ -31,92 +31,95 @@ public final class OteStatsTestHelper {
   private static HistoryEntry domainCreateHistoryEntry;
   private static HistoryEntry domainRestoreHistoryEntry;
 
-  public static void setupHistoryEntries() throws IOException {
+  // TODO(b/122830156): Have this replicate the exact OT&E workflow with the correct client IDs
+  public static void setupHistoryEntries(String baseClientId) throws IOException {
     persistPremiumList("default_sandbox_list", "sandbox,USD 1000");
+    OteAccountBuilder.forClientId(baseClientId).addContact("email@example.com").buildAndPersist();
+    String oteAccount1 = String.format("%s-1", baseClientId);
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.DOMAIN_CREATE)
             .setXmlBytes(getBytes("domain_create_sunrise.xml"))
             .build());
     domainCreateHistoryEntry =
         persistResource(
             new HistoryEntry.Builder()
-                .setClientId("blobio-1")
+                .setClientId(oteAccount1)
                 .setType(Type.DOMAIN_CREATE)
                 .setXmlBytes(getBytes("domain_create_idn.xml"))
                 .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.DOMAIN_CREATE)
             .setXmlBytes(getBytes("domain_create_claim_notice.xml"))
             .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.DOMAIN_CREATE)
             .setXmlBytes(getBytes("domain_create_anchor_tenant_fee_standard.xml"))
             .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.DOMAIN_CREATE)
             .setXmlBytes(getBytes("domain_create_dsdata.xml"))
             .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.DOMAIN_DELETE)
             .setXmlBytes(getBytes("domain_delete.xml"))
             .build());
     domainRestoreHistoryEntry =
         persistResource(
             new HistoryEntry.Builder()
-                .setClientId("blobio-1")
+                .setClientId(oteAccount1)
                 .setType(Type.DOMAIN_RESTORE)
                 .setXmlBytes(getBytes("domain_restore.xml"))
                 .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.DOMAIN_TRANSFER_APPROVE)
             .setXmlBytes(getBytes("domain_transfer_approve.xml"))
             .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.DOMAIN_TRANSFER_CANCEL)
             .setXmlBytes(getBytes("domain_transfer_cancel.xml"))
             .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.DOMAIN_TRANSFER_REJECT)
             .setXmlBytes(getBytes("domain_transfer_reject.xml"))
             .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.DOMAIN_TRANSFER_REQUEST)
             .setXmlBytes(getBytes("domain_transfer_request.xml"))
             .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.DOMAIN_UPDATE)
             .setXmlBytes(getBytes("domain_update_with_secdns.xml"))
             .build());
     persistResource(
         new HistoryEntry.Builder()
-            .setClientId("blobio-1")
+            .setClientId(oteAccount1)
             .setType(Type.HOST_CREATE)
             .setXmlBytes(getBytes("host_create_complete.xml"))
             .build());
     hostDeleteHistoryEntry =
         persistResource(
             new HistoryEntry.Builder()
-                .setClientId("blobio-1")
+                .setClientId(oteAccount1)
                 .setType(Type.HOST_DELETE)
                 .setXmlBytes(getBytes("host_delete.xml"))
                 .build());
@@ -126,7 +129,7 @@ public final class OteStatsTestHelper {
     for (int i = 0; i < 10; i++) {
       persistResource(
           new HistoryEntry.Builder()
-              .setClientId("blobio-1")
+              .setClientId(oteAccount1)
               .setType(Type.HOST_UPDATE)
               .setXmlBytes(getBytes("host_update.xml"))
               .setTrid(Trid.create(null, String.format("blahtrid-%d", i)))

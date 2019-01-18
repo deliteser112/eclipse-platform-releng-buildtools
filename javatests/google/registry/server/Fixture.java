@@ -28,6 +28,8 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.model.OteAccountBuilder;
+import google.registry.model.OteStatsTestHelper;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
@@ -35,6 +37,7 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
+import java.io.IOException;
 import org.joda.time.DateTime;
 
 /**
@@ -61,6 +64,13 @@ public enum Fixture {
 
       // Used for OT&E TLDs
       persistPremiumList("default_sandbox_list");
+
+      OteAccountBuilder.forClientId("oteunfinished").addContact("email@example.com").buildAndPersist();
+      try {
+        OteStatsTestHelper.setupHistoryEntries("otefinished");
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
 
       ContactResource google = persistResource(newContactResource("google")
           .asBuilder()

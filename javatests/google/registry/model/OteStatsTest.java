@@ -31,7 +31,7 @@ public final class OteStatsTest {
 
   @Before
   public void init() throws Exception {
-    OteStatsTestHelper.setupHistoryEntries();
+    OteStatsTestHelper.setupHistoryEntries("blobio");
   }
 
   @Test

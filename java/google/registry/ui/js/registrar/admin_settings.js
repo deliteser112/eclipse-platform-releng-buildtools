@@ -19,6 +19,8 @@ goog.require('goog.dom');
 goog.require('goog.dom.classlist');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
+goog.require('goog.json');
+goog.require('goog.net.XhrIo');
 goog.require('goog.soy');
 goog.require('registry.Resource');
 goog.require('registry.ResourceComponent');
@@ -50,30 +52,75 @@ registry.registrar.AdminSettings.prototype.bindToDom = function(id) {
   goog.dom.removeNode(goog.dom.getRequiredElement('reg-app-btn-back'));
 };
 
-
 /** @override */
-registry.registrar.AdminSettings.prototype.setupEditor =
-    function(objArgs) {
-  goog.dom.classlist.add(goog.dom.getRequiredElement('tlds'),
-                         goog.getCssName('editing'));
-  var tlds = goog.dom.getElementsByClass(goog.getCssName('tld'),
-                                         goog.dom.getRequiredElement('tlds'));
-  goog.array.forEach(tlds, function(tld) {
-    var remBtn = goog.dom.getChildren(tld)[0];
-    goog.events.listen(remBtn,
-                       goog.events.EventType.CLICK,
-                       goog.bind(this.onTldRemove_, this, remBtn));
-  }, this);
-  this.typeCounts['reg-tlds'] = objArgs.allowedTlds ?
-      objArgs.allowedTlds.length : 0;
-
-  goog.events.listen(goog.dom.getRequiredElement('btn-add-tld'),
-                     goog.events.EventType.CLICK,
-                     this.onTldAdd_,
-                     false,
-                     this);
+registry.registrar.AdminSettings.prototype.runAfterRender = function(objArgs) {
+  goog.events.listen(
+      goog.dom.getRequiredElement('btn-ote-status'),
+      goog.events.EventType.CLICK,
+      goog.bind(
+          this.oteStatusCheck_, this, objArgs.xsrfToken, objArgs.clientId),
+      false, this);
 };
 
+/** @override */
+registry.registrar.AdminSettings.prototype.setupEditor = function(objArgs) {
+  goog.dom.classlist.add(
+      goog.dom.getRequiredElement('tlds'), goog.getCssName('editing'));
+  var tlds = goog.dom.getElementsByClass(
+      goog.getCssName('tld'), goog.dom.getRequiredElement('tlds'));
+  goog.array.forEach(tlds, function(tld) {
+    var remBtn = goog.dom.getChildren(tld)[0];
+    goog.events.listen(
+        remBtn, goog.events.EventType.CLICK,
+        goog.bind(this.onTldRemove_, this, remBtn));
+  }, this);
+  this.typeCounts['reg-tlds'] =
+      objArgs.allowedTlds ? objArgs.allowedTlds.length : 0;
+
+  goog.events.listen(
+      goog.dom.getRequiredElement('btn-add-tld'), goog.events.EventType.CLICK,
+      this.onTldAdd_, false, this);
+};
+
+/**
+ * JSON response prefix which prevents evaluation.
+ * @private {string}
+ * @const
+ */
+registry.registrar.AdminSettings.PARSER_BREAKER_ = ')]}\'\n';
+
+/**
+ * Click handler for OT&E status checking button.
+ * @param {string} xsrfToken
+ * @param {string} clientId
+ * @private
+ */
+registry.registrar.AdminSettings.prototype.oteStatusCheck_ = function(
+    xsrfToken, clientId) {
+  goog.net.XhrIo.send('/registrar-ote-status', function(e) {
+    var response =
+        /** @type {!registry.json.ote.OteStatusResponse} */
+        (e.target.getResponseJson(
+            registry.registrar.AdminSettings.PARSER_BREAKER_));
+    var message;
+    if (response.status === 'SUCCESS') {
+      var results = response.results[0];
+      message = 'Passed: '.concat(results.completed);
+    } else {
+      message = 'Error: '.concat(response.message);
+    }
+    var textParent = goog.dom.getRequiredElement('ote-status-area-parent');
+    if (!textParent.hasChildNodes()) {
+      var textElement = document.createElement('p');
+      textElement.id = 'ote-status-area';
+      textParent.appendChild(textElement);
+    }
+    textParent.firstElementChild.textContent = message;
+  }, 'POST', goog.json.serialize({'clientId': clientId}), {
+    'X-CSRF-Token': xsrfToken,
+    'Content-Type': 'application/json; charset=UTF-8'
+  });
+};
 
 /**
  * Click handler for TLD add button.
@@ -88,8 +135,9 @@ registry.registrar.AdminSettings.prototype.onTldAdd_ = function() {
   goog.dom.appendChild(goog.dom.getRequiredElement('tlds'), tldElt);
   var remBtn = goog.dom.getFirstElementChild(tldElt);
   goog.dom.classlist.remove(remBtn, goog.getCssName('hidden'));
-  goog.events.listen(remBtn, goog.events.EventType.CLICK,
-                     goog.bind(this.onTldRemove_, this, remBtn));
+  goog.events.listen(
+      remBtn, goog.events.EventType.CLICK,
+      goog.bind(this.onTldRemove_, this, remBtn));
   this.typeCounts['reg-tlds']++;
   tldInputElt.value = '';
 };
@@ -100,7 +148,6 @@ registry.registrar.AdminSettings.prototype.onTldAdd_ = function() {
  * @param {!Element} remBtn The remove button.
  * @private
  */
-registry.registrar.AdminSettings.prototype.onTldRemove_ =
-    function(remBtn) {
+registry.registrar.AdminSettings.prototype.onTldRemove_ = function(remBtn) {
   goog.dom.removeNode(goog.dom.getParentElement(remBtn));
 };

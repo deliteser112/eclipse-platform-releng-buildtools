@@ -14,8 +14,6 @@
 
 {namespace registry.soy.registrar.admin}
 
-
-
 /** Registrar admin settings page for view and edit. */
 {template .settings}
   {@param allowedTlds: list<string>}
@@ -48,6 +46,9 @@
           <label class="{css('setting-label')}">OT&amp;E setup page</label>
         <td class="{css('setting')}">
           <p>Generate new OT&amp;E accounts <a href="/registrar-ote-setup">here</a>
+          </p></td>
+      </tr>
+      {call .oteStatus /}
     </table>
   </form>
 {/template}
@@ -63,4 +64,18 @@
     </button>
     <input name="{$name}" value="{$tld}" readonly>
   </div>
+{/template}
+
+{template .oteStatus}
+  <tr class="{css('kd-settings-pane-section')}">
+    <td class="{css('setting')}">
+      <button
+          type="button"
+          id="btn-ote-status"
+          value="Check OT&amp;E status"
+          class="{css('kd-button')} {css('kd-button-submit')}">Check OT&amp;E status
+      </button>
+    </td>
+    <td id="ote-status-area-parent" class="{css('setting')}"></td>
+  </tr>
 {/template}
