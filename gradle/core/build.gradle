@@ -11,6 +11,7 @@ def generatedDir = "${project.buildDir}/generated/source/custom/main"
 // state) or victims.
 // TODO(weiminyu): identify cause and fix offending tests.
 def outcastTestPatterns = [
+    // Problem seems to lie with AppEngine TaskQueue for test.
     "google/registry/batch/DeleteContactsAndHostsActionTest.*",
     "google/registry/batch/RefreshDnsOnHostRenameActionTest.*",
     "google/registry/flows/CheckApiActionTest.*",
@@ -19,15 +20,19 @@ def outcastTestPatterns = [
     "google/registry/flows/domain/DomainUpdateFlowTest.*",
     "google/registry/tools/CreateDomainCommandTest.*",
     "google/registry/tools/server/CreatePremiumListActionTest.*",
-    // Conflicts with WhoisActionTest
-    "google/registry/whois/WhoisHttpActionTest.*",
 ]
 
 // Tests that conflict with members of both the main test suite and the
-// outcast suite.
+// outcast suite. They seem to be affected by global states outside of
+// Nomulus classes, e.g., threads and objects retained by frameworks.
 // TODO(weiminyu): identify cause and fix offending tests.
 def fragileTestPatterns = [
-    "google/registry/cron/TldFanoutActionTest.*"
+    // Problem seems to lie with AppEngine TaskQueue for test.
+    "google/registry/cron/TldFanoutActionTest.*",
+    // Test Datastore inexplicably aborts transaction.
+    "google/registry/model/tmch/ClaimsListShardTest.*",
+    // Creates large object (64MBytes), occasionally throws OOM error.
+    "google/registry/model/server/KmsSecretRevisionTest.*"
 ]
 
 sourceSets {
@@ -450,9 +455,9 @@ test {
   exclude outcastTestPatterns
 
   // Run every test class in its own process.
-  // TODO: Figure out why we need to do this, fix it and then stop doing it.
+  // Uncomment to unblock build while troubleshooting inexplicable test errors.
   // This setting makes the build take 35 minutes, without it it takes about 10.
-  forkEvery 1
+  // forkEvery 1
 
   // Sets the maximum number of test executors that may exist at the same time.
   maxParallelForks 5
