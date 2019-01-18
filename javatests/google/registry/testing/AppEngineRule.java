@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.Files;
 import com.googlecode.objectify.ObjectifyFilter;
 import google.registry.model.ofy.ObjectifyService;
@@ -69,6 +70,8 @@ import org.junit.runners.model.Statement;
  * @see org.junit.rules.ExternalResource
  */
 public final class AppEngineRule extends ExternalResource {
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static final String NEW_REGISTRAR_GAE_USER_ID = "666";
   public static final String THE_REGISTRAR_GAE_USER_ID = "31337";
@@ -346,7 +349,14 @@ public final class AppEngineRule extends ExternalResource {
     try {
       // To normalize the indexes, we are going to pass them through JSON and then rewrite the xml.
       JSONObject datastoreIndexes = new JSONObject();
-      Object indexes = toJSONObject(indexFile).get("datastore-indexes");
+      JSONObject indexFileObject = toJSONObject(indexFile);
+      if (!indexFileObject.has("datastore-indexes")) {
+        // Log for flaky appearance. We suspect that this is not a problem but need to inspect
+        // the content of this file to make sure.
+        // TODO(weiminyu): inspect file content and decide if this should be ignored.
+        logger.atWarning().log("Unexpected datastore-indexes-auto.xml:\n%s", indexFileObject);
+      }
+      Object indexes = indexFileObject.get("datastore-indexes");
       if (indexes instanceof JSONObject) {
         datastoreIndexes = (JSONObject) indexes;
       }
