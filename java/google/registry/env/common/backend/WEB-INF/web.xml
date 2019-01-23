@@ -192,24 +192,6 @@
     <url-pattern>/_dr/task/uploadDatastoreBackup</url-pattern>
   </servlet-mapping>
 
-  <!-- Exports a Datastore backup snapshot to GCS. -->
-  <servlet-mapping>
-    <servlet-name>backend-servlet</servlet-name>
-    <url-pattern>/_dr/task/exportSnapshot</url-pattern>
-  </servlet-mapping>
-
-  <!-- Checks the completion of a Datastore backup snapshot. -->
-  <servlet-mapping>
-    <servlet-name>backend-servlet</servlet-name>
-    <url-pattern>/_dr/task/checkSnapshot</url-pattern>
-  </servlet-mapping>
-
-  <!-- Loads a Datastore backup snapshot into BigQuery. -->
-  <servlet-mapping>
-    <servlet-name>backend-servlet</servlet-name>
-    <url-pattern>/_dr/task/loadSnapshot</url-pattern>
-  </servlet-mapping>
-
   <!-- Updates a view to point at a certain snapshot in BigQuery. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>

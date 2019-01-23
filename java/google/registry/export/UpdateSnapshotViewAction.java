@@ -50,8 +50,7 @@ public class UpdateSnapshotViewAction implements Runnable {
   static final String UPDATE_SNAPSHOT_VIEWNAME_PARAM = "viewname";
 
   /** Servlet-specific details needed for enqueuing tasks against itself. */
-  // For now this queue is shared by the backup workflows started by both ExportSnapshotAction
-  // and BackupDatastoreAction.
+  // For now this queue is shared by the backup workflows started by BackupDatastoreAction.
   // TODO(weiminyu): update queue name (snapshot->backup) after ExportSnapshot flow is removed.
   static final String QUEUE = "export-snapshot-update-view"; // See queue.xml.
 

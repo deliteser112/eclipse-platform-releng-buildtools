@@ -17,16 +17,15 @@ package google.registry.export;
 import static google.registry.export.BigqueryPollJobAction.CHAINED_TASK_QUEUE_HEADER;
 import static google.registry.export.BigqueryPollJobAction.JOB_ID_HEADER;
 import static google.registry.export.BigqueryPollJobAction.PROJECT_ID_HEADER;
-import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_KINDS_TO_LOAD_PARAM;
-import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_NAME_PARAM;
-import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
-import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
-import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;
+import static google.registry.export.CheckBackupAction.CHECK_BACKUP_KINDS_TO_LOAD_PARAM;
+import static google.registry.export.CheckBackupAction.CHECK_BACKUP_NAME_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_VIEWNAME_PARAM;
 import static google.registry.export.UploadDatastoreBackupAction.UPLOAD_BACKUP_FOLDER_PARAM;
+import static google.registry.export.UploadDatastoreBackupAction.UPLOAD_BACKUP_ID_PARAM;
+import static google.registry.export.UploadDatastoreBackupAction.UPLOAD_BACKUP_KINDS_PARAM;
 import static google.registry.request.RequestParameters.extractRequiredHeader;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
@@ -65,39 +64,33 @@ public final class ExportRequestModule {
   }
 
   @Provides
-  @Parameter(LOAD_SNAPSHOT_FILE_PARAM)
-  static String provideLoadSnapshotFile(HttpServletRequest req) {
-    return extractRequiredParameter(req, LOAD_SNAPSHOT_FILE_PARAM);
-  }
-
-  @Provides
   @Parameter(UPLOAD_BACKUP_FOLDER_PARAM)
   static String provideSnapshotUrlPrefix(HttpServletRequest req) {
     return extractRequiredParameter(req, UPLOAD_BACKUP_FOLDER_PARAM);
   }
 
   @Provides
-  @Parameter(LOAD_SNAPSHOT_ID_PARAM)
+  @Parameter(UPLOAD_BACKUP_ID_PARAM)
   static String provideLoadSnapshotId(HttpServletRequest req) {
-    return extractRequiredParameter(req, LOAD_SNAPSHOT_ID_PARAM);
+    return extractRequiredParameter(req, UPLOAD_BACKUP_ID_PARAM);
   }
 
   @Provides
-  @Parameter(LOAD_SNAPSHOT_KINDS_PARAM)
+  @Parameter(UPLOAD_BACKUP_KINDS_PARAM)
   static String provideLoadSnapshotKinds(HttpServletRequest req) {
-    return extractRequiredParameter(req, LOAD_SNAPSHOT_KINDS_PARAM);
+    return extractRequiredParameter(req, UPLOAD_BACKUP_KINDS_PARAM);
   }
 
   @Provides
-  @Parameter(CHECK_SNAPSHOT_NAME_PARAM)
+  @Parameter(CHECK_BACKUP_NAME_PARAM)
   static String provideCheckSnapshotName(HttpServletRequest req) {
-    return extractRequiredParameter(req, CHECK_SNAPSHOT_NAME_PARAM);
+    return extractRequiredParameter(req, CHECK_BACKUP_NAME_PARAM);
   }
 
   @Provides
-  @Parameter(CHECK_SNAPSHOT_KINDS_TO_LOAD_PARAM)
+  @Parameter(CHECK_BACKUP_KINDS_TO_LOAD_PARAM)
   static String provideCheckSnapshotKindsToLoad(HttpServletRequest req) {
-    return extractRequiredParameter(req, CHECK_SNAPSHOT_KINDS_TO_LOAD_PARAM);
+    return extractRequiredParameter(req, CHECK_BACKUP_KINDS_TO_LOAD_PARAM);
   }
 
   @Provides

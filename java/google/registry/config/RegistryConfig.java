@@ -1363,15 +1363,6 @@ public final class RegistryConfig {
   }
 
   /**
-   * Returns the Google Cloud Storage bucket for storing backup snapshots.
-   *
-   * @see google.registry.export.ExportSnapshotAction
-   */
-  public static String getSnapshotsBucket() {
-    return getProjectId() + "-snapshots";
-  }
-
-  /**
    * Returns the Google Cloud Storage bucket for storing Datastore backups.
    *
    * @see google.registry.export.BackupDatastoreAction

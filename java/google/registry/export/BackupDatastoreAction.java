@@ -28,9 +28,7 @@ import google.registry.request.auth.Auth;
 import javax.inject.Inject;
 
 /**
- * Action to trigger a Datastore backup job that writes a snapshot to Google Cloud Storage. This
- * class is introduced as an experimental feature, and will eventually replace {@link
- * ExportSnapshotAction}.
+ * Action to trigger a Datastore backup job that writes a snapshot to Google Cloud Storage.
  *
  * <p>This is the first step of a four step workflow for exporting snapshots, with each step calling
  * the next upon successful completion:
