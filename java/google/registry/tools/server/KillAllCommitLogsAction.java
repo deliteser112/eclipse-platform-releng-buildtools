@@ -57,7 +57,7 @@ public class KillAllCommitLogsAction implements Runnable {
 
   @Override
   public void run() {
-    checkArgument( // safety
+    checkArgument(
         RegistryEnvironment.get() == RegistryEnvironment.CRASH
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,
         "DO NOT RUN ANYWHERE ELSE EXCEPT CRASH OR TESTS.");

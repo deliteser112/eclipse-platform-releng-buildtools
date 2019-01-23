@@ -14,8 +14,8 @@
 
 package google.registry.keyring;
 
-
 import static com.google.common.base.Preconditions.checkState;
+
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;

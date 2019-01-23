@@ -84,7 +84,7 @@ public class RestoreCommitLogsAction implements Runnable {
 
   @Override
   public void run() {
-    checkArgument( // safety
+    checkArgument(
         RegistryEnvironment.get() == RegistryEnvironment.ALPHA
             || RegistryEnvironment.get() == RegistryEnvironment.CRASH
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,

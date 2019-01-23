@@ -17,7 +17,11 @@ package google.registry.testing;
 /** Utility methods for tests that involve certificates. */
 public final class CertificateSamples {
 
-  // openssl req -new -nodes -x509 -days 10000 -newkey rsa:2048 -keyout client1.key -out client1.crt -subj "/C=US/ST=New York/L=New York/O=Google/OU=domain-registry-test/CN=client1"
+
+  /*
+   * openssl req -new -nodes -x509 -days 10000 -newkey rsa:2048 -keyout client1.key -out client1.crt
+   * -subj "/C=US/ST=New York/L=New York/O=Google/OU=domain-registry-test/CN=client1"
+   */
   public static final String SAMPLE_CERT = ""
       + "-----BEGIN CERTIFICATE-----\n"
       + "MIIDvTCCAqWgAwIBAgIJAK/PgPT0jTwRMA0GCSqGSIb3DQEBCwUAMHUxCzAJBgNV\n"
@@ -43,10 +47,16 @@ public final class CertificateSamples {
       + "Ug==\n"
       + "-----END CERTIFICATE-----\n";
 
-  // python -c "import sys;print sys.argv[1].decode('hex').encode('base64').strip('\n=')" $(openssl x509 -fingerprint -sha256 -in client1.cert | grep -Po '(?<=Fingerprint=).*' | sed s/://g)
+  /*
+   * python -c "import sys;print sys.argv[1].decode('hex').encode('base64').strip('\n=')" $(openssl
+   * x509 -fingerprint -sha256 -in client1.cert | grep -Po '(?<=Fingerprint=).*' | sed s/://g)
+   */
   public static final String SAMPLE_CERT_HASH = "vue+ZFJC2R7/LedIDQ53NbMoIMSVpqjEJA1CAJVumos";
 
-  // openssl req -new -nodes -x509 -days 10000 -newkey rsa:2048 -keyout client2.key -out client2.crt -subj "/C=US/ST=New York/L=New York/O=Google/OU=domain-registry-test/CN=client2"
+  /*
+   * openssl req -new -nodes -x509 -days 10000 -newkey rsa:2048 -keyout client2.key -out client2.crt
+   * -subj "/C=US/ST=New York/L=New York/O=Google/OU=domain-registry-test/CN=client2"
+   */
   public static final String SAMPLE_CERT2 = ""
       + "-----BEGIN CERTIFICATE-----\n"
       + "MIIDvTCCAqWgAwIBAgIJANoEy6mYwalPMA0GCSqGSIb3DQEBCwUAMHUxCzAJBgNV\n"
@@ -72,7 +82,10 @@ public final class CertificateSamples {
       + "Bg==\n"
       + "-----END CERTIFICATE-----\n";
 
-  // python -c "import sys;print sys.argv[1].decode('hex').encode('base64').strip('\n=')" $(openssl x509 -fingerprint -sha256 -in client2.crt | grep -Po '(?<=Fingerprint=).*' | sed s/://g)
+  /*
+   * python -c "import sys;print sys.argv[1].decode('hex').encode('base64').strip('\n=')" $(openssl
+   * x509 -fingerprint -sha256 -in client2.crt | grep -Po '(?<=Fingerprint=).*' | sed s/://g)
+   */
   public static final String SAMPLE_CERT2_HASH = "GNd6ZP8/n91t9UTnpxR8aH7aAW4+CpvufYx9ViGbcMY";
 
   private CertificateSamples() {}

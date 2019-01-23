@@ -160,9 +160,8 @@ public class RequestAuthenticator {
     for (AuthMethod authMethod : auth.methods()) {
       switch (authMethod) {
         // App Engine internal authentication, using the queue name header
-        case INTERNAL:
-          // checkAuthConfig will have insured that the user policy is not USER.
-          {
+        case INTERNAL: {
+            // checkAuthConfig will have insured that the user policy is not USER.
             AuthResult authResult = appEngineInternalAuthenticationMechanism.authenticate(req);
             if (authResult.isAuthenticated()) {
               logger.atInfo().log("Authenticated via internal auth: %s", authResult);

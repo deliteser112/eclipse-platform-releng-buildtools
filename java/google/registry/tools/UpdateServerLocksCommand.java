@@ -51,7 +51,7 @@ final class UpdateServerLocksCommand extends MutatingEppToolCommand {
       names = {"-a", "--apply"},
       description = "Comma-delimited set of locks to apply (or 'all'). "
           + "Valid locks: serverDeleteProhibited, serverHold, serverRenewProhibited, "
-          + "serverTransferProhibited, serverUpdateProhibited" )
+          + "serverTransferProhibited, serverUpdateProhibited")
   private List<String> locksToApply = new ArrayList<>();
 
   @Parameter(

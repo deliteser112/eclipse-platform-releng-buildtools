@@ -185,7 +185,7 @@ final class RegistrarContactCommand extends MutatingCommand {
       case CREATE:
         stageEntityChange(null, createContact(registrar));
         if ((visibleInDomainWhoisAsAbuse != null) && visibleInDomainWhoisAsAbuse) {
-          unsetOtherWhoisAbuseFlags(contacts, null /* emailAddressNotToChange */ );
+          unsetOtherWhoisAbuseFlags(contacts, null);
         }
         break;
       case UPDATE:
