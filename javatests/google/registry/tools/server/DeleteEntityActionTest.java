@@ -67,6 +67,17 @@ public class DeleteEntityActionTest {
   }
 
   @Test
+  public void test_deletePolymorphicEntity_fallbackSucceedsForUnregisteredType() {
+    Entity entity = new Entity("single", "raw");
+    entity.setIndexedProperty("^d", "UnregType");
+    getDatastoreService().put(entity);
+    action.rawKeys = KeyFactory.keyToString(entity.getKey());
+    action.run();
+    assertThat(response.getPayload())
+        .isEqualTo("Deleted 1 raw entities and 0 registered entities");
+  }
+
+  @Test
   public void test_deleteOneRawEntityAndOneRegisteredEntitySuccessfully() {
     Entity entity = new Entity("first", "raw");
     getDatastoreService().put(entity);

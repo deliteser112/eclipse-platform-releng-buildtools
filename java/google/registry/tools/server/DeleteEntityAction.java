@@ -99,8 +99,15 @@ public class DeleteEntityAction implements Runnable {
   }
 
   private Optional<Object> loadOfyEntity(Key rawKey) {
-    EntityMetadata<Object> metadata = ofy().factory().getMetadata(rawKey.getKind());
-    return Optional.ofNullable(metadata == null ? null : ofy().load().key(create(rawKey)).now());
+    try {
+      EntityMetadata<Object> metadata = ofy().factory().getMetadata(rawKey.getKind());
+      return Optional.ofNullable(metadata == null ? null : ofy().load().key(create(rawKey)).now());
+    } catch (Throwable e) {
+      logger.atWarning().withCause(e).log(
+          "Could not load entity with key %s using Objectify; falling back to raw Datastore.",
+          rawKey);
+      return Optional.empty();
+    }
   }
 
   private Optional<Entity> loadRawEntity(Key rawKey) {
