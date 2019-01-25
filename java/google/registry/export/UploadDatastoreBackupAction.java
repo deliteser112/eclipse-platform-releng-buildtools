@@ -66,7 +66,7 @@ public class UploadDatastoreBackupAction implements Runnable {
   /** Servlet-specific details needed for enqueuing tasks against itself. */
   static final String QUEUE = "export-snapshot";  // See queue.xml.
 
-  static final String LATEST_BACKUP_VIEW_NAME = "latest_datastore_backup";
+  static final String LATEST_BACKUP_VIEW_NAME = "latest_datastore_export";
 
   static final String PATH = "/_dr/task/uploadDatastoreBackup"; // See web.xml.
 
