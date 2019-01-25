@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import google.registry.model.EppResource;
 import google.registry.model.EppResourceUtils;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
@@ -45,7 +45,7 @@ import org.joda.time.DateTime;
     path = ListDomainsAction.PATH,
     method = {GET, POST},
     auth = Auth.AUTH_INTERNAL_OR_ADMIN)
-public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
+public final class ListDomainsAction extends ListObjectsAction<DomainBase> {
 
   /** An App Engine limitation on how many subqueries can be used in a single query. */
   @VisibleForTesting @NonFinalForTesting static int maxNumSubqueries = 30;
@@ -71,16 +71,16 @@ public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
   }
 
   @Override
-  public ImmutableSet<DomainResource> loadObjects() {
+  public ImmutableSet<DomainBase> loadObjects() {
     checkArgument(!tlds.isEmpty(), "Must specify TLDs to query");
     assertTldsExist(tlds);
     DateTime now = clock.nowUtc();
-    ImmutableList.Builder<DomainResource> domainsBuilder = new ImmutableList.Builder<>();
+    ImmutableList.Builder<DomainBase> domainsBuilder = new ImmutableList.Builder<>();
     for (List<String> tldsBatch : Lists.partition(tlds.asList(), maxNumSubqueries)) {
       domainsBuilder.addAll(
           ofy()
               .load()
-              .type(DomainResource.class)
+              .type(DomainBase.class)
               .filter("tld in", tldsBatch)
               // Get the N most recently created domains (requires ordering in descending order).
               .order("-creationTime")

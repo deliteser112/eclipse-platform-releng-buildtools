@@ -16,7 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -51,7 +51,7 @@ public class LockDomainCommandTest extends EppToolCommandTestCase<LockDomainComm
   @Test
   public void testSuccess_partiallyUpdatesStatuses() throws Exception {
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .addStatusValue(SERVER_TRANSFER_PROHIBITED)
             .build());
@@ -88,7 +88,7 @@ public class LockDomainCommandTest extends EppToolCommandTestCase<LockDomainComm
   @Test
   public void testSuccess_alreadyLockedDomain_performsNoAction() throws Exception {
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .addStatusValues(REGISTRY_LOCK_STATUSES)
             .build());

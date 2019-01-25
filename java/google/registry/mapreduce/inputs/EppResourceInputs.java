@@ -16,12 +16,10 @@ package google.registry.mapreduce.inputs;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.asList;
-import static google.registry.util.TypeUtils.hasAnnotation;
 
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.EntitySubclass;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.index.EppResourceIndex;
@@ -84,13 +82,8 @@ public final class EppResourceInputs {
    */
   @SafeVarargs
   public static <R extends EppResource> Input<Key<R>> createKeyInput(
-      Class<? extends R> resourceClass,
-      Class<? extends R>... moreResourceClasses) {
-    ImmutableSet<Class<? extends R>> resourceClasses =
-        ImmutableSet.copyOf(asList(resourceClass, moreResourceClasses));
-    checkArgument(
-        resourceClasses.stream().noneMatch(hasAnnotation(EntitySubclass.class)),
-        "Mapping over keys requires a non-polymorphic Entity");
-    return new EppResourceKeyInput<>(resourceClasses);
+      Class<? extends R> resourceClass, Class<? extends R>... moreResourceClasses) {
+    return new EppResourceKeyInput<>(
+        ImmutableSet.copyOf(asList(resourceClass, moreResourceClasses)));
   }
 }

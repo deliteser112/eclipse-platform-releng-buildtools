@@ -76,9 +76,9 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.billing.BillingEvent.Recurring;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand;
 import google.registry.model.domain.DomainCommand.Create;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.FeeCreateCommandExtension;
@@ -221,7 +221,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     verifyUnitIsYears(period);
     int years = period.getValue();
     validateRegistrationPeriod(years);
-    verifyResourceDoesNotExist(DomainResource.class, targetId, now);
+    verifyResourceDoesNotExist(DomainBase.class, targetId, now);
     // Validate that this is actually a legal domain name on a TLD that the registrar has access to.
     InternetDomainName domainName = validateDomainName(command.getFullyQualifiedDomainName());
     String domainLabel = domainName.parts().get(0);
@@ -334,8 +334,8 @@ public class DomainCreateFlow implements TransactionalFlow {
           createNameCollisionOneTimePollMessage(targetId, historyEntry, clientId, now));
     }
 
-    DomainResource newDomain =
-        new DomainResource.Builder()
+    DomainBase newDomain =
+        new DomainBase.Builder()
             .setCreationClientId(clientId)
             .setPersistedCurrentSponsorClientId(clientId)
             .setRepoId(repoId)
@@ -477,7 +477,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         .setType(HistoryEntry.Type.DOMAIN_CREATE)
         .setPeriod(period)
         .setModificationTime(now)
-        .setParent(Key.create(DomainResource.class, repoId))
+        .setParent(Key.create(DomainBase.class, repoId))
         .build();
   }
 
@@ -573,12 +573,12 @@ public class DomainCreateFlow implements TransactionalFlow {
   }
 
   private void enqueueTasks(
-      DomainResource newDomain, boolean hasSignedMarks, boolean hasClaimsNotice) {
+      DomainBase newDomain, boolean hasSignedMarks, boolean hasClaimsNotice) {
     if (newDomain.shouldPublishToDns()) {
       dnsQueue.addDomainRefreshTask(newDomain.getFullyQualifiedDomainName());
     }
     if (hasClaimsNotice || hasSignedMarks) {
-      LordnTaskUtils.enqueueDomainResourceTask(newDomain);
+      LordnTaskUtils.enqueueDomainBaseTask(newDomain);
     }
   }
 

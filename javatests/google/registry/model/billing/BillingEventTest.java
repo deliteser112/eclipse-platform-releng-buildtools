@@ -29,7 +29,7 @@ import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.reporting.HistoryEntry;
@@ -44,7 +44,7 @@ public class BillingEventTest extends EntityTestCase {
 
   HistoryEntry historyEntry;
   HistoryEntry historyEntry2;
-  DomainResource domain;
+  DomainBase domain;
   BillingEvent.OneTime oneTime;
   BillingEvent.OneTime oneTimeSynthetic;
   BillingEvent.Recurring recurring;

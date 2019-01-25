@@ -46,7 +46,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.DomainBaseSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
@@ -136,7 +136,7 @@ import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -162,7 +162,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /** Unit tests for {@link DomainCreateFlow}. */
-public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow, DomainResource> {
+public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow, DomainBase> {
 
   private static final String CLAIMS_KEY = "2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001";
 
@@ -212,7 +212,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   private void assertSuccessfulCreate(
       String domainTld, ImmutableSet<BillingEvent.Flag> expectedBillingFlags) throws Exception {
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
 
     // Calculate the total cost.
     Money cost =
@@ -1090,7 +1090,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
     // Check for SERVER_HOLD status, no DNS tasks enqueued, and collision poll message.
     assertNoDnsTasksEnqueued();
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
     assertThat(domain.getStatusValues()).contains(SERVER_HOLD);
     assertPollMessagesWithCollisionOneTime(domain);
   }
@@ -1107,12 +1107,12 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
     // Check for SERVER_HOLD status, no DNS tasks enqueued, and collision poll message.
     assertNoDnsTasksEnqueued();
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
     assertThat(domain.getStatusValues()).contains(SERVER_HOLD);
     assertPollMessagesWithCollisionOneTime(domain);
   }
 
-  private void assertPollMessagesWithCollisionOneTime(DomainResource domain) {
+  private void assertPollMessagesWithCollisionOneTime(DomainBase domain) {
     HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
     assertPollMessagesForResource(
         domain,
@@ -1266,7 +1266,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         CommitMode.LIVE,
         UserPrivileges.NORMAL,
         loadFile("domain_create_response.xml", substitutions));
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
     HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
     assertPollMessagesForResource(
         domain,
@@ -2217,7 +2217,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .setAddGracePeriodLength(Duration.standardMinutes(9))
             .build());
     runFlow();
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
     HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
     assertThat(historyEntry.getDomainTransactionRecords())
         .containsExactly(
@@ -2233,7 +2233,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     persistResource(Registry.get("tld").asBuilder().setTldType(TldType.TEST).build());
     runFlow();
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
     HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
     // No transaction records should be stored for test TLDs
     assertThat(historyEntry.getDomainTransactionRecords()).isEmpty();

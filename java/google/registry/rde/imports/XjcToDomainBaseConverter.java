@@ -29,7 +29,7 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainAuthInfo;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -55,8 +55,8 @@ import google.registry.xjc.secdns.XjcSecdnsDsDataType;
 import java.util.function.Function;
 import org.joda.time.DateTime;
 
-/** Utility class that converts an {@link XjcRdeDomainElement} into a {@link DomainResource}. */
-final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
+/** Utility class that converts an {@link XjcRdeDomainElement} into a {@link DomainBase}. */
+final class XjcToDomainBaseConverter extends XjcToEppResourceConverter {
 
   private static final XmlToEnumMapper<TransferStatus> TRANSFER_STATUS_MAPPER =
       XmlToEnumMapper.create(TransferStatus.values());
@@ -131,16 +131,16 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
     }
   }
 
-  /** Converts {@link XjcRdeDomain} to {@link DomainResource}. */
-  static DomainResource convertDomain(
+  /** Converts {@link XjcRdeDomain} to {@link DomainBase}. */
+  static DomainBase convertDomain(
       XjcRdeDomain domain,
       BillingEvent.Recurring autoRenewBillingEvent,
       PollMessage.Autorenew autoRenewPollMessage,
       StringGenerator stringGenerator) {
     GracePeriodConverter gracePeriodConverter =
         new GracePeriodConverter(domain, Key.create(autoRenewBillingEvent));
-    DomainResource.Builder builder =
-        new DomainResource.Builder()
+    DomainBase.Builder builder =
+        new DomainBase.Builder()
             .setFullyQualifiedDomainName(canonicalizeDomainName(domain.getName()))
             .setRepoId(domain.getRoid())
             .setIdnTableName(domain.getIdnTableId())
@@ -157,7 +157,7 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
                 domain
                     .getStatuses()
                     .stream()
-                    .map(XjcToDomainResourceConverter::convertStatusType)
+                    .map(XjcToDomainBaseConverter::convertStatusType)
                     .collect(toImmutableSet()))
             .setNameservers(convertNameservers(domain.getNs()))
             .setGracePeriods(
@@ -170,7 +170,7 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
                 domain
                     .getContacts()
                     .stream()
-                    .map(XjcToDomainResourceConverter::convertContactType)
+                    .map(XjcToDomainBaseConverter::convertContactType)
                     .collect(toImmutableSet()))
             .setDsData(
                 domain.getSecDNS() == null
@@ -179,7 +179,7 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
                         .getSecDNS()
                         .getDsDatas()
                         .stream()
-                        .map(XjcToDomainResourceConverter::convertSecdnsDsDataType)
+                        .map(XjcToDomainBaseConverter::convertSecdnsDsDataType)
                         .collect(toImmutableSet()))
             .setTransferData(convertDomainTransferData(domain.getTrnData()))
             // authInfo pw must be a token between 6 and 16 characters in length
@@ -251,5 +251,5 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
     return DesignatedContact.create(type, key);
   }
 
-  private XjcToDomainResourceConverter() {}
+  private XjcToDomainBaseConverter() {}
 }

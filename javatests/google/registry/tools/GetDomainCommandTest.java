@@ -15,7 +15,7 @@
 package google.registry.tools;
 
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -69,7 +69,7 @@ public class GetDomainCommandTest extends CommandTestCase<GetDomainCommand> {
 
   @Test
   public void testSuccess_domainDeletedInFuture() throws Exception {
-    persistResource(newDomainResource("example.tld").asBuilder()
+    persistResource(newDomainBase("example.tld").asBuilder()
         .setDeletionTime(now.plusDays(1)).build());
     runCommand("example.tld", "--read_timestamp=" + now.plusMonths(1));
     assertInStdout("Domain 'example.tld' does not exist or is deleted");

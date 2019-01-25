@@ -38,7 +38,7 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.ImmutableObject;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CreateData.HostCreateData;
@@ -106,7 +106,7 @@ public final class HostCreateFlow implements TransactionalFlow {
     // The superordinate domain of the host object if creating an in-bailiwick host, or null if
     // creating an external host. This is looked up before we actually create the Host object so
     // we can detect error conditions earlier.
-    Optional<DomainResource> superordinateDomain =
+    Optional<DomainBase> superordinateDomain =
         lookupSuperordinateDomain(validateHostName(targetId), now);
     verifySuperordinateDomainNotInPendingDelete(superordinateDomain.orElse(null));
     verifySuperordinateDomainOwnership(clientId, superordinateDomain.orElse(null));

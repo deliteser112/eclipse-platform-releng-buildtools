@@ -62,10 +62,10 @@ import google.registry.flows.domain.DomainFlowUtils.MissingRegistrantException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.Update;
 import google.registry.model.domain.DomainCommand.Update.AddRemove;
 import google.registry.model.domain.DomainCommand.Update.Change;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee.FeeUpdateCommandExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
@@ -162,12 +162,12 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
     Update command = cloneAndLinkReferences((Update) resourceCommand, now);
-    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    DomainBase existingDomain = loadAndVerifyExistence(DomainBase.class, targetId, now);
     verifyUpdateAllowed(command, existingDomain, now);
     flowCustomLogic.afterValidation(
         AfterValidationParameters.newBuilder().setExistingDomain(existingDomain).build());
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, now);
-    DomainResource newDomain = performUpdate(command, existingDomain, now);
+    DomainBase newDomain = performUpdate(command, existingDomain, now);
     validateNewState(newDomain);
     dnsQueue.addDomainRefreshTask(targetId);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
@@ -189,7 +189,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
   }
 
   /** Fail if the object doesn't exist or was deleted. */
-  private void verifyUpdateAllowed(Update command, DomainResource existingDomain, DateTime now)
+  private void verifyUpdateAllowed(Update command, DomainBase existingDomain, DateTime now)
       throws EppException {
     verifyOptionalAuthInfo(authInfo, existingDomain);
     AddRemove add = command.getInnerAdd();
@@ -225,7 +225,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
         domainName, nullToEmpty(add.getNameserverFullyQualifiedHostNames()));
   }
 
-  private HistoryEntry buildHistoryEntry(DomainResource existingDomain, DateTime now) {
+  private HistoryEntry buildHistoryEntry(DomainBase existingDomain, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_UPDATE)
         .setModificationTime(now)
@@ -233,7 +233,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
         .build();
   }
 
-  private DomainResource performUpdate(Update command, DomainResource domain, DateTime now)
+  private DomainBase performUpdate(Update command, DomainBase domain, DateTime now)
       throws EppException {
     AddRemove add = command.getInnerAdd();
     AddRemove remove = command.getInnerRemove();
@@ -244,7 +244,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     validateRegistrantIsntBeingRemoved(change);
     Optional<SecDnsUpdateExtension> secDnsUpdate =
         eppInput.getSingleExtension(SecDnsUpdateExtension.class);
-    DomainResource.Builder domainBuilder =
+    DomainBase.Builder domainBuilder =
         domain
             .asBuilder()
             // Handle the secDNS extension.
@@ -276,7 +276,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     }
   }
 
-  private void validateNewState(DomainResource newDomain) throws EppException {
+  private void validateNewState(DomainBase newDomain) throws EppException {
     validateNoDuplicateContacts(newDomain.getContacts());
     validateRequiredContactsPresent(newDomain.getRegistrant(), newDomain.getContacts());
     validateDsData(newDomain.getDsData());
@@ -288,8 +288,8 @@ public final class DomainUpdateFlow implements TransactionalFlow {
 
   /** Some status updates cost money. Bill only once no matter how many of them are changed. */
   private Optional<BillingEvent.OneTime> createBillingEventForStatusUpdates(
-      DomainResource existingDomain,
-      DomainResource newDomain,
+      DomainBase existingDomain,
+      DomainBase newDomain,
       HistoryEntry historyEntry,
       DateTime now) {
     Optional<MetadataExtension> metadataExtension =

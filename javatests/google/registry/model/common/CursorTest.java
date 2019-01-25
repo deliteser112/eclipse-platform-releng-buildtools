@@ -25,7 +25,7 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import google.registry.model.EntityTestCase;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.registry.Registry;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -70,7 +70,7 @@ public class CursorTest extends EntityTestCase {
     createTld("tld");
     clock.advanceOneMilli();
     final DateTime time = DateTime.parse("2012-07-12T03:30:00.000Z");
-    final DomainResource domain = persistActiveDomain("notaregistry.tld");
+    final DomainBase domain = persistActiveDomain("notaregistry.tld");
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

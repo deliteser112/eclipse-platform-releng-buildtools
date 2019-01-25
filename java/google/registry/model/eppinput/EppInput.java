@@ -110,8 +110,8 @@ public class EppInput extends ImmutableObject {
     return Optional.empty();
   }
 
-  /** Returns whether this EppInput represents a command that operates on domain resources. */
-  public boolean isDomainResourceType() {
+  /** Returns whether this EppInput represents a command that operates on domains. */
+  public boolean isDomainType() {
     return getResourceType().orElse("").equals("domain");
   }
 

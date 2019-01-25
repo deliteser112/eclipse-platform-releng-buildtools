@@ -21,7 +21,7 @@ import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.registrar.Registrar;
@@ -123,15 +123,15 @@ public final class RdeMarshaller implements Serializable {
         ContactResourceToXjcConverter.convert(contact));
   }
 
-  /** Turns {@link DomainResource} object into an XML fragment. */
-  public DepositFragment marshalDomain(DomainResource domain, RdeMode mode) {
+  /** Turns {@link DomainBase} object into an XML fragment. */
+  public DepositFragment marshalDomain(DomainBase domain, RdeMode mode) {
     return marshalResource(RdeResourceType.DOMAIN, domain,
-        DomainResourceToXjcConverter.convert(domain, mode));
+        DomainBaseToXjcConverter.convert(domain, mode));
   }
 
   /** Turns {@link HostResource} object into an XML fragment. */
   public DepositFragment marshalSubordinateHost(
-      HostResource host, DomainResource superordinateDomain) {
+      HostResource host, DomainBase superordinateDomain) {
     return marshalResource(RdeResourceType.HOST, host,
         HostResourceToXjcConverter.convertSubordinate(host, superordinateDomain));
   }

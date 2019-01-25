@@ -42,7 +42,7 @@ import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.common.Cursor;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.Period;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
@@ -74,7 +74,7 @@ public class ExpandRecurringBillingEventsActionTest
   private final DateTime beginningOfTest = DateTime.parse("2000-10-02T00:00:00Z");
   private final FakeClock clock = new FakeClock(beginningOfTest);
 
-  DomainResource domain;
+  DomainBase domain;
   HistoryEntry historyEntry;
   BillingEvent.Recurring recurring;
 
@@ -118,7 +118,7 @@ public class ExpandRecurringBillingEventsActionTest
   }
 
   void assertHistoryEntryMatches(
-      DomainResource domain, HistoryEntry actual, String clientId, DateTime billingTime) {
+      DomainBase domain, HistoryEntry actual, String clientId, DateTime billingTime) {
     assertThat(actual.getBySuperuser()).isFalse();
     assertThat(actual.getClientId()).isEqualTo(clientId);
     assertThat(actual.getParent()).isEqualTo(Key.create(domain));
@@ -168,7 +168,7 @@ public class ExpandRecurringBillingEventsActionTest
   @Test
   public void testSuccess_expandSingleEvent_deletedDomain() throws Exception {
     DateTime deletionTime = DateTime.parse("2000-08-01T00:00:00Z");
-    DomainResource deletedDomain = persistDeletedDomain("deleted.tld", deletionTime);
+    DomainBase deletedDomain = persistDeletedDomain("deleted.tld", deletionTime);
     historyEntry = persistResource(new HistoryEntry.Builder().setParent(deletedDomain).build());
     recurring = persistResource(new BillingEvent.Recurring.Builder()
         .setParent(historyEntry)

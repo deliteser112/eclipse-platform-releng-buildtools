@@ -29,7 +29,7 @@ import static google.registry.flows.domain.DomainTransferUtils.createLosingTrans
 import static google.registry.flows.domain.DomainTransferUtils.createPendingTransferData;
 import static google.registry.flows.domain.DomainTransferUtils.createTransferResponse;
 import static google.registry.flows.domain.DomainTransferUtils.createTransferServerApproveEntities;
-import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.domain.DomainBase.extendRegistrationWithCap;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -49,8 +49,8 @@ import google.registry.flows.exceptions.InvalidTransferPeriodValueException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.flows.exceptions.TransferPeriodMustBeOneYearException;
 import google.registry.flows.exceptions.TransferPeriodZeroAndFeeTransferExtensionException;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.Transfer;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.FeeTransferCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
@@ -143,7 +143,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     validateClientIsLoggedIn(gainingClientId);
     verifyRegistrarIsActive(gainingClientId);
     DateTime now = ofy().getTransactionTime();
-    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    DomainBase existingDomain = loadAndVerifyExistence(DomainBase.class, targetId, now);
     Optional<DomainTransferRequestSuperuserExtension> superuserExtension =
         eppInput.getSingleExtension(DomainTransferRequestSuperuserExtension.class);
     Period period =
@@ -182,7 +182,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     // See b/19430703#comment17 and https://www.icann.org/news/advisory-2002-06-06-en for the
     // policy documentation for transfers subsuming autorenews within the autorenew grace period.
     int extraYears = period.getValue();
-    DomainResource domainAtTransferTime =
+    DomainBase domainAtTransferTime =
         existingDomain.cloneProjectedAtTime(automaticTransferTime);
     if (!domainAtTransferTime.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW).isEmpty()) {
       extraYears = 0;
@@ -225,7 +225,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     // cloneProjectedAtTime() will replace these old autorenew entities with the server approve ones
     // that we've created in this flow and stored in pendingTransferData.
     updateAutorenewRecurrenceEndTime(existingDomain, automaticTransferTime);
-    DomainResource newDomain =
+    DomainBase newDomain =
         existingDomain
             .asBuilder()
             .setTransferData(pendingTransferData)
@@ -248,7 +248,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   }
 
   private void verifyTransferAllowed(
-      DomainResource existingDomain,
+      DomainBase existingDomain,
       Period period,
       DateTime now,
       Optional<DomainTransferRequestSuperuserExtension> superuserExtension)
@@ -310,7 +310,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   }
 
   private HistoryEntry buildHistoryEntry(
-      DomainResource existingDomain, Registry registry, DateTime now, Period period) {
+      DomainBase existingDomain, Registry registry, DateTime now, Period period) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST)
         .setOtherClientId(existingDomain.getCurrentSponsorClientId())
@@ -329,7 +329,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   }
 
   private DomainTransferResponse createResponse(
-      Period period, DomainResource existingDomain, DomainResource newDomain, DateTime now) {
+      Period period, DomainBase existingDomain, DomainBase newDomain, DateTime now) {
     // If the registration were approved this instant, this is what the new expiration would be,
     // because we cap at 10 years from the moment of approval. This is different than the server
     // approval new expiration time, which is capped at 10 years from the server approve time.

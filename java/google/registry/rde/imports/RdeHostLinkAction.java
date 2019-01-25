@@ -30,7 +30,7 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.flows.host.HostFlowUtils;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.EppResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.request.Action;
@@ -49,7 +49,7 @@ import org.joda.time.DateTime;
  *
  * <p>This mapreduce is run as the last step of the process of importing escrow files. For each host
  * in the escrow file, the corresponding {@link HostResource} record in Datastore is linked to its
- * superordinate {@link DomainResource} only if it is an in-zone host. This is necessary because all
+ * superordinate {@link DomainBase} only if it is an in-zone host. This is necessary because all
  * hosts must exist before domains can be imported, due to references in host objects, and domains
  * must exist before hosts can be linked to their superordinate domains.
  *
@@ -110,7 +110,7 @@ public class RdeHostLinkAction implements Runnable {
         final InternetDomainName hostName = InternetDomainName.from(xjcHost.getName());
 
         HostLinkResult hostLinkResult = ofy().transact(() -> {
-          Optional<DomainResource> superordinateDomain =
+          Optional<DomainBase> superordinateDomain =
               lookupSuperordinateDomain(hostName, ofy().getTransactionTime());
           // if suporordinateDomain is absent, this is an out of zone host and can't be linked.
           // absent is only returned for out of zone hosts, and an exception is thrown for in
@@ -121,7 +121,7 @@ public class RdeHostLinkAction implements Runnable {
           if (superordinateDomain.get().getStatusValues().contains(StatusValue.PENDING_DELETE)) {
             return HostLinkResult.SUPERORDINATE_DOMAIN_IN_PENDING_DELETE;
           }
-          Key<DomainResource> superordinateDomainKey = Key.create(superordinateDomain.get());
+          Key<DomainBase> superordinateDomainKey = Key.create(superordinateDomain.get());
           // link host to superordinate domain and set time of last superordinate change to
           // the time of the import
           HostResource host =
@@ -172,7 +172,7 @@ public class RdeHostLinkAction implements Runnable {
     }
 
     /**
-     * Return the {@link DomainResource} this host is subordinate to, or absent for out of zone
+     * Return the {@link DomainBase} this host is subordinate to, or absent for out of zone
      * hosts.
      *
      * <p>We use this instead of {@link HostFlowUtils#lookupSuperordinateDomain} because we don't
@@ -181,7 +181,7 @@ public class RdeHostLinkAction implements Runnable {
      *
      * @throws IllegalStateException for hosts without superordinate domains
      */
-    private static Optional<DomainResource> lookupSuperordinateDomain(
+    private static Optional<DomainBase> lookupSuperordinateDomain(
         InternetDomainName hostName, DateTime now) {
       Optional<InternetDomainName> tld = findTldForName(hostName);
       // out of zone hosts cannot be linked
@@ -195,8 +195,8 @@ public class RdeHostLinkAction implements Runnable {
               .stream()
               .skip(hostName.parts().size() - (tld.get().parts().size() + 1))
               .collect(joining("."));
-      Optional<DomainResource> superordinateDomain =
-          loadByForeignKey(DomainResource.class, domainName, now);
+      Optional<DomainBase> superordinateDomain =
+          loadByForeignKey(DomainBase.class, domainName, now);
       // Hosts can't be linked if domains import hasn't been run
       checkState(
           superordinateDomain.isPresent(),

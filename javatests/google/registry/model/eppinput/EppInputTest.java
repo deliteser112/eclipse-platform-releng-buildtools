@@ -21,7 +21,7 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TestDataHelper.loadBytes;
 
 import google.registry.model.contact.ContactResourceTest;
-import google.registry.model.domain.DomainResourceTest;
+import google.registry.model.domain.DomainBaseTest;
 import google.registry.model.eppinput.EppInput.InnerCommand;
 import google.registry.model.eppinput.EppInput.Login;
 import google.registry.xml.XmlException;
@@ -47,7 +47,7 @@ public class EppInputTest {
   @Test
   public void testUnmarshalling_domainCheck() throws Exception {
     EppInput input =
-        unmarshal(EppInput.class, loadBytes(DomainResourceTest.class, "domain_check.xml").read());
+        unmarshal(EppInput.class, loadBytes(DomainBaseTest.class, "domain_check.xml").read());
     assertThat(input.getCommandWrapper().getClTrid()).hasValue("ABC-12345");
     assertThat(input.getCommandType()).isEqualTo("check");
     assertThat(input.getResourceType()).hasValue("domain");

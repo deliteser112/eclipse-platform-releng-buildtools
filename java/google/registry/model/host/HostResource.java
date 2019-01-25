@@ -31,7 +31,7 @@ import google.registry.model.EppResource;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.annotations.ReportedOn;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.transfer.TransferData;
 import java.net.InetAddress;
 import java.util.Optional;
@@ -70,7 +70,7 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
   @Index
   @IgnoreSave(IfNull.class)
   @DoNotHydrate
-  Key<DomainResource> superordinateDomain;
+  Key<DomainBase> superordinateDomain;
 
   /**
    * The time that this resource was last transferred.
@@ -92,7 +92,7 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
     return fullyQualifiedHostName;
   }
 
-  public Key<DomainResource> getSuperordinateDomain() {
+  public Key<DomainBase> getSuperordinateDomain() {
     return superordinateDomain;
   }
 
@@ -137,7 +137,7 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
    *     the {@link #superordinateDomain} field. Passing it as a parameter allows the caller to
    *     control the degree of consistency used to load it.
    */
-   public DateTime computeLastTransferTime(@Nullable DomainResource superordinateDomain) {
+   public DateTime computeLastTransferTime(@Nullable DomainBase superordinateDomain) {
     if (!isSubordinate()) {
       checkArgument(superordinateDomain == null);
       return getLastTransferTime();
@@ -195,7 +195,7 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
           difference(getInstance().getInetAddresses(), inetAddresses)));
     }
 
-    public Builder setSuperordinateDomain(Key<DomainResource> superordinateDomain) {
+    public Builder setSuperordinateDomain(Key<DomainBase> superordinateDomain) {
       getInstance().superordinateDomain = superordinateDomain;
       return this;
     }

@@ -39,7 +39,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.Address;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -455,9 +455,9 @@ public class RdapJsonFormatter {
   }
 
   /**
-   * Creates a JSON object for a {@link DomainResource}.
+   * Creates a JSON object for a {@link DomainBase}.
    *
-   * @param domainResource the domain resource object from which the JSON object should be created
+   * @param domainBase the domain resource object from which the JSON object should be created
    * @param isTopLevel if true, the top-level boilerplate will be added
    * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
@@ -468,7 +468,7 @@ public class RdapJsonFormatter {
    *        registrar owning the domain, no contact information is included
    */
   ImmutableMap<String, Object> makeRdapJsonForDomain(
-      DomainResource domainResource,
+      DomainBase domainBase,
       boolean isTopLevel,
       @Nullable String linkBase,
       @Nullable String whoisServer,
@@ -478,22 +478,22 @@ public class RdapJsonFormatter {
     // Start with the domain-level information.
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("objectClassName", "domain");
-    jsonBuilder.put("handle", domainResource.getRepoId());
-    jsonBuilder.put("ldhName", domainResource.getFullyQualifiedDomainName());
+    jsonBuilder.put("handle", domainBase.getRepoId());
+    jsonBuilder.put("ldhName", domainBase.getFullyQualifiedDomainName());
     // Only include the unicodeName field if there are unicode characters.
-    if (hasUnicodeComponents(domainResource.getFullyQualifiedDomainName())) {
-      jsonBuilder.put("unicodeName", Idn.toUnicode(domainResource.getFullyQualifiedDomainName()));
+    if (hasUnicodeComponents(domainBase.getFullyQualifiedDomainName())) {
+      jsonBuilder.put("unicodeName", Idn.toUnicode(domainBase.getFullyQualifiedDomainName()));
     }
     jsonBuilder.put(
         "status",
         makeStatusValueList(
-            domainResource.getStatusValues(),
+            domainBase.getStatusValues(),
             false, // isRedacted
-            domainResource.getDeletionTime().isBefore(now)));
+            domainBase.getDeletionTime().isBefore(now)));
     jsonBuilder.put("links", ImmutableList.of(
-        makeLink("domain", domainResource.getFullyQualifiedDomainName(), linkBase)));
+        makeLink("domain", domainBase.getFullyQualifiedDomainName(), linkBase)));
     boolean displayContacts =
-        authorization.isAuthorizedForClientId(domainResource.getCurrentSponsorClientId());
+        authorization.isAuthorizedForClientId(domainBase.getCurrentSponsorClientId());
     // If we are outputting all data (not just summary data), also add information about hosts,
     // contacts and events (history entries). If we are outputting summary data, instead add a
     // remark indicating that fact.
@@ -504,26 +504,26 @@ public class RdapJsonFormatter {
       remarks = displayContacts
         ? ImmutableList.of()
         : ImmutableList.of(RdapIcannStandardInformation.DOMAIN_CONTACTS_HIDDEN_DATA_REMARK);
-      ImmutableList<Object> events = makeEvents(domainResource, now);
+      ImmutableList<Object> events = makeEvents(domainBase, now);
       if (!events.isEmpty()) {
         jsonBuilder.put("events", events);
       }
       // Kick off the database loads of the nameservers that we will need, so it can load
       // asynchronously while we load and process the contacts.
       Map<Key<HostResource>, HostResource> loadedHosts =
-          ofy().load().keys(domainResource.getNameservers());
+          ofy().load().keys(domainBase.getNameservers());
       // Load the registrant and other contacts and add them to the data.
       ImmutableList<ImmutableMap<String, Object>> entities;
       if (!displayContacts) {
         entities = ImmutableList.of();
       } else {
         Map<Key<ContactResource>, ContactResource> loadedContacts =
-            ofy().load().keys(domainResource.getReferencedContacts());
+            ofy().load().keys(domainBase.getReferencedContacts());
         entities =
             Streams.concat(
-                    domainResource.getContacts().stream(),
+                    domainBase.getContacts().stream(),
                     Stream.of(
-                        DesignatedContact.create(Type.REGISTRANT, domainResource.getRegistrant())))
+                        DesignatedContact.create(Type.REGISTRANT, domainBase.getRegistrant())))
                 .sorted(DESIGNATED_CONTACT_ORDERING)
                 .map(
                     designatedContact ->
@@ -540,7 +540,7 @@ public class RdapJsonFormatter {
       }
       entities =
           addRegistrarEntity(
-              entities, domainResource.getCurrentSponsorClientId(), linkBase, whoisServer, now);
+              entities, domainBase.getCurrentSponsorClientId(), linkBase, whoisServer, now);
       if (!entities.isEmpty()) {
         jsonBuilder.put("entities", entities);
       }
@@ -1022,8 +1022,8 @@ public class RdapJsonFormatter {
       eventsBuilder.add(makeEvent(
           eventAction, historyEntry.getClientId(), historyEntry.getModificationTime()));
     }
-    if (resource instanceof DomainResource) {
-      DateTime expirationTime = ((DomainResource) resource).getRegistrationExpirationTime();
+    if (resource instanceof DomainBase) {
+      DateTime expirationTime = ((DomainBase) resource).getRegistrationExpirationTime();
       if (expirationTime != null) {
         eventsBuilder.add(makeEvent(RdapEventAction.EXPIRATION, null, expirationTime));
       }

@@ -17,7 +17,7 @@ package google.registry.flows.poll;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createHistoryEntryForEppResource;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -30,7 +30,7 @@ import google.registry.flows.poll.PollAckFlow.MessageDoesNotExistException;
 import google.registry.flows.poll.PollAckFlow.MissingMessageIdException;
 import google.registry.flows.poll.PollAckFlow.NotAuthorizedToAckMessageException;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.poll.PollMessage;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -42,7 +42,7 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
   /** This is the message id being sent in the ACK request. */
   private static final long MESSAGE_ID = 3;
 
-  private DomainResource domain;
+  private DomainBase domain;
   private ContactResource contact;
 
   @Before
@@ -54,7 +54,7 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
     clock.advanceOneMilli();
     contact = persistActiveContact("jd1234");
     clock.advanceOneMilli();
-    domain = persistResource(newDomainResource("test.example", contact));
+    domain = persistResource(newDomainBase("test.example", contact));
     clock.advanceOneMilli();
   }
 

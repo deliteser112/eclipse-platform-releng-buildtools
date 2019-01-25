@@ -29,7 +29,7 @@ import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.util.Idn;
 import java.util.Optional;
@@ -77,8 +77,8 @@ public class HostFlowUtils {
     }
   }
 
-  /** Return the {@link DomainResource} this host is subordinate to, or null for external hosts. */
-  public static Optional<DomainResource> lookupSuperordinateDomain(
+  /** Return the {@link DomainBase} this host is subordinate to, or null for external hosts. */
+  public static Optional<DomainBase> lookupSuperordinateDomain(
       InternetDomainName hostName, DateTime now) throws EppException {
     Optional<InternetDomainName> tld = findTldForName(hostName);
     if (!tld.isPresent()) {
@@ -90,8 +90,8 @@ public class HostFlowUtils {
         hostName.parts().stream()
             .skip(hostName.parts().size() - (tld.get().parts().size() + 1))
             .collect(joining("."));
-    Optional<DomainResource> superordinateDomain =
-        loadByForeignKey(DomainResource.class, domainName, now);
+    Optional<DomainBase> superordinateDomain =
+        loadByForeignKey(DomainBase.class, domainName, now);
     if (!superordinateDomain.isPresent() || !isActive(superordinateDomain.get(), now)) {
       throw new SuperordinateDomainDoesNotExistException(domainName);
     }
@@ -101,13 +101,13 @@ public class HostFlowUtils {
   /** Superordinate domain for this hostname does not exist. */
   static class SuperordinateDomainDoesNotExistException extends ObjectDoesNotExistException {
     public SuperordinateDomainDoesNotExistException(String domainName) {
-      super(DomainResource.class, domainName);
+      super(DomainBase.class, domainName);
     }
   }
 
   /** Ensure that the superordinate domain is sponsored by the provided clientId. */
   static void verifySuperordinateDomainOwnership(
-      String clientId, DomainResource superordinateDomain) throws EppException {
+      String clientId, DomainBase superordinateDomain) throws EppException {
     if (superordinateDomain != null
         && !clientId.equals(superordinateDomain.getCurrentSponsorClientId())) {
       throw new HostDomainNotOwnedException();
@@ -122,7 +122,7 @@ public class HostFlowUtils {
   }
 
   /** Ensure that the superordinate domain is not in pending delete. */
-  static void verifySuperordinateDomainNotInPendingDelete(DomainResource superordinateDomain)
+  static void verifySuperordinateDomainNotInPendingDelete(DomainBase superordinateDomain)
       throws EppException {
     if ((superordinateDomain != null)
         && superordinateDomain.getStatusValues().contains(StatusValue.PENDING_DELETE)) {

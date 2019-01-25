@@ -24,7 +24,7 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar.Type;
@@ -60,8 +60,8 @@ public class LordnTaskUtilsTest {
     inject.setStaticField(Ofy.class, "clock", clock);
   }
 
-  private DomainResource.Builder newDomainBuilder() {
-    return new DomainResource.Builder()
+  private DomainBase.Builder newDomainBuilder() {
+    return new DomainBase.Builder()
         .setFullyQualifiedDomainName("fleece.example")
         .setRegistrant(Key.create(persistActiveContact("jd1234")))
         .setSmdId("smdzzzz")
@@ -69,7 +69,7 @@ public class LordnTaskUtilsTest {
   }
 
   @Test
-  public void test_enqueueDomainResourceTask_sunrise() {
+  public void test_enqueueDomainBaseTask_sunrise() {
     persistDomainAndEnqueueLordn(newDomainBuilder().setRepoId("A-EXAMPLE").build());
     String expectedPayload =
         "A-EXAMPLE,fleece.example,smdzzzz,1,2010-05-01T10:11:12.000Z";
@@ -78,8 +78,8 @@ public class LordnTaskUtilsTest {
   }
 
   @Test
-  public void test_enqueueDomainResourceTask_claims() {
-    DomainResource domain =
+  public void test_enqueueDomainBaseTask_claims() {
+    DomainBase domain =
         newDomainBuilder()
             .setRepoId("11-EXAMPLE")
             .setLaunchNotice(
@@ -113,8 +113,8 @@ public class LordnTaskUtilsTest {
   }
 
   @Test
-  public void test_enqueueDomainResourceTask_throwsExceptionOnInvalidRegistrar() {
-    DomainResource domain =
+  public void test_enqueueDomainBaseTask_throwsExceptionOnInvalidRegistrar() {
+    DomainBase domain =
         newDomainBuilder()
             .setRepoId("9000-EXAMPLE")
             .setCreationClientId("nonexistentRegistrar")
@@ -127,9 +127,9 @@ public class LordnTaskUtilsTest {
   }
 
   @Test
-  public void test_enqueueDomainResourceTask_throwsNpeOnNullDomain() {
+  public void test_enqueueDomainBaseTask_throwsNpeOnNullDomain() {
     assertThrows(
         NullPointerException.class,
-        () -> ofy().transactNew(() -> LordnTaskUtils.enqueueDomainResourceTask(null)));
+        () -> ofy().transactNew(() -> LordnTaskUtils.enqueueDomainBaseTask(null)));
   }
 }

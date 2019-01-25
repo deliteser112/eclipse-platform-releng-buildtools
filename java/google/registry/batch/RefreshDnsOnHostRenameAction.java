@@ -49,7 +49,7 @@ import google.registry.batch.AsyncTaskMetrics.OperationResult;
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.model.server.Lock;
 import google.registry.request.Action;
@@ -166,7 +166,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
               new RefreshDnsOnHostRenameMapper(refreshRequests, retrier),
               new RefreshDnsOnHostRenameReducer(refreshRequests, lock.get(), retrier),
               // Add an extra NullInput so that the reducer always fires exactly once.
-              ImmutableList.of(new NullInput<>(), createEntityInput(DomainResource.class)))
+              ImmutableList.of(new NullInput<>(), createEntityInput(DomainBase.class)))
           .sendLinkToMapreduceConsole(response);
     } catch (Throwable t) {
       logRespondAndUnlock(
@@ -182,7 +182,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
 
   /** Map over domains and refresh the DNS of those that reference the renamed hosts. */
   public static class RefreshDnsOnHostRenameMapper
-      extends Mapper<DomainResource, Boolean, Boolean> {
+      extends Mapper<DomainBase, Boolean, Boolean> {
 
     private static final long serialVersionUID = -5261698524424335531L;
     private static final DnsQueue dnsQueue = DnsQueue.create();
@@ -197,7 +197,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
     }
 
     @Override
-    public final void map(@Nullable final DomainResource domain) {
+    public final void map(@Nullable final DomainBase domain) {
       if (domain == null) {
         // Emit a single value so that the reducer always runs.  The key and value don't matter.
         emit(true, true);

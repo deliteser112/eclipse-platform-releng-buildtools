@@ -33,7 +33,7 @@ import google.registry.dns.DnsMetrics.ActionStatus;
 import google.registry.dns.DnsMetrics.CommitStatus;
 import google.registry.dns.DnsMetrics.PublishStatus;
 import google.registry.dns.writer.DnsWriter;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
 import google.registry.request.HttpException.ServiceUnavailableException;
@@ -78,10 +78,10 @@ public class PublishDnsUpdatesActionTest {
             .asBuilder()
             .setDnsWriters(ImmutableSet.of("correctWriter"))
             .build());
-    DomainResource domain1 = persistActiveDomain("example.xn--q9jyb4c");
+    DomainBase domain1 = persistActiveDomain("example.xn--q9jyb4c");
     persistActiveSubordinateHost("ns1.example.xn--q9jyb4c", domain1);
     persistActiveSubordinateHost("ns2.example.xn--q9jyb4c", domain1);
-    DomainResource domain2 = persistActiveDomain("example2.xn--q9jyb4c");
+    DomainBase domain2 = persistActiveDomain("example2.xn--q9jyb4c");
     persistActiveSubordinateHost("ns1.example.xn--q9jyb4c", domain2);
     clock.advanceOneMilli();
   }

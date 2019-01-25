@@ -31,7 +31,7 @@ import com.google.common.net.InetAddresses;
 import com.google.common.primitives.Booleans;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
@@ -216,11 +216,11 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    */
   private RdapSearchResults searchByDomainNameWithoutWildcard(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
-    Optional<DomainResource> domainResource =
-        loadByForeignKey(DomainResource.class, partialStringQuery.getInitialString(), now);
+    Optional<DomainBase> domainBase =
+        loadByForeignKey(DomainBase.class, partialStringQuery.getInitialString(), now);
     return makeSearchResults(
-        shouldBeVisible(domainResource, now)
-            ? ImmutableList.of(domainResource.get())
+        shouldBeVisible(domainBase, now)
+            ? ImmutableList.of(domainBase.get())
             : ImmutableList.of(),
         now);
   }
@@ -238,10 +238,10 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     // domains directly, rather than the foreign keys, because then we have an index on TLD if we
     // need it.
     int querySizeLimit = RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize;
-    Query<DomainResource> query =
+    Query<DomainBase> query =
         ofy()
             .load()
-            .type(DomainResource.class)
+            .type(DomainBase.class)
             .filter("fullyQualifiedDomainName <", partialStringQuery.getNextInitialString())
             .filter("fullyQualifiedDomainName >=", partialStringQuery.getInitialString());
     if (cursorString.isPresent()) {
@@ -262,10 +262,10 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     // searchByDomainNameWithInitialString, unable to perform an inequality query on deletion time.
     // Don't use queryItems, because it doesn't handle pending deletes.
     int querySizeLimit = RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize;
-    Query<DomainResource> query =
+    Query<DomainBase> query =
         ofy()
             .load()
-            .type(DomainResource.class)
+            .type(DomainBase.class)
             .filter("tld", tld);
     if (cursorString.isPresent()) {
       query = query.filter("fullyQualifiedDomainName >", cursorString.get());
@@ -368,9 +368,9 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     // The suffix must be a domain that we manage. That way, we can look up the domain and search
     // through the subordinate hosts. This is more efficient, and lets us permit wildcard searches
     // with no initial string.
-    DomainResource domainResource =
+    DomainBase domainBase =
         loadByForeignKey(
-                DomainResource.class,
+                DomainBase.class,
                 partialStringQuery.getSuffix(),
                 shouldIncludeDeleted() ? START_OF_TIME : now)
             .orElseThrow(
@@ -380,7 +380,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
                             + "must be a domain defined in the system"));
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     ImmutableList.Builder<Key<HostResource>> builder = new ImmutableList.Builder<>();
-    for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
+    for (String fqhn : ImmutableSortedSet.copyOf(domainBase.getSubordinateHosts())) {
       // We can't just check that the host name starts with the initial query string, because
       // then the query ns.exam*.example.com would match against nameserver ns.example.com.
       if (partialStringQuery.matches(fqhn)) {
@@ -451,17 +451,17 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     // We must break the query up into chunks, because the in operator is limited to 30 subqueries.
     // Since it is possible for the same domain to show up more than once in our result list (if
     // we do a wildcard nameserver search that returns multiple nameservers used by the same
-    // domain), we must create a set of resulting {@link DomainResource} objects. Use a sorted set,
+    // domain), we must create a set of resulting {@link DomainBase} objects. Use a sorted set,
     // and fetch all domains, to make sure that we can return the first domains in alphabetical
     // order.
-    ImmutableSortedSet.Builder<DomainResource> domainSetBuilder =
+    ImmutableSortedSet.Builder<DomainBase> domainSetBuilder =
         ImmutableSortedSet.orderedBy(
-            Comparator.comparing(DomainResource::getFullyQualifiedDomainName));
+            Comparator.comparing(DomainBase::getFullyQualifiedDomainName));
     int numHostKeysSearched = 0;
     for (List<Key<HostResource>> chunk : Iterables.partition(hostKeys, 30)) {
       numHostKeysSearched += chunk.size();
-      Query<DomainResource> query = ofy().load()
-          .type(DomainResource.class)
+      Query<DomainBase> query = ofy().load()
+          .type(DomainBase.class)
           .filter("nsHosts in", chunk);
       if (!shouldIncludeDeleted()) {
         query = query.filter("deletionTime >", now);
@@ -470,7 +470,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
       } else if (cursorString.isPresent()) {
         query = query.filter("fullyQualifiedDomainName >", cursorString.get());
       }
-      Stream<DomainResource> stream =
+      Stream<DomainBase> stream =
           Streams.stream(query).filter(domain -> isAuthorized(domain, now));
       if (cursorString.isPresent()) {
         stream =
@@ -479,7 +479,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
       }
       stream.forEach(domainSetBuilder::add);
     }
-    List<DomainResource> domains = domainSetBuilder.build().asList();
+    List<DomainBase> domains = domainSetBuilder.build().asList();
     metricInformationBuilder.setNumHostsRetrieved(numHostKeysSearched);
     if (domains.size() > rdapResultSetMaxSize) {
       return makeSearchResults(
@@ -502,14 +502,14 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
   }
 
   /** Output JSON for a list of domains, with no incompleteness warnings. */
-  private RdapSearchResults makeSearchResults(List<DomainResource> domains, DateTime now) {
+  private RdapSearchResults makeSearchResults(List<DomainBase> domains, DateTime now) {
     return makeSearchResults(
         domains, IncompletenessWarningType.COMPLETE, Optional.of((long) domains.size()), now);
   }
 
   /** Output JSON from data in an {@link RdapResultSet} object. */
   private RdapSearchResults makeSearchResults(
-      RdapResultSet<DomainResource> resultSet, DateTime now) {
+      RdapResultSet<DomainBase> resultSet, DateTime now) {
     return makeSearchResults(
         resultSet.resources(),
         resultSet.incompletenessWarningType(),
@@ -525,7 +525,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * maximum number of nameservers in the first stage query.
    */
   private RdapSearchResults makeSearchResults(
-      List<DomainResource> domains,
+      List<DomainBase> domains,
       IncompletenessWarningType incompletenessWarningType,
       Optional<Long> numDomainsRetrieved,
       DateTime now) {
@@ -535,7 +535,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     RdapAuthorization authorization = getAuthorization();
     List<ImmutableMap<String, Object>> jsonList = new ArrayList<>();
     Optional<String> newCursor = Optional.empty();
-    for (DomainResource domain : domains) {
+    for (DomainBase domain : domains) {
       newCursor = Optional.of(domain.getFullyQualifiedDomainName());
       jsonList.add(
           rdapJsonFormatter.makeRdapJsonForDomain(

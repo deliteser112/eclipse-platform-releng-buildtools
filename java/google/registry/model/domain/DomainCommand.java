@@ -54,7 +54,7 @@ import javax.xml.bind.annotation.XmlValue;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
-/** A collection of {@link DomainResource} commands. */
+/** A collection of {@link DomainBase} commands. */
 public class DomainCommand {
 
   /** The default validity period (if not specified) is 1 year for all operations. */
@@ -72,7 +72,7 @@ public class DomainCommand {
 
   /** The fields on "chgType" from {@link "http://tools.ietf.org/html/rfc5731"}. */
   @XmlTransient
-  public static class DomainCreateOrChange<B extends DomainBase.Builder<?, ?>>
+  public static class DomainCreateOrChange<B extends DomainBase.Builder>
       extends ImmutableObject implements ResourceCreateOrChange<B> {
 
     /** The contactId of the registrant who registered this domain. */
@@ -112,7 +112,7 @@ public class DomainCommand {
       "foreignKeyedDesignatedContacts",
       "authInfo"})
   public static class Create
-      extends DomainCreateOrChange<DomainBase.Builder<?, ?>>
+      extends DomainCreateOrChange<DomainBase.Builder>
       implements CreateOrUpdate<Create> {
 
     /** Fully qualified domain name, which serves as a unique identifier for this domain. */
@@ -259,11 +259,11 @@ public class DomainCommand {
     }
   }
 
-  /** A check request for {@link DomainResource}. */
+  /** A check request for {@link DomainBase}. */
   @XmlRootElement
   public static class Check extends ResourceCheck {}
 
-  /** A renew command for a {@link DomainResource}. */
+  /** A renew command for a {@link DomainBase}. */
   @XmlRootElement
   public static class Renew extends AbstractSingleResourceCommand {
     @XmlElement(name = "curExpDate")
@@ -281,7 +281,7 @@ public class DomainCommand {
     }
   }
 
-  /** A transfer operation for a {@link DomainResource}. */
+  /** A transfer operation for a {@link DomainBase}. */
   @XmlRootElement
   public static class Transfer extends AbstractSingleResourceCommand {
     /** The period to extend this domain's registration upon completion of the transfer. */
@@ -304,7 +304,7 @@ public class DomainCommand {
   @XmlRootElement
   @XmlType(propOrder = {"targetId", "innerAdd", "innerRemove", "innerChange"})
   public static class Update
-      extends ResourceUpdate<Update.AddRemove, DomainBase.Builder<?, ?>, Update.Change>
+      extends ResourceUpdate<Update.AddRemove, DomainBase.Builder, Update.Change>
       implements CreateOrUpdate<Update> {
 
     @XmlElement(name = "chg")
@@ -384,7 +384,7 @@ public class DomainCommand {
 
     /** The inner change type on a domain update command. */
     @XmlType(propOrder = {"registrantContactId", "authInfo"})
-    public static class Change extends DomainCreateOrChange<DomainBase.Builder<?, ?>> {
+    public static class Change extends DomainCreateOrChange<DomainBase.Builder> {
       /** Creates a copy of this {@link Change} with hard links to hosts and contacts. */
       Change cloneAndLinkReferences(DateTime now) throws InvalidReferencesException {
         Change clone = clone(this);

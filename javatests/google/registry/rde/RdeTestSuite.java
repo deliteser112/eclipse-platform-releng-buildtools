@@ -21,7 +21,7 @@ import org.junit.runners.Suite.SuiteClasses;
 /** Convenience class to run all RDE tests inside IDE with one keystroke. */
 @RunWith(Suite.class)
 @SuiteClasses({
-  DomainResourceToXjcConverterTest.class,
+  DomainBaseToXjcConverterTest.class,
   GhostrydeGpgIntegrationTest.class,
   GhostrydeTest.class,
   HostResourceToXjcConverterTest.class,

@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import google.registry.flows.EppTestCase;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.reporting.HistoryEntry.Type;
 import google.registry.testing.AppEngineRule;
 import google.registry.util.Clock;
@@ -139,9 +139,9 @@ public class EppLifecycleToolsTest extends EppTestCase {
 
     // Assert about billing events.
     DateTime createTime = DateTime.parse("2000-06-01T00:02:00Z");
-    DomainResource domain =
+    DomainBase domain =
         loadByForeignKey(
-                DomainResource.class, "example.tld", DateTime.parse("2003-06-02T00:02:00Z"))
+                DomainBase.class, "example.tld", DateTime.parse("2003-06-02T00:02:00Z"))
             .get();
     BillingEvent.OneTime renewBillingEvent =
         new BillingEvent.OneTime.Builder()

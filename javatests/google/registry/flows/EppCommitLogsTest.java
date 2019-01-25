@@ -27,7 +27,7 @@ import static org.joda.time.Duration.standardDays;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.ofy.Ofy;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
@@ -104,8 +104,8 @@ public class EppCommitLogsTest extends ShardableTestCase {
     eppLoader = new EppLoader(this, "domain_create.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     runFlow();
     ofy().clearSessionCache();
-    Key<DomainResource> key = Key.create(ofy().load().type(DomainResource.class).first().now());
-    DomainResource domainAfterCreate = ofy().load().key(key).now();
+    Key<DomainBase> key = Key.create(ofy().load().type(DomainBase.class).first().now());
+    DomainBase domainAfterCreate = ofy().load().key(key).now();
     assertThat(domainAfterCreate.getFullyQualifiedDomainName()).isEqualTo("example.tld");
 
     clock.advanceBy(standardDays(2));
@@ -114,7 +114,7 @@ public class EppCommitLogsTest extends ShardableTestCase {
     runFlow();
     ofy().clearSessionCache();
 
-    DomainResource domainAfterFirstUpdate = ofy().load().key(key).now();
+    DomainBase domainAfterFirstUpdate = ofy().load().key(key).now();
     assertThat(domainAfterCreate).isNotEqualTo(domainAfterFirstUpdate);
 
     clock.advanceOneMilli();  // same day as first update
@@ -122,7 +122,7 @@ public class EppCommitLogsTest extends ShardableTestCase {
     eppLoader = new EppLoader(this, "domain_update_dsdata_rem.xml");
     runFlow();
     ofy().clearSessionCache();
-    DomainResource domainAfterSecondUpdate = ofy().load().key(key).now();
+    DomainBase domainAfterSecondUpdate = ofy().load().key(key).now();
 
     clock.advanceBy(standardDays(2));
     DateTime timeAtDelete = clock.nowUtc(); // before 'add' grace period ends
@@ -133,7 +133,7 @@ public class EppCommitLogsTest extends ShardableTestCase {
     assertThat(domainAfterFirstUpdate).isNotEqualTo(domainAfterSecondUpdate);
 
     // Point-in-time can only rewind an object from the current version, not roll forward.
-    DomainResource latest = ofy().load().key(key).now();
+    DomainBase latest = ofy().load().key(key).now();
 
     // Creation time has millisecond granularity due to isActive() check.
     ofy().clearSessionCache();

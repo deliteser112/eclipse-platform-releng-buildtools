@@ -29,7 +29,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.registrar.Registrar;
@@ -54,13 +54,13 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
       "For more information on Whois status codes, please visit https://icann.org/epp\r\n";
 
   /** Domain which was the target of this WHOIS command. */
-  private final DomainResource domain;
+  private final DomainBase domain;
 
   /** Whether the full WHOIS output is to be displayed. */
   private final boolean fullOutput;
 
   /** Creates new WHOIS domain response on the given domain. */
-  DomainWhoisResponse(DomainResource domain, boolean fullOutput, DateTime timestamp) {
+  DomainWhoisResponse(DomainBase domain, boolean fullOutput, DateTime timestamp) {
     super(timestamp);
     this.domain = checkNotNull(domain, "domain");
     this.fullOutput = fullOutput;

@@ -19,16 +19,16 @@ import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.testing.TruthChainer.And;
 import java.util.Objects;
 import org.joda.time.DateTime;
 
-/** Truth subject for asserting things about {@link DomainResource} instances. */
-public final class DomainResourceSubject
-    extends AbstractDomainBaseSubject<DomainResource, DomainResourceSubject> {
+/** Truth subject for asserting things about {@link DomainBase} instances. */
+public final class DomainBaseSubject
+    extends AbstractDomainBaseSubject<DomainBase, DomainBaseSubject> {
 
-  public And<DomainResourceSubject> hasRegistrationExpirationTime(DateTime expiration) {
+  public And<DomainBaseSubject> hasRegistrationExpirationTime(DateTime expiration) {
     if (!Objects.equals(actual().getRegistrationExpirationTime(), expiration)) {
       failWithBadResults(
           "has registrationExpirationTime",
@@ -38,43 +38,43 @@ public final class DomainResourceSubject
     return andChainer();
   }
 
-  public And<DomainResourceSubject> hasLastTransferTime(DateTime lastTransferTime) {
+  public And<DomainBaseSubject> hasLastTransferTime(DateTime lastTransferTime) {
     return hasValue(
         lastTransferTime,
         actual().getLastTransferTime(),
         "has lastTransferTime");
   }
 
-  public And<DomainResourceSubject> hasLastTransferTimeNotEqualTo(DateTime lastTransferTime) {
+  public And<DomainBaseSubject> hasLastTransferTimeNotEqualTo(DateTime lastTransferTime) {
     return doesNotHaveValue(
         lastTransferTime,
         actual().getLastTransferTime(),
         "lastTransferTime");
   }
 
-  public And<DomainResourceSubject> hasDeletePollMessage() {
+  public And<DomainBaseSubject> hasDeletePollMessage() {
     if (actual().getDeletePollMessage() == null) {
       fail("has a delete poll message");
     }
     return andChainer();
   }
 
-  public And<DomainResourceSubject> hasNoDeletePollMessage() {
+  public And<DomainBaseSubject> hasNoDeletePollMessage() {
     if (actual().getDeletePollMessage() != null) {
       fail("has no delete poll message");
     }
     return andChainer();
   }
 
-  public And<DomainResourceSubject> hasSmdId(String smdId) {
+  public And<DomainBaseSubject> hasSmdId(String smdId) {
     return hasValue(smdId, actual().getSmdId(), "has smdId");
   }
 
-  public DomainResourceSubject(FailureMetadata failureMetadata, DomainResource subject) {
+  public DomainBaseSubject(FailureMetadata failureMetadata, DomainBase subject) {
     super(failureMetadata, checkNotNull(subject));
   }
 
-  public static SimpleSubjectBuilder<DomainResourceSubject, DomainResource> assertAboutDomains() {
-    return assertAbout(DomainResourceSubject::new);
+  public static SimpleSubjectBuilder<DomainBaseSubject, DomainBase> assertAboutDomains() {
+    return assertAbout(DomainBaseSubject::new);
   }
 }

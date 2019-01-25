@@ -41,7 +41,7 @@ import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.EppResourceIndex;
@@ -174,10 +174,10 @@ public class RdeImportUtilsTest extends ShardableTestCase {
 
   @Test
   public void testImportNewDomain() {
-    final DomainResource newDomain = buildNewDomain();
+    final DomainBase newDomain = buildNewDomain();
     importResourceInTransaction(newDomain);
 
-    DomainResource saved = getDomain("Dexample1-TEST");
+    DomainBase saved = getDomain("Dexample1-TEST");
     assertThat(saved.getFullyQualifiedDomainName())
         .isEqualTo(newDomain.getFullyQualifiedDomainName());
     assertThat(saved.getStatusValues()).isEqualTo(newDomain.getStatusValues());
@@ -192,15 +192,15 @@ public class RdeImportUtilsTest extends ShardableTestCase {
 
   @Test
   public void testImportExistingDomain() {
-    DomainResource newDomain = buildNewDomain();
+    DomainBase newDomain = buildNewDomain();
     persistResource(newDomain);
-    final DomainResource updatedDomain =
+    final DomainBase updatedDomain =
         newDomain
             .asBuilder()
             .setFullyQualifiedDomainName("1" + newDomain.getFullyQualifiedDomainName())
             .build();
     assertThrows(ResourceExistsException.class, () -> importResourceInTransaction(updatedDomain));
-    DomainResource saved = getDomain("Dexample1-TEST");
+    DomainBase saved = getDomain("Dexample1-TEST");
     assertThat(saved.getFullyQualifiedDomainName())
         .isEqualTo(newDomain.getFullyQualifiedDomainName());
     assertThat(saved.getStatusValues()).isEqualTo(newDomain.getStatusValues());
@@ -235,10 +235,10 @@ public class RdeImportUtilsTest extends ShardableTestCase {
         .build();
   }
 
-  private DomainResource buildNewDomain() {
+  private DomainBase buildNewDomain() {
     ContactResource registrant = persistActiveContact("jd1234");
     ContactResource admin = persistActiveContact("sh8013");
-    return new DomainResource.Builder()
+    return new DomainBase.Builder()
         .setFullyQualifiedDomainName("example1.example")
         .setRepoId("Dexample1-TEST")
         .setStatusValues(ImmutableSet.of(StatusValue.OK))
@@ -317,8 +317,8 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   }
 
   /** Gets the domain with the specified ROID */
-  private static DomainResource getDomain(String repoId) {
-    final Key<DomainResource> key = Key.create(DomainResource.class, repoId);
+  private static DomainBase getDomain(String repoId) {
+    final Key<DomainBase> key = Key.create(DomainBase.class, repoId);
     return ofy().transact(() -> ofy().load().key(key).now());
   }
 

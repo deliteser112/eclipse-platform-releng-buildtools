@@ -21,11 +21,11 @@ import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.DomainBaseSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -56,7 +56,7 @@ import google.registry.flows.exceptions.ResourceStatusProhibitsOperationExceptio
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
@@ -75,7 +75,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /** Unit tests for {@link DomainRenewFlow}. */
-public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, DomainResource> {
+public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, DomainBase> {
 
   private static final ImmutableMap<String, String> FEE_06_MAP =
       ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee");
@@ -94,7 +94,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   }
 
   private void persistDomain(StatusValue... statusValues) throws Exception {
-    DomainResource domain = newDomainResource(getUniqueIdFromCommand());
+    DomainBase domain = newDomainBase(getUniqueIdFromCommand());
     HistoryEntry historyEntryDomainCreate =
         persistResource(
             new HistoryEntry.Builder()
@@ -157,7 +157,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     DateTime currentExpiration = reloadResourceByForeignKey().getRegistrationExpirationTime();
     DateTime newExpiration = currentExpiration.plusYears(renewalYears);
     runFlowAssertResponse(loadFile(responseFilename, substitutions));
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
     HistoryEntry historyEntryDomainRenew =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_RENEW);
     assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())
@@ -501,7 +501,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   @Test
   public void testFailure_pendingDelete() throws Exception {
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .setRegistrationExpirationTime(expirationTime)
             .setDeletionTime(clock.nowUtc().plusDays(1))
@@ -741,7 +741,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setRenewGracePeriodLength(Duration.standardMinutes(9))
             .build());
     runFlow();
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_RENEW);
     assertThat(historyEntry.getDomainTransactionRecords())
         .containsExactly(

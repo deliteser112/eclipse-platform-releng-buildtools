@@ -36,7 +36,7 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.writer.BaseDnsWriter;
 import google.registry.dns.writer.DnsWriter;
 import google.registry.dns.writer.DnsWriterZone;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import google.registry.model.registry.Registries;
@@ -121,13 +121,13 @@ public class CloudDnsWriter extends BaseDnsWriter {
     String absoluteDomainName = getAbsoluteHostName(domainName);
 
     // Load the target domain. Note that it can be absent if this domain was just deleted.
-    Optional<DomainResource> domainResource =
-        loadByForeignKey(DomainResource.class, domainName, clock.nowUtc());
+    Optional<DomainBase> domainBase =
+        loadByForeignKey(DomainBase.class, domainName, clock.nowUtc());
 
     // Return early if no DNS records should be published.
     // desiredRecordsBuilder is populated with an empty set to indicate that all existing records
     // should be deleted.
-    if (!domainResource.isPresent() || !domainResource.get().shouldPublishToDns()) {
+    if (!domainBase.isPresent() || !domainBase.get().shouldPublishToDns()) {
       desiredRecords.put(absoluteDomainName, ImmutableSet.of());
       return;
     }
@@ -135,7 +135,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
     ImmutableSet.Builder<ResourceRecordSet> domainRecords = new ImmutableSet.Builder<>();
 
     // Construct DS records (if any).
-    Set<DelegationSignerData> dsData = domainResource.get().getDsData();
+    Set<DelegationSignerData> dsData = domainBase.get().getDsData();
     if (!dsData.isEmpty()) {
       HashSet<String> dsRrData = new HashSet<>();
       for (DelegationSignerData ds : dsData) {
@@ -154,8 +154,8 @@ public class CloudDnsWriter extends BaseDnsWriter {
     }
 
     // Construct NS records (if any).
-    Set<String> nameserverData = domainResource.get().loadNameserverFullyQualifiedHostNames();
-    Set<String> subordinateHosts = domainResource.get().getSubordinateHosts();
+    Set<String> nameserverData = domainBase.get().loadNameserverFullyQualifiedHostNames();
+    Set<String> subordinateHosts = domainBase.get().getSubordinateHosts();
     if (!nameserverData.isEmpty()) {
       HashSet<String> nsRrData = new HashSet<>();
       for (String hostName : nameserverData) {

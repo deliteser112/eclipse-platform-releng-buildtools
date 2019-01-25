@@ -47,7 +47,7 @@ import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.ResourceCommand;
@@ -135,11 +135,11 @@ public final class HostUpdateFlow implements TransactionalFlow {
     boolean isHostRename = suppliedNewHostName != null;
     String oldHostName = targetId;
     String newHostName = firstNonNull(suppliedNewHostName, oldHostName);
-    DomainResource oldSuperordinateDomain = existingHost.isSubordinate()
+    DomainBase oldSuperordinateDomain = existingHost.isSubordinate()
         ? ofy().load().key(existingHost.getSuperordinateDomain()).now().cloneProjectedAtTime(now)
         : null;
     // Note that lookupSuperordinateDomain calls cloneProjectedAtTime on the domain for us.
-    Optional<DomainResource> newSuperordinateDomain =
+    Optional<DomainBase> newSuperordinateDomain =
         lookupSuperordinateDomain(validateHostName(newHostName), now);
     verifySuperordinateDomainNotInPendingDelete(newSuperordinateDomain.orElse(null));
     EppResource owningResource = firstNonNull(oldSuperordinateDomain, existingHost);
@@ -152,7 +152,7 @@ public final class HostUpdateFlow implements TransactionalFlow {
     AddRemove remove = command.getInnerRemove();
     checkSameValuesNotAddedAndRemoved(add.getStatusValues(), remove.getStatusValues());
     checkSameValuesNotAddedAndRemoved(add.getInetAddresses(), remove.getInetAddresses());
-    Key<DomainResource> newSuperordinateDomainKey =
+    Key<DomainBase> newSuperordinateDomainKey =
         newSuperordinateDomain.map(Key::create).orElse(null);
     // If the superordinateDomain field is changing, set the lastSuperordinateChange to now.
     DateTime lastSuperordinateChange =
@@ -209,7 +209,7 @@ public final class HostUpdateFlow implements TransactionalFlow {
   private void verifyUpdateAllowed(
       Update command,
       HostResource existingHost,
-      DomainResource newSuperordinateDomain,
+      DomainBase newSuperordinateDomain,
       EppResource owningResource,
       boolean isHostRename)
           throws EppException {

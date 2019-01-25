@@ -18,7 +18,7 @@ import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -37,7 +37,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -102,7 +102,7 @@ public class DnsUpdateWriterTest {
   public void testPublishDomainCreate_publishesNameServers() throws Exception {
     HostResource host1 = persistActiveHost("ns1.example.tld");
     HostResource host2 = persistActiveHost("ns2.example.tld");
-    DomainResource domain =
+    DomainBase domain =
         persistActiveDomain("example.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host1), Key.create(host2)))
@@ -123,7 +123,7 @@ public class DnsUpdateWriterTest {
   @Test
   public void testPublishAtomic_noCommit() {
     HostResource host1 = persistActiveHost("ns.example1.tld");
-    DomainResource domain1 =
+    DomainBase domain1 =
         persistActiveDomain("example1.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host1)))
@@ -131,7 +131,7 @@ public class DnsUpdateWriterTest {
     persistResource(domain1);
 
     HostResource host2 = persistActiveHost("ns.example2.tld");
-    DomainResource domain2 =
+    DomainBase domain2 =
         persistActiveDomain("example2.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host2)))
@@ -147,7 +147,7 @@ public class DnsUpdateWriterTest {
   @Test
   public void testPublishAtomic_oneUpdate() throws Exception {
     HostResource host1 = persistActiveHost("ns.example1.tld");
-    DomainResource domain1 =
+    DomainBase domain1 =
         persistActiveDomain("example1.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host1)))
@@ -155,7 +155,7 @@ public class DnsUpdateWriterTest {
     persistResource(domain1);
 
     HostResource host2 = persistActiveHost("ns.example2.tld");
-    DomainResource domain2 =
+    DomainBase domain2 =
         persistActiveDomain("example2.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host2)))
@@ -178,7 +178,7 @@ public class DnsUpdateWriterTest {
 
   @Test
   public void testPublishDomainCreate_publishesDelegationSigner() throws Exception {
-    DomainResource domain =
+    DomainBase domain =
         persistActiveDomain("example.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.tld"))))
@@ -202,7 +202,7 @@ public class DnsUpdateWriterTest {
 
   @Test
   public void testPublishDomainWhenNotActive_removesDnsRecords() throws Exception {
-    DomainResource domain =
+    DomainBase domain =
         persistActiveDomain("example.tld")
             .asBuilder()
             .addStatusValue(StatusValue.SERVER_HOLD)
@@ -247,7 +247,7 @@ public class DnsUpdateWriterTest {
                         InetAddresses.forString("fd0e:a5c8:6dfb:6a5e:0:0:0:1")))
                 .build());
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .addSubordinateHost("ns1.example.tld")
             .addNameserver(Key.create(host))
@@ -319,7 +319,7 @@ public class DnsUpdateWriterTest {
                 .build());
 
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .addSubordinateHost("ns1.example.tld")
             .addNameservers(
@@ -354,7 +354,7 @@ public class DnsUpdateWriterTest {
                 .build());
 
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .addSubordinateHost("ns1.example.tld")
             .addSubordinateHost("foo.example.tld")
@@ -378,7 +378,7 @@ public class DnsUpdateWriterTest {
 
   @Test
   public void testPublishDomainFails_whenDnsUpdateReturnsError() throws Exception {
-    DomainResource domain =
+    DomainBase domain =
         persistActiveDomain("example.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.tld"))))

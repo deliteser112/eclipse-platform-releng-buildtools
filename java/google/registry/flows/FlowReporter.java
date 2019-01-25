@@ -70,12 +70,8 @@ public class FlowReporter {
                 .put("flowClassName", flowClass.getSimpleName())
                 .put("targetId", singleTargetId)
                 .put("targetIds", targetIds)
-                .put(
-                    "tld",
-                    eppInput.isDomainResourceType() ? extractTld(singleTargetId).orElse("") : "")
-                .put(
-                    "tlds",
-                    eppInput.isDomainResourceType() ? extractTlds(targetIds).asList() : EMPTY_LIST)
+                .put("tld", eppInput.isDomainType() ? extractTld(singleTargetId).orElse("") : "")
+                .put("tlds", eppInput.isDomainType() ? extractTlds(targetIds).asList() : EMPTY_LIST)
                 .put("icannActivityReportField", extractActivityReportField(flowClass))
                 .build()));
   }

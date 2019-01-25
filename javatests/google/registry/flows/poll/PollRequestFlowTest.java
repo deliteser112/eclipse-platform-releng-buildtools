@@ -16,7 +16,7 @@ package google.registry.flows.poll;
 
 import static google.registry.testing.DatastoreHelper.createHistoryEntryForEppResource;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -28,7 +28,7 @@ import google.registry.flows.EppException;
 import google.registry.flows.FlowTestCase;
 import google.registry.flows.poll.PollRequestFlow.UnexpectedMessageIdException;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
@@ -44,7 +44,7 @@ import org.junit.Test;
 /** Unit tests for {@link PollRequestFlow}. */
 public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
 
-  private DomainResource domain;
+  private DomainBase domain;
   private ContactResource contact;
   private HostResource host;
 
@@ -55,7 +55,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
     clock.setTo(DateTime.parse("2011-01-02T01:01:01Z"));
     createTld("example");
     contact = persistActiveContact("jd1234");
-    domain = persistResource(newDomainResource("test.example", contact));
+    domain = persistResource(newDomainBase("test.example", contact));
     host = persistActiveHost("ns1.test.example");
   }
 

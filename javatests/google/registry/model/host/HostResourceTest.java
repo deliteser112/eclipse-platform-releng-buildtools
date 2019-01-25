@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -29,7 +29,7 @@ import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.transfer.TransferData;
@@ -45,7 +45,7 @@ public class HostResourceTest extends EntityTestCase {
   final DateTime day2 = day3.minusDays(1);
   final DateTime day1 = day2.minusDays(1);
 
-  DomainResource domain;
+  DomainBase domain;
   HostResource host;
 
   @Before
@@ -54,7 +54,7 @@ public class HostResourceTest extends EntityTestCase {
     // Set up a new persisted registrar entity.
     domain =
         persistResource(
-            newDomainResource("example.com")
+            newDomainBase("example.com")
                 .asBuilder()
                 .setRepoId("1-COM")
                 .setTransferData(

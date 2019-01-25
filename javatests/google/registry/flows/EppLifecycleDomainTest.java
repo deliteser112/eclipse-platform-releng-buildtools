@@ -38,7 +38,7 @@ import com.google.re2j.Pattern;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry.Type;
@@ -110,8 +110,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
                 "CRDATE", "2000-06-01T00:02:00.0Z",
                 "EXDATE", "2002-06-01T00:02:00.0Z"));
 
-    DomainResource domain =
-        loadByForeignKey(DomainResource.class, "example.tld", createTime.plusHours(1)).get();
+    DomainBase domain =
+        loadByForeignKey(DomainBase.class, "example.tld", createTime.plusHours(1)).get();
 
     // Delete domain example.tld within the add grace period.
     DateTime deleteTime = createTime.plusDays(1);
@@ -186,9 +186,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
             ImmutableMap.of(
                 "CODE", "2303", "MSG", "The domain with given ID (example.tld) doesn't exist."));
 
-    DomainResource domain =
+    DomainBase domain =
         loadByForeignKey(
-                DomainResource.class, "example.tld", DateTime.parse("2000-08-01T00:02:00Z"))
+                DomainBase.class, "example.tld", DateTime.parse("2000-08-01T00:02:00Z"))
             .get();
     // Verify that the autorenew was ended and that the one-time billing event is not canceled.
     assertBillingEventsForResource(
@@ -221,9 +221,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .atTime(createTime)
         .hasResponse("domain_create_response_eap_fee.xml");
 
-    DomainResource domain =
+    DomainBase domain =
         loadByForeignKey(
-                DomainResource.class, "example.tld", DateTime.parse("2000-06-01T00:03:00Z"))
+                DomainBase.class, "example.tld", DateTime.parse("2000-06-01T00:03:00Z"))
             .get();
 
     // Delete domain example.tld within the add grade period.

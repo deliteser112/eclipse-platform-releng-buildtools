@@ -38,7 +38,7 @@ import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
 import google.registry.model.EppResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import google.registry.request.Action;
@@ -140,7 +140,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
                 new GenerateBindFileMapper(
                     tlds, exportTime, dnsDefaultATtl, dnsDefaultNsTtl, dnsDefaultDsTtl),
                 new GenerateBindFileReducer(bucket, exportTime, gcsBufferSize),
-                ImmutableList.of(new NullInput<>(), createEntityInput(DomainResource.class)))
+                ImmutableList.of(new NullInput<>(), createEntityInput(DomainBase.class)))
             .getLinkToMapreduceConsole();
     ImmutableList<String> filenames =
         tlds.stream()
@@ -185,7 +185,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
           emit(tld, null);
         }
       } else {
-        mapDomain((DomainResource) resource);
+        mapDomain((DomainBase) resource);
       }
     }
 
@@ -194,7 +194,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
     // be emitted in the final file, which is incorrect. Rather, to match the actual DNS glue
     // records, we only want to emit host information for in-bailiwick hosts in the specified
     // TLD(s), meaning those that act as nameservers for their respective superordinate domains.
-    private void mapDomain(DomainResource domain) {
+    private void mapDomain(DomainBase domain) {
       // Domains never change their tld, so we can check if it's from the wrong tld right away.
       if (tlds.contains(domain.getTld())) {
         domain = loadAtPointInTime(domain, exportTime).now();
@@ -210,7 +210,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
       }
     }
 
-    private void emitForSubordinateHosts(DomainResource domain) {
+    private void emitForSubordinateHosts(DomainBase domain) {
       ImmutableSet<String> subordinateHosts = domain.getSubordinateHosts();
       if (!subordinateHosts.isEmpty()) {
         for (HostResource unprojectedHost : ofy().load().keys(domain.getNameservers()).values()) {
@@ -276,7 +276,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
    * }
    */
   private static String domainStanza(
-      DomainResource domain,
+      DomainBase domain,
       DateTime exportTime,
       Duration dnsDefaultNsTtl,
       Duration dnsDefaultDsTtl) {

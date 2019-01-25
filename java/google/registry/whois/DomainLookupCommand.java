@@ -17,7 +17,7 @@ package google.registry.whois;
 import static google.registry.model.EppResourceUtils.loadByForeignKeyCached;
 
 import com.google.common.net.InternetDomainName;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import java.util.Optional;
 import org.joda.time.DateTime;
 
@@ -33,7 +33,7 @@ public class DomainLookupCommand extends DomainOrHostLookupCommand {
 
   @Override
   protected Optional<WhoisResponse> getResponse(InternetDomainName domainName, DateTime now) {
-    return loadByForeignKeyCached(DomainResource.class, domainName.toString(), now)
+    return loadByForeignKeyCached(DomainBase.class, domainName.toString(), now)
         .map(domain -> new DomainWhoisResponse(domain, fullOutput, now));
   }
 }

@@ -17,7 +17,7 @@ package google.registry.flows.host;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -32,7 +32,7 @@ import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.host.HostFlowUtils.HostNameNotLowerCaseException;
 import google.registry.flows.host.HostFlowUtils.HostNameNotNormalizedException;
 import google.registry.flows.host.HostFlowUtils.HostNameNotPunyCodedException;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import javax.annotation.Nullable;
@@ -90,7 +90,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   public void testSuccess_linked() throws Exception {
     persistHostResource();
     persistResource(
-        newDomainResource("example.foobar")
+        newDomainBase("example.foobar")
             .asBuilder()
             .addNameserver(Key.create(persistHostResource()))
             .build());
@@ -106,9 +106,9 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
 
   private void runTest_superordinateDomain(
       DateTime domainTransferTime, @Nullable DateTime lastSuperordinateChange) throws Exception {
-    DomainResource domain =
+    DomainBase domain =
         persistResource(
-            newDomainResource("parent.foobar")
+            newDomainBase("parent.foobar")
                 .asBuilder()
                 .setRepoId("BEEF-FOOBAR")
                 .setLastTransferTime(domainTransferTime)

@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
@@ -69,13 +69,13 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
         .setDefaultMapShards(10)
         .runMapOnly(
             new RefreshDnsForAllDomainsActionMapper(tlds),
-            ImmutableList.of(createEntityInput(DomainResource.class)))
+            ImmutableList.of(createEntityInput(DomainBase.class)))
         .sendLinkToMapreduceConsole(response);
   }
 
   /** Mapper to refresh DNS for all active domain resources. */
   public static class RefreshDnsForAllDomainsActionMapper
-      extends Mapper<DomainResource, Void, Void> {
+      extends Mapper<DomainBase, Void, Void> {
 
     private static final long serialVersionUID = 1455544013508953083L;
 
@@ -88,7 +88,7 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
     }
 
     @Override
-    public void map(final DomainResource domain) {
+    public void map(final DomainBase domain) {
       String domainName = domain.getFullyQualifiedDomainName();
       if (tlds.contains(domain.getTld())) {
         if (isActive(domain, DateTime.now(DateTimeZone.UTC))) {

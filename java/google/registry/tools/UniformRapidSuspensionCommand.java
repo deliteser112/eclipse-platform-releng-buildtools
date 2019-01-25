@@ -30,7 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.template.soy.data.SoyMapData;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -121,7 +121,7 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand {
     } catch (ClassCastException | ParseException e) {
       throw new IllegalArgumentException("Invalid --dsdata JSON", e);
     }
-    Optional<DomainResource> domain = loadByForeignKey(DomainResource.class, domainName, now);
+    Optional<DomainBase> domain = loadByForeignKey(DomainBase.class, domainName, now);
     checkArgumentPresent(domain, "Domain '%s' does not exist or is deleted", domainName);
     Set<String> missingHosts =
         difference(newHostsSet, checkResourcesExist(HostResource.class, newHosts, now));
@@ -146,7 +146,7 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand {
         "reason", (undo ? "Undo " : "") + "Uniform Rapid Suspension"));
   }
 
-  private ImmutableSortedSet<String> getExistingNameservers(DomainResource domain) {
+  private ImmutableSortedSet<String> getExistingNameservers(DomainBase domain) {
     ImmutableSortedSet.Builder<String> nameservers = ImmutableSortedSet.naturalOrder();
     for (HostResource host : ofy().load().keys(domain.getNameservers()).values()) {
       nameservers.add(host.getForeignKey());
@@ -154,7 +154,7 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand {
     return nameservers.build();
   }
 
-  private ImmutableSortedSet<String> getExistingLocks(DomainResource domain) {
+  private ImmutableSortedSet<String> getExistingLocks(DomainBase domain) {
     ImmutableSortedSet.Builder<String> locks = ImmutableSortedSet.naturalOrder();
     for (StatusValue lock : domain.getStatusValues()) {
       if (URS_LOCKS.contains(lock.getXmlName())) {
@@ -164,7 +164,7 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand {
     return locks.build();
   }
 
-  private ImmutableSortedSet<String> getExistingDsData(DomainResource domain) {
+  private ImmutableSortedSet<String> getExistingDsData(DomainBase domain) {
     ImmutableSortedSet.Builder<String> dsDataJsons = ImmutableSortedSet.naturalOrder();
     HexBinaryAdapter hexBinaryAdapter = new HexBinaryAdapter();
     for (DelegationSignerData dsData : domain.getDsData()) {

@@ -17,7 +17,7 @@ package google.registry.flows.host;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
@@ -39,7 +39,7 @@ import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
 import google.registry.flows.host.HostFlowUtils.HostNameNotLowerCaseException;
 import google.registry.flows.host.HostFlowUtils.HostNameNotNormalizedException;
 import google.registry.flows.host.HostFlowUtils.HostNameNotPunyCodedException;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
@@ -176,9 +176,9 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   public void testSuccess_authorizedClientReadFromSuperordinate() throws Exception {
     sessionMetadata.setClientId("TheRegistrar");
     createTld("tld");
-    DomainResource domain =
+    DomainBase domain =
         persistResource(
-            newDomainResource("example.tld")
+            newDomainBase("example.tld")
                 .asBuilder()
                 .setPersistedCurrentSponsorClientId("TheRegistrar")
                 .build());
@@ -196,9 +196,9 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   public void testFailure_unauthorizedClientReadFromSuperordinate() {
     sessionMetadata.setClientId("TheRegistrar");
     createTld("tld");
-    DomainResource domain =
+    DomainBase domain =
         persistResource(
-            newDomainResource("example.tld")
+            newDomainBase("example.tld")
                 .asBuilder()
                 .setPersistedCurrentSponsorClientId("NewRegistrar")
                 .build());
@@ -220,9 +220,9 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     DateTime now = clock.nowUtc();
     DateTime requestTime = now.minusDays(1).minus(Registry.DEFAULT_AUTOMATIC_TRANSFER_LENGTH);
     DateTime transferExpirationTime = now.minusDays(1);
-    DomainResource domain =
+    DomainBase domain =
         persistResource(
-            newDomainResource("example.tld")
+            newDomainBase("example.tld")
                 .asBuilder()
                 .setPersistedCurrentSponsorClientId("NewRegistrar") // Shouldn't hurt.
                 .addStatusValue(StatusValue.PENDING_TRANSFER)
@@ -253,9 +253,9 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     DateTime now = clock.nowUtc();
     DateTime requestTime = now.minusDays(1).minus(Registry.DEFAULT_AUTOMATIC_TRANSFER_LENGTH);
     DateTime transferExpirationTime = now.minusDays(1);
-    DomainResource domain =
+    DomainBase domain =
         persistResource(
-            newDomainResource("example.tld")
+            newDomainBase("example.tld")
                 .asBuilder()
                 .setPersistedCurrentSponsorClientId("NewRegistrar") // Shouldn't help.
                 .addStatusValue(StatusValue.PENDING_TRANSFER)
@@ -282,7 +282,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   public void testFailure_failfastWhenLinkedToDomain() {
     createTld("tld");
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.tld"))))
             .build());

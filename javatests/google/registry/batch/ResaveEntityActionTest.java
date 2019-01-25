@@ -24,7 +24,7 @@ import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_DELETE;
 import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDomainWithDependentResources;
 import static google.registry.testing.DatastoreHelper.persistDomainWithPendingTransfer;
@@ -39,7 +39,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.ImmutableObject;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
@@ -106,7 +106,7 @@ public class ResaveEntityActionTest extends ShardableTestCase {
 
   @Test
   public void test_domainPendingTransfer_isResavedAndTransferCompleted() {
-    DomainResource domain =
+    DomainBase domain =
         persistDomainWithPendingTransfer(
             persistDomainWithDependentResources(
                 "domain",
@@ -122,16 +122,16 @@ public class ResaveEntityActionTest extends ShardableTestCase {
     clock.advanceOneMilli();
     assertThat(domain.getCurrentSponsorClientId()).isEqualTo("TheRegistrar");
     runAction(Key.create(domain), DateTime.parse("2016-02-06T10:00:01Z"), ImmutableSortedSet.of());
-    DomainResource resavedDomain = ofy().load().entity(domain).now();
+    DomainBase resavedDomain = ofy().load().entity(domain).now();
     assertThat(resavedDomain.getCurrentSponsorClientId()).isEqualTo("NewRegistrar");
     verify(response).setPayload("Entity re-saved.");
   }
 
   @Test
   public void test_domainPendingDeletion_isResavedAndReenqueued() {
-    DomainResource domain =
+    DomainBase domain =
         persistResource(
-            newDomainResource("domain.tld")
+            newDomainBase("domain.tld")
                 .asBuilder()
                 .setDeletionTime(clock.nowUtc().plusDays(35))
                 .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
@@ -147,7 +147,7 @@ public class ResaveEntityActionTest extends ShardableTestCase {
 
     assertThat(domain.getGracePeriods()).isNotEmpty();
     runAction(Key.create(domain), requestedTime, ImmutableSortedSet.of(requestedTime.plusDays(5)));
-    DomainResource resavedDomain = ofy().load().entity(domain).now();
+    DomainBase resavedDomain = ofy().load().entity(domain).now();
     assertThat(resavedDomain.getGracePeriods()).isEmpty();
 
     assertTasksEnqueued(

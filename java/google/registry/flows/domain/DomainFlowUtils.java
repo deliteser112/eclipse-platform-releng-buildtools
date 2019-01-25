@@ -22,7 +22,7 @@ import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
-import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
+import static google.registry.model.domain.DomainBase.MAX_REGISTRATION_YEARS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.model.registry.Registries.getTlds;
@@ -77,7 +77,6 @@ import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainCommand.CreateOrUpdate;
 import google.registry.model.domain.DomainCommand.InvalidReferencesException;
 import google.registry.model.domain.DomainCommand.Update;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.ForeignKeyedDesignatedContact;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.BaseFee.FeeType;
@@ -504,7 +503,7 @@ public class DomainFlowUtils {
    * Fills in a builder with the data needed for an autorenew billing event for this domain. This
    * does not copy over the id of the current autorenew billing event.
    */
-  public static BillingEvent.Recurring.Builder newAutorenewBillingEvent(DomainResource domain) {
+  public static BillingEvent.Recurring.Builder newAutorenewBillingEvent(DomainBase domain) {
     return new BillingEvent.Recurring.Builder()
         .setReason(Reason.RENEW)
         .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
@@ -517,7 +516,7 @@ public class DomainFlowUtils {
    * Fills in a builder with the data needed for an autorenew poll message for this domain. This
    * does not copy over the id of the current autorenew poll message.
    */
-  public static PollMessage.Autorenew.Builder newAutorenewPollMessage(DomainResource domain) {
+  public static PollMessage.Autorenew.Builder newAutorenewPollMessage(DomainBase domain) {
     return new PollMessage.Autorenew.Builder()
         .setTargetId(domain.getFullyQualifiedDomainName())
         .setClientId(domain.getCurrentSponsorClientId())
@@ -533,7 +532,7 @@ public class DomainFlowUtils {
    * time earlier than its event time (i.e. if it's being ended before it was ever triggered).
    */
   @SuppressWarnings("unchecked")
-  public static void updateAutorenewRecurrenceEndTime(DomainResource domain, DateTime newEndTime) {
+  public static void updateAutorenewRecurrenceEndTime(DomainBase domain, DateTime newEndTime) {
     Optional<PollMessage.Autorenew> autorenewPollMessage =
         Optional.ofNullable(ofy().load().key(domain.getAutorenewPollMessage()).now());
 
@@ -787,7 +786,7 @@ public class DomainFlowUtils {
 
   /**
    * Check whether a new expiration time (via a renew) does not extend beyond a maximum number of
-   * years (e.g. {@link DomainResource#MAX_REGISTRATION_YEARS}) from "now".
+   * years (e.g. {@link DomainBase#MAX_REGISTRATION_YEARS}) from "now".
    *
    * @throws ExceedsMaxRegistrationYearsException if the new registration period is too long
    */
@@ -800,7 +799,7 @@ public class DomainFlowUtils {
 
   /**
    * Check that a new registration period (via a create) does not extend beyond a maximum number of
-   * years (e.g. {@link DomainResource#MAX_REGISTRATION_YEARS}).
+   * years (e.g. {@link DomainBase#MAX_REGISTRATION_YEARS}).
    *
    * @throws ExceedsMaxRegistrationYearsException if the new registration period is too long
    */
@@ -1019,7 +1018,7 @@ public class DomainFlowUtils {
    * the most recent HistoryEntry that fits the above criteria, with negated reportAmounts.
    */
   static ImmutableSet<DomainTransactionRecord> createCancelingRecords(
-      DomainResource domainResource,
+      DomainBase domainBase,
       final DateTime now,
       Duration maxSearchPeriod,
       final ImmutableSet<TransactionReportField> cancelableFields) {
@@ -1028,7 +1027,7 @@ public class DomainFlowUtils {
         ofy()
             .load()
             .type(HistoryEntry.class)
-            .ancestor(domainResource)
+            .ancestor(domainBase)
             .filter("modificationTime >=", now.minus(maxSearchPeriod))
             .order("modificationTime")
             .list();

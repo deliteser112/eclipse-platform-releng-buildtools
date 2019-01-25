@@ -38,7 +38,7 @@ import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
@@ -223,7 +223,7 @@ public class RdeImportUtils {
         .setBySuperuser(true)
         .setReason("RDE Import")
         .setRequestedByRegistrar(false)
-        .setParent(Key.create(null, DomainResource.class, domain.getRoid()))
+        .setParent(Key.create(null, DomainBase.class, domain.getRoid()))
         .build();
   }
 

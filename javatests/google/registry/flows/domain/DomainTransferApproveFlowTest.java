@@ -30,7 +30,7 @@ import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.DomainBaseSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -55,7 +55,7 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.billing.BillingEvent.Recurring;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.Period.Unit;
@@ -81,7 +81,7 @@ import org.junit.Test;
 
 /** Unit tests for {@link DomainTransferApproveFlow}. */
 public class DomainTransferApproveFlowTest
-    extends DomainTransferFlowTestCase<DomainTransferApproveFlow, DomainResource> {
+    extends DomainTransferFlowTestCase<DomainTransferApproveFlow, DomainBase> {
 
   @Before
   public void setUp() {
@@ -108,7 +108,7 @@ public class DomainTransferApproveFlowTest
     clock.advanceOneMilli();
   }
 
-  private void assertTransferApproved(DomainResource domain, TransferData oldTransferData) {
+  private void assertTransferApproved(DomainBase domain, TransferData oldTransferData) {
     assertAboutDomains()
         .that(domain)
         .hasCurrentSponsorClientId("NewRegistrar")
@@ -633,7 +633,7 @@ public class DomainTransferApproveFlowTest
   @Test
   public void testSuccess_superuserExtension_transferPeriodZero_autorenewGraceActive()
       throws Exception {
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
     Key<Recurring> existingAutorenewEvent = domain.getAutorenewBillingEvent();
     // Set domain to have auto-renewed just before the transfer request, so that it will have an
     // active autorenew grace period spanning the entire transfer window.

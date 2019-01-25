@@ -76,7 +76,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_metadata_basic() throws Exception {
-    when(flowReporter.eppInput.isDomainResourceType()).thenReturn(true);
+    when(flowReporter.eppInput.isDomainType()).thenReturn(true);
     when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.of("domain"));
     flowReporter.recordToLogs();
     assertThat(parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: ")))
@@ -114,7 +114,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_metadata_notResourceFlow_noResourceTypeOrTld() throws Exception {
-    when(flowReporter.eppInput.isDomainResourceType()).thenReturn(false);
+    when(flowReporter.eppInput.isDomainType()).thenReturn(false);
     when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.empty());
     flowReporter.recordToLogs();
     Map<String, Object> json =
@@ -127,7 +127,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_metadata_notDomainFlow_noTld() throws Exception {
-    when(flowReporter.eppInput.isDomainResourceType()).thenReturn(false);
+    when(flowReporter.eppInput.isDomainType()).thenReturn(false);
     when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.of("contact"));
     flowReporter.recordToLogs();
     Map<String, Object> json =
@@ -139,7 +139,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_metadata_multipartDomainName_multipartTld() throws Exception {
-    when(flowReporter.eppInput.isDomainResourceType()).thenReturn(true);
+    when(flowReporter.eppInput.isDomainType()).thenReturn(true);
     when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.of("domain"));
     when(flowReporter.eppInput.getSingleTargetId()).thenReturn(Optional.of("target.co.uk"));
     when(flowReporter.eppInput.getTargetIds()).thenReturn(ImmutableList.of("target.co.uk"));
@@ -154,7 +154,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_metadata_multipleTargetIds_uniqueTldSet() throws Exception {
-    when(flowReporter.eppInput.isDomainResourceType()).thenReturn(true);
+    when(flowReporter.eppInput.isDomainType()).thenReturn(true);
     when(flowReporter.eppInput.getSingleTargetId()).thenReturn(Optional.empty());
     when(flowReporter.eppInput.getTargetIds())
         .thenReturn(ImmutableList.of("target.co.uk", "foo.uk", "bar.uk", "baz.com"));
@@ -170,7 +170,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_metadata_uppercaseDomainName_lowercaseTld() throws Exception {
-    when(flowReporter.eppInput.isDomainResourceType()).thenReturn(true);
+    when(flowReporter.eppInput.isDomainType()).thenReturn(true);
     when(flowReporter.eppInput.getSingleTargetId()).thenReturn(Optional.of("TARGET.FOO"));
     when(flowReporter.eppInput.getTargetIds()).thenReturn(ImmutableList.of("TARGET.FOO"));
     flowReporter.recordToLogs();
@@ -184,7 +184,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_metadata_invalidDomainName_stillGuessesTld() throws Exception {
-    when(flowReporter.eppInput.isDomainResourceType()).thenReturn(true);
+    when(flowReporter.eppInput.isDomainType()).thenReturn(true);
     when(flowReporter.eppInput.getSingleTargetId()).thenReturn(Optional.of("<foo@bar.com>"));
     when(flowReporter.eppInput.getTargetIds()).thenReturn(ImmutableList.of("<foo@bar.com>"));
     flowReporter.recordToLogs();
@@ -198,7 +198,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_metadata_domainWithoutPeriod_noTld() throws Exception {
-    when(flowReporter.eppInput.isDomainResourceType()).thenReturn(true);
+    when(flowReporter.eppInput.isDomainType()).thenReturn(true);
     when(flowReporter.eppInput.getSingleTargetId()).thenReturn(Optional.of("target,foo"));
     when(flowReporter.eppInput.getTargetIds()).thenReturn(ImmutableList.of("target,foo"));
     flowReporter.recordToLogs();

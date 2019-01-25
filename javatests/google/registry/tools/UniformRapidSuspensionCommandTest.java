@@ -16,7 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -57,7 +57,7 @@ public class UniformRapidSuspensionCommandTest
     for (HostResource host : hosts) {
       hostRefs.add(Key.create(host));
     }
-    persistResource(newDomainResource("evil.tld").asBuilder()
+    persistResource(newDomainBase("evil.tld").asBuilder()
         .setNameservers(hostRefs.build())
         .setDsData(ImmutableSet.of(
             DelegationSignerData.create(1, 2, 3, new HexBinaryAdapter().unmarshal("dead")),
@@ -112,7 +112,7 @@ public class UniformRapidSuspensionCommandTest
   @Test
   public void testCommand_generatesUndoWithLocksToPreserve() throws Exception {
     persistResource(
-        newDomainResource("evil.tld").asBuilder()
+        newDomainBase("evil.tld").asBuilder()
           .addStatusValue(StatusValue.SERVER_DELETE_PROHIBITED)
           .build());
     runCommandForced("--domain_name=evil.tld");

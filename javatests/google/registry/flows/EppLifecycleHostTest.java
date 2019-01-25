@@ -25,7 +25,7 @@ import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.testing.AppEngineRule;
 import org.joda.time.DateTime;
@@ -219,8 +219,8 @@ public class EppLifecycleHostTest extends EppTestCase {
 
     HostResource exampleBarFooTldHost =
         loadByForeignKey(HostResource.class, "ns1.example.bar.foo.tld", timeAfterCreates).get();
-    DomainResource exampleBarFooTldDomain =
-        loadByForeignKey(DomainResource.class, "example.bar.foo.tld", timeAfterCreates).get();
+    DomainBase exampleBarFooTldDomain =
+        loadByForeignKey(DomainBase.class, "example.bar.foo.tld", timeAfterCreates).get();
     assertAboutHosts()
         .that(exampleBarFooTldHost)
         .hasSuperordinateDomain(Key.create(exampleBarFooTldDomain));
@@ -229,8 +229,8 @@ public class EppLifecycleHostTest extends EppTestCase {
 
     HostResource exampleFooTldHost =
         loadByForeignKey(HostResource.class, "ns1.example.foo.tld", timeAfterCreates).get();
-    DomainResource exampleFooTldDomain =
-        loadByForeignKey(DomainResource.class, "example.foo.tld", timeAfterCreates).get();
+    DomainBase exampleFooTldDomain =
+        loadByForeignKey(DomainBase.class, "example.foo.tld", timeAfterCreates).get();
     assertAboutHosts()
         .that(exampleFooTldHost)
         .hasSuperordinateDomain(Key.create(exampleFooTldDomain));
@@ -238,8 +238,8 @@ public class EppLifecycleHostTest extends EppTestCase {
 
     HostResource exampleTldHost =
         loadByForeignKey(HostResource.class, "ns1.example.tld", timeAfterCreates).get();
-    DomainResource exampleTldDomain =
-        loadByForeignKey(DomainResource.class, "example.tld", timeAfterCreates).get();
+    DomainBase exampleTldDomain =
+        loadByForeignKey(DomainBase.class, "example.tld", timeAfterCreates).get();
     assertAboutHosts().that(exampleTldHost).hasSuperordinateDomain(Key.create(exampleTldDomain));
     assertThat(exampleTldDomain.getSubordinateHosts()).containsExactly("ns1.example.tld");
 

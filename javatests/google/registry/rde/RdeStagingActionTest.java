@@ -20,7 +20,7 @@ import static google.registry.model.common.Cursor.CursorType.BRDA;
 import static google.registry.model.common.Cursor.CursorType.RDE_STAGING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rde.RdeFixtures.makeContactResource;
-import static google.registry.rde.RdeFixtures.makeDomainResource;
+import static google.registry.rde.RdeFixtures.makeDomainBase;
 import static google.registry.rde.RdeFixtures.makeHostResource;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -322,7 +322,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   public void testMapReduce_bunchOfResources_headerHasCorrectCounts() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("lol");
-    makeDomainResource(clock, "lol");
+    makeDomainBase(clock, "lol");
 
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.run();
@@ -417,7 +417,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   public void testMapReduce_sameDayRdeDeposit_advancesCursorToTomorrow() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("lol");
-    makeDomainResource(clock, "lol");
+    makeDomainBase(clock, "lol");
     setCursor(Registry.get("lol"), RDE_STAGING, DateTime.parse("2000-01-01TZ"));
     setCursor(Registry.get("lol"), BRDA, DateTime.parse("2000-01-04TZ"));
     clock.setTo(DateTime.parse("2000-01-01TZ")); // Saturday
@@ -438,7 +438,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   public void testMapReduce_onBrdaDay_advancesBothCursors() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("lol");
-    makeDomainResource(clock, "lol");
+    makeDomainBase(clock, "lol");
     setCursor(Registry.get("lol"), RDE_STAGING, DateTime.parse("2000-01-04TZ"));
     setCursor(Registry.get("lol"), BRDA, DateTime.parse("2000-01-04TZ"));
     clock.setTo(DateTime.parse("2000-01-04TZ")); // Tuesday
@@ -459,7 +459,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   public void testMapReduce_onBrdaDay_enqueuesBothTasks() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("lol");
-    makeDomainResource(clock, "lol");
+    makeDomainBase(clock, "lol");
     setCursor(Registry.get("lol"), RDE_STAGING, DateTime.parse("2000-01-04TZ"));
     setCursor(Registry.get("lol"), BRDA, DateTime.parse("2000-01-04TZ"));
     clock.setTo(DateTime.parse("2000-01-04TZ")); // Tuesday
@@ -515,7 +515,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   public void testMapReduce_idnTables_goInDeposit() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("fop");
-    makeDomainResource(clock, "fop");
+    makeDomainBase(clock, "fop");
 
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.run();
@@ -541,7 +541,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   public void testMapReduce_withDomain_producesExpectedXml() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("lol");
-    makeDomainResource(clock, "lol");
+    makeDomainBase(clock, "lol");
 
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.run();
@@ -558,7 +558,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   public void testMapReduce_withDomain_producesCorrectLengthFile() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("lol");
-    makeDomainResource(clock, "lol");
+    makeDomainBase(clock, "lol");
 
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.run();
@@ -573,7 +573,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   public void testMapReduce_withDomain_producesReportXml() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("lol");
-    makeDomainResource(clock, "lol");
+    makeDomainBase(clock, "lol");
 
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.run();
@@ -590,9 +590,9 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   public void testMapReduce_twoDomainsDifferentTlds_isolatesDomains() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("boggle");
-    makeDomainResource(clock, "boggle");
+    makeDomainBase(clock, "boggle");
     createTldWithEscrowEnabled("lol");
-    makeDomainResource(clock, "lol");
+    makeDomainBase(clock, "lol");
 
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.run();
@@ -746,7 +746,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     for (String tld : tlds) {
       createTldWithEscrowEnabled(tld);
-      makeDomainResource(clock, tld);
+      makeDomainBase(clock, tld);
       setCursor(Registry.get(tld), RDE_STAGING, DateTime.parse("1999-01-01TZ"));
       setCursor(Registry.get(tld), BRDA, DateTime.parse("2001-01-01TZ"));
     }

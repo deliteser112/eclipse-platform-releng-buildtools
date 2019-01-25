@@ -18,7 +18,7 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.domain.DomainTransferUtils.createTransferResponse;
-import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.domain.DomainBase.extendRegistrationWithCap;
 
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
@@ -28,7 +28,7 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
@@ -70,7 +70,7 @@ public final class DomainTransferQueryFlow implements Flow {
     extensionManager.validate();  // There are no legal extensions for this flow.
     validateClientIsLoggedIn(clientId);
     DateTime now = clock.nowUtc();
-    DomainResource domain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    DomainBase domain = loadAndVerifyExistence(DomainBase.class, targetId, now);
     verifyOptionalAuthInfo(authInfo, domain);
     // Most of the fields on the transfer response are required, so there's no way to return valid
     // XML if the object has never been transferred (and hence the fields aren't populated).

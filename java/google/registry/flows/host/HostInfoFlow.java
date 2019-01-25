@@ -28,7 +28,7 @@ import google.registry.flows.Flow;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.annotations.ReportingSpec;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostInfoData;
@@ -77,7 +77,7 @@ public final class HostInfoFlow implements Flow {
     // the client id, last transfer time, and pending transfer status need to be read off of it. If
     // there is no superordinate domain, the host's own values for these fields will be correct.
     if (host.isSubordinate()) {
-      DomainResource superordinateDomain =
+      DomainBase superordinateDomain =
           ofy().load().key(host.getSuperordinateDomain()).now().cloneProjectedAtTime(now);
       hostInfoDataBuilder
           .setCurrentSponsorClientId(superordinateDomain.getCurrentSponsorClientId())

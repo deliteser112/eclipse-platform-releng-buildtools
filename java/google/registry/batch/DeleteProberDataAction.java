@@ -42,7 +42,6 @@ import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResourceUtils;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.registry.Registry;
@@ -58,7 +57,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /**
- * Deletes all prober DomainResources and their subordinate history entries, poll messages, and
+ * Deletes all prober DomainBases and their subordinate history entries, poll messages, and
  * billing events, along with their ForeignKeyDomainIndex and EppResourceIndex entities.
  *
  * <p>See: https://www.youtube.com/watch?v=xuuv0syoHnM
@@ -166,7 +165,7 @@ public class DeleteProberDataAction implements Runnable {
     }
 
     private void deleteDomain(final Key<DomainBase> domainKey) {
-      final DomainResource domain = (DomainResource) ofy().load().key(domainKey).now();
+      final DomainBase domain = ofy().load().key(domainKey).now();
 
       DateTime now = DateTime.now(UTC);
 
@@ -245,9 +244,9 @@ public class DeleteProberDataAction implements Runnable {
       getContext().incrementCounter("total entities hard-deleted", entitiesDeleted);
     }
 
-    private void softDeleteDomain(final DomainResource domain) {
+    private void softDeleteDomain(final DomainBase domain) {
       ofy().transactNew(() -> {
-          DomainResource deletedDomain = domain
+          DomainBase deletedDomain = domain
               .asBuilder()
               .setDeletionTime(ofy().getTransactionTime())
               .setStatusValues(null)

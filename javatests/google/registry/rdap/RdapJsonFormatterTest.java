@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
-import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainBase;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.TestDataHelper.loadFile;
@@ -33,7 +33,7 @@ import com.googlecode.objectify.Key;
 import google.registry.config.RdapNoticeDescriptor;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.Period;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -71,8 +71,8 @@ public class RdapJsonFormatterTest {
   private RdapJsonFormatter rdapJsonFormatter;
 
   private Registrar registrar;
-  private DomainResource domainResourceFull;
-  private DomainResource domainResourceNoNameservers;
+  private DomainBase domainBaseFull;
+  private DomainBase domainBaseNoNameservers;
   private HostResource hostResourceIpv4;
   private HostResource hostResourceIpv6;
   private HostResource hostResourceBoth;
@@ -163,7 +163,7 @@ public class RdapJsonFormatterTest {
                 .setSuperordinateDomain(
                     Key.create(
                         persistResource(
-                            makeDomainResource(
+                            makeDomainBase(
                                     "dog.みんな",
                                     contactResourceRegistrant,
                                     contactResourceAdmin,
@@ -186,8 +186,8 @@ public class RdapJsonFormatterTest {
                                         .build())
                                 .build())))
                 .build());
-    domainResourceFull = persistResource(
-        makeDomainResource(
+    domainBaseFull = persistResource(
+        makeDomainBase(
             "cat.みんな",
             contactResourceRegistrant,
             contactResourceAdmin,
@@ -195,8 +195,8 @@ public class RdapJsonFormatterTest {
             hostResourceIpv4,
             hostResourceIpv6,
             registrar));
-    domainResourceNoNameservers = persistResource(
-        makeDomainResource(
+    domainBaseNoNameservers = persistResource(
+        makeDomainBase(
             "fish.みんな",
             contactResourceRegistrant,
             contactResourceAdmin,
@@ -208,7 +208,7 @@ public class RdapJsonFormatterTest {
     // Create an unused domain that references hostResourceBoth and hostResourceNoAddresses so that
     // they will have "associated" (ie, StatusValue.LINKED) status.
     persistResource(
-        makeDomainResource(
+        makeDomainBase(
             "dog.みんな",
             contactResourceRegistrant,
             contactResourceAdmin,
@@ -220,14 +220,14 @@ public class RdapJsonFormatterTest {
     // history entries
     persistResource(
         makeHistoryEntry(
-            domainResourceFull,
+            domainBaseFull,
             HistoryEntry.Type.DOMAIN_CREATE,
             Period.create(1, Period.Unit.YEARS),
             "created",
             clock.nowUtc()));
     persistResource(
         makeHistoryEntry(
-            domainResourceNoNameservers,
+            domainBaseNoNameservers,
             HistoryEntry.Type.DOMAIN_CREATE,
             Period.create(1, Period.Unit.YEARS),
             "created",
@@ -516,7 +516,7 @@ public class RdapJsonFormatterTest {
   @Test
   public void testDomain_full() {
     assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
-            domainResourceFull,
+            domainBaseFull,
             false,
             LINK_BASE,
             WHOIS_SERVER,
@@ -529,7 +529,7 @@ public class RdapJsonFormatterTest {
   @Test
   public void testDomain_summary() {
     assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
-            domainResourceFull,
+            domainBaseFull,
             false,
             LINK_BASE,
             WHOIS_SERVER,
@@ -542,7 +542,7 @@ public class RdapJsonFormatterTest {
   @Test
   public void testDomain_logged_out() {
     assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
-            domainResourceFull,
+            domainBaseFull,
             false,
             LINK_BASE,
             WHOIS_SERVER,
@@ -555,7 +555,7 @@ public class RdapJsonFormatterTest {
   @Test
   public void testDomain_noNameservers() {
     assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
-            domainResourceNoNameservers,
+            domainBaseNoNameservers,
             false,
             LINK_BASE,
             WHOIS_SERVER,

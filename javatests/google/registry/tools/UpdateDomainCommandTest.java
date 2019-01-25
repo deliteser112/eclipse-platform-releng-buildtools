@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.newContactResource;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -114,12 +114,12 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
     HostResource host1 = persistActiveHost("foo.bar.tld");
     HostResource host2 = persistActiveHost("baz.bar.tld");
     persistResource(
-        newDomainResource("example.abc")
+        newDomainBase("example.abc")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host1)))
             .build());
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host2)))
             .build());
@@ -174,7 +174,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
     ImmutableSet<Key<HostResource>> nameservers =
         ImmutableSet.of(Key.create(host1), Key.create(host2));
     persistResource(
-        newDomainResource("example.tld").asBuilder().setNameservers(nameservers).build());
+        newDomainBase("example.tld").asBuilder().setNameservers(nameservers).build());
     runCommandForced(
         "--client=NewRegistrar", "--nameservers=ns2.zdns.google,ns3.zdns.google", "example.tld");
     eppVerifier.verifySent("domain_update_set_nameservers.xml");
@@ -192,7 +192,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
     Key<ContactResource> techResourceKey2 = Key.create(techContact2);
 
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .setContacts(
                 ImmutableSet.of(
@@ -215,7 +215,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
     HostResource host = persistActiveHost("ns1.zdns.google");
     ImmutableSet<Key<HostResource>> nameservers = ImmutableSet.of(Key.create(host));
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .setStatusValues(
                 ImmutableSet.of(
@@ -259,7 +259,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
     HostResource host = persistActiveHost("ns1.zdns.google");
     ImmutableSet<Key<HostResource>> nameservers = ImmutableSet.of(Key.create(host));
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .setStatusValues(ImmutableSet.of(SERVER_UPDATE_PROHIBITED))
             .setNameservers(nameservers)

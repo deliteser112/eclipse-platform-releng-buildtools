@@ -22,7 +22,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistDomainAndEnqueueLordn;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -49,7 +49,7 @@ import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
@@ -271,7 +271,7 @@ public class NordnUploadActionTest {
   }
 
   private void persistClaimsModeDomain() {
-    DomainResource domain = newDomainResource("claims-landrush1.tld");
+    DomainBase domain = newDomainBase("claims-landrush1.tld");
     persistDomainAndEnqueueLordn(
         domain
             .asBuilder()
@@ -283,7 +283,7 @@ public class NordnUploadActionTest {
 
   private void persistSunriseModeDomain() {
     action.phase = "sunrise";
-    DomainResource domain = newDomainResource("sunrise1.tld");
+    DomainBase domain = newDomainBase("sunrise1.tld");
     persistDomainAndEnqueueLordn(domain.asBuilder().setSmdId("my-smdid").build());
   }
 

@@ -39,7 +39,7 @@ import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -68,9 +68,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests for {@link XjcToDomainResourceConverter} */
+/** Tests for {@link XjcToDomainBaseConverter} */
 @RunWith(JUnit4.class)
-public class XjcToDomainResourceConverterTest {
+public class XjcToDomainBaseConverterTest {
 
   //List of packages to initialize JAXBContext
   private static final String JAXB_CONTEXT_PACKAGES = Joiner.on(":").join(asList(
@@ -102,7 +102,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResource() {
+  public void testConvertDomainBase() {
     final ContactResource jd1234 = persistActiveContact("jd1234");
     final ContactResource sh8013 = persistActiveContact("sh8013");
     ImmutableSet<DesignatedContact> expectedContacts =
@@ -110,10 +110,10 @@ public class XjcToDomainResourceConverterTest {
             DesignatedContact.create(DesignatedContact.Type.ADMIN, Key.create(sh8013)),
             DesignatedContact.create(DesignatedContact.Type.TECH, Key.create(sh8013)));
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     assertThat(domain.getFullyQualifiedDomainName()).isEqualTo("example1.example");
     assertThat(domain.getRepoId()).isEqualTo("Dexample1-TEST");
-    // A DomainResource has status INACTIVE if there are no nameservers.
+    // A DomainBase has status INACTIVE if there are no nameservers.
     assertThat(domain.getStatusValues()).isEqualTo(ImmutableSet.of(StatusValue.INACTIVE));
     assertThat(domain.getRegistrant().getName()).isEqualTo(jd1234.getRepoId());
     assertThat(domain.getContacts()).isEqualTo(expectedContacts);
@@ -133,20 +133,20 @@ public class XjcToDomainResourceConverterTest {
 
   /** Verifies that uppercase domain names are converted to lowercase */
   @Test
-  public void testConvertDomainResourceUpperCase() {
+  public void testConvertDomainBaseUpperCase() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_ucase.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     assertThat(domain.getFullyQualifiedDomainName()).isEqualTo("example1.example");
   }
 
   @Test
-  public void testConvertDomainResourceAddPeriod() {
+  public void testConvertDomainBaseAddPeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_addPeriod.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     assertThat(domain.getGracePeriods()).hasSize(1);
     GracePeriod gracePeriod = domain.getGracePeriods().asList().get(0);
     assertThat(gracePeriod.getType()).isEqualTo(GracePeriodStatus.ADD);
@@ -155,11 +155,11 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceAutoRenewPeriod() {
+  public void testConvertDomainBaseAutoRenewPeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_autoRenewPeriod.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     assertThat(domain.getGracePeriods()).hasSize(1);
     GracePeriod gracePeriod = domain.getGracePeriods().asList().get(0);
     assertThat(gracePeriod.getType()).isEqualTo(GracePeriodStatus.AUTO_RENEW);
@@ -168,11 +168,11 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceRedemptionPeriod() {
+  public void testConvertDomainBaseRedemptionPeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_redemptionPeriod.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     assertThat(domain.getGracePeriods()).hasSize(1);
     GracePeriod gracePeriod = domain.getGracePeriods().asList().get(0);
     assertThat(gracePeriod.getType()).isEqualTo(GracePeriodStatus.REDEMPTION);
@@ -181,11 +181,11 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceRenewPeriod() {
+  public void testConvertDomainBaseRenewPeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_renewPeriod.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     assertThat(domain.getGracePeriods()).hasSize(1);
     GracePeriod gracePeriod = domain.getGracePeriods().asList().get(0);
     assertThat(gracePeriod.getType()).isEqualTo(GracePeriodStatus.RENEW);
@@ -194,11 +194,11 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourcePendingDeletePeriod() {
+  public void testConvertDomainBasePendingDeletePeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pendingDeletePeriod.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     assertThat(domain.getGracePeriods()).hasSize(1);
     GracePeriod gracePeriod = domain.getGracePeriods().asList().get(0);
     assertThat(gracePeriod.getType()).isEqualTo(GracePeriodStatus.PENDING_DELETE);
@@ -207,7 +207,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourcePendingRestorePeriodUnsupported() {
+  public void testConvertDomainBasePendingRestorePeriodUnsupported() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pendingRestorePeriod.xml");
@@ -219,11 +219,11 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceTransferPeriod() {
+  public void testConvertDomainBaseTransferPeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_transferPeriod.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     assertThat(domain.getGracePeriods()).hasSize(1);
     GracePeriod gracePeriod = domain.getGracePeriods().asList().get(0);
     assertThat(gracePeriod.getType()).isEqualTo(GracePeriodStatus.TRANSFER);
@@ -241,27 +241,27 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceEppUpdateRegistrar() {
+  public void testConvertDomainBaseEppUpdateRegistrar() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_up_rr.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     assertThat(domain.getLastEppUpdateClientId()).isEqualTo("RegistrarX");
   }
 
   @Test
-  public void testConvertDomainResourceWithHostObjs() {
+  public void testConvertDomainBaseWithHostObjs() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     HostResource host1 = persistActiveHost("ns1.example.net");
     HostResource host2 = persistActiveHost("ns2.example.net");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_host_objs.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     assertThat(domain.getNameservers()).containsExactly(Key.create(host1), Key.create(host2));
   }
 
   @Test
-  public void testConvertDomainResourceWithHostAttrs() {
+  public void testConvertDomainBaseWithHostAttrs() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     persistActiveHost("ns1.example.net");
@@ -273,7 +273,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceHostNotFound() {
+  public void testConvertDomainBaseHostNotFound() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     persistActiveHost("ns1.example.net");
@@ -286,7 +286,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceRegistrantNotFound() {
+  public void testConvertDomainBaseRegistrantNotFound() {
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
     IllegalStateException thrown =
@@ -295,7 +295,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceRegistrantMissing() {
+  public void testConvertDomainBaseRegistrantMissing() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_registrant_missing.xml");
@@ -307,7 +307,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceAdminNotFound() {
+  public void testConvertDomainBaseAdminNotFound() {
     persistActiveContact("jd1234");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
     IllegalStateException thrown =
@@ -316,24 +316,24 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceSecDnsData() {
+  public void testConvertDomainBaseSecDnsData() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_secdns.xml");
-    DomainResource domain = convertDomainInTransaction(xjcDomain);
+    DomainBase domain = convertDomainInTransaction(xjcDomain);
     byte[] digest =
         base16().decode("5FA1FA1C2F70AA483FE178B765D82B272072B4E4167902C5B7F97D46C8899F44");
     assertThat(domain.getDsData()).containsExactly(DelegationSignerData.create(4609, 8, 2, digest));
   }
 
   @Test
-  public void testConvertDomainResourceHistoryEntry() throws Exception {
+  public void testConvertDomainBaseHistoryEntry() throws Exception {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
     // First import in a transaction, then verify in another transaction.
     // Ancestor queries don't work within the same transaction.
-    DomainResource domain = persistResource(convertDomainInTransaction(xjcDomain));
+    DomainBase domain = persistResource(convertDomainInTransaction(xjcDomain));
     List<HistoryEntry> historyEntries = getHistoryEntries(domain);
     assertThat(historyEntries).hasSize(1);
     HistoryEntry entry = historyEntries.get(0);
@@ -352,13 +352,13 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceAutoRenewBillingEvent() {
+  public void testConvertDomainBaseAutoRenewBillingEvent() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
     // First import in a transaction, then verify in another transaction.
     // Ancestor queries don't work within the same transaction.
-    DomainResource domain = persistResource(convertDomainInTransaction(xjcDomain));
+    DomainBase domain = persistResource(convertDomainInTransaction(xjcDomain));
     BillingEvent.Recurring autoRenewEvent =
         ofy().load().key(domain.getAutorenewBillingEvent()).now();
     assertThat(autoRenewEvent.getReason()).isEqualTo(Reason.RENEW);
@@ -370,13 +370,13 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceAutoRenewPollMessage() {
+  public void testConvertDomainBaseAutoRenewPollMessage() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
     // First import in a transaction, then verify in another transaction.
     // Ancestor queries don't work within the same transaction.
-    DomainResource domain = persistResource(convertDomainInTransaction(xjcDomain));
+    DomainBase domain = persistResource(convertDomainInTransaction(xjcDomain));
     PollMessage pollMessage = ofy().load().key(domain.getAutorenewPollMessage()).now();
     assertThat(pollMessage).isInstanceOf(PollMessage.Autorenew.class);
     assertThat(((PollMessage.Autorenew) pollMessage).getTargetId()).isEqualTo(xjcDomain.getRoid());
@@ -386,11 +386,11 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourcePendingTransfer() {
+  public void testConvertDomainBasePendingTransfer() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pending_transfer.xml");
-    DomainResource domain = persistResource(convertDomainInTransaction(xjcDomain));
+    DomainBase domain = persistResource(convertDomainInTransaction(xjcDomain));
     assertThat(domain.getTransferData()).isNotNull();
     assertThat(domain.getTransferData().getTransferStatus()).isEqualTo(TransferStatus.PENDING);
     assertThat(domain.getTransferData().getGainingClientId()).isEqualTo("RegistrarY");
@@ -402,18 +402,18 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourcePendingTransferRegistrationCap() {
+  public void testConvertDomainBasePendingTransferRegistrationCap() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain =
         loadDomainFromRdeXml("domain_fragment_pending_transfer_registration_cap.xml");
-    DomainResource domain = persistResource(convertDomainInTransaction(xjcDomain));
+    DomainBase domain = persistResource(convertDomainInTransaction(xjcDomain));
     assertThat(domain.getTransferData()).isNotNull();
     // This test will be imcomplete until b/36405140 is fixed to store exDate on TransferData, since
     // without that there's no way to actually test the capping of the projected registration here.
   }
 
-  private DomainResource convertDomainInTransaction(final XjcRdeDomain xjcDomain) {
+  private DomainBase convertDomainInTransaction(final XjcRdeDomain xjcDomain) {
     return ofy()
         .transact(
             () -> {
@@ -423,7 +423,7 @@ public class XjcToDomainResourceConverterTest {
               PollMessage.Autorenew autorenewPollMessage =
                   createAutoRenewPollMessageForDomainImport(xjcDomain, historyEntry);
               ofy().save().entities(historyEntry, autorenewBillingEvent, autorenewPollMessage);
-              return XjcToDomainResourceConverter.convertDomain(
+              return XjcToDomainBaseConverter.convertDomain(
                   xjcDomain, autorenewBillingEvent, autorenewPollMessage, stringGenerator);
             });
   }

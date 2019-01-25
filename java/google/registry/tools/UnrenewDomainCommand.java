@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import google.registry.model.billing.BillingEvent;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.Period.Unit;
 import google.registry.model.eppcommon.StatusValue;
@@ -91,7 +91,7 @@ class UnrenewDomainCommand extends ConfirmingCommand implements CommandWithRemot
         domainsNonexistentBuilder.add(domainName);
         continue;
       }
-      Optional<DomainResource> domain = loadByForeignKey(DomainResource.class, domainName, now);
+      Optional<DomainBase> domain = loadByForeignKey(DomainBase.class, domainName, now);
       if (!domain.isPresent()
           || domain.get().getStatusValues().contains(StatusValue.PENDING_DELETE)) {
         domainsDeletingBuilder.add(domainName);
@@ -151,8 +151,8 @@ class UnrenewDomainCommand extends ConfirmingCommand implements CommandWithRemot
   private void unrenewDomain(String domainName) {
     ofy().assertInTransaction();
     DateTime now = ofy().getTransactionTime();
-    Optional<DomainResource> domainOptional =
-        loadByForeignKey(DomainResource.class, domainName, now);
+    Optional<DomainBase> domainOptional =
+        loadByForeignKey(DomainBase.class, domainName, now);
     // Transactional sanity checks on the off chance that something changed between init() running
     // and here.
     checkState(
@@ -160,7 +160,7 @@ class UnrenewDomainCommand extends ConfirmingCommand implements CommandWithRemot
             && !domainOptional.get().getStatusValues().contains(StatusValue.PENDING_DELETE),
         "Domain %s was deleted or is pending deletion",
         domainName);
-    DomainResource domain = domainOptional.get();
+    DomainBase domain = domainOptional.get();
     checkState(
         Sets.intersection(domain.getStatusValues(), DISALLOWED_STATUSES).isEmpty(),
         "Domain %s has prohibited status values",
@@ -206,7 +206,7 @@ class UnrenewDomainCommand extends ConfirmingCommand implements CommandWithRemot
             .build();
     // End the old autorenew billing event and poll message now.
     updateAutorenewRecurrenceEndTime(domain, now);
-    DomainResource newDomain =
+    DomainBase newDomain =
         domain
             .asBuilder()
             .setRegistrationExpirationTime(newExpirationTime)

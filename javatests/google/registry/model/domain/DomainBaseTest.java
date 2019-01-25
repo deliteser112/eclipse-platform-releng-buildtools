@@ -21,10 +21,10 @@ import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.DomainBaseSubject.assertAboutDomains;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
@@ -58,15 +58,15 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-/** Unit tests for {@link DomainResource}. */
-public class DomainResourceTest extends EntityTestCase {
+/** Unit tests for {@link DomainBase}. */
+public class DomainBaseTest extends EntityTestCase {
 
-  DomainResource domain;
+  DomainBase domain;
 
   @Before
   public void setUp() {
     createTld("com");
-    Key<DomainResource> domainKey = Key.create(null, DomainResource.class, "4-COM");
+    Key<DomainBase> domainKey = Key.create(null, DomainBase.class, "4-COM");
     Key<HostResource> hostKey = Key.create(persistResource(
         new HostResource.Builder()
             .setFullyQualifiedHostName("ns1.example.com")
@@ -97,7 +97,7 @@ public class DomainResourceTest extends EntityTestCase {
     domain =
         persistResource(
             cloneAndSetAutoTimestamps(
-                new DomainResource.Builder()
+                new DomainBase.Builder()
                     .setFullyQualifiedDomainName("example.com")
                     .setRepoId("4-COM")
                     .setCreationClientId("a registrar")
@@ -150,7 +150,7 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testPersistence() {
-    assertThat(loadByForeignKey(DomainResource.class, domain.getForeignKey(), clock.nowUtc()))
+    assertThat(loadByForeignKey(DomainBase.class, domain.getForeignKey(), clock.nowUtc()))
         .hasValue(domain);
   }
 
@@ -168,17 +168,17 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testEmptyStringsBecomeNull() {
-    assertThat(newDomainResource("example.com").asBuilder()
+    assertThat(newDomainBase("example.com").asBuilder()
         .setPersistedCurrentSponsorClientId(null)
         .build()
             .getCurrentSponsorClientId())
                 .isNull();
-    assertThat(newDomainResource("example.com").asBuilder()
+    assertThat(newDomainBase("example.com").asBuilder()
             .setPersistedCurrentSponsorClientId("")
             .build()
                 .getCurrentSponsorClientId())
                     .isNull();
-    assertThat(newDomainResource("example.com").asBuilder()
+    assertThat(newDomainBase("example.com").asBuilder()
         .setPersistedCurrentSponsorClientId(" ")
         .build()
             .getCurrentSponsorClientId())
@@ -188,33 +188,33 @@ public class DomainResourceTest extends EntityTestCase {
   @Test
   public void testEmptySetsAndArraysBecomeNull() {
     assertThat(
-            newDomainResource("example.com")
+            newDomainBase("example.com")
                 .asBuilder()
                 .setNameservers(ImmutableSet.of())
                 .build()
                 .nsHosts)
         .isNull();
     assertThat(
-            newDomainResource("example.com")
+            newDomainBase("example.com")
                 .asBuilder()
                 .setNameservers(ImmutableSet.of())
                 .build()
                 .nsHosts)
         .isNull();
-    assertThat(newDomainResource("example.com").asBuilder()
+    assertThat(newDomainBase("example.com").asBuilder()
         .setNameservers(ImmutableSet.of(Key.create(newHostResource("foo.example.tld"))))
             .build().nsHosts)
                 .isNotNull();
     // This behavior should also hold true for ImmutableObjects nested in collections.
-    assertThat(newDomainResource("example.com").asBuilder()
+    assertThat(newDomainBase("example.com").asBuilder()
         .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 1, 1, null)))
         .build().getDsData().asList().get(0).getDigest())
             .isNull();
-    assertThat(newDomainResource("example.com").asBuilder()
+    assertThat(newDomainBase("example.com").asBuilder()
         .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 1, 1, new byte[]{})))
         .build().getDsData().asList().get(0).getDigest())
             .isNull();
-    assertThat(newDomainResource("example.com").asBuilder()
+    assertThat(newDomainBase("example.com").asBuilder()
         .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 1, 1, new byte[]{1})))
         .build().getDsData().asList().get(0).getDigest())
             .isNotNull();
@@ -222,9 +222,9 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testEmptyTransferDataBecomesNull() {
-    DomainResource withNull =
-        newDomainResource("example.com").asBuilder().setTransferData(null).build();
-    DomainResource withEmpty = withNull.asBuilder().setTransferData(TransferData.EMPTY).build();
+    DomainBase withNull =
+        newDomainBase("example.com").asBuilder().setTransferData(null).build();
+    DomainBase withEmpty = withNull.asBuilder().setTransferData(TransferData.EMPTY).build();
     assertThat(withNull).isEqualTo(withEmpty);
     assertThat(withEmpty.transferData).isNull();
   }
@@ -236,12 +236,12 @@ public class DomainResourceTest extends EntityTestCase {
     StatusValue[] statuses = {StatusValue.OK};
     // OK is implicit if there's no other statuses but there are nameservers.
     assertAboutDomains()
-        .that(newDomainResource("example.com").asBuilder().setNameservers(nameservers).build())
+        .that(newDomainBase("example.com").asBuilder().setNameservers(nameservers).build())
         .hasExactlyStatusValues(statuses);
     StatusValue[] statuses1 = {StatusValue.CLIENT_HOLD};
     // If there are other status values, OK should be suppressed. (Domains can't be LINKED.)
     assertAboutDomains()
-        .that(newDomainResource("example.com").asBuilder()
+        .that(newDomainBase("example.com").asBuilder()
             .setNameservers(nameservers)
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_HOLD))
             .build())
@@ -249,7 +249,7 @@ public class DomainResourceTest extends EntityTestCase {
     StatusValue[] statuses2 = {StatusValue.CLIENT_HOLD};
     // When OK is suppressed, it should be removed even if it was originally there.
     assertAboutDomains()
-        .that(newDomainResource("example.com").asBuilder()
+        .that(newDomainBase("example.com").asBuilder()
             .setNameservers(nameservers)
             .setStatusValues(ImmutableSet.of(StatusValue.OK, StatusValue.CLIENT_HOLD))
             .build())
@@ -257,19 +257,19 @@ public class DomainResourceTest extends EntityTestCase {
     StatusValue[] statuses3 = {StatusValue.INACTIVE};
     // If there are no nameservers, INACTIVE should be added, which suppresses OK.
     assertAboutDomains()
-        .that(newDomainResource("example.com").asBuilder().build())
+        .that(newDomainBase("example.com").asBuilder().build())
         .hasExactlyStatusValues(statuses3);
     StatusValue[] statuses4 = {StatusValue.CLIENT_HOLD, StatusValue.INACTIVE};
     // If there are no nameservers but there are status values, INACTIVE should still be added.
     assertAboutDomains()
-        .that(newDomainResource("example.com").asBuilder()
+        .that(newDomainBase("example.com").asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_HOLD))
             .build())
         .hasExactlyStatusValues(statuses4);
     StatusValue[] statuses5 = {StatusValue.CLIENT_HOLD};
     // If there are nameservers, INACTIVE should be removed even if it was originally there.
     assertAboutDomains()
-        .that(newDomainResource("example.com").asBuilder()
+        .that(newDomainBase("example.com").asBuilder()
             .setNameservers(nameservers)
             .setStatusValues(ImmutableSet.of(StatusValue.INACTIVE, StatusValue.CLIENT_HOLD))
             .build())
@@ -277,7 +277,7 @@ public class DomainResourceTest extends EntityTestCase {
   }
 
   private void assertTransferred(
-      DomainResource domain,
+      DomainBase domain,
       DateTime newExpirationTime,
       Key<BillingEvent.Recurring> newAutorenewEvent) {
     assertThat(domain.getTransferData().getTransferStatus())
@@ -323,7 +323,7 @@ public class DomainResourceTest extends EntityTestCase {
                 GracePeriod.create(
                     GracePeriodStatus.ADD, clock.nowUtc().plusDays(100), "foo", null))
             .build();
-    DomainResource afterTransfer = domain.cloneProjectedAtTime(clock.nowUtc().plusDays(1));
+    DomainBase afterTransfer = domain.cloneProjectedAtTime(clock.nowUtc().plusDays(1));
     DateTime newExpirationTime = oldExpirationTime.plusYears(1);
     Key<BillingEvent.Recurring> serverApproveAutorenewEvent =
         domain.getTransferData().getServerApproveAutorenewEvent();
@@ -335,7 +335,7 @@ public class DomainResourceTest extends EntityTestCase {
             "winner",
             Key.create(transferBillingEvent)));
     // If we project after the grace period expires all should be the same except the grace period.
-    DomainResource afterGracePeriod = domain.cloneProjectedAtTime(
+    DomainBase afterGracePeriod = domain.cloneProjectedAtTime(
         clock.nowUtc().plusDays(2).plus(Registry.get("com").getTransferGracePeriodLength()));
     assertTransferred(afterGracePeriod, newExpirationTime, serverApproveAutorenewEvent);
     assertThat(afterGracePeriod.getGracePeriods()).isEmpty();
@@ -381,13 +381,13 @@ public class DomainResourceTest extends EntityTestCase {
     DateTime transferSuccessDateTime = now.plusDays(5);
     setupPendingTransferDomain(autorenewDateTime, transferRequestDateTime, transferSuccessDateTime);
 
-    DomainResource beforeAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.minusDays(1));
+    DomainBase beforeAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.minusDays(1));
     assertThat(beforeAutoRenew.getLastEppUpdateTime()).isEqualTo(transferRequestDateTime);
     assertThat(beforeAutoRenew.getLastEppUpdateClientId()).isEqualTo("gaining");
 
     // If autorenew happens before transfer succeeds(before transfer grace period starts as well),
     // lastEppUpdateClientId should still be the current sponsor client id
-    DomainResource afterAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.plusDays(1));
+    DomainBase afterAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.plusDays(1));
     assertThat(afterAutoRenew.getLastEppUpdateTime()).isEqualTo(autorenewDateTime);
     assertThat(afterAutoRenew.getLastEppUpdateClientId()).isEqualTo("losing");
   }
@@ -400,11 +400,11 @@ public class DomainResourceTest extends EntityTestCase {
     DateTime transferSuccessDateTime = now.plusDays(5);
     setupPendingTransferDomain(autorenewDateTime, transferRequestDateTime, transferSuccessDateTime);
 
-    DomainResource beforeAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.minusDays(1));
+    DomainBase beforeAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.minusDays(1));
     assertThat(beforeAutoRenew.getLastEppUpdateTime()).isEqualTo(transferRequestDateTime);
     assertThat(beforeAutoRenew.getLastEppUpdateClientId()).isEqualTo("gaining");
 
-    DomainResource afterTransferSuccess =
+    DomainBase afterTransferSuccess =
         domain.cloneProjectedAtTime(transferSuccessDateTime.plusDays(1));
     assertThat(afterTransferSuccess.getLastEppUpdateTime()).isEqualTo(transferSuccessDateTime);
     assertThat(afterTransferSuccess.getLastEppUpdateClientId()).isEqualTo("gaining");
@@ -428,11 +428,11 @@ public class DomainResourceTest extends EntityTestCase {
     DateTime autorenewDateTime = now.plusDays(3);
     setupUnmodifiedDomain(autorenewDateTime);
 
-    DomainResource beforeAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.minusDays(1));
+    DomainBase beforeAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.minusDays(1));
     assertThat(beforeAutoRenew.getLastEppUpdateTime()).isEqualTo(null);
     assertThat(beforeAutoRenew.getLastEppUpdateClientId()).isEqualTo(null);
 
-    DomainResource afterAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.plusDays(1));
+    DomainBase afterAutoRenew = domain.cloneProjectedAtTime(autorenewDateTime.plusDays(1));
     assertThat(afterAutoRenew.getLastEppUpdateTime()).isEqualTo(autorenewDateTime);
     assertThat(afterAutoRenew.getLastEppUpdateClientId()).isEqualTo("losing");
   }
@@ -472,7 +472,7 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testRenewalsHappenAtExpiration() {
-    DomainResource renewed =
+    DomainBase renewed =
         domain.cloneProjectedAtTime(domain.getRegistrationExpirationTime());
     assertThat(renewed.getRegistrationExpirationTime())
         .isEqualTo(domain.getRegistrationExpirationTime().plusYears(1));
@@ -484,7 +484,7 @@ public class DomainResourceTest extends EntityTestCase {
   @Test
   public void testTldGetsSet() {
     createTld("tld");
-    domain = newDomainResource("foo.tld");
+    domain = newDomainBase("foo.tld");
     assertThat(domain.getTld()).isEqualTo("tld");
   }
 
@@ -493,7 +493,7 @@ public class DomainResourceTest extends EntityTestCase {
     domain = domain.asBuilder()
         .setRegistrationExpirationTime(DateTime.parse("2004-02-29T22:00:00.0Z"))
         .build();
-    DomainResource renewed =
+    DomainBase renewed =
         domain.cloneProjectedAtTime(domain.getRegistrationExpirationTime().plusYears(4));
     assertThat(renewed.getRegistrationExpirationTime().getDayOfMonth()).isEqualTo(28);
   }
@@ -517,7 +517,7 @@ public class DomainResourceTest extends EntityTestCase {
                     .put(oldExpirationTime.plusYears(2).plusMillis(1), Money.of(USD, 5))
                     .build())
             .build());
-    DomainResource renewedThreeTimes =
+    DomainBase renewedThreeTimes =
         domain.cloneProjectedAtTime(oldExpirationTime.plusYears(2));
     assertThat(renewedThreeTimes.getRegistrationExpirationTime())
         .isEqualTo(oldExpirationTime.plusYears(3));

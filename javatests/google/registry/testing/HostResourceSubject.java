@@ -20,7 +20,7 @@ import static com.google.common.truth.Truth.assertAbout;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.testing.TruthChainer.And;
 import org.joda.time.DateTime;
@@ -58,7 +58,7 @@ public final class HostResourceSubject
         "has lastSuperordinateChange");
   }
 
-  public And<HostResourceSubject> hasSuperordinateDomain(Key<DomainResource> superordinateDomain) {
+  public And<HostResourceSubject> hasSuperordinateDomain(Key<DomainBase> superordinateDomain) {
     return hasValue(
         superordinateDomain,
         actual().getSuperordinateDomain(),

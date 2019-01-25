@@ -19,7 +19,7 @@ import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.DomainBaseSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.assertThrows;
 
@@ -30,7 +30,7 @@ import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
 import google.registry.flows.exceptions.NotAuthorizedToViewTransferException;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferStatus;
@@ -39,7 +39,7 @@ import org.junit.Test;
 
 /** Unit tests for {@link DomainTransferQueryFlow}. */
 public class DomainTransferQueryFlowTest
-    extends DomainTransferFlowTestCase<DomainTransferQueryFlow, DomainResource> {
+    extends DomainTransferFlowTestCase<DomainTransferQueryFlow, DomainBase> {
 
   @Before
   public void setUp() {

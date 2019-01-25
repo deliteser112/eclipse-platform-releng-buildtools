@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -45,7 +45,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainAuthInfo;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -59,14 +59,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 /** Unit tests for {@link DomainInfoFlow}. */
-public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, DomainResource> {
+public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, DomainBase> {
 
   private ContactResource registrant;
   private ContactResource contact;
   private HostResource host1;
   private HostResource host2;
   private HostResource host3;
-  private DomainResource domain;
+  private DomainBase domain;
 
   @Before
   public void setup() {
@@ -84,7 +84,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     host2 = persistActiveHost("ns1.example.net");
     domain =
         persistResource(
-            new DomainResource.Builder()
+            new DomainBase.Builder()
                 .setFullyQualifiedDomainName(domainName)
                 .setRepoId("2FF-TLD")
                 .setPersistedCurrentSponsorClientId("NewRegistrar")
@@ -419,7 +419,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .setDeletionTime(clock.nowUtc().minusDays(1))
             .build());

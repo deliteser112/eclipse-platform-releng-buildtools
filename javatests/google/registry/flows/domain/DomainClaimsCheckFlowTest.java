@@ -33,7 +33,7 @@ import google.registry.flows.domain.DomainFlowUtils.ClaimsPeriodEndedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import org.junit.Before;
@@ -41,7 +41,7 @@ import org.junit.Test;
 
 /** Unit tests for {@link DomainClaimsCheckFlow}. */
 public class DomainClaimsCheckFlowTest
-    extends ResourceFlowTestCase<DomainClaimsCheckFlow, DomainResource> {
+    extends ResourceFlowTestCase<DomainClaimsCheckFlow, DomainBase> {
 
   public DomainClaimsCheckFlowTest() {
     setEppInput("domain_check_claims.xml");

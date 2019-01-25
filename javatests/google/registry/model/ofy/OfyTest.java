@@ -44,7 +44,6 @@ import com.googlecode.objectify.annotation.Parent;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.AppEngineRule;
@@ -362,7 +361,7 @@ public class OfyTest {
 
   @Test
   public void test_getBaseEntityClassFromEntityOrKey_subclassEntity() {
-    DomainResource domain = DatastoreHelper.newDomainResource("test.tld");
+    DomainBase domain = DatastoreHelper.newDomainBase("test.tld");
     assertThat(getBaseEntityClassFromEntityOrKey(domain)).isEqualTo(DomainBase.class);
     assertThat(getBaseEntityClassFromEntityOrKey(Key.create(domain)))
         .isEqualTo(DomainBase.class);

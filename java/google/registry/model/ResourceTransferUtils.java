@@ -17,7 +17,7 @@ package google.registry.model;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.domain.DomainBase.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableList;
@@ -28,7 +28,7 @@ import google.registry.model.EppResource.BuilderWithTransferData;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.EppResource.ResourceWithTransferData;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.index.ForeignKeyIndex;
@@ -64,7 +64,7 @@ public final class ResourceTransferUtils {
     if (eppResource instanceof ContactResource) {
       builder = new ContactTransferResponse.Builder().setContactId(eppResource.getForeignKey());
     } else {
-      DomainResource domain = (DomainResource) eppResource;
+      DomainBase domain = (DomainBase) eppResource;
       builder =
           new DomainTransferResponse.Builder()
               .setFullyQualifiedDomainName(eppResource.getForeignKey())
@@ -102,7 +102,7 @@ public final class ResourceTransferUtils {
   }
 
   private static void assertIsContactOrDomain(EppResource eppResource) {
-    checkState(eppResource instanceof ContactResource || eppResource instanceof DomainResource);
+    checkState(eppResource instanceof ContactResource || eppResource instanceof DomainBase);
   }
 
   /** Update the relevant {@link ForeignKeyIndex} to cache the new deletion time. */

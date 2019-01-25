@@ -26,7 +26,7 @@ import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurr
 import static google.registry.flows.domain.DomainTransferUtils.createGainingTransferPollMessage;
 import static google.registry.flows.domain.DomainTransferUtils.createTransferResponse;
 import static google.registry.model.ResourceTransferUtils.approvePendingTransfer;
-import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.domain.DomainBase.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
@@ -46,7 +46,7 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -95,7 +95,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
 
   /**
    * <p>The logic in this flow, which handles client approvals, very closely parallels the logic in
-   * {@link DomainResource#cloneProjectedAtTime} which handles implicit server approvals.
+   * {@link DomainBase#cloneProjectedAtTime} which handles implicit server approvals.
    */
   @Override
   public final EppResponse run() throws EppException {
@@ -103,7 +103,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
-    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    DomainBase existingDomain = loadAndVerifyExistence(DomainBase.class, targetId, now);
     verifyOptionalAuthInfo(authInfo, existingDomain);
     verifyHasPendingTransfer(existingDomain);
     verifyResourceOwnership(clientId, existingDomain);
@@ -173,9 +173,9 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
         .setParent(historyEntry)
         .build();
     // Construct the post-transfer domain.
-    DomainResource partiallyApprovedDomain =
+    DomainBase partiallyApprovedDomain =
         approvePendingTransfer(existingDomain, TransferStatus.CLIENT_APPROVED, now);
-    DomainResource newDomain =
+    DomainBase newDomain =
         partiallyApprovedDomain
             .asBuilder()
             // Update the transferredRegistrationExpirationTime here since approvePendingTransfer()
@@ -223,7 +223,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
   }
 
   private HistoryEntry buildHistoryEntry(
-      DomainResource existingDomain, Registry registry, DateTime now, String gainingClientId) {
+      DomainBase existingDomain, Registry registry, DateTime now, String gainingClientId) {
     ImmutableSet<DomainTransactionRecord> cancelingRecords =
         createCancelingRecords(
             existingDomain,

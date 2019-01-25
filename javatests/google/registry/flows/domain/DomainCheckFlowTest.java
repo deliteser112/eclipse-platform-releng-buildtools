@@ -59,7 +59,7 @@ import google.registry.flows.domain.DomainFlowUtils.TrailingDashException;
 import google.registry.flows.domain.DomainFlowUtils.TransfersAreAlwaysForOneYearException;
 import google.registry.flows.domain.DomainFlowUtils.UnknownFeeCommandException;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
@@ -74,7 +74,7 @@ import org.junit.Test;
 
 /** Unit tests for {@link DomainCheckFlow}. */
 public class DomainCheckFlowTest
-    extends ResourceCheckFlowTestCase<DomainCheckFlow, DomainResource> {
+    extends ResourceCheckFlowTestCase<DomainCheckFlow, DomainBase> {
 
   public DomainCheckFlowTest() {
     setEppInput("domain_check_one_tld.xml");

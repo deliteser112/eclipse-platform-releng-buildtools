@@ -18,7 +18,7 @@ import static google.registry.flows.domain.DomainTransferUtils.createLosingTrans
 import static google.registry.flows.domain.DomainTransferUtils.createPendingTransferData;
 import static google.registry.flows.domain.DomainTransferUtils.createTransferServerApproveEntities;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_MAP_SHARDS;
-import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
+import static google.registry.model.domain.DomainBase.extendRegistrationWithCap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.rde.imports.RdeImportUtils.createAutoRenewBillingEventForDomainImport;
@@ -40,7 +40,7 @@ import google.registry.dns.DnsQueue;
 import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.billing.BillingEvent;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.Period.Unit;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -199,8 +199,8 @@ public class RdeDomainImportAction implements Runnable {
           createAutoRenewBillingEventForDomainImport(xjcDomain, historyEntry);
       PollMessage.Autorenew autorenewPollMessage =
           createAutoRenewPollMessageForDomainImport(xjcDomain, historyEntry);
-      DomainResource domain =
-          XjcToDomainResourceConverter.convertDomain(
+      DomainBase domain =
+          XjcToDomainBaseConverter.convertDomain(
               xjcDomain, autorenewBillingEvent, autorenewPollMessage, stringGenerator);
       getDnsQueue().addDomainRefreshTask(domain.getFullyQualifiedDomainName());
       // Keep a list of "extra objects" that need to be saved along with the domain
@@ -227,7 +227,7 @@ public class RdeDomainImportAction implements Runnable {
         // the actual transfer time to avoid hitting the transfer-handling part of
         // cloneProjectedAtTime(), since unlike in the DomainTransferRequestFlow case,
         // this domain already has a pending transfer.
-        DomainResource domainAtTransferTime =
+        DomainBase domainAtTransferTime =
             domain.cloneProjectedAtTime(automaticTransferTime.minusMillis(1));
         boolean inAutorenewGraceAtTransfer =
             !domainAtTransferTime.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW).isEmpty();

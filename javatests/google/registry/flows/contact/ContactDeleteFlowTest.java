@@ -19,7 +19,7 @@ import static google.registry.testing.ContactResourceSubject.assertAboutContacts
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newContactResource;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -166,7 +166,7 @@ public class ContactDeleteFlowTest
   public void testFailure_failfastWhenLinkedToDomain() throws Exception {
     createTld("tld");
     persistResource(
-        newDomainResource("example.tld", persistActiveContact(getUniqueIdFromCommand())));
+        newDomainBase("example.tld", persistActiveContact(getUniqueIdFromCommand())));
     EppException thrown = assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -175,7 +175,7 @@ public class ContactDeleteFlowTest
   public void testFailure_failfastWhenLinkedToApplication() throws Exception {
     createTld("tld");
     persistResource(
-        newDomainResource("example.tld", persistActiveContact(getUniqueIdFromCommand())));
+        newDomainBase("example.tld", persistActiveContact(getUniqueIdFromCommand())));
     EppException thrown = assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }

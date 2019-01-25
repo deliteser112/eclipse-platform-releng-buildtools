@@ -21,7 +21,7 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.tmch.LordnTaskUtils;
 import google.registry.tools.params.PathParameter;
 import java.io.IOException;
@@ -58,7 +58,7 @@ final class GenerateLordnCommand implements CommandWithRemoteApi {
     DateTime now = DateTime.now(UTC);
     ImmutableList.Builder<String> claimsCsv = new ImmutableList.Builder<>();
     ImmutableList.Builder<String> sunriseCsv = new ImmutableList.Builder<>();
-    for (DomainResource domain : ofy().load().type(DomainResource.class).filter("tld", tld)) {
+    for (DomainBase domain : ofy().load().type(DomainBase.class).filter("tld", tld)) {
       String status = " ";
       if (domain.getLaunchNotice() == null && domain.getSmdId() != null) {
         sunriseCsv.add(LordnTaskUtils.getCsvLineForSunriseDomain(domain, domain.getCreationTime()));

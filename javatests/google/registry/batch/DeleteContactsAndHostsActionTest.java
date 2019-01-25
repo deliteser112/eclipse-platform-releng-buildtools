@@ -37,7 +37,7 @@ import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessageForHistoryEntry;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.newContactResource;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -75,7 +75,7 @@ import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
@@ -96,7 +96,6 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.InjectRule;
-import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.mapreduce.MapreduceTestCase;
 import google.registry.util.AppEngineServiceUtils;
@@ -120,7 +119,6 @@ public class DeleteContactsAndHostsActionTest
     extends MapreduceTestCase<DeleteContactsAndHostsAction> {
 
   @Rule public final InjectRule inject = new InjectRule();
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
   private AsyncTaskEnqueuer enqueuer;
   private final FakeClock clock = new FakeClock(DateTime.parse("2015-01-15T11:22:33Z"));
@@ -181,7 +179,7 @@ public class DeleteContactsAndHostsActionTest
   @Test
   public void testSuccess_contact_referencedByActiveDomain_doesNotGetDeleted() throws Exception {
     ContactResource contact = persistContactPendingDelete("blah8221");
-    persistResource(newDomainResource("example.tld", contact));
+    persistResource(newDomainBase("example.tld", contact));
     DateTime timeEnqueued = clock.nowUtc();
     enqueuer.enqueueAsyncDelete(
         contact,
@@ -197,8 +195,8 @@ public class DeleteContactsAndHostsActionTest
         .doesNotHaveStatusValue(PENDING_DELETE)
         .and()
         .hasDeletionTime(END_OF_TIME);
-    DomainResource domainReloaded =
-        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc()).get();
+    DomainBase domainReloaded =
+        loadByForeignKey(DomainBase.class, "example.tld", clock.nowUtc()).get();
     assertThat(domainReloaded.getReferencedContacts()).contains(Key.create(contactUpdated));
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(contactUpdated, HistoryEntry.Type.CONTACT_DELETE_FAILURE);
@@ -237,7 +235,7 @@ public class DeleteContactsAndHostsActionTest
   @Test
   public void test_mapreduceHasWorkToDo_lockIsAcquired() {
     ContactResource contact = persistContactPendingDelete("blah8221");
-    persistResource(newDomainResource("example.tld", contact));
+    persistResource(newDomainBase("example.tld", contact));
     DateTime timeEnqueued = clock.nowUtc();
     enqueuer.enqueueAsyncDelete(
         contact,
@@ -380,7 +378,7 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_contact_referencedByDeletedDomain_getsDeleted() throws Exception {
     ContactResource contactUsed = persistContactPendingDelete("blah1234");
     persistResource(
-        newDomainResource("example.tld", contactUsed)
+        newDomainBase("example.tld", contactUsed)
             .asBuilder()
             .setDeletionTime(clock.nowUtc().minusDays(3))
             .build());
@@ -614,8 +612,8 @@ public class DeleteContactsAndHostsActionTest
         .doesNotHaveStatusValue(PENDING_DELETE)
         .and()
         .hasDeletionTime(END_OF_TIME);
-    DomainResource domain =
-        loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc()).get();
+    DomainBase domain =
+        loadByForeignKey(DomainBase.class, "example.tld", clock.nowUtc()).get();
     assertThat(domain.getNameservers()).contains(Key.create(hostAfter));
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostAfter, HOST_DELETE_FAILURE);
     assertPollMessageFor(
@@ -684,7 +682,7 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_host_referencedByDeletedDomain_getsDeleted() throws Exception {
     HostResource host = persistHostPendingDelete("ns1.example.tld");
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host)))
             .setDeletionTime(clock.nowUtc().minusDays(5))
@@ -722,9 +720,9 @@ public class DeleteContactsAndHostsActionTest
 
   @Test
   public void testSuccess_subordinateHost_getsDeleted() throws Exception {
-    DomainResource domain =
+    DomainBase domain =
         persistResource(
-            newDomainResource("example.tld")
+            newDomainBase("example.tld")
                 .asBuilder()
                 .setSubordinateHosts(ImmutableSet.of("ns2.example.tld"))
                 .build());
@@ -745,7 +743,7 @@ public class DeleteContactsAndHostsActionTest
     assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isEmpty();
     assertNoBillingEvents();
     assertThat(
-            loadByForeignKey(DomainResource.class, "example.tld", clock.nowUtc())
+            loadByForeignKey(DomainBase.class, "example.tld", clock.nowUtc())
                 .get()
                 .getSubordinateHosts())
         .isEmpty();
@@ -940,10 +938,10 @@ public class DeleteContactsAndHostsActionTest
         newHostResource(hostName).asBuilder().addStatusValue(PENDING_DELETE).build());
   }
 
-  private static DomainResource persistUsedDomain(
+  private static DomainBase persistUsedDomain(
       String domainName, ContactResource contact, HostResource host) {
     return persistResource(
-        newDomainResource(domainName, contact)
+        newDomainBase(domainName, contact)
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host)))
             .build());

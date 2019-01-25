@@ -7,20 +7,10 @@
   </datastore-index>
   <!-- For finding domain resources by registrar. -->
   <datastore-index kind="DomainBase" ancestor="false" source="manual">
-    <property name="^i" direction="asc"/>
-    <property name="currentSponsorClientId" direction="asc"/>
-    <property name="deletionTime" direction="asc"/>
-  </datastore-index>
-  <datastore-index kind="DomainBase" ancestor="false" source="manual">
     <property name="currentSponsorClientId" direction="asc"/>
     <property name="deletionTime" direction="asc"/>
   </datastore-index>
   <!-- For finding domain resources by TLD. -->
-  <datastore-index kind="DomainBase" ancestor="false" source="manual">
-    <property name="^i" direction="asc"/>
-    <property name="tld" direction="asc"/>
-    <property name="deletionTime" direction="asc"/>
-  </datastore-index>
   <datastore-index kind="DomainBase" ancestor="false" source="manual">
     <property name="tld" direction="asc"/>
     <property name="deletionTime" direction="asc"/>
@@ -31,11 +21,6 @@
     <property name="deletionTime" direction="asc"/>
   </datastore-index>
   <!-- For finding the most recently created domain resources. -->
-  <datastore-index kind="DomainBase" ancestor="false" source="manual">
-    <property name="^i" direction="asc"/>
-    <property name="tld" direction="asc"/>
-    <property name="creationTime" direction="desc"/>
-  </datastore-index>
   <datastore-index kind="DomainBase" ancestor="false" source="manual">
     <property name="tld" direction="asc"/>
     <property name="creationTime" direction="desc"/>
@@ -62,11 +47,6 @@
     <property name="deletionTime" direction="asc"/>
   </datastore-index>
   <!-- For RDAP searches by linked nameserver. -->
-  <datastore-index kind="DomainBase" ancestor="false" source="manual">
-    <property name="^i" direction="asc"/>
-    <property name="nsHosts" direction="asc"/>
-    <property name="deletionTime" direction="asc"/>
-  </datastore-index>
   <datastore-index kind="DomainBase" ancestor="false" source="manual">
     <property name="nsHosts" direction="asc"/>
     <property name="deletionTime" direction="asc"/>
@@ -95,31 +75,11 @@
   </datastore-index>
   <!-- For RDAP. -->
   <datastore-index kind="DomainBase" ancestor="false" source="manual">
-    <property name="^i" direction="asc"/>
-    <property name="fullyQualifiedDomainName" direction="asc"/>
-  </datastore-index>
-  <datastore-index kind="DomainBase" ancestor="false" source="manual">
-    <property name="^i" direction="asc"/>
     <property name="currentSponsorClientId" direction="asc"/>
     <property name="fullyQualifiedDomainName" direction="asc"/>
   </datastore-index>
   <datastore-index kind="DomainBase" ancestor="false" source="manual">
     <property name="currentSponsorClientId" direction="asc"/>
-    <property name="fullyQualifiedDomainName" direction="asc"/>
-  </datastore-index>
-  <datastore-index kind="DomainBase" ancestor="false" source="manual">
-    <property name="^i" direction="asc"/>
-    <property name="currentSponsorClientId" direction="asc"/>
-    <property name="tld" direction="asc"/>
-    <property name="fullyQualifiedDomainName" direction="asc"/>
-  </datastore-index>
-  <datastore-index kind="DomainBase" ancestor="false" source="manual">
-    <property name="currentSponsorClientId" direction="asc"/>
-    <property name="tld" direction="asc"/>
-    <property name="fullyQualifiedDomainName" direction="asc"/>
-  </datastore-index>
-  <datastore-index kind="DomainBase" ancestor="false" source="manual">
-    <property name="^i" direction="asc"/>
     <property name="tld" direction="asc"/>
     <property name="fullyQualifiedDomainName" direction="asc"/>
   </datastore-index>

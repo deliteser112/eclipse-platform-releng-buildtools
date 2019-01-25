@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.eppcommon.StatusValue.SERVER_DELETE_PROHIBITED;
 import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -45,7 +45,7 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
 
   private static void persistLockedDomain(String domainName) {
     persistResource(
-        newDomainResource(domainName)
+        newDomainBase(domainName)
             .asBuilder()
             .addStatusValues(
                 ImmutableSet.of(
@@ -63,7 +63,7 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
   @Test
   public void testSuccess_partiallyUpdatesStatuses() throws Exception {
     persistResource(
-        newDomainResource("example.tld")
+        newDomainBase("example.tld")
             .asBuilder()
             .addStatusValues(ImmutableSet.of(SERVER_DELETE_PROHIBITED, SERVER_UPDATE_PROHIBITED))
             .build());

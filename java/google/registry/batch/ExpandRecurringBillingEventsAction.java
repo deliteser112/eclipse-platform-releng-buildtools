@@ -47,7 +47,7 @@ import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Recurring;
 import google.registry.model.common.Cursor;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.Period;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.DomainTransactionRecord;
@@ -110,7 +110,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
             ImmutableList.of(
                 new NullInput<>(),
                 createChildEntityInput(
-                    ImmutableSet.of(DomainResource.class), ImmutableSet.of(Recurring.class))))
+                    ImmutableSet.of(DomainBase.class), ImmutableSet.of(Recurring.class))))
         .sendLinkToMapreduceConsole(response);
   }
 

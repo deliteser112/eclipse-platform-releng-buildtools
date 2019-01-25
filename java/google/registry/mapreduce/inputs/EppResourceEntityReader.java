@@ -67,7 +67,7 @@ class EppResourceEntityReader<R extends EppResource> extends EppResourceBaseRead
         logger.atSevere().log("EppResourceIndex key %s points at a missing resource", key);
         continue;
       }
-      // Postfilter to distinguish polymorphic types (e.g. DomainBase and DomainResource).
+      // Postfilter to distinguish polymorphic types (e.g. EppResources).
       for (Class<? extends R> resourceClass : resourceClasses) {
         if (resourceClass.isAssignableFrom(resource.getClass())) {
           @SuppressWarnings("unchecked")

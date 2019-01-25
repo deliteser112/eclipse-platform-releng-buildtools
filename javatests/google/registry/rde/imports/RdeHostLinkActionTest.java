@@ -19,7 +19,7 @@ import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -36,7 +36,7 @@ import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex.ForeignKeyDomainIndex;
 import google.registry.model.ofy.Ofy;
@@ -98,8 +98,8 @@ public class RdeHostLinkActionTest extends MapreduceTestCase<RdeHostLinkAction> 
             .asBuilder()
             .setRepoId("Hns1_example1_test-TEST")
             .build());
-    DomainResource superordinateDomain = persistActiveDomain("example1.test");
-    Key<DomainResource> superOrdinateDomainKey = Key.create(superordinateDomain);
+    DomainBase superordinateDomain = persistActiveDomain("example1.test");
+    Key<DomainBase> superOrdinateDomainKey = Key.create(superordinateDomain);
     pushToGcs(DEPOSIT_1_HOST);
     // set transaction time to slightly after resource save
     clock.advanceOneMilli();
@@ -111,7 +111,7 @@ public class RdeHostLinkActionTest extends MapreduceTestCase<RdeHostLinkAction> 
     assertThat(hosts.get(0).getLastSuperordinateChange())
         .isEqualTo(DateTime.parse("2016-05-07T14:55:38.001Z"));
     // verify that domain is linked to host
-    List<DomainResource> domains = ofy().load().type(DomainResource.class).list();
+    List<DomainBase> domains = ofy().load().type(DomainBase.class).list();
     assertThat(domains).hasSize(1);
     assertThat(domains.get(0).getSubordinateHosts()).containsExactly("ns1.example1.test");
   }
@@ -126,7 +126,7 @@ public class RdeHostLinkActionTest extends MapreduceTestCase<RdeHostLinkAction> 
             .asBuilder()
             .setRepoId("wrong-repoid")
             .build());
-    DomainResource superordinateDomain = persistActiveDomain("example1.test");
+    DomainBase superordinateDomain = persistActiveDomain("example1.test");
     ForeignKeyDomainIndex.create(superordinateDomain, END_OF_TIME);
     pushToGcs(DEPOSIT_1_HOST);
     // set transaction time to slightly after resource save
@@ -146,7 +146,7 @@ public class RdeHostLinkActionTest extends MapreduceTestCase<RdeHostLinkAction> 
             .setRepoId("Hns1_example1_test-TEST")
             .build());
     persistResource(
-        newDomainResource("example1.test")
+        newDomainBase("example1.test")
             .asBuilder()
             .setStatusValues(ImmutableSet.of(PENDING_DELETE))
             .build());

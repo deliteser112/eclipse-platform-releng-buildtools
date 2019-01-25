@@ -61,8 +61,8 @@ import google.registry.flows.custom.DomainDeleteFlowCustomLogic.BeforeSaveParame
 import google.registry.flows.custom.EntityChanges;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
-import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.DomainResource.Builder;
+import google.registry.model.domain.DomainBase;
+import google.registry.model.domain.DomainBase.Builder;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
@@ -143,7 +143,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
     // Loads the target resource if it exists
-    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    DomainBase existingDomain = loadAndVerifyExistence(DomainBase.class, targetId, now);
     Registry registry = Registry.get(existingDomain.getTld());
     verifyDeleteAllowed(existingDomain, registry, now);
     flowCustomLogic.afterValidation(
@@ -204,7 +204,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
       // message are produced (since we are ending the autorenew recurrences at "now" below).  For
       // now at least this is working as intended.
     }
-    DomainResource newDomain = builder.build();
+    DomainBase newDomain = builder.build();
     updateForeignKeyIndexDeletionTime(newDomain);
     handlePendingTransferOnDelete(existingDomain, newDomain, now, historyEntry);
     // Close the autorenew billing event and poll message. This may delete the poll message.
@@ -245,7 +245,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
         .build();
   }
 
-  private void verifyDeleteAllowed(DomainResource existingDomain, Registry registry, DateTime now)
+  private void verifyDeleteAllowed(DomainBase existingDomain, Registry registry, DateTime now)
       throws EppException {
     verifyNoDisallowedStatuses(existingDomain, DISALLOWED_STATUSES);
     verifyOptionalAuthInfo(authInfo, existingDomain);
@@ -260,7 +260,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
   }
 
   private HistoryEntry buildHistoryEntry(
-      DomainResource existingResource,
+      DomainBase existingResource,
       Registry registry,
       DateTime now,
       Duration durationUntilDelete,
@@ -298,7 +298,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
   }
 
   private OneTime createDeletePollMessage(
-      DomainResource existingResource, HistoryEntry historyEntry, DateTime deletionTime) {
+      DomainBase existingResource, HistoryEntry historyEntry, DateTime deletionTime) {
     return new PollMessage.OneTime.Builder()
         .setClientId(existingResource.getCurrentSponsorClientId())
         .setEventTime(deletionTime)
@@ -312,7 +312,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
 
   @Nullable
   private ImmutableList<FeeTransformResponseExtension> getResponseExtensions(
-      DomainResource existingDomain, DateTime now) {
+      DomainBase existingDomain, DateTime now) {
     FeeTransformResponseExtension.Builder feeResponseBuilder = getDeleteResponseBuilder();
     if (feeResponseBuilder == null) {
       return ImmutableList.of();

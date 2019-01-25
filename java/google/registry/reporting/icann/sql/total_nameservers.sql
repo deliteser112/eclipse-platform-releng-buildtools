@@ -44,8 +44,7 @@ JOIN (
   FROM
     `%PROJECT_ID%.%DATASTORE_EXPORT_DATA_SET%.%DOMAINBASE_TABLE%`,
     UNNEST(nsHosts) AS hosts
-  WHERE _d = 'DomainResource'
-  AND creationTime <= TIMESTAMP("%LATEST_REPORT_TIME%")
+  WHERE creationTime <= TIMESTAMP("%LATEST_REPORT_TIME%")
   AND deletionTime > TIMESTAMP("%LATEST_REPORT_TIME%") ) AS domain_table
 ON
   host_table.__key__.name = domain_table.referencedHostName

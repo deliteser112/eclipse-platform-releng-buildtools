@@ -20,7 +20,7 @@ import static google.registry.model.registry.Registries.assertTldsExist;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Iterators;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.util.Clock;
 import java.util.List;
 import javax.inject.Inject;
@@ -46,7 +46,7 @@ final class CountDomainsCommand implements CommandWithRemoteApi {
     return Iterators.size(
         ofy()
             .load()
-            .type(DomainResource.class)
+            .type(DomainBase.class)
             .filter("tld", tld)
             .filter("deletionTime >", now)
             .chunkAll()

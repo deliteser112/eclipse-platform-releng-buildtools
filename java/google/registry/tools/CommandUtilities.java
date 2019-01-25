@@ -21,7 +21,7 @@ import com.google.common.base.Strings;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
 import org.joda.time.DateTime;
@@ -33,7 +33,7 @@ class CommandUtilities {
   public enum ResourceType {
     CONTACT(ContactResource.class),
     HOST(HostResource.class),
-    DOMAIN(DomainResource.class);
+    DOMAIN(DomainBase.class);
 
     private Class<? extends EppResource> clazz;
 

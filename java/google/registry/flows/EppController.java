@@ -95,7 +95,7 @@ public final class EppController {
             e.getResult(), Trid.create(null, serverTridProvider.createServerTrid()));
       }
       if (!eppInput.getTargetIds().isEmpty()) {
-        if (eppInput.isDomainResourceType()) {
+        if (eppInput.isDomainType()) {
           eppMetricBuilder.setTlds(extractTlds(eppInput.getTargetIds()));
         }
       }

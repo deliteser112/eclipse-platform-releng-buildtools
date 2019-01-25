@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
@@ -38,7 +38,7 @@ import google.registry.config.RegistryEnvironment;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.poll.PollMessage;
@@ -163,9 +163,9 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
 
   @Test
   public void testSuccess_doesntDeleteNicDomainForProbers() throws Exception {
-    DomainResource nic = persistActiveDomain("nic.ib-any.test");
-    ForeignKeyIndex<DomainResource> fkiNic =
-        ForeignKeyIndex.load(DomainResource.class, "nic.ib-any.test", START_OF_TIME);
+    DomainBase nic = persistActiveDomain("nic.ib-any.test");
+    ForeignKeyIndex<DomainBase> fkiNic =
+        ForeignKeyIndex.load(DomainBase.class, "nic.ib-any.test", START_OF_TIME);
     Set<ImmutableObject> ibEntities = persistLotsOfDomains("ib-any.test");
     runMapreduce();
     assertDeleted(ibEntities);
@@ -184,14 +184,14 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
 
   @Test
   public void testSuccess_activeDomain_isSoftDeleted() throws Exception {
-    DomainResource domain = persistResource(
-        newDomainResource("blah.ib-any.test")
+    DomainBase domain = persistResource(
+        newDomainBase("blah.ib-any.test")
             .asBuilder()
             .setCreationTimeForTest(DateTime.now(UTC).minusYears(1))
             .build());
     runMapreduce();
     DateTime timeAfterDeletion = DateTime.now(UTC);
-    assertThat(loadByForeignKey(DomainResource.class, "blah.ib-any.test", timeAfterDeletion))
+    assertThat(loadByForeignKey(DomainBase.class, "blah.ib-any.test", timeAfterDeletion))
         .isEmpty();
     assertThat(ofy().load().entity(domain).now().getDeletionTime()).isLessThan(timeAfterDeletion);
     assertDnsTasksEnqueued("blah.ib-any.test");
@@ -199,8 +199,8 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
 
   @Test
   public void testSuccess_activeDomain_doubleMapSoftDeletes() throws Exception {
-    DomainResource domain = persistResource(
-        newDomainResource("blah.ib-any.test")
+    DomainBase domain = persistResource(
+        newDomainBase("blah.ib-any.test")
             .asBuilder()
             .setCreationTimeForTest(DateTime.now(UTC).minusYears(1))
             .build());
@@ -208,7 +208,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
     DateTime timeAfterDeletion = DateTime.now(UTC);
     resetAction();
     runMapreduce();
-    assertThat(loadByForeignKey(DomainResource.class, "blah.ib-any.test", timeAfterDeletion))
+    assertThat(loadByForeignKey(DomainBase.class, "blah.ib-any.test", timeAfterDeletion))
         .isEmpty();
     assertThat(ofy().load().entity(domain).now().getDeletionTime()).isLessThan(timeAfterDeletion);
     assertDnsTasksEnqueued("blah.ib-any.test");
@@ -217,21 +217,21 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
   @Test
   public void test_recentlyCreatedDomain_isntDeletedYet() throws Exception {
     persistResource(
-        newDomainResource("blah.ib-any.test")
+        newDomainBase("blah.ib-any.test")
             .asBuilder()
             .setCreationTimeForTest(DateTime.now(UTC).minusSeconds(1))
             .build());
     runMapreduce();
-    Optional<DomainResource> domain =
-        loadByForeignKey(DomainResource.class, "blah.ib-any.test", DateTime.now(UTC));
+    Optional<DomainBase> domain =
+        loadByForeignKey(DomainBase.class, "blah.ib-any.test", DateTime.now(UTC));
     assertThat(domain).isPresent();
     assertThat(domain.get().getDeletionTime()).isEqualTo(END_OF_TIME);
   }
 
   @Test
   public void testDryRun_doesntSoftDeleteData() throws Exception {
-    DomainResource domain = persistResource(
-        newDomainResource("blah.ib-any.test")
+    DomainBase domain = persistResource(
+        newDomainBase("blah.ib-any.test")
             .asBuilder()
             .setCreationTimeForTest(DateTime.now(UTC).minusYears(1))
             .build());
@@ -243,11 +243,11 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
   @Test
   public void test_domainWithSubordinateHosts_isSkipped() throws Exception {
     persistActiveHost("ns1.blah.ib-any.test");
-    DomainResource nakedDomain =
+    DomainBase nakedDomain =
         persistDeletedDomain("todelete.ib-any.test", DateTime.now(UTC).minusYears(1));
-    DomainResource domainWithSubord =
+    DomainBase domainWithSubord =
         persistDomainAsDeleted(
-            newDomainResource("blah.ib-any.test")
+            newDomainBase("blah.ib-any.test")
                 .asBuilder()
                 .setSubordinateHosts(ImmutableSet.of("ns1.blah.ib-any.test"))
                 .build(),
@@ -260,7 +260,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
   @Test
   public void testFailure_registryAdminClientId_isRequiredForSoftDeletion() {
     persistResource(
-        newDomainResource("blah.ib-any.test")
+        newDomainBase("blah.ib-any.test")
             .asBuilder()
             .setCreationTimeForTest(DateTime.now(UTC).minusYears(1))
             .build());
@@ -274,7 +274,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
    * along with the ForeignKeyIndex and EppResourceIndex.
    */
   private static Set<ImmutableObject> persistDomainAndDescendants(String fqdn) {
-    DomainResource domain = persistDeletedDomain(fqdn, DELETION_TIME);
+    DomainBase domain = persistDeletedDomain(fqdn, DELETION_TIME);
     HistoryEntry historyEntry = persistSimpleResource(
         new HistoryEntry.Builder()
             .setParent(domain)
@@ -298,8 +298,8 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
             .setClientId("TheRegistrar")
             .setMsg("Domain registered")
             .build());
-    ForeignKeyIndex<DomainResource> fki =
-        ForeignKeyIndex.load(DomainResource.class, fqdn, START_OF_TIME);
+    ForeignKeyIndex<DomainBase> fki =
+        ForeignKeyIndex.load(DomainBase.class, fqdn, START_OF_TIME);
     EppResourceIndex eppIndex =
         ofy().load().entity(EppResourceIndex.create(Key.create(domain))).now();
     return ImmutableSet.of(

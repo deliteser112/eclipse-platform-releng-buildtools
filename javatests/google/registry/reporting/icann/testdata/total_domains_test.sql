@@ -32,7 +32,6 @@ JOIN
 ON
   currentSponsorClientId = registrar_table.__key__.name
 WHERE
-  domain_table._d = 'DomainResource'
-  AND (registrar_table.type = 'REAL' OR registrar_table.type = 'INTERNAL')
+  registrar_table.type = 'REAL' OR registrar_table.type = 'INTERNAL'
 GROUP BY tld, registrarName
 ORDER BY tld, registrarName

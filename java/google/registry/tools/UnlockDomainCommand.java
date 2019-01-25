@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.flogger.FluentLogger;
 import com.google.template.soy.data.SoyMapData;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.tools.soy.DomainUpdateSoyInfo;
 import java.util.Optional;
@@ -46,10 +46,10 @@ public class UnlockDomainCommand extends LockOrUnlockDomainCommand {
     // Project all domains as of the same time so that argument order doesn't affect behavior.
     DateTime now = DateTime.now(UTC);
     for (String domain : getDomains()) {
-      Optional<DomainResource> domainResource = loadByForeignKey(DomainResource.class, domain, now);
-      checkArgumentPresent(domainResource, "Domain '%s' does not exist or is deleted", domain);
+      Optional<DomainBase> domainBase = loadByForeignKey(DomainBase.class, domain, now);
+      checkArgumentPresent(domainBase, "Domain '%s' does not exist or is deleted", domain);
       ImmutableSet<StatusValue> statusesToRemove =
-          Sets.intersection(domainResource.get().getStatusValues(), REGISTRY_LOCK_STATUSES)
+          Sets.intersection(domainBase.get().getStatusValues(), REGISTRY_LOCK_STATUSES)
               .immutableCopy();
       if (statusesToRemove.isEmpty()) {
         logger.atInfo().log("Domain '%s' is already unlocked and needs no updates.", domain);

@@ -24,7 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistResources;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
-import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainBase;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
@@ -38,7 +38,7 @@ import com.google.common.collect.Range;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.Period;
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
@@ -75,11 +75,11 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
   }
 
   private Registrar registrar;
-  private DomainResource domainCatLol;
-  private DomainResource domainCatLol2;
-  private DomainResource domainCatExample;
-  private DomainResource domainIdn;
-  private DomainResource domainMultipart;
+  private DomainBase domainCatLol;
+  private DomainBase domainCatLol2;
+  private DomainBase domainCatExample;
+  private DomainBase domainIdn;
+  private DomainBase domainMultipart;
   private ContactResource contact1;
   private ContactResource contact2;
   private ContactResource contact3;
@@ -154,7 +154,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
         makeRegistrar("evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
     domainCatLol = persistResource(
-        makeDomainResource(
+        makeDomainBase(
             "cat.lol",
             contact1 = makeAndPersistContactResource(
                 "5372808-ERL",
@@ -192,7 +192,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     persistResource(
         hostNs2CatLol.asBuilder().setSuperordinateDomain(Key.create(domainCatLol)).build());
     domainCatLol2 = persistResource(
-        makeDomainResource(
+        makeDomainBase(
             "cat2.lol",
             makeAndPersistContactResource(
                 "6372808-ERL",
@@ -226,7 +226,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
         makeRegistrar("goodregistrar", "St. John Chrysostom", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
     domainCatExample = persistResource(
-        makeDomainResource(
+        makeDomainBase(
             "cat.example",
             makeAndPersistContactResource(
                 "7372808-ERL",
@@ -258,7 +258,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     registrar = persistResource(makeRegistrar("unicoderegistrar", "みんな", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
     domainIdn = persistResource(
-        makeDomainResource(
+        makeDomainBase(
             "cat.みんな",
             makeAndPersistContactResource(
                 "8372808-ERL",
@@ -291,7 +291,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     registrar =
         persistResource(makeRegistrar("multiregistrar", "1.test", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
-    domainMultipart = persistResource(makeDomainResource(
+    domainMultipart = persistResource(makeDomainBase(
             "cat.1.test",
             makeAndPersistContactResource(
                 "9372808-ERL",
@@ -540,11 +540,11 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     }
     ImmutableSet<Key<HostResource>> hostKeys = hostKeysBuilder.build();
     // Create all the domains at once, then persist them in parallel, for increased efficiency.
-    ImmutableList.Builder<DomainResource> domainsBuilder = new ImmutableList.Builder<>();
+    ImmutableList.Builder<DomainBase> domainsBuilder = new ImmutableList.Builder<>();
     for (int i = numActiveDomains * numTotalDomainsPerActiveDomain; i >= 1; i--) {
       String domainName = String.format("domain%d.lol", i);
-      DomainResource.Builder builder =
-          makeDomainResource(
+      DomainBase.Builder builder =
+          makeDomainBase(
               domainName, contact1, contact2, contact3, null, null, registrar)
           .asBuilder()
           .setNameservers(hostKeys)

@@ -24,7 +24,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
@@ -56,7 +56,7 @@ public class ResaveAllHistoryEntriesActionTest
   @Test
   public void test_mapreduceSuccessfullyResavesEntity() throws Exception {
     createTld("tld");
-    DomainResource domain = persistActiveDomain("test.tld");
+    DomainBase domain = persistActiveDomain("test.tld");
     ContactResource contact = persistActiveContact("humanBeing");
     Entity domainEntry =
         ofy().save().toEntity(new HistoryEntry.Builder().setParent(domain).build());

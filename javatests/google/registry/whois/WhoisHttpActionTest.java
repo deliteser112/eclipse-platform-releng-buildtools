@@ -21,7 +21,7 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
-import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainBase;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
@@ -122,7 +122,7 @@ public class WhoisHttpActionTest {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     Registrar registrar = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia", Registrar.State.ACTIVE));
-    persistResource(makeDomainResource(
+    persistResource(makeDomainBase(
         "cat.lol",
         persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
         persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol")),
@@ -141,7 +141,7 @@ public class WhoisHttpActionTest {
   public void testRun_domainQueryIdn_works() {
     Registrar registrar = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia", Registrar.State.ACTIVE));
-    persistResource(makeDomainResource(
+    persistResource(makeDomainBase(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
         persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.みんな")),
@@ -167,7 +167,7 @@ public class WhoisHttpActionTest {
                         .setOrg("Galactic\r\nEmpire")
                         .build())
                 .build());
-    persistResource(makeDomainResource(
+    persistResource(makeDomainBase(
         "cat.みんな", trl,
         trl,
         trl,
@@ -180,7 +180,7 @@ public class WhoisHttpActionTest {
 
   @Test
   public void testRun_domainOnly_works() {
-    persistResource(makeDomainResource(
+    persistResource(makeDomainBase(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
         persistResource(makeContactResource("5372808-IRL", "Operator", "BOFH@cat.みんな")),
@@ -204,7 +204,7 @@ public class WhoisHttpActionTest {
   public void testRun_domainQueryPunycode_works() {
     Registrar registrar = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia", Registrar.State.ACTIVE));
-    persistResource(makeDomainResource(
+    persistResource(makeDomainBase(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
         persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.みんな")),
@@ -269,7 +269,7 @@ public class WhoisHttpActionTest {
 
   @Test
   public void testRun_uppercaseDomain_ignoresCasing() {
-    persistResource(makeDomainResource(
+    persistResource(makeDomainBase(
         "cat.lol",
         persistResource(makeContactResource("5372808-ERL", "Peter Murphy", "lol@cat.lol")),
         persistResource(makeContactResource("5372808-IRL", "Operator", "BOFH@cat.lol")),
@@ -283,7 +283,7 @@ public class WhoisHttpActionTest {
 
   @Test
   public void testRun_hairyPath_getsDecoded() {
-    persistResource(makeDomainResource(
+    persistResource(makeDomainBase(
         "cat.lol",
         persistResource(makeContactResource("5372808-ERL", "Peter Murphy", "lol@cat.lol")),
         persistResource(makeContactResource("5372808-IRL", "Operator", "BOFH@cat.lol")),

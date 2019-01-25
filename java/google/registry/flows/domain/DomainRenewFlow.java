@@ -51,9 +51,9 @@ import google.registry.flows.custom.EntityChanges;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.Renew;
 import google.registry.model.domain.DomainRenewData;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.BaseFee.FeeType;
@@ -139,7 +139,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
     DateTime now = ofy().getTransactionTime();
     Renew command = (Renew) resourceCommand;
     // Loads the target resource if it exists
-    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    DomainBase existingDomain = loadAndVerifyExistence(DomainBase.class, targetId, now);
     verifyRenewAllowed(authInfo, existingDomain, command);
     int years = command.getPeriod().getValue();
     DateTime newExpirationTime =
@@ -174,7 +174,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
         .build();
     // End the old autorenew billing event and poll message now. This may delete the poll message.
     updateAutorenewRecurrenceEndTime(existingDomain, now);
-    DomainResource newDomain =
+    DomainBase newDomain =
         existingDomain
             .asBuilder()
             .setLastEppUpdateTime(now)
@@ -220,7 +220,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
   }
 
   private HistoryEntry buildHistoryEntry(
-      DomainResource existingDomain, DateTime now, Period period, Duration renewGracePeriod) {
+      DomainBase existingDomain, DateTime now, Period period, Duration renewGracePeriod) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_RENEW)
         .setPeriod(period)
@@ -238,7 +238,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
 
   private void verifyRenewAllowed(
       Optional<AuthInfo> authInfo,
-      DomainResource existingDomain,
+      DomainBase existingDomain,
       Renew command) throws EppException {
     verifyOptionalAuthInfo(authInfo, existingDomain);
     verifyNoDisallowedStatuses(existingDomain, RENEW_DISALLOWED_STATUSES);

@@ -24,7 +24,7 @@ import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
@@ -47,18 +47,18 @@ import google.registry.xjc.secdns.XjcSecdnsDsDataType;
 import google.registry.xjc.secdns.XjcSecdnsDsOrKeyType;
 import org.joda.time.DateTime;
 
-/** Utility class that turns {@link DomainResource} as {@link XjcRdeDomainElement}. */
-final class DomainResourceToXjcConverter {
+/** Utility class that turns {@link DomainBase} as {@link XjcRdeDomainElement}. */
+final class DomainBaseToXjcConverter {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  /** Converts {@link DomainResource} to {@link XjcRdeDomainElement}. */
-  static XjcRdeDomainElement convert(DomainResource domain, RdeMode mode) {
+  /** Converts {@link DomainBase} to {@link XjcRdeDomainElement}. */
+  static XjcRdeDomainElement convert(DomainBase domain, RdeMode mode) {
     return new XjcRdeDomainElement(convertDomain(domain, mode));
   }
 
-  /** Converts {@link DomainResource} to {@link XjcRdeDomain}. */
-  static XjcRdeDomain convertDomain(DomainResource model, RdeMode mode) {
+  /** Converts {@link DomainBase} to {@link XjcRdeDomain}. */
+  static XjcRdeDomain convertDomain(DomainBase model, RdeMode mode) {
     XjcRdeDomain bean = new XjcRdeDomain();
 
     // o  A <name> element that contains the fully qualified name of the
@@ -236,7 +236,7 @@ final class DomainResourceToXjcConverter {
         //    *  An OPTIONAL <exDate> element that contains the end of the
         //       domain name object's validity period (expiry date) if the
         //       transfer caused or causes a change in the validity period.
-        if (model.getTransferData() != TransferData.EMPTY) {
+        if (!model.getTransferData().equals(TransferData.EMPTY)) {
           // Temporary check to make sure that there really was a transfer. A bug caused spurious
           // empty transfer records to get generated for deleted domains.
           // TODO(b/33289763): remove the hasGainingAndLosingRegistrars check in February 2017
@@ -254,7 +254,7 @@ final class DomainResourceToXjcConverter {
     return bean;
   }
 
-  private static boolean hasGainingAndLosingRegistrars(DomainResource model) {
+  private static boolean hasGainingAndLosingRegistrars(DomainBase model) {
     return
         !Strings.isNullOrEmpty(model.getTransferData().getGainingClientId())
         && !Strings.isNullOrEmpty(model.getTransferData().getLosingClientId());
@@ -324,5 +324,5 @@ final class DomainResourceToXjcConverter {
     return bean;
   }
 
-  private DomainResourceToXjcConverter() {}
+  private DomainBaseToXjcConverter() {}
 }

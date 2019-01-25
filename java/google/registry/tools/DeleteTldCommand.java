@@ -19,7 +19,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
@@ -62,7 +62,7 @@ final class DeleteTldCommand extends ConfirmingCommand implements CommandWithRem
     }
 
     int count = ofy().load()
-        .type(DomainResource.class)
+        .type(DomainBase.class)
         .filter("tld", tld)
         .limit(1)
         .count();

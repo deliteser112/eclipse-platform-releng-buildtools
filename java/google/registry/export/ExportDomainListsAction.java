@@ -38,7 +38,7 @@ import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.request.Action;
@@ -88,11 +88,11 @@ public class ExportDomainListsAction implements Runnable {
         .runMapreduce(
             new ExportDomainListsMapper(DateTime.now(UTC), realTlds),
             new ExportDomainListsReducer(gcsBucket, gcsBufferSize),
-            ImmutableList.of(createEntityInput(DomainResource.class)))
+            ImmutableList.of(createEntityInput(DomainBase.class)))
         .sendLinkToMapreduceConsole(response);
   }
 
-  static class ExportDomainListsMapper extends Mapper<DomainResource, String, String> {
+  static class ExportDomainListsMapper extends Mapper<DomainBase, String, String> {
 
     private static final long serialVersionUID = -7312206212434039854L;
 
@@ -105,7 +105,7 @@ public class ExportDomainListsAction implements Runnable {
     }
 
     @Override
-    public void map(DomainResource domain) {
+    public void map(DomainBase domain) {
       if (realTlds.contains(domain.getTld()) && isActive(domain, exportTime)) {
         emit(domain.getTld(), domain.getFullyQualifiedDomainName());
         getContext().incrementCounter(String.format("domains in tld %s", domain.getTld()));

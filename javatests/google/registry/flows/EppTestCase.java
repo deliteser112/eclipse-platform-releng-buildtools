@@ -34,7 +34,7 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.EppXmlTransformer;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
@@ -276,7 +276,7 @@ public class EppTestCase extends ShardableTestCase {
 
   /** Makes a one-time billing event corresponding to the given domain's creation. */
   protected static BillingEvent.OneTime makeOneTimeCreateBillingEvent(
-      DomainResource domain, DateTime createTime) {
+      DomainBase domain, DateTime createTime) {
     return new BillingEvent.OneTime.Builder()
         .setReason(Reason.CREATE)
         .setTargetId(domain.getFullyQualifiedDomainName())
@@ -291,14 +291,14 @@ public class EppTestCase extends ShardableTestCase {
 
   /** Makes a recurring billing event corresponding to the given domain's creation. */
   protected static BillingEvent.Recurring makeRecurringCreateBillingEvent(
-      DomainResource domain, DateTime eventTime, DateTime endTime) {
+      DomainBase domain, DateTime eventTime, DateTime endTime) {
     return makeRecurringCreateBillingEvent(
         domain, getOnlyHistoryEntryOfType(domain, Type.DOMAIN_CREATE), eventTime, endTime);
   }
 
   /** Makes a recurring billing event corresponding to the given history entry. */
   protected static BillingEvent.Recurring makeRecurringCreateBillingEvent(
-      DomainResource domain, HistoryEntry historyEntry, DateTime eventTime, DateTime endTime) {
+      DomainBase domain, HistoryEntry historyEntry, DateTime eventTime, DateTime endTime) {
     return new BillingEvent.Recurring.Builder()
         .setReason(Reason.RENEW)
         .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
@@ -312,7 +312,7 @@ public class EppTestCase extends ShardableTestCase {
 
   /** Makes a cancellation billing event cancelling out the given domain create billing event. */
   protected static BillingEvent.Cancellation makeCancellationBillingEventFor(
-      DomainResource domain,
+      DomainBase domain,
       OneTime billingEventToCancel,
       DateTime createTime,
       DateTime deleteTime) {

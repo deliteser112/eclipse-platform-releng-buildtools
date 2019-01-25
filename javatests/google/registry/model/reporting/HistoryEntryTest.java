@@ -17,7 +17,7 @@ package google.registry.model.reporting;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -47,7 +47,7 @@ public class HistoryEntryTest extends EntityTestCase {
     // Set up a new persisted HistoryEntry entity.
     historyEntry =
         new HistoryEntry.Builder()
-            .setParent(newDomainResource("foo.foobar"))
+            .setParent(newDomainBase("foo.foobar"))
             .setType(HistoryEntry.Type.DOMAIN_CREATE)
             .setPeriod(Period.create(1, Period.Unit.YEARS))
             .setXmlBytes("<xml></xml>".getBytes(UTF_8))

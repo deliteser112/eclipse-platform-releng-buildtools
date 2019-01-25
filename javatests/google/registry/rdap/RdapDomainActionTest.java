@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
-import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainBase;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
@@ -95,13 +95,13 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
     HostResource host2 = makeAndPersistHostResource(
         "ns2.cat.lol", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(2));
     DomainBase domainCatLol =
-        persistResource(makeDomainResource("cat.lol",
+        persistResource(makeDomainBase("cat.lol",
             registrantLol, adminContactLol, techContactLol, host1, host2, registrarLol));
 
     // deleted domain in lol
     HostResource hostDodo2 = makeAndPersistHostResource(
         "ns2.dodo.lol", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(2));
-    DomainBase domainDeleted = persistResource(makeDomainResource("dodo.lol",
+    DomainBase domainDeleted = persistResource(makeDomainBase("dodo.lol",
         makeAndPersistContactResource(
             "5372808-ERL",
             "Goblin Market",
@@ -150,7 +150,7 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
             "bog@cat.lol",
             clock.nowUtc().minusYears(3),
             registrarIdn);
-    DomainBase domainCatIdn = persistResource(makeDomainResource("cat.みんな",
+    DomainBase domainCatIdn = persistResource(makeDomainBase("cat.みんな",
         registrantIdn,
         adminContactIdn,
         techContactIdn,
@@ -184,7 +184,7 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
             "bog@cat.lol",
             clock.nowUtc().minusYears(3),
             registrar1Tld);
-    DomainBase domainCat1Tld = persistResource(makeDomainResource("cat.1.tld",
+    DomainBase domainCat1Tld = persistResource(makeDomainBase("cat.1.tld",
         registrant1Tld,
         adminContact1Tld,
         techContact1Tld,

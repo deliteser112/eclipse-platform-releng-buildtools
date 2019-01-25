@@ -21,7 +21,7 @@ import static google.registry.mapreduce.inputs.EppResourceInputs.createKeyInput;
 import static google.registry.model.index.EppResourceIndexBucket.getBucketKey;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newContactResource;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistEppResourceInFirstBucket;
@@ -34,7 +34,6 @@ import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.testing.AppEngineRule;
@@ -72,14 +71,7 @@ public class EppResourceInputsTest {
 
   @Test
   public void testSuccess_keyInputType_polymorphicBaseType() {
-    createKeyInput(DomainBase.class);
-  }
-
-  @Test
-  public void testFailure_keyInputType_polymorphicSubclass() {
-    IllegalArgumentException thrown =
-        assertThrows(IllegalArgumentException.class, () -> createKeyInput(DomainResource.class));
-    assertThat(thrown).hasMessageThat().contains("non-polymorphic");
+    createKeyInput(EppResource.class);
   }
 
   @Test
@@ -92,18 +84,11 @@ public class EppResourceInputsTest {
   }
 
   @Test
-  public void testSuccess_entityInputTypesMayBePolymorphic() {
-    // Both polymorphic and not should work.
-    createEntityInput(DomainBase.class);
-    createEntityInput(DomainResource.class);
-  }
-
-  @Test
   public void testFailure_entityInputType_noInheritanceBetweenTypes_eppResource() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
-            () -> createEntityInput(EppResource.class, DomainResource.class));
+            () -> createEntityInput(EppResource.class, DomainBase.class));
     assertThat(thrown).hasMessageThat().contains("inheritance");
   }
 
@@ -112,7 +97,7 @@ public class EppResourceInputsTest {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
-            () -> createEntityInput(DomainBase.class, DomainResource.class));
+            () -> createEntityInput(EppResource.class, ContactResource.class));
     assertThat(thrown).hasMessageThat().contains("inheritance");
   }
 
@@ -125,9 +110,9 @@ public class EppResourceInputsTest {
   @Test
   public void testKeyInput_oneReaderPerBucket() throws Exception {
     createTld("tld");
-    Set<Key<DomainResource>> domains = new HashSet<>();
+    Set<Key<DomainBase>> domains = new HashSet<>();
     for (int i = 1; i <= 3; i++) {
-      Key<DomainResource> key = Key.create(newDomainResource(i + ".tld"));
+      Key<DomainBase> key = Key.create(newDomainBase(i + ".tld"));
       domains.add(key);
       persistResource(EppResourceIndex.create(getBucketKey(i), key));
     }
@@ -148,21 +133,21 @@ public class EppResourceInputsTest {
   @Test
   public void testEntityInput_oneReaderPerBucket() throws Exception {
     createTld("tld");
-    Set<DomainResource> domains = new HashSet<>();
+    Set<DomainBase> domains = new HashSet<>();
     for (int i = 1; i <= 3; i++) {
       // Persist the domain as a simple resource so that it doesn't automatically get an ERI.
-      DomainResource domain = persistSimpleResource(newDomainResource(i + ".tld"));
+      DomainBase domain = persistSimpleResource(newDomainBase(i + ".tld"));
       domains.add(domain);
       persistResource(EppResourceIndex.create(getBucketKey(i), Key.create(domain)));
     }
-    Set<DomainResource> seen = new HashSet<>();
-    for (InputReader<DomainResource> reader
-        : createEntityInput(DomainResource.class).createReaders()) {
+    Set<DomainBase> seen = new HashSet<>();
+    for (InputReader<DomainBase> reader
+        : createEntityInput(DomainBase.class).createReaders()) {
       reader.beginShard();
       reader.beginSlice();
       seen.add(reader.next());
       try {
-        DomainResource domain = reader.next();
+        DomainBase domain = reader.next();
         assert_().fail("Unexpected element: " + domain);
       } catch (NoSuchElementException expected) {
       }
@@ -173,8 +158,8 @@ public class EppResourceInputsTest {
   @Test
   public void testSuccess_keyReader_survivesAcrossSerialization() throws Exception {
     createTld("tld");
-    DomainResource domainA = persistEppResourceInFirstBucket(newDomainResource("a.tld"));
-    DomainResource domainB = persistEppResourceInFirstBucket(newDomainResource("b.tld"));
+    DomainBase domainA = persistEppResourceInFirstBucket(newDomainBase("a.tld"));
+    DomainBase domainB = persistEppResourceInFirstBucket(newDomainBase("b.tld"));
     // Should be ignored. We'll know if it isn't because the progress counts will be off.
     persistActiveContact("contact");
     Set<Key<DomainBase>> seen = new HashSet<>();
@@ -197,20 +182,20 @@ public class EppResourceInputsTest {
   @Test
   public void testSuccess_entityReader_survivesAcrossSerialization() throws Exception {
     createTld("tld");
-    DomainResource domainA = persistEppResourceInFirstBucket(newDomainResource("a.tld"));
-    DomainResource domainB = persistEppResourceInFirstBucket(newDomainResource("b.tld"));
+    DomainBase domainA = persistEppResourceInFirstBucket(newDomainBase("a.tld"));
+    DomainBase domainB = persistEppResourceInFirstBucket(newDomainBase("b.tld"));
     // Should be ignored. We'll know if it isn't because the progress counts will be off.
     persistActiveContact("contact");
-    Set<DomainResource> seen = new HashSet<>();
-    InputReader<DomainResource> reader =
-        createEntityInput(DomainResource.class).createReaders().get(0);
+    Set<DomainBase> seen = new HashSet<>();
+    InputReader<DomainBase> reader =
+        createEntityInput(DomainBase.class).createReaders().get(0);
     reader.beginShard();
     reader.beginSlice();
     assertThat(reader.getProgress()).isWithin(EPSILON).of(0);
     seen.add(reader.next());
     assertThat(reader.getProgress()).isWithin(EPSILON).of(0.5);
     reader.endSlice();
-    InputReader<DomainResource> deserializedReader = serializeAndDeserialize(reader);
+    InputReader<DomainBase> deserializedReader = serializeAndDeserialize(reader);
     deserializedReader.beginSlice();
     assertThat(deserializedReader.getProgress()).isWithin(EPSILON).of(0.5);
     seen.add(deserializedReader.next());
@@ -224,13 +209,13 @@ public class EppResourceInputsTest {
   @Test
   public void testSuccess_entityReader_filtersOnMultipleTypes() throws Exception {
     createTld("tld");
-    DomainResource domain = persistEppResourceInFirstBucket(newDomainResource("a.tld"));
+    DomainBase domain = persistEppResourceInFirstBucket(newDomainBase("a.tld"));
     HostResource host = persistEppResourceInFirstBucket(newHostResource("ns1.example.com"));
     persistEppResourceInFirstBucket(newContactResource("contact"));
     Set<EppResource> seen = new HashSet<>();
     InputReader<EppResource> reader =
         EppResourceInputs.<EppResource>createEntityInput(
-              DomainResource.class, HostResource.class).createReaders().get(0);
+              DomainBase.class, HostResource.class).createReaders().get(0);
     reader.beginShard();
     reader.beginSlice();
     assertThat(reader.getProgress()).isWithin(EPSILON).of(0);
@@ -247,8 +232,8 @@ public class EppResourceInputsTest {
     createTld("tld");
     ContactResource contact = persistEppResourceInFirstBucket(newContactResource("contact"));
     // Specify the contact since persistActiveDomain{Application} creates a hidden one.
-    DomainResource domain1 = persistEppResourceInFirstBucket(newDomainResource("a.tld", contact));
-    DomainResource domain2 = persistEppResourceInFirstBucket(newDomainResource("b.tld", contact));
+    DomainBase domain1 = persistEppResourceInFirstBucket(newDomainBase("a.tld", contact));
+    DomainBase domain2 = persistEppResourceInFirstBucket(newDomainBase("b.tld", contact));
     HostResource host = persistEppResourceInFirstBucket(newHostResource("ns1.example.com"));
     Set<EppResource> seen = new HashSet<>();
     InputReader<EppResource> reader = createEntityInput(EppResource.class).createReaders().get(0);

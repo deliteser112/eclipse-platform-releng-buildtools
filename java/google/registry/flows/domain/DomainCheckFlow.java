@@ -42,8 +42,8 @@ import google.registry.flows.custom.DomainCheckFlowCustomLogic;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.domain.token.AllocationTokenFlowUtils;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.Check;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee.FeeCheckCommandExtension;
 import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
 import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
@@ -141,7 +141,7 @@ public final class DomainCheckFlow implements Flow {
             // TODO: Use as of date from fee extension v0.12 instead of now, if specified.
             .setAsOfDate(now)
             .build());
-    Set<String> existingIds = checkResourcesExist(DomainResource.class, targetIds, now);
+    Set<String> existingIds = checkResourcesExist(DomainBase.class, targetIds, now);
     Optional<AllocationTokenExtension> allocationTokenExtension =
         eppInput.getSingleExtension(AllocationTokenExtension.class);
     ImmutableMap<InternetDomainName, String> tokenCheckResults =

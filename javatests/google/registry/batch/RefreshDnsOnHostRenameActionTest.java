@@ -23,7 +23,7 @@ import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.batch.AsyncTaskMetrics.OperationType.DNS_REFRESH;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
@@ -53,7 +53,6 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.InjectRule;
-import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.mapreduce.MapreduceTestCase;
 import google.registry.util.AppEngineServiceUtils;
@@ -77,7 +76,6 @@ public class RefreshDnsOnHostRenameActionTest
     extends MapreduceTestCase<RefreshDnsOnHostRenameAction> {
 
   @Rule public final InjectRule inject = new InjectRule();
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
   private AsyncTaskEnqueuer enqueuer;
   private final FakeClock clock = new FakeClock(DateTime.parse("2015-01-15T11:22:33Z"));
@@ -135,9 +133,9 @@ public class RefreshDnsOnHostRenameActionTest
   @Test
   public void testSuccess_dnsUpdateEnqueued() throws Exception {
     HostResource host = persistActiveHost("ns1.example.tld");
-    persistResource(newDomainResource("example.tld", host));
-    persistResource(newDomainResource("otherexample.tld", host));
-    persistResource(newDomainResource("untouched.tld", persistActiveHost("ns2.example.tld")));
+    persistResource(newDomainBase("example.tld", host));
+    persistResource(newDomainBase("otherexample.tld", host));
+    persistResource(newDomainBase("untouched.tld", persistActiveHost("ns2.example.tld")));
     DateTime timeEnqueued = clock.nowUtc();
     enqueuer.enqueueAsyncDnsRefresh(host, timeEnqueued);
     runMapreduce();
@@ -154,9 +152,9 @@ public class RefreshDnsOnHostRenameActionTest
     HostResource host1 = persistActiveHost("ns1.example.tld");
     HostResource host2 = persistActiveHost("ns2.example.tld");
     HostResource host3 = persistActiveHost("ns3.example.tld");
-    persistResource(newDomainResource("example1.tld", host1));
-    persistResource(newDomainResource("example2.tld", host2));
-    persistResource(newDomainResource("example3.tld", host3));
+    persistResource(newDomainBase("example1.tld", host1));
+    persistResource(newDomainBase("example2.tld", host2));
+    persistResource(newDomainBase("example3.tld", host3));
     DateTime timeEnqueued = clock.nowUtc();
     DateTime laterTimeEnqueued = timeEnqueued.plus(standardSeconds(10));
     enqueuer.enqueueAsyncDnsRefresh(host1, timeEnqueued);
@@ -176,7 +174,7 @@ public class RefreshDnsOnHostRenameActionTest
   @Test
   public void testSuccess_deletedHost_doesntTriggerDnsRefresh() throws Exception {
     HostResource host = persistDeletedHost("ns11.fakesss.tld", clock.nowUtc().minusDays(4));
-    persistResource(newDomainResource("example1.tld", host));
+    persistResource(newDomainBase("example1.tld", host));
     DateTime timeEnqueued = clock.nowUtc();
     enqueuer.enqueueAsyncDnsRefresh(host, timeEnqueued);
     runMapreduce();
@@ -192,7 +190,7 @@ public class RefreshDnsOnHostRenameActionTest
   public void testSuccess_noDnsTasksForDeletedDomain() throws Exception {
     HostResource renamedHost = persistActiveHost("ns1.example.tld");
     persistResource(
-        newDomainResource("example.tld", renamedHost)
+        newDomainBase("example.tld", renamedHost)
             .asBuilder()
             .setDeletionTime(START_OF_TIME)
             .build());

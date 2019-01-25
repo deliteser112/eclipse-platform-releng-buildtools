@@ -25,7 +25,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.tools.params.PathParameter;
 import google.registry.util.Clock;
@@ -71,8 +71,8 @@ final class GenerateDnsReportCommand implements CommandWithRemoteApi {
     String generate() {
       result.append("[\n");
 
-      Iterable<DomainResource> domains = ofy().load().type(DomainResource.class).filter("tld", tld);
-      for (DomainResource domain : domains) {
+      Iterable<DomainBase> domains = ofy().load().type(DomainBase.class).filter("tld", tld);
+      for (DomainBase domain : domains) {
         // Skip deleted domains and domains that don't get published to DNS.
         if (isBeforeOrAt(domain.getDeletionTime(), now) || !domain.shouldPublishToDns()) {
           continue;
@@ -93,7 +93,7 @@ final class GenerateDnsReportCommand implements CommandWithRemoteApi {
       return result.append("\n]\n").toString();
     }
 
-    private void write(DomainResource domain) {
+    private void write(DomainBase domain) {
       ImmutableList<String> nameservers =
           ImmutableList.sortedCopyOf(domain.loadNameserverFullyQualifiedHostNames());
       ImmutableList<Map<String, ?>> dsData =

@@ -27,7 +27,7 @@ import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableList;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.rde.imports.RdeParser.RdeHeader;
 import google.registry.xjc.JaxbFragment;
 import google.registry.xjc.rdedomain.XjcRdeDomainElement;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A MapReduce {@link Input} that imports {@link DomainResource} objects from an escrow file.
+ * A MapReduce {@link Input} that imports {@link DomainBase} objects from an escrow file.
  *
  * <p>If a mapShards parameter has been specified, up to that many readers will be created
  * so that each map shard has one reader. If a mapShards parameter has not been specified, a

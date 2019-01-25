@@ -25,7 +25,7 @@ import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -33,7 +33,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHo
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.DomainBaseSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -83,7 +83,7 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -94,7 +94,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /** Unit tests for {@link DomainUpdateFlow}. */
-public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow, DomainResource> {
+public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow, DomainBase> {
 
   private static final DelegationSignerData SOME_DSDATA =
       DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2});
@@ -120,12 +120,12 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     unusedContact = persistActiveContact("unused");
   }
 
-  private DomainResource persistDomain() throws Exception {
+  private DomainBase persistDomain() throws Exception {
     HostResource host =
         loadByForeignKey(HostResource.class, "ns1.example.foo", clock.nowUtc()).get();
-    DomainResource domain =
+    DomainBase domain =
         persistResource(
-            newDomainResource(getUniqueIdFromCommand())
+            newDomainBase(getUniqueIdFromCommand())
                 .asBuilder()
                 .setContacts(
                     ImmutableSet.of(
@@ -268,7 +268,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
     runFlowAssertResponse(loadFile("generic_success_response.xml"));
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
     assertAboutDomains()
         .that(domain)
         .hasOneHistoryEntryEachOfTypes(
@@ -289,7 +289,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistDomain();
     runFlow();
-    DomainResource domain = reloadResourceByForeignKey();
+    DomainBase domain = reloadResourceByForeignKey();
     assertAboutDomains()
         .that(domain)
         .hasOneHistoryEntryEachOfTypes(
@@ -324,7 +324,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     // host relationship itself.
     setEppInput("domain_update_subordinate_hosts.xml");
     persistReferencedEntities();
-    DomainResource domain = persistDomain();
+    DomainBase domain = persistDomain();
     HostResource existingHost = persistActiveSubordinateHost("ns1.example.tld", domain);
     HostResource addedHost = persistActiveSubordinateHost("ns2.example.tld", domain);
     domain =
@@ -358,7 +358,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     ContactResource sh8013 =
         loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc()).get();
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .setRegistrant(Key.create(sh8013))
             .build());
@@ -374,7 +374,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc()).get();
     Key<ContactResource> sh8013Key = Key.create(sh8013);
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .setRegistrant(sh8013Key)
             .setContacts(
@@ -409,11 +409,11 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
       throws Exception {
     setEppInput(xmlFilename);
     persistResource(
-        newDomainResource(getUniqueIdFromCommand()).asBuilder().setDsData(originalDsData).build());
+        newDomainBase(getUniqueIdFromCommand()).asBuilder().setDsData(originalDsData).build());
     assertTransactionalFlow(true);
     clock.advanceOneMilli();
     runFlowAssertResponse(loadFile("generic_success_response.xml"));
-    DomainResource resource = reloadResourceByForeignKey();
+    DomainBase resource = reloadResourceByForeignKey();
     assertAboutDomains()
         .that(resource)
         .hasOnlyOneHistoryEntryWhich()
@@ -572,7 +572,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   @Test
   public void testSuccess_noBillingOnPreExistingServerStatus() throws Exception {
     eppRequestSource = EppRequestSource.TOOL;
-    DomainResource addStatusDomain = persistActiveDomain(getUniqueIdFromCommand());
+    DomainBase addStatusDomain = persistActiveDomain(getUniqueIdFromCommand());
     persistResource(
         addStatusDomain.asBuilder().addStatusValue(StatusValue.SERVER_RENEW_PROHIBITED).build());
     doServerStatusBillingTest("domain_update_add_server_status.xml", false);
@@ -582,7 +582,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   public void testSuccess_removeServerStatusBillingEvent() throws Exception {
     eppRequestSource = EppRequestSource.TOOL;
     persistReferencedEntities();
-    DomainResource removeStatusDomain = persistDomain();
+    DomainBase removeStatusDomain = persistDomain();
     persistResource(
         removeStatusDomain.asBuilder().addStatusValue(StatusValue.SERVER_RENEW_PROHIBITED).build());
     doServerStatusBillingTest("domain_update_remove_server_status.xml", true);
@@ -592,7 +592,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   public void testSuccess_changeServerStatusBillingEvent() throws Exception {
     eppRequestSource = EppRequestSource.TOOL;
     persistReferencedEntities();
-    DomainResource changeStatusDomain = persistDomain();
+    DomainBase changeStatusDomain = persistDomain();
     persistResource(
         changeStatusDomain.asBuilder().addStatusValue(StatusValue.SERVER_RENEW_PROHIBITED).build());
     doServerStatusBillingTest("domain_update_change_server_status.xml", true);
@@ -676,7 +676,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
     setEppInput("domain_update_dsdata_add.xml");
     persistResource(
-        newDomainResource(getUniqueIdFromCommand()).asBuilder().setDsData(builder.build()).build());
+        newDomainBase(getUniqueIdFromCommand()).asBuilder().setDsData(builder.build()).build());
     EppException thrown = assertThrows(TooManyDsRecordsException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -782,7 +782,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   public void testFailure_serverUpdateProhibited_prohibitsNonSuperuserUpdates() throws Exception {
     persistReferencedEntities();
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .addStatusValue(SERVER_UPDATE_PROHIBITED)
             .build());
@@ -823,7 +823,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_authinfo.xml");
     persistReferencedEntities();
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
@@ -836,7 +836,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   public void testFailure_serverUpdateProhibited() throws Exception {
     persistReferencedEntities();
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .setStatusValues(ImmutableSet.of(SERVER_UPDATE_PROHIBITED))
             .build());
@@ -849,7 +849,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   public void testFailure_pendingDelete() throws Exception {
     persistReferencedEntities();
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .setDeletionTime(clock.nowUtc().plusDays(1))
             .addStatusValue(StatusValue.PENDING_DELETE)
@@ -923,7 +923,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_add_remove_same_host.xml");
     persistReferencedEntities();
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .setNameservers(
                 ImmutableSet.of(
@@ -940,7 +940,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_add_remove_same_contact.xml");
     persistReferencedEntities();
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .setContacts(
                 DesignatedContact.create(
@@ -957,7 +957,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_remove_admin.xml");
     persistReferencedEntities();
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .setContacts(
                 ImmutableSet.of(
@@ -973,7 +973,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_remove_tech.xml");
     persistReferencedEntities();
     persistResource(
-        newDomainResource(getUniqueIdFromCommand())
+        newDomainBase(getUniqueIdFromCommand())
             .asBuilder()
             .setContacts(
                 ImmutableSet.of(

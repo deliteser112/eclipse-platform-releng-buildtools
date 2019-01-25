@@ -22,7 +22,7 @@ import static google.registry.testing.DatastoreHelper.persistResources;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
-import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainBase;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapMetrics.EndpointType;
@@ -61,7 +61,7 @@ public class RdapNameserverSearchActionTest
     super(RdapNameserverSearchAction.class, RdapNameserverSearchAction.PATH);
   }
 
-  private DomainResource domainCatLol;
+  private DomainBase domainCatLol;
   private HostResource hostNs1CatLol;
   private HostResource hostNs2CatLol;
 
@@ -133,7 +133,7 @@ public class RdapNameserverSearchActionTest
 
     // create a domain so that we can use it as a test nameserver search string suffix
     domainCatLol = persistResource(
-        makeDomainResource(
+        makeDomainBase(
                 "cat.lol",
                 persistResource(
                     makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol", registrar)),

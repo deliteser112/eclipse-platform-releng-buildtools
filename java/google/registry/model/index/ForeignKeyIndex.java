@@ -40,7 +40,7 @@ import google.registry.model.BackupGroupRoot;
 import google.registry.model.EppResource;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.util.NonFinalForTesting;
 import java.util.Map;
@@ -62,10 +62,10 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   @Entity
   public static class ForeignKeyContactIndex extends ForeignKeyIndex<ContactResource> {}
 
-  /** The {@link ForeignKeyIndex} type for {@link DomainResource} entities. */
+  /** The {@link ForeignKeyIndex} type for {@link DomainBase} entities. */
   @ReportedOn
   @Entity
-  public static class ForeignKeyDomainIndex extends ForeignKeyIndex<DomainResource> {}
+  public static class ForeignKeyDomainIndex extends ForeignKeyIndex<DomainBase> {}
 
   /** The {@link ForeignKeyIndex} type for {@link HostResource} entities. */
   @ReportedOn
@@ -77,7 +77,7 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
       RESOURCE_CLASS_TO_FKI_CLASS =
           ImmutableMap.of(
               ContactResource.class, ForeignKeyContactIndex.class,
-              DomainResource.class, ForeignKeyDomainIndex.class,
+              DomainBase.class, ForeignKeyDomainIndex.class,
               HostResource.class, ForeignKeyHostIndex.class);
 
   @Id

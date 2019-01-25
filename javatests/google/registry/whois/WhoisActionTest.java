@@ -26,7 +26,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
-import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainBase;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
@@ -45,7 +45,7 @@ import com.google.appengine.api.datastore.DatastoreTimeoutException;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
@@ -118,8 +118,8 @@ public class WhoisActionTest {
     assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_no_command.txt"));
   }
 
-  private DomainResource makeDomainResourceWithRegistrar(Registrar registrar) {
-    return makeDomainResource(
+  private DomainBase makeDomainBaseWithRegistrar(Registrar registrar) {
+    return makeDomainBase(
         "cat.lol",
         persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
         persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol")),
@@ -133,7 +133,7 @@ public class WhoisActionTest {
   public void testRun_domainQuery_works() {
     Registrar registrar =
         persistResource(makeRegistrar("evilregistrar", "Yes Virginia", ACTIVE));
-    persistResource(makeDomainResourceWithRegistrar(registrar));
+    persistResource(makeDomainBaseWithRegistrar(registrar));
     persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisAction("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -144,11 +144,11 @@ public class WhoisActionTest {
   public void testRun_domainQuery_usesCache() {
     Registrar registrar =
         persistResource(makeRegistrar("evilregistrar", "Yes Virginia", ACTIVE));
-    persistResource(makeDomainResourceWithRegistrar(registrar));
+    persistResource(makeDomainBaseWithRegistrar(registrar));
     persistSimpleResources(makeRegistrarContacts(registrar));
     // Populate the cache for both the domain and contact.
-    DomainResource domain =
-        loadByForeignKeyCached(DomainResource.class, "cat.lol", clock.nowUtc()).get();
+    DomainBase domain =
+        loadByForeignKeyCached(DomainBase.class, "cat.lol", clock.nowUtc()).get();
     ContactResource contact =
         loadByForeignKeyCached(ContactResource.class, "5372808-ERL", clock.nowUtc()).get();
     // Make a change to the domain and contact that won't be seen because the cache will be hit.
@@ -172,7 +172,7 @@ public class WhoisActionTest {
   public void testRun_domainAfterTransfer_hasUpdatedEppTimeAndClientId() {
     Registrar registrar = persistResource(makeRegistrar("TheRegistrar", "Yes Virginia", ACTIVE));
     persistResource(
-        makeDomainResourceWithRegistrar(registrar)
+        makeDomainBaseWithRegistrar(registrar)
             .asBuilder()
             .setTransferData(
                 new TransferData.Builder()
@@ -197,7 +197,7 @@ public class WhoisActionTest {
   public void testRun_idnDomain_works() {
     Registrar registrar = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia", ACTIVE));
-    persistResource(makeDomainResource(
+    persistResource(makeDomainBase(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
         persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.みんな")),
@@ -215,7 +215,7 @@ public class WhoisActionTest {
   public void testRun_punycodeDomain_works() {
     Registrar registrar = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia", ACTIVE));
-    persistResource(makeDomainResource(
+    persistResource(makeDomainBase(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
         persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.みんな")),
@@ -239,7 +239,7 @@ public class WhoisActionTest {
   @Test
   public void testRun_domainNotFound_usesCache() {
     // Populate the cache with the nonexistence of this domain.
-    assertThat(loadByForeignKeyCached(DomainResource.class, "cat.lol", clock.nowUtc())).isEmpty();
+    assertThat(loadByForeignKeyCached(DomainBase.class, "cat.lol", clock.nowUtc())).isEmpty();
     // Add a new valid cat.lol domain that won't be found because the cache will be hit instead.
     persistActiveDomain("cat.lol");
     newWhoisAction("domain cat.lol\r\n").run();
@@ -254,7 +254,7 @@ public class WhoisActionTest {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     Registrar registrar = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia", ACTIVE));
-    persistResource(makeDomainResource(
+    persistResource(makeDomainBase(
         "cat.lol",
         persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
         persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol")),
@@ -271,7 +271,7 @@ public class WhoisActionTest {
   @Test
   public void testRun_domainFlaggedAsDeletedInDatastore_isConsideredNotFound() {
     Registrar registrar;
-    persistResource(makeDomainResource("cat.lol",
+    persistResource(makeDomainBase("cat.lol",
         persistResource(
             makeContactResource("5372808-ERL", "Peter Murphy", "lol@cat.lol")),
         persistResource(
@@ -296,7 +296,7 @@ public class WhoisActionTest {
   @Test
   public void testRun_domainDeletedThenRecreated_isFound() {
     Registrar registrar;
-    DomainResource domain1 = persistResource(makeDomainResource("cat.lol",
+    DomainBase domain1 = persistResource(makeDomainBase("cat.lol",
         persistResource(
             makeContactResource("5372808-ERL", "Peter Murphy", "lol@cat.lol")),
         persistResource(
@@ -309,7 +309,7 @@ public class WhoisActionTest {
             makeRegistrar("example", "Example Registrar", ACTIVE))).asBuilder()
                 .setCreationTimeForTest(clock.nowUtc().minusDays(2))
                 .setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    DomainResource domain2 = persistResource(makeDomainResource("cat.lol",
+    DomainBase domain2 = persistResource(makeDomainBase("cat.lol",
         persistResource(
             makeContactResource(
                 "5372809-ERL", "Mrs. Alice Crypto", "alice@example.lol")),
@@ -522,7 +522,7 @@ public class WhoisActionTest {
   public void testRun_multilevelDomain_isNotConsideredAHostname() {
     Registrar registrar =
         persistResource(makeRegistrar("example", "Example Registrar", ACTIVE));
-    persistResource(makeDomainResource("cat.1.test",
+    persistResource(makeDomainBase("cat.1.test",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.1.test")),
         persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.1.test")),
         persistResource(makeContactResource("5372808-TRL", "The Raven", "bog@cat.1.test")),

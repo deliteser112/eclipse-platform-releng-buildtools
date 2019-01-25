@@ -193,7 +193,7 @@ public class ContactResource extends EppResource implements
 
   /** A builder for constructing {@link ContactResource}, since it is immutable. */
   public static class Builder extends EppResource.Builder<ContactResource, Builder>
-      implements BuilderWithTransferData<Builder>{
+      implements BuilderWithTransferData<Builder> {
 
     public Builder() {}
 

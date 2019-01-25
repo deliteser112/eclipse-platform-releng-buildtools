@@ -20,7 +20,7 @@ import static google.registry.model.domain.DesignatedContact.Type.TECH;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newContactResource;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -124,7 +124,7 @@ public enum Fixture {
             .build());
 
       persistResource(
-          newDomainResource("love.xn--q9jyb4c", justine).asBuilder()
+          newDomainBase("love.xn--q9jyb4c", justine).asBuilder()
               .setContacts(ImmutableSet.of(
                   DesignatedContact.create(ADMIN, Key.create(robert)),
                   DesignatedContact.create(BILLING, Key.create(google)),
@@ -135,7 +135,7 @@ public enum Fixture {
               .build());
 
       persistResource(
-          newDomainResource("moogle.example", justine).asBuilder()
+          newDomainBase("moogle.example", justine).asBuilder()
               .setContacts(ImmutableSet.of(
                   DesignatedContact.create(ADMIN, Key.create(robert)),
                   DesignatedContact.create(BILLING, Key.create(google)),

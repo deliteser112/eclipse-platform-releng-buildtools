@@ -28,7 +28,7 @@ import com.google.common.collect.Maps;
 import com.googlecode.objectify.Result;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.registrar.Registrar;
@@ -75,7 +75,7 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
 
     // Skip polymorphic entities that share Datastore kind.
     if (!(resource instanceof ContactResource
-        || resource instanceof DomainResource
+        || resource instanceof DomainBase
         || resource instanceof HostResource)) {
       getContext().incrementCounter("polymorphic entities skipped");
       return;
@@ -91,16 +91,16 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
 
     // The set of all TLDs to which this resource should be emitted.
     ImmutableSet<String> tlds;
-    if (resource instanceof DomainResource) {
-      String tld = ((DomainResource) resource).getTld();
+    if (resource instanceof DomainBase) {
+      String tld = ((DomainBase) resource).getTld();
       if (!pendings.containsKey(tld)) {
-        getContext().incrementCounter("DomainResource of an unneeded TLD skipped");
+        getContext().incrementCounter("DomainBase of an unneeded TLD skipped");
         return;
       }
-      getContext().incrementCounter("DomainResource instances");
+      getContext().incrementCounter("DomainBase instances");
       tlds = ImmutableSet.of(tld);
     } else {
-      getContext().incrementCounter("non-DomainResource instances");
+      getContext().incrementCounter("non-DomainBase instances");
       // Contacts and hosts get emitted on all TLDs, even if domains don't reference them.
       tlds = pendings.keySet();
     }
@@ -175,8 +175,8 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
         return result;
       }
       resourcesFound++;
-      if (resource instanceof DomainResource) {
-        result = Optional.of(marshaller.marshalDomain((DomainResource) resource, mode));
+      if (resource instanceof DomainBase) {
+        result = Optional.of(marshaller.marshalDomain((DomainBase) resource, mode));
         cache.put(WatermarkModePair.create(watermark, mode), result);
         return result;
       } else if (resource instanceof ContactResource) {

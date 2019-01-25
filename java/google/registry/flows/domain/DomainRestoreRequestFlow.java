@@ -48,8 +48,8 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.OneTime.Builder;
 import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.Update;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
@@ -134,7 +134,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
     verifyRegistrarIsActive(clientId);
     Update command = (Update) resourceCommand;
     DateTime now = ofy().getTransactionTime();
-    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    DomainBase existingDomain = loadAndVerifyExistence(DomainBase.class, targetId, now);
     FeesAndCredits feesAndCredits =
         pricingLogic.getRestorePrice(Registry.get(existingDomain.getTld()), targetId, now);
     Optional<FeeUpdateCommandExtension> feeUpdate =
@@ -160,7 +160,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         .setAutorenewEndTime(END_OF_TIME)
         .setParent(historyEntry)
         .build();
-    DomainResource newDomain =
+    DomainBase newDomain =
         performRestore(
             existingDomain, newExpirationTime, autorenewEvent, autorenewPollMessage, now, clientId);
     updateForeignKeyIndexDeletionTime(newDomain);
@@ -175,7 +175,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         .build();
   }
 
-  private HistoryEntry buildHistoryEntry(DomainResource existingDomain, DateTime now) {
+  private HistoryEntry buildHistoryEntry(DomainBase existingDomain, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_RESTORE)
         .setModificationTime(now)
@@ -189,7 +189,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
 
   private void verifyRestoreAllowed(
       Update command,
-      DomainResource existingDomain,
+      DomainBase existingDomain,
       Optional<FeeUpdateCommandExtension> feeUpdate,
       FeesAndCredits feesAndCredits,
       DateTime now) throws EppException {
@@ -223,8 +223,8 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
     return ImmutableSet.of(restoreEvent, renewEvent);
   }
 
-  private static DomainResource performRestore(
-      DomainResource existingDomain,
+  private static DomainBase performRestore(
+      DomainBase existingDomain,
       DateTime newExpirationTime,
       BillingEvent.Recurring autorenewEvent,
       PollMessage.Autorenew autorenewPollMessage,

@@ -22,7 +22,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.flows.EppException;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.request.Action;
@@ -75,14 +75,14 @@ public class RdapDomainAction extends RdapActionBase {
               pathSearchString, getHumanReadableObjectTypeName(), e.getMessage()));
     }
     // The query string is not used; the RDAP syntax is /rdap/domain/mydomain.com.
-    Optional<DomainResource> domainResource =
+    Optional<DomainBase> domainBase =
         loadByForeignKey(
-            DomainResource.class, pathSearchString, shouldIncludeDeleted() ? START_OF_TIME : now);
-    if (!shouldBeVisible(domainResource, now)) {
+            DomainBase.class, pathSearchString, shouldIncludeDeleted() ? START_OF_TIME : now);
+    if (!shouldBeVisible(domainBase, now)) {
       throw new NotFoundException(pathSearchString + " not found");
     }
     return rdapJsonFormatter.makeRdapJsonForDomain(
-        domainResource.get(),
+        domainBase.get(),
         true,
         fullServletPath,
         rdapWhoisServer,

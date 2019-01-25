@@ -37,10 +37,10 @@ import google.registry.flows.custom.DomainInfoFlowCustomLogic;
 import google.registry.flows.custom.DomainInfoFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainInfoFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainInfoFlowCustomLogic.BeforeResponseReturnData;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.Info;
 import google.registry.model.domain.DomainCommand.Info.HostsRequest;
 import google.registry.model.domain.DomainInfoData;
-import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
 import google.registry.model.domain.fee06.FeeInfoResponseExtensionV06;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -95,8 +95,8 @@ public final class DomainInfoFlow implements Flow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = clock.nowUtc();
-    DomainResource domain = verifyExistence(
-        DomainResource.class, targetId, loadByForeignKey(DomainResource.class, targetId, now));
+    DomainBase domain = verifyExistence(
+        DomainBase.class, targetId, loadByForeignKey(DomainBase.class, targetId, now));
     verifyOptionalAuthInfo(authInfo, domain);
     flowCustomLogic.afterValidation(
         AfterValidationParameters.newBuilder().setDomain(domain).build());
@@ -145,7 +145,7 @@ public final class DomainInfoFlow implements Flow {
   }
 
   private ImmutableList<ResponseExtension> getDomainResponseExtensions(
-      DomainResource domain, DateTime now) throws EppException {
+      DomainBase domain, DateTime now) throws EppException {
     ImmutableList.Builder<ResponseExtension> extensions = new ImmutableList.Builder<>();
     addSecDnsExtensionIfPresent(extensions, domain.getDsData());
     ImmutableSet<GracePeriodStatus> gracePeriodStatuses = domain.getGracePeriodStatuses();

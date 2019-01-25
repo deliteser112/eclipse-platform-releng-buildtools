@@ -44,8 +44,7 @@ JOIN (
   FROM
     `domain-registry-alpha.latest_datastore_export.DomainBase`,
     UNNEST(nsHosts) AS hosts
-  WHERE _d = 'DomainResource'
-  AND creationTime <= TIMESTAMP("2017-09-30 23:59:59.999")
+  WHERE creationTime <= TIMESTAMP("2017-09-30 23:59:59.999")
   AND deletionTime > TIMESTAMP("2017-09-30 23:59:59.999") ) AS domain_table
 ON
   host_table.__key__.name = domain_table.referencedHostName

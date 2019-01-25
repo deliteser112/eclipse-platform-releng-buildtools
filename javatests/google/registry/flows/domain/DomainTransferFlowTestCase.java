@@ -24,7 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDomainWithDependentResources;
 import static google.registry.testing.DatastoreHelper.persistDomainWithPendingTransfer;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.DomainBaseSubject.assertAboutDomains;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Ascii;
@@ -37,7 +37,7 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.registry.Registry;
@@ -72,7 +72,7 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
       REGISTRATION_EXPIRATION_TIME.plusYears(EXTENDED_REGISTRATION_YEARS);
 
   protected ContactResource contact;
-  protected DomainResource domain;
+  protected DomainBase domain;
   protected HostResource subordinateHost;
   protected HistoryEntry historyEntryDomainCreate;
 
@@ -89,7 +89,7 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         AppEngineRule.makeRegistrar1().asBuilder().setClientId("ClientZ").build());
   }
 
-  static DomainResource persistWithPendingTransfer(DomainResource domain) {
+  static DomainBase persistWithPendingTransfer(DomainBase domain) {
     return persistDomainWithPendingTransfer(
         domain,
         TRANSFER_REQUEST_TIME,
@@ -165,7 +165,7 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
   }
 
   protected void assertTransferFailed(
-      DomainResource domain, TransferStatus status, TransferData oldTransferData) {
+      DomainBase domain, TransferStatus status, TransferData oldTransferData) {
     assertAboutDomains().that(domain)
         .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER).and()
         .hasCurrentSponsorClientId("TheRegistrar");

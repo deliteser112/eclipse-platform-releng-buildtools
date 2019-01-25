@@ -24,7 +24,7 @@ import static google.registry.testing.DatastoreHelper.assertBillingEventsEqual;
 import static google.registry.testing.DatastoreHelper.assertPollMessagesEqual;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
@@ -39,7 +39,7 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.poll.PollMessage;
@@ -78,12 +78,12 @@ public class UnrenewDomainCommandTest extends CommandTestCase<UnrenewDomainComma
     runCommandForced("-p", "2", "foo.tld", "bar.tld");
     clock.advanceOneMilli();
     assertThat(
-            loadByForeignKey(DomainResource.class, "foo.tld", clock.nowUtc())
+            loadByForeignKey(DomainBase.class, "foo.tld", clock.nowUtc())
                 .get()
                 .getRegistrationExpirationTime())
         .isEqualTo(DateTime.parse("2019-12-06T13:55:01.001Z"));
     assertThat(
-            loadByForeignKey(DomainResource.class, "bar.tld", clock.nowUtc())
+            loadByForeignKey(DomainBase.class, "bar.tld", clock.nowUtc())
                 .get()
                 .getRegistrationExpirationTime())
         .isEqualTo(DateTime.parse("2018-12-06T13:55:01.002Z"));
@@ -101,7 +101,7 @@ public class UnrenewDomainCommandTest extends CommandTestCase<UnrenewDomainComma
     runCommandForced("-p", "2", "foo.tld");
     DateTime unrenewTime = clock.nowUtc();
     clock.advanceOneMilli();
-    DomainResource domain = loadByForeignKey(DomainResource.class, "foo.tld", clock.nowUtc()).get();
+    DomainBase domain = loadByForeignKey(DomainBase.class, "foo.tld", clock.nowUtc()).get();
 
     assertAboutHistoryEntries()
         .that(getOnlyHistoryEntryOfType(domain, SYNTHETIC))
@@ -174,19 +174,19 @@ public class UnrenewDomainCommandTest extends CommandTestCase<UnrenewDomainComma
   public void test_varietyOfInvalidDomains_displaysErrors() {
     DateTime now = clock.nowUtc();
     persistResource(
-        newDomainResource("deleting.tld")
+        newDomainBase("deleting.tld")
             .asBuilder()
             .setDeletionTime(now.plusHours(1))
             .setStatusValues(ImmutableSet.of(PENDING_DELETE))
             .build());
     persistDeletedDomain("deleted.tld", now.minusHours(1));
     persistResource(
-        newDomainResource("transferring.tld")
+        newDomainBase("transferring.tld")
             .asBuilder()
             .setStatusValues(ImmutableSet.of(PENDING_TRANSFER))
             .build());
     persistResource(
-        newDomainResource("locked.tld")
+        newDomainBase("locked.tld")
             .asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
             .build());

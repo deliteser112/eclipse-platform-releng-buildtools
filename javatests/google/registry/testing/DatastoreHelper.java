@@ -67,7 +67,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainAuthInfo;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
@@ -125,27 +125,27 @@ public class DatastoreHelper {
         .build();
   }
 
-  public static DomainResource newDomainResource(String domainName) {
+  public static DomainBase newDomainBase(String domainName) {
     String repoId = generateNewDomainRoid(getTldFromDomainName(domainName));
-    return newDomainResource(domainName, repoId, persistActiveContact("contact1234"));
+    return newDomainBase(domainName, repoId, persistActiveContact("contact1234"));
   }
 
-  public static DomainResource newDomainResource(String domainName, ContactResource contact) {
-    return newDomainResource(
+  public static DomainBase newDomainBase(String domainName, ContactResource contact) {
+    return newDomainBase(
         domainName, generateNewDomainRoid(getTldFromDomainName(domainName)), contact);
   }
 
-  public static DomainResource newDomainResource(String domainName, HostResource host) {
-    return newDomainResource(domainName)
+  public static DomainBase newDomainBase(String domainName, HostResource host) {
+    return newDomainBase(domainName)
         .asBuilder()
         .setNameservers(ImmutableSet.of(Key.create(host)))
         .build();
   }
 
-  public static DomainResource newDomainResource(
+  public static DomainBase newDomainBase(
       String domainName, String repoId, ContactResource contact) {
     Key<ContactResource> contactKey = Key.create(contact);
-    return new DomainResource.Builder()
+    return new DomainBase.Builder()
         .setRepoId(repoId)
         .setFullyQualifiedDomainName(domainName)
         .setCreationClientId("TheRegistrar")
@@ -233,7 +233,7 @@ public class DatastoreHelper {
   }
 
   public static HostResource persistActiveSubordinateHost(
-      String hostName, DomainResource superordinateDomain) {
+      String hostName, DomainBase superordinateDomain) {
     checkNotNull(superordinateDomain);
     return persistResource(
         newHostResource(hostName)
@@ -250,19 +250,19 @@ public class DatastoreHelper {
         newHostResource(hostName).asBuilder().setDeletionTime(deletionTime).build());
   }
 
-  public static DomainResource persistActiveDomain(String domainName) {
-    return persistResource(newDomainResource(domainName));
+  public static DomainBase persistActiveDomain(String domainName) {
+    return persistResource(newDomainBase(domainName));
   }
 
-  public static DomainResource persistActiveDomain(String domainName, DateTime creationTime) {
+  public static DomainBase persistActiveDomain(String domainName, DateTime creationTime) {
     return persistResource(
-        newDomainResource(domainName).asBuilder().setCreationTimeForTest(creationTime).build());
+        newDomainBase(domainName).asBuilder().setCreationTimeForTest(creationTime).build());
   }
 
-  public static DomainResource persistActiveDomain(
+  public static DomainBase persistActiveDomain(
       String domainName, DateTime creationTime, DateTime expirationTime) {
     return persistResource(
-        newDomainResource(domainName)
+        newDomainBase(domainName)
             .asBuilder()
             .setCreationTimeForTest(creationTime)
             .setRegistrationExpirationTime(expirationTime)
@@ -270,26 +270,26 @@ public class DatastoreHelper {
   }
 
   /** Persists a domain resource with the given domain name deleted at the specified time. */
-  public static DomainResource persistDeletedDomain(String domainName, DateTime deletionTime) {
-    return persistDomainAsDeleted(newDomainResource(domainName), deletionTime);
+  public static DomainBase persistDeletedDomain(String domainName, DateTime deletionTime) {
+    return persistDomainAsDeleted(newDomainBase(domainName), deletionTime);
   }
 
   /**
    * Returns a persisted domain that is the passed-in domain modified to be deleted at the specified
    * time.
    */
-  public static DomainResource persistDomainAsDeleted(
-      DomainResource domain, DateTime deletionTime) {
+  public static DomainBase persistDomainAsDeleted(
+      DomainBase domain, DateTime deletionTime) {
     return persistResource(domain.asBuilder().setDeletionTime(deletionTime).build());
   }
 
   /** Persists a domain and enqueues a LORDN task of the appropriate type for it. */
-  public static DomainResource persistDomainAndEnqueueLordn(final DomainResource domain) {
-    final DomainResource persistedDomain = persistResource(domain);
-    // Calls {@link LordnTaskUtils#enqueueDomainResourceTask} wrapped in an ofy transaction so that
+  public static DomainBase persistDomainAndEnqueueLordn(final DomainBase domain) {
+    final DomainBase persistedDomain = persistResource(domain);
+    // Calls {@link LordnTaskUtils#enqueueDomainBaseTask} wrapped in an ofy transaction so that
     // the
     // transaction time is set correctly.
-    ofy().transactNew(() -> LordnTaskUtils.enqueueDomainResourceTask(persistedDomain));
+    ofy().transactNew(() -> LordnTaskUtils.enqueueDomainBaseTask(persistedDomain));
     return persistedDomain;
   }
 
@@ -414,7 +414,7 @@ public class DatastoreHelper {
   }
 
   public static BillingEvent.OneTime createBillingEventForTransfer(
-      DomainResource domain,
+      DomainBase domain,
       HistoryEntry historyEntry,
       DateTime costLookupTime,
       DateTime eventTime) {
@@ -473,7 +473,7 @@ public class DatastoreHelper {
             .build());
   }
 
-  public static DomainResource persistDomainWithDependentResources(
+  public static DomainBase persistDomainWithDependentResources(
       String label,
       String tld,
       ContactResource contact,
@@ -481,8 +481,8 @@ public class DatastoreHelper {
       DateTime creationTime,
       DateTime expirationTime) {
     String domainName = String.format("%s.%s", label, tld);
-    DomainResource domain =
-        new DomainResource.Builder()
+    DomainBase domain =
+        new DomainBase.Builder()
             .setRepoId(generateNewDomainRoid(tld))
             .setFullyQualifiedDomainName(domainName)
             .setPersistedCurrentSponsorClientId("TheRegistrar")
@@ -533,8 +533,8 @@ public class DatastoreHelper {
             .build());
   }
 
-  public static DomainResource persistDomainWithPendingTransfer(
-      DomainResource domain,
+  public static DomainBase persistDomainWithPendingTransfer(
+      DomainBase domain,
       DateTime requestTime,
       DateTime expirationTime,
       DateTime extendedRegistrationExpirationTime,
@@ -978,7 +978,7 @@ public class DatastoreHelper {
     } else if (resource instanceof HostResource) {
       return resource.getRepoId() != null
           ? HistoryEntry.Type.HOST_CREATE : HistoryEntry.Type.HOST_UPDATE;
-    } else if (resource instanceof DomainResource) {
+    } else if (resource instanceof DomainBase) {
       return resource.getRepoId() != null
           ? HistoryEntry.Type.DOMAIN_CREATE : HistoryEntry.Type.DOMAIN_UPDATE;
     } else {

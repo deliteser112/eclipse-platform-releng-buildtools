@@ -41,7 +41,7 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.ImmutableObject;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppResponse;
@@ -90,7 +90,7 @@ public final class DomainTransferRejectFlow implements TransactionalFlow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
-    DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
+    DomainBase existingDomain = loadAndVerifyExistence(DomainBase.class, targetId, now);
     Registry registry = Registry.get(existingDomain.getTld());
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, registry, now);
     verifyOptionalAuthInfo(authInfo, existingDomain);
@@ -99,7 +99,7 @@ public final class DomainTransferRejectFlow implements TransactionalFlow {
     if (!isSuperuser) {
       checkAllowedAccessToTld(clientId, existingDomain.getTld());
     }
-    DomainResource newDomain =
+    DomainBase newDomain =
         denyPendingTransfer(existingDomain, TransferStatus.CLIENT_REJECTED, now, clientId);
     ofy().save().<ImmutableObject>entities(
         newDomain,
@@ -118,7 +118,7 @@ public final class DomainTransferRejectFlow implements TransactionalFlow {
   }
 
   private HistoryEntry buildHistoryEntry(
-      DomainResource existingDomain, Registry registry, DateTime now) {
+      DomainBase existingDomain, Registry registry, DateTime now) {
     ImmutableSet<DomainTransactionRecord> cancelingRecords =
         createCancelingRecords(
             existingDomain,

@@ -30,7 +30,7 @@ import com.google.common.collect.Sets;
 import com.google.common.flogger.FluentLogger;
 import com.google.template.soy.data.SoyMapData;
 import google.registry.model.domain.DesignatedContact;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.tools.params.NameserversParameter;
 import google.registry.tools.soy.DomainUpdateSoyInfo;
@@ -173,18 +173,18 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
 
       if (!nameservers.isEmpty() || !admins.isEmpty() || !techs.isEmpty() || !statuses.isEmpty()) {
         DateTime now = DateTime.now(UTC);
-        Optional<DomainResource> domainOptional =
-            loadByForeignKey(DomainResource.class, domain, now);
+        Optional<DomainBase> domainOptional =
+            loadByForeignKey(DomainBase.class, domain, now);
         checkArgumentPresent(domainOptional, "Domain '%s' does not exist or is deleted", domain);
-        DomainResource domainResource = domainOptional.get();
+        DomainBase domainBase = domainOptional.get();
         checkArgument(
-            !domainResource.getStatusValues().contains(SERVER_UPDATE_PROHIBITED),
+            !domainBase.getStatusValues().contains(SERVER_UPDATE_PROHIBITED),
             "The domain '%s' has status SERVER_UPDATE_PROHIBITED. Verify that you are allowed "
                 + "to make updates, and if so, use the domain_unlock command to enable updates.",
             domain);
         if (!nameservers.isEmpty()) {
           ImmutableSortedSet<String> existingNameservers =
-              domainResource.loadNameserverFullyQualifiedHostNames();
+              domainBase.loadNameserverFullyQualifiedHostNames();
           populateAddRemoveLists(
               ImmutableSet.copyOf(nameservers),
               existingNameservers,
@@ -201,9 +201,9 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
         }
         if (!admins.isEmpty() || !techs.isEmpty()) {
           ImmutableSet<String> existingAdmins =
-              getContactsOfType(domainResource, DesignatedContact.Type.ADMIN);
+              getContactsOfType(domainBase, DesignatedContact.Type.ADMIN);
           ImmutableSet<String> existingTechs =
-              getContactsOfType(domainResource, DesignatedContact.Type.TECH);
+              getContactsOfType(domainBase, DesignatedContact.Type.TECH);
 
           if (!admins.isEmpty()) {
             populateAddRemoveLists(
@@ -222,7 +222,7 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
         }
         if (!statuses.isEmpty()) {
           Set<String> currentStatusValues = new HashSet<>();
-          for (StatusValue statusValue : domainResource.getStatusValues()) {
+          for (StatusValue statusValue : domainBase.getStatusValues()) {
             currentStatusValues.add(statusValue.getXmlName());
           }
           populateAddRemoveLists(
@@ -290,8 +290,8 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
   }
 
   ImmutableSet<String> getContactsOfType(
-      DomainResource domainResource, final DesignatedContact.Type contactType) {
-    return domainResource
+      DomainBase domainBase, final DesignatedContact.Type contactType) {
+    return domainBase
         .getContacts()
         .stream()
         .filter(contact -> contact.getType().equals(contactType))

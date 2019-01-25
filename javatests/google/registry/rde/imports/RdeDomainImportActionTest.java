@@ -19,7 +19,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
@@ -40,7 +40,7 @@ import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.billing.BillingEvent;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PollMessage;
@@ -108,7 +108,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
   public void testMapreduceSuccessfullyImportsDomain() throws Exception {
     pushToGcs(DEPOSIT_1_DOMAIN);
     runMapreduce();
-    List<DomainResource> domains = ofy().load().type(DomainResource.class).list();
+    List<DomainBase> domains = ofy().load().type(DomainBase.class).list();
     assertThat(domains).hasSize(1);
     checkDomain(domains.get(0));
   }
@@ -117,8 +117,8 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
   public void testMapreduceSuccessfullyCreatesHistoryEntry() throws Exception {
     pushToGcs(DEPOSIT_1_DOMAIN);
     runMapreduce();
-    List<DomainResource> domains = ofy().load().type(DomainResource.class).list();
-    DomainResource domain = domains.get(0);
+    List<DomainBase> domains = ofy().load().type(DomainBase.class).list();
+    DomainBase domain = domains.get(0);
     // verify history entry
     List<HistoryEntry> historyEntries = getHistoryEntries(domain);
     assertThat(historyEntries).hasSize(1);
@@ -130,9 +130,9 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
   public void testMapreduceTwiceDoesNotDuplicateResources() throws Exception {
     pushToGcs(DEPOSIT_1_DOMAIN);
     // Create domain and history entry first
-    DomainResource existingDomain =
+    DomainBase existingDomain =
         persistResource(
-            newDomainResource("example1.test").asBuilder().setRepoId("Dexample1-TEST").build());
+            newDomainBase("example1.test").asBuilder().setRepoId("Dexample1-TEST").build());
     persistSimpleResource(createHistoryEntry(
         existingDomain.getRepoId(),
         existingDomain.getCurrentSponsorClientId(),
@@ -141,9 +141,9 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
     // aren't imported twice (only one domain, and one history entry)
     pushToGcs(DEPOSIT_1_DOMAIN);
     runMapreduce();
-    List<DomainResource> domains = ofy().load().type(DomainResource.class).list();
+    List<DomainBase> domains = ofy().load().type(DomainBase.class).list();
     assertThat(domains.size()).isEqualTo(1);
-    DomainResource domain = domains.get(0);
+    DomainBase domain = domains.get(0);
     // verify history entry
     List<HistoryEntry> historyEntries = getHistoryEntries(domain);
     assertThat(historyEntries).hasSize(1);
@@ -165,13 +165,13 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
   public void testMapreducePendingTransferServerApproval() throws Exception {
     pushToGcs(DEPOSIT_1_DOMAIN_PENDING_TRANSFER);
     runMapreduce();
-    List<DomainResource> domains = ofy().load().type(DomainResource.class).list();
+    List<DomainBase> domains = ofy().load().type(DomainBase.class).list();
     assertThat(domains).hasSize(1);
     checkDomain(domains.get(0));
     // implicit server approval happens at 2015-01-08T22:00:00.0Z
     DateTime serverApprovalTime = DateTime.parse("2015-01-08T22:00:00.0Z");
     // Domain should be assigned to RegistrarX before server approval
-    DomainResource beforeApproval =
+    DomainBase beforeApproval =
         domains.get(0).cloneProjectedAtTime(serverApprovalTime.minus(Seconds.ONE));
     assertThat(beforeApproval.getCurrentSponsorClientId()).isEqualTo("RegistrarX");
     assertThat(loadAutorenewBillingEventForDomain(beforeApproval).getClientId())
@@ -199,7 +199,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
         DateTime.parse("2015-01-08T22:00:00.0Z"));
 
     // Domain should be assigned to RegistrarY after server approval
-    DomainResource afterApproval =
+    DomainBase afterApproval =
         domains.get(0).cloneProjectedAtTime(serverApprovalTime);
     assertThat(afterApproval.getCurrentSponsorClientId()).isEqualTo("RegistrarY");
     assertThat(loadAutorenewBillingEventForDomain(afterApproval).getClientId())
@@ -227,12 +227,12 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
     DateTime serverApprovalTime = DateTime.parse("2015-02-03T22:00:00.0Z");
     pushToGcs(DEPOSIT_1_DOMAIN_PENDING_TRANSFER_REG_CAP);
     runMapreduce();
-    List<DomainResource> domains = ofy().load().type(DomainResource.class).list();
+    List<DomainBase> domains = ofy().load().type(DomainBase.class).list();
     assertThat(domains).hasSize(1);
     checkDomain(domains.get(0));
 
     // Domain should be assigned to RegistrarX before server approval
-    DomainResource beforeApproval =
+    DomainBase beforeApproval =
         domains.get(0).cloneProjectedAtTime(serverApprovalTime.minus(Seconds.ONE));
     assertThat(beforeApproval.getCurrentSponsorClientId()).isEqualTo("RegistrarX");
     assertThat(loadAutorenewBillingEventForDomain(beforeApproval).getClientId())
@@ -244,7 +244,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
         .isEqualTo(DateTime.parse("2024-04-03T22:00:00.0Z"));
 
     // Domain should be assigned to RegistrarY after server approval
-    DomainResource afterApproval =
+    DomainBase afterApproval =
         domains.get(0).cloneProjectedAtTime(serverApprovalTime);
     assertThat(afterApproval.getCurrentSponsorClientId()).isEqualTo("RegistrarY");
     // New expiration should be capped at 10 years from server approval time, which is 2025-02-03,
@@ -268,7 +268,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
   public void testMapreducePendingTransferEvents() throws Exception {
     pushToGcs(DEPOSIT_1_DOMAIN_PENDING_TRANSFER);
     runMapreduce();
-    List<DomainResource> domains = ofy().load().type(DomainResource.class).list();
+    List<DomainBase> domains = ofy().load().type(DomainBase.class).list();
     assertThat(domains).hasSize(1);
     checkDomain(domains.get(0));
     checkTransferRequestPollMessage(
@@ -289,7 +289,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
   }
 
   private static void checkTransferBillingEvent(
-      DomainResource domain, DateTime automaticTransferTime) {
+      DomainBase domain, DateTime automaticTransferTime) {
     for (BillingEvent.OneTime event :
         ofy().load().type(BillingEvent.OneTime.class).ancestor(domain).list()) {
       if (event.getReason() == BillingEvent.Reason.TRANSFER) {
@@ -302,7 +302,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
 
   /** Verifies the existence of a transfer request poll message */
   private static void checkTransferRequestPollMessage(
-      DomainResource domain, String clientId, DateTime expectedAt, DateTime expectedExpiration) {
+      DomainBase domain, String clientId, DateTime expectedAt, DateTime expectedExpiration) {
     for (PollMessage message : getPollMessages(domain)) {
       if (TransferStatus.PENDING.getMessage().equals(message.getMsg())
           && clientId.equals(message.getClientId())
@@ -321,7 +321,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
 
   /** Verifies the existence of a transfer server approved poll message */
   private static void checkTransferServerApprovalPollMessage(
-      DomainResource domain, String clientId, DateTime expectedAt) {
+      DomainBase domain, String clientId, DateTime expectedAt) {
     for (PollMessage message : getPollMessages(domain)) {
       if (TransferStatus.SERVER_APPROVED.getMessage().equals(message.getMsg())
           && clientId.equals(message.getClientId())
@@ -334,7 +334,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
 
   /** Verifies autorenew {@link PollMessage} is correct */
   private static void checkAutorenewPollMessage(
-      DomainResource domain, String clientId, DateTime expectedAt, DateTime recurrenceEndTime) {
+      DomainBase domain, String clientId, DateTime expectedAt, DateTime recurrenceEndTime) {
     PollMessage.Autorenew autorenewPollMessage = loadAutorenewPollMessageForDomain(domain);
     assertThat(autorenewPollMessage).isNotNull();
     assertThat(autorenewPollMessage.getClientId()).isEqualTo(clientId);
@@ -344,7 +344,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
 
   /** Verifies autorenew {@link BillingEvent} is correct */
   private static void checkAutorenewBillingEvent(
-      DomainResource domain, String clientId, DateTime expectedAt, DateTime recurrenceEndTime) {
+      DomainBase domain, String clientId, DateTime expectedAt, DateTime recurrenceEndTime) {
     BillingEvent.Recurring autorenewBillingEvent = loadAutorenewBillingEventForDomain(domain);
     assertThat(autorenewBillingEvent).isNotNull();
     assertThat(autorenewBillingEvent.getClientId()).isEqualTo(clientId);
@@ -353,7 +353,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
   }
 
   /** Verify history entry fields are correct */
-  private static void checkHistoryEntry(HistoryEntry entry, DomainResource parent) {
+  private static void checkHistoryEntry(HistoryEntry entry, DomainBase parent) {
     assertThat(entry.getType()).isEqualTo(HistoryEntry.Type.RDE_IMPORT);
     assertThat(entry.getClientId()).isEqualTo(parent.getCurrentSponsorClientId());
     assertThat(entry.getXmlBytes().length).isGreaterThan(0);
@@ -364,7 +364,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
   }
 
   /** Verifies that domain fields match expected values */
-  private static void checkDomain(DomainResource domain) {
+  private static void checkDomain(DomainBase domain) {
     assertThat(domain.getFullyQualifiedDomainName()).isEqualTo("example1.test");
     assertThat(domain.getRepoId()).isEqualTo("Dexample1-TEST");
   }
@@ -392,12 +392,12 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
   }
 
   @Nullable
-  private static BillingEvent.Recurring loadAutorenewBillingEventForDomain(DomainResource domain) {
+  private static BillingEvent.Recurring loadAutorenewBillingEventForDomain(DomainBase domain) {
     return ofy().load().key(domain.getAutorenewBillingEvent()).now();
   }
 
   @Nullable
-  private static PollMessage.Autorenew loadAutorenewPollMessageForDomain(DomainResource domain) {
+  private static PollMessage.Autorenew loadAutorenewPollMessageForDomain(DomainBase domain) {
     return ofy().load().key(domain.getAutorenewPollMessage()).now();
   }
 
@@ -411,7 +411,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
         .setBySuperuser(true)
         .setReason("RDE Import")
         .setRequestedByRegistrar(false)
-        .setParent(Key.create(null, DomainResource.class, roid))
+        .setParent(Key.create(null, DomainBase.class, roid))
         .build();
   }
 }

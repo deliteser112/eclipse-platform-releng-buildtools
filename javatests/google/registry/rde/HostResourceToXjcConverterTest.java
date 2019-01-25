@@ -16,7 +16,7 @@ package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.xjc.XjcXmlTransformer.marshalStrict;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -24,7 +24,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.testing.AppEngineRule;
@@ -61,7 +61,7 @@ public class HostResourceToXjcConverterTest {
 
   @Test
   public void testConvertSubordinateHost() {
-    DomainResource domain = newDomainResource("love.foobar").asBuilder()
+    DomainBase domain = newDomainBase("love.foobar").asBuilder()
         .setPersistedCurrentSponsorClientId("LeisureDog")
         .setLastTransferTime(DateTime.parse("2010-01-01T00:00:00Z"))
         .addStatusValue(StatusValue.PENDING_TRANSFER)

@@ -29,7 +29,7 @@ import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DesignatedContact;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -62,7 +62,7 @@ public class DomainWhoisResponseTest {
   ContactResource adminContact;
   ContactResource registrant;
   ContactResource techContact;
-  DomainResource domainResource;
+  DomainBase domainBase;
 
   private final FakeClock clock = new FakeClock(DateTime.parse("2009-05-29T20:15:00Z"));
 
@@ -229,7 +229,7 @@ public class DomainWhoisResponseTest {
     Key<ContactResource> adminResourceKey = Key.create(adminContact);
     Key<ContactResource> techResourceKey = Key.create(techContact);
 
-    domainResource = persistResource(new DomainResource.Builder()
+    domainBase = persistResource(new DomainBase.Builder()
         .setFullyQualifiedDomainName("example.tld")
         .setRepoId("3-TLD")
         .setLastEppUpdateTime(DateTime.parse("2009-05-29T20:13:00Z"))
@@ -256,7 +256,7 @@ public class DomainWhoisResponseTest {
   @Test
   public void getPlainTextOutputTest() {
     DomainWhoisResponse domainWhoisResponse =
-        new DomainWhoisResponse(domainResource, false, clock.nowUtc());
+        new DomainWhoisResponse(domainBase, false, clock.nowUtc());
     assertThat(
             domainWhoisResponse.getResponse(
                 false,
@@ -268,7 +268,7 @@ public class DomainWhoisResponseTest {
   public void getPlainTextOutputTest_registrarAbuseInfoMissing() {
     persistResource(abuseContact.asBuilder().setVisibleInDomainWhoisAsAbuse(false).build());
     DomainWhoisResponse domainWhoisResponse =
-        new DomainWhoisResponse(domainResource, false, clock.nowUtc());
+        new DomainWhoisResponse(domainBase, false, clock.nowUtc());
     assertThat(domainWhoisResponse.getResponse(false, "Footer"))
         .isEqualTo(
             WhoisResponseResults.create(
@@ -278,7 +278,7 @@ public class DomainWhoisResponseTest {
   @Test
   public void getPlainTextOutputTest_fullOutput() {
     DomainWhoisResponse domainWhoisResponse =
-        new DomainWhoisResponse(domainResource, true, clock.nowUtc());
+        new DomainWhoisResponse(domainBase, true, clock.nowUtc());
     assertThat(
             domainWhoisResponse.getResponse(
                 false,
@@ -290,7 +290,7 @@ public class DomainWhoisResponseTest {
   public void addImplicitOkStatusTest() {
     DomainWhoisResponse domainWhoisResponse =
         new DomainWhoisResponse(
-            domainResource.asBuilder().setStatusValues(null).build(), false, clock.nowUtc());
+            domainBase.asBuilder().setStatusValues(null).build(), false, clock.nowUtc());
     assertThat(
             domainWhoisResponse
                 .getResponse(

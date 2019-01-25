@@ -18,7 +18,7 @@ import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistEppResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -40,7 +40,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainAuthInfo;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -77,13 +77,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /**
- * Unit tests for {@link DomainResourceToXjcConverter}.
+ * Unit tests for {@link DomainBaseToXjcConverter}.
  *
- * <p>This tests the mapping between {@link DomainResource} and {@link XjcRdeDomain} as well as
+ * <p>This tests the mapping between {@link DomainBase} and {@link XjcRdeDomain} as well as
  * some exceptional conditions.
  */
 @RunWith(JUnit4.class)
-public class DomainResourceToXjcConverterTest {
+public class DomainBaseToXjcConverterTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -101,7 +101,7 @@ public class DomainResourceToXjcConverterTest {
   @Test
   public void testConvertThick() {
     XjcRdeDomain bean =
-        DomainResourceToXjcConverter.convertDomain(makeDomainResource(clock), RdeMode.FULL);
+        DomainBaseToXjcConverter.convertDomain(makeDomainBase(clock), RdeMode.FULL);
 
     assertThat(bean.getClID()).isEqualTo("GetTheeBack");
 
@@ -184,7 +184,7 @@ public class DomainResourceToXjcConverterTest {
   @Test
   public void testConvertThin() {
     XjcRdeDomain bean =
-        DomainResourceToXjcConverter.convertDomain(makeDomainResource(clock), RdeMode.THIN);
+        DomainBaseToXjcConverter.convertDomain(makeDomainBase(clock), RdeMode.THIN);
     assertThat(bean.getRegistrant()).isNull();
     assertThat(bean.getContacts()).isEmpty();
     assertThat(bean.getSecDNS()).isNull();
@@ -193,14 +193,14 @@ public class DomainResourceToXjcConverterTest {
   @Test
   public void testMarshalThick() throws Exception {
     XjcRdeDomain bean =
-        DomainResourceToXjcConverter.convertDomain(makeDomainResource(clock), RdeMode.FULL);
+        DomainBaseToXjcConverter.convertDomain(makeDomainBase(clock), RdeMode.FULL);
     wrapDeposit(bean).marshal(new ByteArrayOutputStream(), UTF_8);
   }
 
   @Test
   public void testMarshalThin() throws Exception {
     XjcRdeDomain bean =
-        DomainResourceToXjcConverter.convertDomain(makeDomainResource(clock), RdeMode.THIN);
+        DomainBaseToXjcConverter.convertDomain(makeDomainBase(clock), RdeMode.THIN);
     wrapDeposit(bean).marshal(new ByteArrayOutputStream(), UTF_8);
   }
 
@@ -221,9 +221,9 @@ public class DomainResourceToXjcConverterTest {
     return deposit;
   }
 
-  static DomainResource makeDomainResource(FakeClock clock) {
-    DomainResource domain =
-        newDomainResource("example.xn--q9jyb4c").asBuilder().setRepoId("2-Q9JYB4C").build();
+  static DomainBase makeDomainBase(FakeClock clock) {
+    DomainBase domain =
+        newDomainBase("example.xn--q9jyb4c").asBuilder().setRepoId("2-Q9JYB4C").build();
     HistoryEntry historyEntry =
         persistResource(new HistoryEntry.Builder().setParent(domain).build());
     BillingEvent.OneTime billingEvent = persistResource(

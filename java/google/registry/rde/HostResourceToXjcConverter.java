@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.xjc.host.XjcHostAddrType;
@@ -36,7 +36,7 @@ final class HostResourceToXjcConverter {
 
   /** Converts a subordinate {@link HostResource} to {@link XjcRdeHostElement}. */
   static XjcRdeHostElement convertSubordinate(
-      HostResource host, DomainResource superordinateDomain) {
+      HostResource host, DomainBase superordinateDomain) {
     checkArgument(Key.create(superordinateDomain).equals(host.getSuperordinateDomain()));
     return new XjcRdeHostElement(convertSubordinateHost(host, superordinateDomain));
   }
@@ -48,7 +48,7 @@ final class HostResourceToXjcConverter {
   }
 
   /** Converts {@link HostResource} to {@link XjcRdeHost}. */
-  static XjcRdeHost convertSubordinateHost(HostResource model, DomainResource superordinateDomain) {
+  static XjcRdeHost convertSubordinateHost(HostResource model, DomainBase superordinateDomain) {
     XjcRdeHost bean = convertHostCommon(
         model,
         superordinateDomain.getCurrentSponsorClientId(),

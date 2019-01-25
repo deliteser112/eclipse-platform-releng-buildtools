@@ -20,7 +20,7 @@ import static google.registry.mapreduce.inputs.EppResourceInputs.createChildEnti
 import static google.registry.model.index.EppResourceIndexBucket.getBucketKey;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newContactResource;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.persistEppResourceInFirstBucket;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
@@ -36,7 +36,7 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.AppEngineRule;
@@ -63,8 +63,8 @@ public class ChildEntityInputTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-  DomainResource domainA;
-  DomainResource domainB;
+  DomainBase domainA;
+  DomainBase domainB;
   HistoryEntry domainHistoryEntryA;
   HistoryEntry domainHistoryEntryB;
   HistoryEntry contactHistoryEntry;
@@ -76,7 +76,7 @@ public class ChildEntityInputTest {
   private void setupResources() {
     createTld("tld");
     ContactResource contact = persistEppResourceInFirstBucket(newContactResource("contact1234"));
-    domainA = persistEppResourceInFirstBucket(newDomainResource("a.tld", contact));
+    domainA = persistEppResourceInFirstBucket(newDomainBase("a.tld", contact));
     domainHistoryEntryA = persistResource(
         new HistoryEntry.Builder()
             .setParent(domainA)
@@ -110,8 +110,8 @@ public class ChildEntityInputTest {
             .build());
   }
 
-  private void setupSecondDomainResources() {
-    domainB = persistEppResourceInFirstBucket(newDomainResource("b.tld"));
+  private void setupSecondDomainBases() {
+    domainB = persistEppResourceInFirstBucket(newDomainBase("b.tld"));
     domainHistoryEntryB = persistResource(
         new HistoryEntry.Builder()
             .setParent(domainB)
@@ -155,7 +155,7 @@ public class ChildEntityInputTest {
   @Test
   public void testSuccess_childEntityReader_multipleParentsAndChildren() throws Exception {
     setupResources();
-    setupSecondDomainResources();
+    setupSecondDomainBases();
     Set<ImmutableObject> seen = new HashSet<>();
     InputReader<ImmutableObject> reader = EppResourceInputs.createChildEntityInput(
         ImmutableSet.of(EppResource.class),
@@ -262,7 +262,7 @@ public class ChildEntityInputTest {
   @Test
   public void testSuccess_childEntityReader_readerCountMatchesBucketCount() throws Exception {
     assertThat(EppResourceInputs.createChildEntityInput(
-        ImmutableSet.<Class<? extends EppResource>>of(DomainResource.class),
+        ImmutableSet.<Class<? extends EppResource>>of(DomainBase.class),
         ImmutableSet.<Class<? extends ImmutableObject>>of(
             BillingEvent.OneTime.class)).createReaders()).hasSize(3);
   }
@@ -272,7 +272,7 @@ public class ChildEntityInputTest {
     createTld("tld");
     Set<ImmutableObject> historyEntries = new HashSet<>();
     for (int i = 1; i <= 3; i++) {
-      DomainResource domain = persistSimpleResource(newDomainResource(i + ".tld"));
+      DomainBase domain = persistSimpleResource(newDomainBase(i + ".tld"));
       historyEntries.add(persistResource(
           new HistoryEntry.Builder()
               .setParent(domain)
@@ -283,7 +283,7 @@ public class ChildEntityInputTest {
     }
     Set<ImmutableObject> seen = new HashSet<>();
     for (InputReader<ImmutableObject> reader : EppResourceInputs.createChildEntityInput(
-        ImmutableSet.<Class<? extends EppResource>>of(DomainResource.class),
+        ImmutableSet.<Class<? extends EppResource>>of(DomainBase.class),
         ImmutableSet.<Class<? extends ImmutableObject>>of(HistoryEntry.class)).createReaders()) {
       reader.beginShard();
       reader.beginSlice();
