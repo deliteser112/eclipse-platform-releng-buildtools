@@ -19,7 +19,7 @@ import static google.registry.model.registry.Registries.assertTldsExist;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.collect.Iterators;
+import com.google.common.collect.Iterables;
 import google.registry.model.domain.DomainBase;
 import google.registry.util.Clock;
 import java.util.List;
@@ -43,14 +43,13 @@ final class CountDomainsCommand implements CommandWithRemoteApi {
   }
 
   private int getCountForTld(String tld, DateTime now) {
-    return Iterators.size(
+    return Iterables.size(
         ofy()
             .load()
             .type(DomainBase.class)
             .filter("tld", tld)
             .filter("deletionTime >", now)
             .chunkAll()
-            .keys()
-            .iterator());
+            .keys());
   }
 }
