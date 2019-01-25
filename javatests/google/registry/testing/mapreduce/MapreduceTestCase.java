@@ -30,6 +30,7 @@ import com.google.appengine.tools.pipeline.impl.servlets.PipelineServlet;
 import com.google.appengine.tools.pipeline.impl.servlets.TaskHandler;
 import com.google.apphosting.api.ApiProxy;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 import com.google.common.flogger.FluentLogger;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.testing.AppEngineRule;
@@ -224,11 +225,11 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
       throws UnsupportedEncodingException {
     Map<String, String> result = new HashMap<>();
 
-    String[] params = requestBody.split("&");
+    Iterable<String> params = Splitter.on('&').split(requestBody);
     for (String param : params) {
-      String[] pair = param.split("=");
-      String name = pair[0];
-      String value = URLDecoder.decode(pair[1], "UTF-8");
+      List<String> pair = Splitter.on('=').splitToList(param);
+      String name = pair.get(0);
+      String value = URLDecoder.decode(pair.get(1), "UTF-8");
       if (result.containsKey(name)) {
         throw new IllegalArgumentException("Duplicate parameter: " + requestBody);
       }

@@ -138,7 +138,7 @@ public final class DiffUtils {
           && ((DiffPair) value).b instanceof Set) {
         DiffPair pair = ((DiffPair) value);
         String prettyLineDiff = prettyPrintSetDiff((Set<?>) pair.a, (Set<?>) pair.b) + "\n";
-        output = newPath + ((prettyLineDiff.startsWith("\n")) ? ":" : ": ") + prettyLineDiff;
+        output = newPath + (prettyLineDiff.startsWith("\n") ? ":" : ": ") + prettyLineDiff;
       } else {
         output = newPath + ": " + value + "\n";
       }

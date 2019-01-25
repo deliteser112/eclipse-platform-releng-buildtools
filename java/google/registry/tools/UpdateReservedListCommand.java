@@ -21,7 +21,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Strings;
 import google.registry.model.registry.label.ReservedList;
-import google.registry.model.registry.label.ReservedList.Builder;
 import google.registry.util.SystemClock;
 import java.nio.file.Files;
 import java.util.Optional;
@@ -36,10 +35,12 @@ final class UpdateReservedListCommand extends CreateOrUpdateReservedListCommand 
     Optional<ReservedList> existing = ReservedList.get(name);
     checkArgument(
         existing.isPresent(), "Could not update reserved list %s because it doesn't exist.", name);
-    Builder updated = existing.get()
-        .asBuilder()
-        .setReservedListMapFromLines(Files.readAllLines(input, UTF_8))
-        .setLastUpdateTime(new SystemClock().nowUtc());
+    ReservedList.Builder updated =
+        existing
+            .get()
+            .asBuilder()
+            .setReservedListMapFromLines(Files.readAllLines(input, UTF_8))
+            .setLastUpdateTime(new SystemClock().nowUtc());
     if (shouldPublish != null) {
       updated.setShouldPublish(shouldPublish);
     }

@@ -18,7 +18,6 @@ import static com.google.common.collect.Iterables.getLast;
 
 import com.google.appengine.tools.cloudstorage.GcsFileMetadata;
 import com.google.appengine.tools.cloudstorage.GcsFileOptions;
-import com.google.appengine.tools.cloudstorage.GcsFileOptions.Builder;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.ListOptions;
@@ -113,7 +112,7 @@ public class GcsUtils {
 
   /** Determines most appropriate {@link GcsFileOptions} based on filename extension. */
   private static GcsFileOptions getOptions(GcsFilename filename) {
-    Builder builder = new GcsFileOptions.Builder().cacheControl("no-cache");
+    GcsFileOptions.Builder builder = new GcsFileOptions.Builder().cacheControl("no-cache");
     MediaType mediaType = EXTENSIONS.get(getLast(Splitter.on('.').split(filename.getObjectName())));
     if (mediaType != null) {
       builder = builder.mimeType(mediaType.type());

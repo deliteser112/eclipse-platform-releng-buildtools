@@ -41,7 +41,7 @@ public class EppResourceIndexBucket extends ImmutableObject {
   private static long getBucketIdFromEppResource(Key<? extends EppResource> resourceKey) {
     int numBuckets = getEppResourceIndexBucketCount();
     // IDs can't be 0, so add 1 to the hash.
-    return Hashing.consistentHash(resourceKey.getName().hashCode(), numBuckets) + 1;
+    return Hashing.consistentHash(resourceKey.getName().hashCode(), numBuckets) + 1L;
   }
 
   /** Gets a bucket key as a function of an EppResource to be indexed. */

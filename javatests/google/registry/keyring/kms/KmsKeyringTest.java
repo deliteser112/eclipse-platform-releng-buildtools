@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import google.registry.keyring.api.KeySerializer;
 import google.registry.model.server.KmsSecret;
 import google.registry.model.server.KmsSecretRevision;
-import google.registry.model.server.KmsSecretRevision.Builder;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
 import org.bouncycastle.openpgp.PGPKeyPair;
@@ -178,7 +177,7 @@ public class KmsKeyringTest {
     KmsConnection kmsConnection = new FakeKmsConnection();
 
     KmsSecretRevision secretRevision =
-        new Builder()
+        new KmsSecretRevision.Builder()
             .setEncryptedValue(kmsConnection.encrypt(secretName, secretValue).ciphertext())
             .setKmsCryptoKeyVersionName(KmsTestHelper.DUMMY_CRYPTO_KEY_VERSION)
             .setParent(secretName)

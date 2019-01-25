@@ -50,6 +50,11 @@ public final class FakeServletInputStream extends ServletInputStream {
   }
 
   @Override
+  public int read(byte[] b, int off, int len) throws IOException {
+    return input.read(b, off, len);
+  }
+
+  @Override
   public void close() throws IOException {
     input.close();
   }

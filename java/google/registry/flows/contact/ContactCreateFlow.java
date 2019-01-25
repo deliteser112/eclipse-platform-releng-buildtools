@@ -31,7 +31,6 @@ import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.contact.ContactCommand.Create;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CreateData.ContactCreateData;
@@ -71,19 +70,20 @@ public final class ContactCreateFlow implements TransactionalFlow {
     Create command = (Create) resourceCommand;
     DateTime now = ofy().getTransactionTime();
     verifyResourceDoesNotExist(ContactResource.class, targetId, now);
-    ContactResource newContact = new Builder()
-        .setContactId(targetId)
-        .setAuthInfo(command.getAuthInfo())
-        .setCreationClientId(clientId)
-        .setPersistedCurrentSponsorClientId(clientId)
-        .setRepoId(createRepoId(ObjectifyService.allocateId(), roidSuffix))
-        .setFaxNumber(command.getFax())
-        .setVoiceNumber(command.getVoice())
-        .setDisclose(command.getDisclose())
-        .setEmailAddress(command.getEmail())
-        .setInternationalizedPostalInfo(command.getInternationalizedPostalInfo())
-        .setLocalizedPostalInfo(command.getLocalizedPostalInfo())
-        .build();
+    ContactResource newContact =
+        new ContactResource.Builder()
+            .setContactId(targetId)
+            .setAuthInfo(command.getAuthInfo())
+            .setCreationClientId(clientId)
+            .setPersistedCurrentSponsorClientId(clientId)
+            .setRepoId(createRepoId(ObjectifyService.allocateId(), roidSuffix))
+            .setFaxNumber(command.getFax())
+            .setVoiceNumber(command.getVoice())
+            .setDisclose(command.getDisclose())
+            .setEmailAddress(command.getEmail())
+            .setInternationalizedPostalInfo(command.getInternationalizedPostalInfo())
+            .setLocalizedPostalInfo(command.getLocalizedPostalInfo())
+            .build();
     validateAsciiPostalInfo(newContact.getInternationalizedPostalInfo());
     validateContactAgainstPolicy(newContact);
     historyBuilder

@@ -149,7 +149,7 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
         Optional.ofNullable(getLastSuperordinateChange()).orElse(getCreationTime());
     DateTime lastTransferOfCurrentSuperordinate =
         Optional.ofNullable(superordinateDomain.getLastTransferTime()).orElse(START_OF_TIME);
-    return (lastSuperordinateChange.isBefore(lastTransferOfCurrentSuperordinate))
+    return lastSuperordinateChange.isBefore(lastTransferOfCurrentSuperordinate)
         ? superordinateDomain.getLastTransferTime()
         : getLastTransferTime();
   }

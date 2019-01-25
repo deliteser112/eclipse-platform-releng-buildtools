@@ -35,7 +35,7 @@ class CommandUtilities {
     HOST(HostResource.class),
     DOMAIN(DomainBase.class);
 
-    private Class<? extends EppResource> clazz;
+    private final Class<? extends EppResource> clazz;
 
     ResourceType(Class<? extends EppResource> clazz) {
       this.clazz = clazz;

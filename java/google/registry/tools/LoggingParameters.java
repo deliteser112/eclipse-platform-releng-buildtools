@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static google.registry.util.ResourceUtils.readResourceBytes;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -67,7 +68,7 @@ final class LoggingParameters {
     // Add an extra leading newline in case base properties file does not end in a newline.
     String customProperties = "\n" + Joiner.on('\n').join(configLines);
     ByteSource logConfig =
-        ByteSource.concat(baseConfig, ByteSource.wrap(customProperties.getBytes()));
+        ByteSource.concat(baseConfig, ByteSource.wrap(customProperties.getBytes(UTF_8)));
     try (InputStream input = logConfig.openStream()) {
       LogManager.getLogManager().readConfiguration(input);
     }

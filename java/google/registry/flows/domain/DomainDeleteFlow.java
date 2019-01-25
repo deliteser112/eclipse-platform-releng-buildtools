@@ -62,7 +62,6 @@ import google.registry.flows.custom.EntityChanges;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.DomainBase;
-import google.registry.model.domain.DomainBase.Builder;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
@@ -149,7 +148,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     flowCustomLogic.afterValidation(
         AfterValidationParameters.newBuilder().setExistingDomain(existingDomain).build());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
-    Builder builder;
+    DomainBase.Builder builder;
     if (existingDomain.getStatusValues().contains(StatusValue.PENDING_TRANSFER)) {
       builder =
           denyPendingTransfer(existingDomain, TransferStatus.SERVER_CANCELLED, now, clientId)

@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.model.common.GaeUserIdConverter;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
-import google.registry.model.registrar.RegistrarContact.Builder;
 import google.registry.tools.params.OptionalPhoneNumberParameter;
 import google.registry.tools.params.PathParameter;
 import java.io.IOException;
@@ -235,7 +234,7 @@ final class RegistrarContactCommand extends MutatingCommand {
   private RegistrarContact createContact(Registrar registrar) {
     checkArgument(!isNullOrEmpty(name), "--name is required when --mode=CREATE");
     checkArgument(!isNullOrEmpty(email), "--email is required when --mode=CREATE");
-    Builder builder = new RegistrarContact.Builder();
+    RegistrarContact.Builder builder = new RegistrarContact.Builder();
     builder.setParent(registrar);
     builder.setName(name);
     builder.setEmailAddress(email);
@@ -267,7 +266,7 @@ final class RegistrarContactCommand extends MutatingCommand {
   private RegistrarContact updateContact(RegistrarContact contact, Registrar registrar) {
     checkNotNull(registrar);
     checkNotNull(email, "--email is required when --mode=UPDATE");
-    Builder builder = contact.asBuilder();
+    RegistrarContact.Builder builder = contact.asBuilder();
     builder.setParent(registrar);
     if (!isNullOrEmpty(name)) {
       builder.setName(name);

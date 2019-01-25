@@ -19,13 +19,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.ImmutableRangeSet;
 import com.google.common.collect.Range;
-import com.google.common.collect.RangeSet;
+import com.google.errorprone.annotations.Immutable;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import java.net.URI;
 import java.util.Optional;
 
 /** An IDN table for a particular TLD. */
+@Immutable
 public final class IdnTable {
 
   /** Regular expression to match a line of an IDN table. */
@@ -48,8 +49,8 @@ public final class IdnTable {
   /** Public URL of policy for this IDN table, which is needed by RDE. */
   private final URI policy;
 
-  /** {@link RangeSet} containing the valid codepoints in this table. */
-  private final RangeSet<Integer> validCodepoints;
+  /** {@link ImmutableRangeSet} containing the valid codepoints in this table. */
+  private final ImmutableRangeSet<Integer> validCodepoints;
 
   /** Validates the language rules associated with this IDN table. */
   private final Optional<LanguageValidator> languageValidator;
@@ -58,7 +59,7 @@ public final class IdnTable {
       String name,
       URI url,
       URI policy,
-      RangeSet<Integer> validCodepoints,
+      ImmutableRangeSet<Integer> validCodepoints,
       Optional<LanguageValidator> languageValidator) {
     this.name = name;
     this.url = checkNotNull(url, "%s missing '# URL: http://foo.example/page' line", name);

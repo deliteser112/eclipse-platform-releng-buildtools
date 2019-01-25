@@ -171,7 +171,7 @@ public final class TldFanoutAction implements Runnable {
     }
     for (String param : params.keySet()) {
       // TaskOptions.param() does not accept null values.
-      options.param(param, nullToEmpty((getFirst(params.get(param), null))));
+      options.param(param, nullToEmpty(getFirst(params.get(param), null)));
     }
     return options;
   }

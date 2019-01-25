@@ -45,7 +45,6 @@ import google.registry.model.eppoutput.CreateData.HostCreateData;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostCommand.Create;
 import google.registry.model.host.HostResource;
-import google.registry.model.host.HostResource.Builder;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.ObjectifyService;
@@ -119,7 +118,7 @@ public final class HostCreateFlow implements TransactionalFlow {
           : new UnexpectedExternalHostIpException();
     }
     HostResource newHost =
-        new Builder()
+        new HostResource.Builder()
             .setCreationClientId(clientId)
             .setPersistedCurrentSponsorClientId(clientId)
             .setFullyQualifiedHostName(targetId)

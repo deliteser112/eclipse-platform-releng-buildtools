@@ -20,7 +20,9 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import com.google.common.net.MediaType;
@@ -96,7 +98,7 @@ public final class CopyDetailReportsAction implements Runnable {
     for (String detailReportName : detailReportObjectNames) {
       // The standard report format is "invoice_details_yyyy-MM_registrarId_tld.csv
       // TODO(larryruili): Determine a safer way of enforcing this.
-      String registrarId = detailReportName.split("_")[3];
+      String registrarId = Iterables.get(Splitter.on('_').split(detailReportName), 3);
       Optional<Registrar> registrar = Registrar.loadByClientId(registrarId);
       if (!registrar.isPresent()) {
         logger.atWarning().log(

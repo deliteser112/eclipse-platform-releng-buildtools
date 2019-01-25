@@ -298,7 +298,7 @@ public class WhoisReaderTest {
 
   @Test
   public void testNameserverLookupByIpWhitespace() throws Exception {
-    assertNsLookup(("  \t\t NAMESERVER   \t 43.34.12.213    \r\n"), "43.34.12.213");
+    assertNsLookup("  \t\t NAMESERVER   \t 43.34.12.213    \r\n", "43.34.12.213");
   }
 
   @Test

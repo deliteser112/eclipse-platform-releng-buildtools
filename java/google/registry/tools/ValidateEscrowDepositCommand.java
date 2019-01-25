@@ -15,12 +15,12 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Sets.difference;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import google.registry.keyring.api.Keyring;
 import google.registry.rde.Ghostryde;
@@ -40,7 +40,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -141,17 +140,19 @@ final class ValidateEscrowDepositCommand implements Command {
     }
     System.out.println();
     boolean good = true;
-    List<String> badHostnameRefs = copyOf(difference(hostnameRefs, hostnames));
+    ImmutableList<String> badHostnameRefs =
+        ImmutableList.copyOf(difference(hostnameRefs, hostnames));
     if (!badHostnameRefs.isEmpty()) {
       System.out.printf("Bad host refs: %s\n", Joiner.on(", ").join(badHostnameRefs));
       good = false;
     }
-    List<String> badContactRefs = copyOf(difference(contactRefs, contacts));
+    ImmutableList<String> badContactRefs = ImmutableList.copyOf(difference(contactRefs, contacts));
     if (!badContactRefs.isEmpty()) {
       System.out.printf("Bad contact refs: %s\n", Joiner.on(", ").join(badContactRefs));
       good = false;
     }
-    List<String> badRegistrarRefs = copyOf(difference(registrarRefs, registrars));
+    ImmutableList<String> badRegistrarRefs =
+        ImmutableList.copyOf(difference(registrarRefs, registrars));
     if (!badRegistrarRefs.isEmpty()) {
       System.out.printf("Bad registrar refs: %s\n", Joiner.on(", ").join(badRegistrarRefs));
       good = false;

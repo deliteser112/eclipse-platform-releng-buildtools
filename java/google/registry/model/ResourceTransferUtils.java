@@ -23,7 +23,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.BuilderWithTransferData;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.EppResource.ResourceWithTransferData;
@@ -170,7 +169,7 @@ public final class ResourceTransferUtils {
    */
   public static <
           R extends EppResource & ResourceWithTransferData,
-          B extends Builder<R, B> & BuilderWithTransferData<B>>
+          B extends EppResource.Builder<R, B> & BuilderWithTransferData<B>>
       R approvePendingTransfer(R resource, TransferStatus transferStatus, DateTime now) {
     checkArgument(transferStatus.isApproved(), "Not an approval transfer status");
     B builder = resolvePendingTransfer(resource, transferStatus, now);

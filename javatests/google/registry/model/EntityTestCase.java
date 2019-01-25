@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assert_;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.annotation.Id;
@@ -84,7 +85,7 @@ public class EntityTestCase {
     outer: for (String fieldPath : fieldPaths) {
       // Walk the field path and grab the value referred to on the object using reflection.
       Object fieldValue = obj;
-      for (String fieldName : fieldPath.split("\\.")) {
+      for (String fieldName : Splitter.on('.').split(fieldPath)) {
         if (fieldValue == null) {
           throw new RuntimeException(String.format("field '%s' not found on %s",
               fieldPath, obj.getClass().getSimpleName()));

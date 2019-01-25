@@ -21,7 +21,11 @@ public class XmlEnumUtils {
   /** Read the {@link XmlEnumValue} string off of an enum. */
   public static String enumToXml(Enum<?> input) {
     try {
-      return input.getClass().getField(input.name()).getAnnotation(XmlEnumValue.class).value();
+      return input
+          .getDeclaringClass()
+          .getField(input.name())
+          .getAnnotation(XmlEnumValue.class)
+          .value();
     } catch (NoSuchFieldException e) {
       throw new RuntimeException(e);
     }

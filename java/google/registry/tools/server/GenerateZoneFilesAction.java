@@ -101,6 +101,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
   @Inject @Config("gcsBufferSize") int gcsBufferSize;
   @Inject @Config("commitLogDatastoreRetention") Duration datastoreRetention;
   @Inject @Config("dnsDefaultATtl") Duration dnsDefaultATtl;
+  @SuppressWarnings("DurationVariableWithUnits") // false-positive Error Prone check
   @Inject @Config("dnsDefaultNsTtl") Duration dnsDefaultNsTtl;
   @Inject @Config("dnsDefaultDsTtl") Duration dnsDefaultDsTtl;
   @Inject Clock clock;
@@ -291,14 +292,15 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
           loadAtPointInTime(nameserver, exportTime).now().getFullyQualifiedHostName()));
     }
     for (DelegationSignerData dsData : domain.getDsData()) {
-      result.append(String.format(
-          DS_FORMAT,
-          domainLabel,
-          dnsDefaultDsTtl.getStandardSeconds(),
-          dsData.getKeyTag(),
-          dsData.getAlgorithm(),
-          dsData.getDigestType(),
-          base16().encode((dsData.getDigest()))));
+      result.append(
+          String.format(
+              DS_FORMAT,
+              domainLabel,
+              dnsDefaultDsTtl.getStandardSeconds(),
+              dsData.getKeyTag(),
+              dsData.getAlgorithm(),
+              dsData.getDigestType(),
+              base16().encode(dsData.getDigest())));
     }
     return result.toString();
   }

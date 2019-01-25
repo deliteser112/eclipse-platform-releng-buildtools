@@ -39,7 +39,6 @@ import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedExcepti
 import google.registry.model.contact.ContactCommand.Update;
 import google.registry.model.contact.ContactCommand.Update.Change;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.contact.ContactResource.Builder;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
@@ -109,7 +108,7 @@ public final class ContactUpdateFlow implements TransactionalFlow {
         .setXmlBytes(null)  // We don't want to store contact details in the history entry.
         .setParent(Key.create(existingContact));
     checkSameValuesNotAddedAndRemoved(statusesToAdd, statusToRemove);
-    Builder builder = existingContact.asBuilder();
+    ContactResource.Builder builder = existingContact.asBuilder();
     Change change = command.getInnerChange();
     // The spec requires the following behaviors:
     //   * If you update part of a postal info, the fields that you didn't update are unchanged.

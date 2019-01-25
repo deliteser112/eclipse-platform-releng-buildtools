@@ -450,7 +450,7 @@ public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
         }
 
         InetAddress next = InetAddresses.increment(previous);
-        return (contains(next)) ? next : null;
+        return contains(next) ? next : null;
       }
     };
   }

@@ -130,8 +130,10 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     /**
      * Predicate for validating IANA IDs for this type of registrar.
      *
-     * @see <a href="http://www.iana.org/assignments/registrar-ids/registrar-ids.txt">Registrar IDs</a>
+     * @see <a href="http://www.iana.org/assignments/registrar-ids/registrar-ids.txt">Registrar
+     *     IDs</a>
      */
+    @SuppressWarnings("ImmutableEnumChecker")
     private final Predicate<Long> ianaIdValidator;
 
     Type(Predicate<Long> ianaIdValidator) {

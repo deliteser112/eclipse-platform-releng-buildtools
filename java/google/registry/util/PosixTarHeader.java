@@ -279,9 +279,9 @@ public final class PosixTarHeader {
   @Override
   public boolean equals(@Nullable Object rhs) {
     return rhs == this
-        || rhs != null
-        && getClass() == rhs.getClass()
-        && Arrays.equals(header, ((PosixTarHeader) rhs).header);
+        || (rhs != null
+            && getClass() == rhs.getClass()
+            && Arrays.equals(header, ((PosixTarHeader) rhs).header));
   }
 
   /** @see Arrays#toString(byte[]) */

@@ -156,10 +156,10 @@ public final class FormFieldException extends FormException {
   @Override
   public boolean equals(@Nullable Object obj) {
     return this == obj
-        || obj instanceof FormFieldException
-        && Objects.equals(getCause(), ((FormFieldException) obj).getCause())
-        && Objects.equals(getMessage(), ((FormFieldException) obj).getMessage())
-        && Objects.equals(names, ((FormFieldException) obj).names);
+        || (obj instanceof FormFieldException
+            && Objects.equals(getCause(), ((FormFieldException) obj).getCause())
+            && Objects.equals(getMessage(), ((FormFieldException) obj).getMessage())
+            && Objects.equals(names, ((FormFieldException) obj).names));
   }
 
   @Override

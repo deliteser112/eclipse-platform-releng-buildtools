@@ -47,11 +47,11 @@ class KmsConnectionImpl implements KmsConnection {
   @Inject
   KmsConnectionImpl(
       @Config("cloudKmsProjectId") String projectId,
-      @Config("cloudKmsKeyRing") String kmsKeyringName,
+      @Config("cloudKmsKeyRing") String kmsKeyRingName,
       Retrier retrier,
       CloudKMS kms) {
     this.projectId = projectId;
-    this.kmsKeyRingName = kmsKeyringName;
+    this.kmsKeyRingName = kmsKeyRingName;
     this.retrier = retrier;
     this.kms = kms;
   }

@@ -95,7 +95,7 @@ public final class StaticResourceServlet extends HttpServlet {
     String prefix = config.getInitParameter("prefix");
     verify(prefix.startsWith("/"));
     boolean isDirectory = Files.isDirectory(root);
-    verify(!isDirectory || isDirectory && prefix.endsWith("/"));
+    verify(!isDirectory || (isDirectory && prefix.endsWith("/")));
     fileServer = Optional.of(new FileServer(root, prefix));
   }
 

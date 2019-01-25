@@ -43,7 +43,7 @@ public class UtcDateTimeAdapterTest {
 
   @Test
   public void testMarshalEmpty() {
-    assertThat((new UtcDateTimeAdapter()).marshal(null)).isEmpty();
+    assertThat(new UtcDateTimeAdapter().marshal(null)).isEmpty();
   }
 
   @Test
@@ -60,14 +60,14 @@ public class UtcDateTimeAdapterTest {
 
   @Test
   public void testUnmarshalEmpty() {
-    assertThat((new UtcDateTimeAdapter()).unmarshal(null)).isNull();
-    assertThat((new UtcDateTimeAdapter()).unmarshal("")).isNull();
+    assertThat(new UtcDateTimeAdapter().unmarshal(null)).isNull();
+    assertThat(new UtcDateTimeAdapter().unmarshal("")).isNull();
   }
 
   @Test
   public void testUnmarshalInvalid() {
     assertThrows(
         IllegalArgumentException.class,
-        () -> assertThat((new UtcDateTimeAdapter()).unmarshal("oh my goth")).isNull());
+        () -> assertThat(new UtcDateTimeAdapter().unmarshal("oh my goth")).isNull());
   }
 }

@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 public final class WhoisModule {
 
   @Provides
+  @SuppressWarnings("CloseableProvides")
   static Reader provideHttpInputReader(HttpServletRequest req) {
     try {
       return req.getReader();

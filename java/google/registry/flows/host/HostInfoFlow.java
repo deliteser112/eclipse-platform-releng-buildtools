@@ -32,7 +32,6 @@ import google.registry.model.domain.DomainBase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.host.HostInfoData;
-import google.registry.model.host.HostInfoData.Builder;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
@@ -72,7 +71,7 @@ public final class HostInfoFlow implements Flow {
     if (isLinked(Key.create(host), now)) {
       statusValues.add(StatusValue.LINKED);
     }
-    Builder hostInfoDataBuilder = HostInfoData.newBuilder();
+    HostInfoData.Builder hostInfoDataBuilder = HostInfoData.newBuilder();
     // Hosts transfer with their superordinate domains, so for hosts with a superordinate domain,
     // the client id, last transfer time, and pending transfer status need to be read off of it. If
     // there is no superordinate domain, the host's own values for these fields will be correct.

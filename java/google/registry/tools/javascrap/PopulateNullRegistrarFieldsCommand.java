@@ -21,7 +21,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import google.registry.model.registrar.Registrar;
-import google.registry.model.registrar.Registrar.Builder;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.tools.MutatingCommand;
 import java.util.Objects;
@@ -40,7 +39,7 @@ public class PopulateNullRegistrarFieldsCommand extends MutatingCommand {
   @Override
   protected void init() {
     for (Registrar registrar : ofy().load().type(Registrar.class).ancestor(getCrossTldKey())) {
-      Builder changeBuilder = registrar.asBuilder();
+      Registrar.Builder changeBuilder = registrar.asBuilder();
       changeBuilder.setRegistrarName(
           firstNonNull(registrar.getRegistrarName(), registrar.getClientId()));
 

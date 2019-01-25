@@ -19,7 +19,7 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import google.registry.model.Buildable.Builder;
+import google.registry.model.Buildable;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.eppcommon.AuthInfo;
@@ -82,7 +82,7 @@ public interface ResourceCommand {
   }
 
   /** A create command, or the inner change (as opposed to add or remove) part of an update. */
-  interface ResourceCreateOrChange<B extends Builder<?>> {}
+  interface ResourceCreateOrChange<B extends Buildable.Builder<?>> {}
 
   /**
    * An update command for an {@link EppResource}.

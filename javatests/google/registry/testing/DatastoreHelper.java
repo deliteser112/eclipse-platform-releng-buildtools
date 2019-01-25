@@ -91,7 +91,6 @@ import google.registry.model.registry.label.PremiumList.PremiumListRevision;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
-import google.registry.model.transfer.TransferData.Builder;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.tmch.LordnTaskUtils;
 import java.util.Arrays;
@@ -383,7 +382,8 @@ public class DatastoreHelper {
         registrar.asBuilder().setAllowedTlds(difference(registrar.getAllowedTlds(), tld)).build());
   }
 
-  private static Builder createTransferDataBuilder(DateTime requestTime, DateTime expirationTime) {
+  private static TransferData.Builder createTransferDataBuilder(
+      DateTime requestTime, DateTime expirationTime) {
     return new TransferData.Builder()
         .setTransferStatus(TransferStatus.PENDING)
         .setGainingClientId("NewRegistrar")
@@ -585,7 +585,8 @@ public class DatastoreHelper {
     } else {
       deleteResource(autorenewPollMessage);
     }
-    Builder transferDataBuilder = createTransferDataBuilder(requestTime, expirationTime);
+    TransferData.Builder transferDataBuilder =
+        createTransferDataBuilder(requestTime, expirationTime);
     return persistResource(domain.asBuilder()
         .setPersistedCurrentSponsorClientId("TheRegistrar")
         .addStatusValue(StatusValue.PENDING_TRANSFER)

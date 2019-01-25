@@ -51,14 +51,14 @@ public class DateAdapterTest {
 
   @Test
   public void testUnmarshalEmpty() {
-    assertThat((new DateAdapter()).unmarshal(null)).isNull();
-    assertThat((new DateAdapter()).unmarshal("")).isNull();
+    assertThat(new DateAdapter().unmarshal(null)).isNull();
+    assertThat(new DateAdapter().unmarshal("")).isNull();
   }
 
   @Test
   public void testUnmarshalInvalid() {
     assertThrows(
         IllegalArgumentException.class,
-        () -> assertThat((new DateAdapter()).unmarshal("oh my goth")).isNull());
+        () -> assertThat(new DateAdapter().unmarshal("oh my goth")).isNull());
   }
 }

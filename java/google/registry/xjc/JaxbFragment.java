@@ -57,13 +57,11 @@ public class JaxbFragment<T> implements Serializable {
   }
 
   /** Deserializes a JAXB element from xml bytes. */
-  private static <T> T unfreezeInstance(byte[] instanceData, Class<?> instanceType)
+  private static <T> T unfreezeInstance(byte[] instanceData, Class<T> instanceType)
       throws IOException {
     try {
       ByteArrayInputStream bin = new ByteArrayInputStream(instanceData);
-      @SuppressWarnings("unchecked")
-      T instance = (T) XjcXmlTransformer.unmarshal(instanceType, bin);
-      return instance;
+      return XjcXmlTransformer.unmarshal(instanceType, bin);
     } catch (XmlException e) {
       throw new IOException(e);
     }
@@ -91,12 +89,13 @@ public class JaxbFragment<T> implements Serializable {
     out.writeObject(freezeInstance(instance));
   }
 
+  @SuppressWarnings("unchecked")
   private void readObject(ObjectInputStream in) throws IOException {
     // read instanceType, then instanceData
-    Class<?> instanceType;
+    Class<T> instanceType;
     byte[] instanceData;
     try {
-      instanceType = (Class<?>) in.readObject();
+      instanceType = (Class<T>) in.readObject();
       instanceData = (byte[]) in.readObject();
     } catch (ClassNotFoundException e) {
       throw new RuntimeException(e);

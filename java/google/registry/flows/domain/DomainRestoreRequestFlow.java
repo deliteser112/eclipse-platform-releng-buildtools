@@ -46,7 +46,6 @@ import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
-import google.registry.model.billing.BillingEvent.OneTime.Builder;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.Update;
@@ -258,7 +257,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         .build();
   }
 
-  private Builder prepareBillingEvent(HistoryEntry historyEntry, Money cost, DateTime now) {
+  private OneTime.Builder prepareBillingEvent(HistoryEntry historyEntry, Money cost, DateTime now) {
     return new BillingEvent.OneTime.Builder()
         .setTargetId(targetId)
         .setClientId(clientId)

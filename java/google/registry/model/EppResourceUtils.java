@@ -28,7 +28,6 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.util.ResultNow;
 import google.registry.config.RegistryConfig;
-import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.BuilderWithTransferData;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.EppResource.ResourceWithTransferData;
@@ -222,7 +221,7 @@ public final class EppResourceUtils {
   }
 
   /** Process an automatic transfer on a resource. */
-  public static <B extends Builder<?, B> & BuilderWithTransferData<B>>
+  public static <B extends EppResource.Builder<?, B> & BuilderWithTransferData<B>>
       void setAutomaticTransferSuccessProperties(B builder, TransferData transferData) {
     checkArgument(TransferStatus.PENDING.equals(transferData.getTransferStatus()));
     builder.removeStatusValue(StatusValue.PENDING_TRANSFER)
@@ -239,14 +238,15 @@ public final class EppResourceUtils {
 
   /**
    * Perform common operations for projecting an {@link EppResource} at a given time:
+   *
    * <ul>
    *   <li>Process an automatic transfer.
    * </ul>
    */
   public static <
-      T extends EppResource & ResourceWithTransferData,
-      B extends Builder<?, B> & BuilderWithTransferData<B>>
-          void projectResourceOntoBuilderAtTime(T resource, B builder, DateTime now) {
+          T extends EppResource & ResourceWithTransferData,
+          B extends EppResource.Builder<?, B> & BuilderWithTransferData<B>>
+      void projectResourceOntoBuilderAtTime(T resource, B builder, DateTime now) {
     TransferData transferData = resource.getTransferData();
     // If there's a pending transfer that has expired, process it.
     DateTime expirationTime = transferData.getPendingTransferExpirationTime();
@@ -289,7 +289,7 @@ public final class EppResourceUtils {
     // and returns it projected forward to exactly the desired timestamp, or null if the resource is
     // deleted at that timestamp.
     final Result<T> loadResult =
-        (isAtOrAfter(timestamp, resource.getUpdateAutoTimestamp().getTimestamp()))
+        isAtOrAfter(timestamp, resource.getUpdateAutoTimestamp().getTimestamp())
             ? new ResultNow<>(resource)
             : loadMostRecentRevisionAtTime(resource, timestamp);
     return () -> {

@@ -22,12 +22,15 @@ import static java.lang.Character.UnicodeBlock.KATAKANA;
 import com.google.common.collect.ImmutableRangeSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
+import com.google.errorprone.annotations.Immutable;
 import java.lang.Character.UnicodeBlock;
+import java.util.Objects;
 
 /**
  * Validates Japanese language domain labels. This class should only be used with a Japanese
  * language IDN table.
  */
+@Immutable
 class JapaneseLanguageValidator extends LanguageValidator {
 
   /** Any string with Japanese characters can have at most 15 characters. */
@@ -82,7 +85,8 @@ class JapaneseLanguageValidator extends LanguageValidator {
       // The KATAKANA_HIRAGANA_PROLONGED_SOUND_MARK can only occur after a HIRAGANA or KATAKANA
       // character.
       if (codepoint == KATAKANA_HIRAGANA_PROLONGED_SOUND_MARK
-          && precedingUnicodeBlock != HIRAGANA && precedingUnicodeBlock != KATAKANA) {
+          && !Objects.equals(precedingUnicodeBlock, HIRAGANA)
+          && !Objects.equals(precedingUnicodeBlock, KATAKANA)) {
         return false;
       }
 

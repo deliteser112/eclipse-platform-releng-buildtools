@@ -100,7 +100,8 @@ public class GracePeriod extends ImmutableObject {
        @Nullable Key<BillingEvent.Recurring> billingEventRecurring) {
     checkArgument((billingEventOneTime == null) || (billingEventRecurring == null),
         "A grace period can have at most one billing event");
-    checkArgument((billingEventRecurring != null) == (GracePeriodStatus.AUTO_RENEW.equals(type)),
+    checkArgument(
+        (billingEventRecurring != null) == GracePeriodStatus.AUTO_RENEW.equals(type),
         "Recurring billing events must be present on (and only on) autorenew grace periods");
     GracePeriod instance = new GracePeriod();
     instance.type = checkArgumentNotNull(type);

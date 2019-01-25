@@ -15,8 +15,10 @@
 package google.registry.tldconfig.idn;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.errorprone.annotations.Immutable;
 import java.util.Optional;
 
+@Immutable
 abstract class LanguageValidator {
 
   /** A registry of all known language validators keyed by their language code. */

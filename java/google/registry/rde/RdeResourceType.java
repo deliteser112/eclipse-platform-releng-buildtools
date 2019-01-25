@@ -17,12 +17,11 @@ package google.registry.rde;
 import static google.registry.model.rde.RdeMode.FULL;
 import static google.registry.model.rde.RdeMode.THIN;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
 import google.registry.model.rde.RdeMode;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Set;
 
 /** Types of objects that get embedded in an escrow deposit. */
 public enum RdeResourceType {
@@ -34,11 +33,11 @@ public enum RdeResourceType {
   HEADER("urn:ietf:params:xml:ns:rdeHeader-1.0", EnumSet.of(FULL, THIN));
 
   private final String uri;
-  private final Set<RdeMode> modes;
+  private final ImmutableSet<RdeMode> modes;
 
   RdeResourceType(String uri, EnumSet<RdeMode> modes) {
     this.uri = uri;
-    this.modes = Collections.unmodifiableSet(modes);
+    this.modes = ImmutableSet.copyOf(modes);
   }
 
   /** Returns RDE XML schema URI specifying resource. */
@@ -47,7 +46,7 @@ public enum RdeResourceType {
   }
 
   /** Returns set indicating if resource is stored in BRDA thin deposits. */
-  public Set<RdeMode> getModes() {
+  public ImmutableSet<RdeMode> getModes() {
     return modes;
   }
 

@@ -48,9 +48,10 @@ final class CanonicalizeLabelsCommand implements Command {
   @Override
   public void run() throws IOException {
     Set<String> labels = new TreeSet<>();
-    for (String label : mainParameters.isEmpty()
-        ? CharStreams.readLines(new InputStreamReader(stdin))
-        : Files.readLines(new File(mainParameters.get(0)), UTF_8)) {
+    for (String label :
+        mainParameters.isEmpty()
+            ? CharStreams.readLines(new InputStreamReader(stdin, UTF_8))
+            : Files.readLines(new File(mainParameters.get(0)), UTF_8)) {
       label = label.trim();
       if (label.startsWith("-")) {
         label = label.substring(1);

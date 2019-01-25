@@ -58,10 +58,11 @@ public abstract class XjcObject {
   public String toString() {
     try {
       StringWriter out = new StringWriter();
-      XjcXmlTransformer.marshalLenient((getClass()
-          .isAnnotationPresent(XmlRootElement.class))
+      XjcXmlTransformer.marshalLenient(
+          getClass().isAnnotationPresent(XmlRootElement.class)
               ? this
-              : new JAXBElement<>(new QName(getClass().getSimpleName()), Object.class, this), out);
+              : new JAXBElement<>(new QName(getClass().getSimpleName()), Object.class, this),
+          out);
       return out.toString();
     } catch (XmlException e) {
       return String.format("<!-- Invalid XML: %s -->", e.toString());

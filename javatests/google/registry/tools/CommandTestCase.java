@@ -70,7 +70,7 @@ public abstract class CommandTestCase<C extends Command> {
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Before
-  public final void beforeCommandTestCase() {
+  public final void beforeCommandTestCase() throws Exception {
     // Ensure the UNITTEST environment has been set before constructing a new command instance.
     RegistryToolEnvironment.UNITTEST.setup(systemPropertyRule);
     command = newCommandInstance();
@@ -212,9 +212,10 @@ public abstract class CommandTestCase<C extends Command> {
   }
 
   @SuppressWarnings("unchecked")
-  protected C newCommandInstance() {
+  protected C newCommandInstance() throws Exception {
     try {
-      return (C) new TypeToken<C>(getClass()){}.getRawType().newInstance();
+      return (C)
+          new TypeToken<C>(getClass()) {}.getRawType().getDeclaredConstructor().newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }

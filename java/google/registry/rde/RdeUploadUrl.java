@@ -164,8 +164,7 @@ final class RdeUploadUrl implements Comparable<RdeUploadUrl> {
   @Override
   public boolean equals(@Nullable Object object) {
     return object == this
-        || object instanceof RdeUploadUrl
-        && Objects.equals(uri, ((RdeUploadUrl) object).uri);
+        || (object instanceof RdeUploadUrl && Objects.equals(uri, ((RdeUploadUrl) object).uri));
   }
 
   /** @see java.net.URI#hashCode() */
@@ -200,9 +199,9 @@ final class RdeUploadUrl implements Comparable<RdeUploadUrl> {
     @Override
     public boolean equals(@Nullable Object object) {
       return object == this
-          || object instanceof Protocol
-          && port == ((Protocol) object).port
-          && Objects.equals(name, ((Protocol) object).name);
+          || (object instanceof Protocol
+              && port == ((Protocol) object).port
+              && Objects.equals(name, ((Protocol) object).name));
     }
 
     /** @see Object#hashCode() */

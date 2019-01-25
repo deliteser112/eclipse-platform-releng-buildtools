@@ -191,7 +191,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
             .setAutorenewPollMessage(Key.create(gainingClientAutorenewPollMessage))
             // Remove all the old grace periods and add a new one for the transfer.
             .setGracePeriods(
-                (billingEvent.isPresent())
+                billingEvent.isPresent()
                     ? ImmutableSet.of(
                         GracePeriod.forBillingEvent(GracePeriodStatus.TRANSFER, billingEvent.get()))
                     : ImmutableSet.of())
