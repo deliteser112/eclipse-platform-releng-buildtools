@@ -102,20 +102,17 @@ registry.registrar.AdminSettings.prototype.oteStatusCheck_ = function(
         /** @type {!registry.json.ote.OteStatusResponse} */
         (e.target.getResponseJson(
             registry.registrar.AdminSettings.PARSER_BREAKER_));
-    var message;
+    var oteResultParent = goog.dom.getRequiredElement('ote-status-area-parent');
     if (response.status === 'SUCCESS') {
       var results = response.results[0];
-      message = 'Passed: '.concat(results.completed);
+      goog.soy.renderElement(
+          oteResultParent, registry.soy.registrar.admin.oteResultsTable,
+          {completed: results.completed, detailsList: results.details});
     } else {
-      message = 'Error: '.concat(response.message);
+      goog.soy.renderElement(
+          oteResultParent, registry.soy.registrar.admin.oteErrorArea,
+          {message: response.message});
     }
-    var textParent = goog.dom.getRequiredElement('ote-status-area-parent');
-    if (!textParent.hasChildNodes()) {
-      var textElement = document.createElement('p');
-      textElement.id = 'ote-status-area';
-      textParent.appendChild(textElement);
-    }
-    textParent.firstElementChild.textContent = message;
   }, 'POST', goog.json.serialize({'clientId': clientId}), {
     'X-CSRF-Token': xsrfToken,
     'Content-Type': 'application/json; charset=UTF-8'

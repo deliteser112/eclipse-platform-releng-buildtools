@@ -14,7 +14,6 @@
 
 package google.registry.model;
 
-import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TestDataHelper.loadBytes;
@@ -27,12 +26,39 @@ import java.io.IOException;
 
 public final class OteStatsTestHelper {
 
-  private static HistoryEntry hostDeleteHistoryEntry;
-  private static HistoryEntry domainCreateHistoryEntry;
-  private static HistoryEntry domainRestoreHistoryEntry;
+  public static void setupCompleteOte(String baseClientId) throws IOException {
+    setupIncompleteOte(baseClientId);
+    String oteAccount1 = String.format("%s-1", baseClientId);
+    persistResource(
+        new HistoryEntry.Builder()
+            .setClientId(oteAccount1)
+            .setType(Type.DOMAIN_CREATE)
+            .setXmlBytes(getBytes("domain_create_idn.xml"))
+            .build());
+    persistResource(
+        new HistoryEntry.Builder()
+            .setClientId(oteAccount1)
+            .setType(Type.DOMAIN_RESTORE)
+            .setXmlBytes(getBytes("domain_restore.xml"))
+            .build());
+    persistResource(
+        new HistoryEntry.Builder()
+            .setClientId(oteAccount1)
+            .setType(Type.HOST_DELETE)
+            .setXmlBytes(getBytes("host_delete.xml"))
+            .build());
+  }
 
-  // TODO(b/122830156): Have this replicate the exact OT&E workflow with the correct client IDs
-  public static void setupHistoryEntries(String baseClientId) throws IOException {
+  /**
+   * Sets up an incomplete OT&E registrar. It is missing the following entries:
+   *
+   * - DOMAIN_CREATES_IDN
+   * - DOMAIN_RESTORES
+   * - HOST_DELETES
+   *
+   * TODO(b/122830156): Have this replicate the exact OT&E workflow with the correct client IDs
+   */
+  public static void setupIncompleteOte(String baseClientId) throws IOException {
     persistPremiumList("default_sandbox_list", "sandbox,USD 1000");
     OteAccountBuilder.forClientId(baseClientId).addContact("email@example.com").buildAndPersist();
     String oteAccount1 = String.format("%s-1", baseClientId);
@@ -42,13 +68,6 @@ public final class OteStatsTestHelper {
             .setType(Type.DOMAIN_CREATE)
             .setXmlBytes(getBytes("domain_create_sunrise.xml"))
             .build());
-    domainCreateHistoryEntry =
-        persistResource(
-            new HistoryEntry.Builder()
-                .setClientId(oteAccount1)
-                .setType(Type.DOMAIN_CREATE)
-                .setXmlBytes(getBytes("domain_create_idn.xml"))
-                .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId(oteAccount1)
@@ -73,13 +92,6 @@ public final class OteStatsTestHelper {
             .setType(Type.DOMAIN_DELETE)
             .setXmlBytes(getBytes("domain_delete.xml"))
             .build());
-    domainRestoreHistoryEntry =
-        persistResource(
-            new HistoryEntry.Builder()
-                .setClientId(oteAccount1)
-                .setType(Type.DOMAIN_RESTORE)
-                .setXmlBytes(getBytes("domain_restore.xml"))
-                .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId(oteAccount1)
@@ -116,13 +128,6 @@ public final class OteStatsTestHelper {
             .setType(Type.HOST_CREATE)
             .setXmlBytes(getBytes("host_create_complete.xml"))
             .build());
-    hostDeleteHistoryEntry =
-        persistResource(
-            new HistoryEntry.Builder()
-                .setClientId(oteAccount1)
-                .setType(Type.HOST_DELETE)
-                .setXmlBytes(getBytes("host_delete.xml"))
-                .build());
     // Persist 10 host updates for a total of 25 history entries. Since these also sort last by
     // modification time, when these cause all tests to pass, only the first will be recorded and
     // the rest will be skipped.
@@ -136,18 +141,6 @@ public final class OteStatsTestHelper {
               .setModificationTime(END_OF_TIME)
               .build());
     }
-  }
-
-  public static void deleteHostDeleteHistoryEntry() {
-    deleteResource(hostDeleteHistoryEntry);
-  }
-
-  public static void deleteDomainCreateHistoryEntry() {
-    deleteResource(domainCreateHistoryEntry);
-  }
-
-  public static void deleteDomainRestoreHistoryEntry() {
-    deleteResource(domainRestoreHistoryEntry);
   }
 
   private static byte[] getBytes(String filename) throws IOException {

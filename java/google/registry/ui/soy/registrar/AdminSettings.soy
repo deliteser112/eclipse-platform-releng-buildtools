@@ -17,6 +17,7 @@
 /** Registrar admin settings page for view and edit. */
 {template .settings}
   {@param allowedTlds: list<string>}
+  {@param type: string} // the registrar type, e.g. REAL, OTE, TEST, etc.
   <form name="item" class="{css('item')} {css('registrar')}">
     <h1>Administrator settings</h1>
     <table>
@@ -48,7 +49,9 @@
           <p>Generate new OT&amp;E accounts <a href="/registrar-ote-setup">here</a>
           </p></td>
       </tr>
-      {call .oteStatus /}
+      {call .oteStatus}
+        {param registrarType: $type /}
+      {/call}
     </table>
   </form>
 {/template}
@@ -67,15 +70,63 @@
 {/template}
 
 {template .oteStatus}
+  {@param registrarType: string}
   <tr class="{css('kd-settings-pane-section')}">
     <td class="{css('setting')}">
       <button
           type="button"
           id="btn-ote-status"
           value="Check OT&amp;E status"
-          class="{css('kd-button')} {css('kd-button-submit')}">Check OT&amp;E status
+          class="{css('kd-button')} {css('kd-button-submit')}
+          {if $registrarType != 'OTE'} {css('disabled')} {/if}">
+        Check OT&amp;E status
       </button>
     </td>
     <td id="ote-status-area-parent" class="{css('setting')}"></td>
   </tr>
+{/template}
+
+{template .oteResultsTable}
+  {@param completed: bool}
+  {@param detailsList: list<[description: string, timesPerformed: int, requirement: int, completed: bool]>}
+  <table id="ote-results-table">
+    {if $completed}
+      <tr class={css('ote-fulfilled')}>
+        <td>Status:</td>
+        <td>Completed</td>
+      </tr>
+    {else}
+      <tr class={css('ote-unfulfilled')}>
+        <td>Status:</td>
+        <td>Not Completed</td>
+      </tr>
+    {/if}
+    <tr class="{css('ote-results-header')}">
+      <th class="{css('ote-results-header-cell')}"><b>Test Name</b></th>
+      <th class="{css('ote-results-header-cell')}"><b>Actions Performed</b></th>
+    </tr>
+    {for $detail in $detailsList}
+      {if $detail.completed}
+        <tr class="{css('ote-fulfilled')}">
+          <td>{$detail.description}</td>
+          <td>Completed</td>
+        </tr>
+      {elseif $detail.timesPerformed > 0}
+        <tr class="{css('ote-semifulfilled')}">
+          <td>{$detail.description}</td>
+          <td>{$detail.timesPerformed} of {$detail.requirement}</td>
+        </tr>
+      {else}
+        <tr class="{css('ote-unfulfilled')}">
+          <td>{$detail.description}</td>
+          <td>Not started</td>
+        </tr>
+      {/if}
+    {/for}
+  </table>
+{/template}
+
+{template .oteErrorArea}
+  {@param message: string}
+  <p id="ote-status-area">Error: {$message}</p>
 {/template}

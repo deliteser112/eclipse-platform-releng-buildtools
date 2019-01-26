@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import google.registry.model.OteStats.StatType;
 import google.registry.testing.AppEngineRule;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,23 +28,17 @@ public final class OteStatsTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
-  @Before
-  public void init() throws Exception {
-    OteStatsTestHelper.setupHistoryEntries("blobio");
-  }
-
   @Test
-  public void testSuccess_allPass() {
+  public void testSuccess_allPass() throws Exception {
+    OteStatsTestHelper.setupCompleteOte("blobio");
     OteStats stats = OteStats.getFromRegistrar("blobio");
     assertThat(stats.getFailures()).isEmpty();
     assertThat(stats.getSize()).isEqualTo(30);
   }
 
   @Test
-  public void testSuccess_someFailures() {
-    OteStatsTestHelper.deleteHostDeleteHistoryEntry();
-    OteStatsTestHelper.deleteDomainCreateHistoryEntry();
-    OteStatsTestHelper.deleteDomainRestoreHistoryEntry();
+  public void testSuccess_incomplete() throws Exception {
+    OteStatsTestHelper.setupIncompleteOte("blobio");
     OteStats stats = OteStats.getFromRegistrar("blobio");
     assertThat(stats.getFailures())
         .containsExactly(
@@ -55,7 +48,8 @@ public final class OteStatsTest {
   }
 
   @Test
-  public void testSuccess_toString() {
+  public void testSuccess_toString() throws Exception {
+    OteStatsTestHelper.setupCompleteOte("blobio");
     OteStats stats = OteStats.getFromRegistrar("blobio");
     String expected =
         "contact creates: 0\n"
@@ -95,8 +89,8 @@ public final class OteStatsTest {
   }
 
   @Test
-  public void testMissingHostDeletes_toString() {
-    OteStatsTestHelper.deleteHostDeleteHistoryEntry();
+  public void testIncomplete_toString() throws Exception {
+    OteStatsTestHelper.setupIncompleteOte("blobio");
     OteStats stats = OteStats.getFromRegistrar("blobio");
     String expected =
         "contact creates: 0\n"
@@ -107,17 +101,17 @@ public final class OteStatsTest {
             + "contact transfer requests: 0\n"
             + "contact updates: 0\n"
             + "domain autorenews: 0\n"
-            + "domain creates: 5\n"
+            + "domain creates: 4\n"
             + "domain creates ascii: 4\n"
-            + "domain creates idn: 1\n"
+            + "domain creates idn: 0\n"
             + "domain creates start date sunrise: 1\n"
             + "domain creates with claims notice: 1\n"
             + "domain creates with fee: 1\n"
             + "domain creates with sec dns: 1\n"
-            + "domain creates without sec dns: 4\n"
+            + "domain creates without sec dns: 3\n"
             + "domain deletes: 1\n"
             + "domain renews: 0\n"
-            + "domain restores: 1\n"
+            + "domain restores: 0\n"
             + "domain transfer approves: 1\n"
             + "domain transfer cancels: 1\n"
             + "domain transfer rejects: 1\n"
@@ -131,7 +125,7 @@ public final class OteStatsTest {
             + "host deletes: 0\n"
             + "host updates: 10\n"
             + "unclassified flows: 0\n"
-            + "TOTAL: 38";
+            + "TOTAL: 34";
     assertThat(stats.toString()).isEqualTo(expected);
   }
 }

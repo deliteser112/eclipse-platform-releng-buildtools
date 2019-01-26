@@ -56,3 +56,29 @@ div#tlds.editing .kd-errormessage {
   margin-left: 0.5em;
 }
 
+#ote-results-table {
+  margin-left: 0.5em;
+  margin-top: -5px;
+  border-top: 0;
+  padding-top: 0;
+}
+
+.ote-fulfilled {
+  background-color: #9df797;
+}
+
+.ote-semifulfilled {
+  background-color: #fcd18e;
+}
+
+.ote-unfulfilled {
+  background-color: #ffa9a9;
+}
+
+.ote-results-header {
+  height: 20px;
+}
+
+.ote-results-header-cell {
+  vertical-align: bottom;
+}

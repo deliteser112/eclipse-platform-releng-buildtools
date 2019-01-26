@@ -51,10 +51,7 @@ public final class OteStatusActionTest {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Before
-  public void init() throws Exception {
-    OteStatsTestHelper.setupHistoryEntries(BASE_CLIENT_ID);
-    persistNewRegistrar(CLIENT_ID, "SomeRegistrar", Type.OTE, null);
-
+  public void init() {
     ImmutableSetMultimap<String, Role> authValues =
         OteAccountBuilder.createClientIdToTldMap(BASE_CLIENT_ID).keySet().stream()
             .collect(toImmutableSetMultimap(Function.identity(), ignored -> Role.OWNER));
@@ -63,7 +60,9 @@ public final class OteStatusActionTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testSuccess_finishedOte() {
+  public void testSuccess_finishedOte() throws Exception {
+    OteStatsTestHelper.setupCompleteOte(BASE_CLIENT_ID);
+
     Map<String, ?> actionResult = action.handleJsonRequest(ImmutableMap.of("clientId", CLIENT_ID));
     assertThat(actionResult).containsEntry("status", "SUCCESS");
     assertThat(actionResult).containsEntry("message", "OT&E check completed successfully");
@@ -76,8 +75,8 @@ public final class OteStatusActionTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testSuccess_unfinishedOte() {
-    OteStatsTestHelper.deleteHostDeleteHistoryEntry();
+  public void testSuccess_incomplete() throws Exception {
+    OteStatsTestHelper.setupIncompleteOte(BASE_CLIENT_ID);
 
     Map<String, ?> actionResult = action.handleJsonRequest(ImmutableMap.of("clientId", CLIENT_ID));
     assertThat(actionResult).containsEntry("status", "SUCCESS");
@@ -91,6 +90,16 @@ public final class OteStatusActionTest {
             ImmutableMap.of(
                 "description", StatType.HOST_DELETES.getDescription(),
                 "requirement", StatType.HOST_DELETES.getRequirement(),
+                "timesPerformed", 0,
+                "completed", false),
+            ImmutableMap.of(
+                "description", StatType.DOMAIN_RESTORES.getDescription(),
+                "requirement", StatType.DOMAIN_RESTORES.getRequirement(),
+                "timesPerformed", 0,
+                "completed", false),
+            ImmutableMap.of(
+                "description", StatType.DOMAIN_CREATES_IDN.getDescription(),
+                "requirement", StatType.DOMAIN_CREATES_IDN.getRequirement(),
                 "timesPerformed", 0,
                 "completed", false));
   }

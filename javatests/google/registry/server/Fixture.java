@@ -28,7 +28,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.model.OteAccountBuilder;
 import google.registry.model.OteStatsTestHelper;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactResource;
@@ -65,9 +64,9 @@ public enum Fixture {
       // Used for OT&E TLDs
       persistPremiumList("default_sandbox_list");
 
-      OteAccountBuilder.forClientId("oteunfinished").addContact("email@example.com").buildAndPersist();
       try {
-        OteStatsTestHelper.setupHistoryEntries("otefinished");
+        OteStatsTestHelper.setupCompleteOte("otefinished");
+        OteStatsTestHelper.setupIncompleteOte("oteunfinished");
       } catch (IOException e) {
         throw new RuntimeException(e);
       }

@@ -34,11 +34,24 @@ registry.json.ote = {};
 
 /**
  * @typedef {{
- *   clientId: string,
+ *   description: string,
+ *   requirement: number,
+ *   timesPerformed: number,
  *   completed: boolean
  * }}
  */
+registry.json.ote.OteStatusDetail;
+
+
+/**
+ * @typedef {{
+ *   clientId: string,
+ *   completed: boolean,
+ *   details: !Array.<registry.json.ote.OteStatusDetail>
+ * }}
+ */
 registry.json.ote.OteStatusResult;
+
 
 /**
  * @typedef {{

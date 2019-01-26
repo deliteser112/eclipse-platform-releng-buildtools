@@ -22,7 +22,6 @@ import google.registry.model.OteStatsTestHelper;
 import google.registry.testing.AppEngineRule;
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,28 +35,23 @@ public class VerifyOteActionTest {
 
   private final VerifyOteAction action = new VerifyOteAction();
 
-  @Before
-  public void init() throws Exception {
-    OteStatsTestHelper.setupHistoryEntries("blobio");
-  }
-
   @Test
-  public void testSuccess_summarize_allPass() {
+  public void testSuccess_summarize_allPass() throws Exception {
+    OteStatsTestHelper.setupCompleteOte("blobio");
     assertThat(getResponse(true))
         .isEqualTo("# actions:   30 - Reqs: [----------------] 16/16 - Overall: PASS");
   }
 
   @Test
-  public void testFailure_summarize_someFailures() {
-    OteStatsTestHelper.deleteDomainCreateHistoryEntry();
-    OteStatsTestHelper.deleteDomainRestoreHistoryEntry();
-    OteStatsTestHelper.deleteHostDeleteHistoryEntry();
+  public void testFailure_summarize_someFailures() throws Exception {
+    OteStatsTestHelper.setupIncompleteOte("blobio");
     assertThat(getResponse(true))
         .isEqualTo("# actions:   34 - Reqs: [-.-----.------.-] 13/16 - Overall: FAIL");
   }
 
   @Test
-  public void testSuccess_passNotSummarized() {
+  public void testSuccess_passNotSummarized() throws Exception {
+    OteStatsTestHelper.setupCompleteOte("blobio");
     String expectedOteStatus =
         "domain creates idn: 1\n"
             + "domain creates start date sunrise: 1\n"
@@ -86,10 +80,10 @@ public class VerifyOteActionTest {
   }
 
   @Test
-  public void testFailure_missingHostDelete() {
-    OteStatsTestHelper.deleteHostDeleteHistoryEntry();
+  public void testFailure_incomplete() throws Exception {
+    OteStatsTestHelper.setupIncompleteOte("blobio");
     String expectedOteStatus =
-        "domain creates idn: 1\n"
+        "domain creates idn: 0\n"
             + "domain creates start date sunrise: 1\n"
             + "domain creates with claims notice: 1\n"
             + "domain creates with fee: 1\n"
@@ -97,7 +91,7 @@ public class VerifyOteActionTest {
             + ".*"
             + "domain deletes: 1\n"
             + ".*"
-            + "domain restores: 1\n"
+            + "domain restores: 0\n"
             + "domain transfer approves: 1\n"
             + "domain transfer cancels: 1\n"
             + "domain transfer rejects: 1\n"
@@ -109,7 +103,7 @@ public class VerifyOteActionTest {
             + "host deletes: 0\n"
             + "host updates: 10\n"
             + ".*"
-            + "Requirements passed: 15/16\n"
+            + "Requirements passed: 13/16\n"
             + "Overall OT&E status: FAIL\n";
     Pattern expectedOteStatusPattern = Pattern.compile(expectedOteStatus, Pattern.DOTALL);
     assertThat(getResponse(false)).containsMatch(expectedOteStatusPattern);
