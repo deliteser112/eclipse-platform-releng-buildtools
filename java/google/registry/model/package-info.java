@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlNsForm;
 import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-/**
+/*
  * This package defines all entities which are managed via EPP XML and persisted to the Datastore
  * via Objectify.
  *

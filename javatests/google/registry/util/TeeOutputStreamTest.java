@@ -19,6 +19,7 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -60,7 +61,7 @@ public class TeeOutputStreamTest {
 
   @Test
   public void testWriteInteger_failsAfterClose() throws Exception {
-    OutputStream tee = new TeeOutputStream(asList(outputA));
+    OutputStream tee = new TeeOutputStream(ImmutableList.of(outputA));
     tee.close();
     IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> tee.write(1));
     assertThat(thrown).hasMessageThat().contains("outputstream closed");
@@ -68,7 +69,7 @@ public class TeeOutputStreamTest {
 
   @Test
   public void testWriteByteArray_failsAfterClose() throws Exception {
-    OutputStream tee = new TeeOutputStream(asList(outputA));
+    OutputStream tee = new TeeOutputStream(ImmutableList.of(outputA));
     tee.close();
     IllegalStateException thrown =
         assertThrows(IllegalStateException.class, () -> tee.write("hello".getBytes(UTF_8)));
@@ -77,7 +78,7 @@ public class TeeOutputStreamTest {
 
   @Test
   public void testWriteByteSubarray_failsAfterClose() throws Exception {
-    OutputStream tee = new TeeOutputStream(asList(outputA));
+    OutputStream tee = new TeeOutputStream(ImmutableList.of(outputA));
     tee.close();
     IllegalStateException thrown =
         assertThrows(IllegalStateException.class, () -> tee.write("hello".getBytes(UTF_8), 1, 3));

@@ -17,7 +17,6 @@ package google.registry.ui.server.registrar;
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static java.util.Arrays.asList;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -59,7 +58,7 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
         action.handleJsonRequest(
             ImmutableMap.of("op", "update", "id", CLIENT_ID, "args", modified.toJsonMap()));
     assertThat(response.get("status")).isEqualTo("SUCCESS");
-    assertThat(response.get("results")).isEqualTo(asList(modified.toJsonMap()));
+    assertThat(response.get("results")).isEqualTo(ImmutableList.of(modified.toJsonMap()));
     assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }

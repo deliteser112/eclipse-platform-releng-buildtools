@@ -126,7 +126,7 @@ public class TmchXmlSignature {
     StringBuilder builder = new StringBuilder();
     builder.append("Signature failed core validation\n");
     boolean sv = signature.getSignatureValue().validate(context);
-    builder.append("Signature validation status: " + sv + "\n");
+    builder.append(String.format("Signature validation status: %s\n", sv));
     for (Reference ref : references) {
       builder.append("references[");
       builder.append(ref.getURI());

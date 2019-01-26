@@ -84,9 +84,7 @@ public class SheetSynchronizerTest {
 
   // Explicitly constructs a List<Object> to avoid newArrayList typing to ArrayList<String>
   private List<Object> createRow(Object... elements) {
-    List<Object> row = new ArrayList<>();
-    row.addAll(Arrays.asList(elements));
-    return row;
+    return new ArrayList<>(Arrays.asList(elements));
   }
 
   @Test

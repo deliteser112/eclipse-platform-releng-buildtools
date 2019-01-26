@@ -369,15 +369,8 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
         Streams.stream(keys).map(key -> (Key<EppResource>) key).collect(toImmutableList());
 
     // Typing shenanigans are required to return the map with the correct required generic type.
-    return ofy()
-        .load()
-        .keys(typedKeys)
-        .entrySet()
-        .stream()
-        .collect(
-            ImmutableMap
-                .<Map.Entry<Key<EppResource>, EppResource>, Key<? extends EppResource>, EppResource>
-                    toImmutableMap(Entry::getKey, Entry::getValue));
+    return ofy().load().keys(typedKeys).entrySet().stream()
+        .collect(ImmutableMap.toImmutableMap(Entry::getKey, Entry::getValue));
   }
 
   /**

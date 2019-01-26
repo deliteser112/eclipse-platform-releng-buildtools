@@ -22,8 +22,8 @@ import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
-import static java.util.Arrays.asList;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registrar.Registrar;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
         "id", CLIENT_ID,
         "args", modified.toJsonMap()));
     assertThat(response).containsEntry("status", "SUCCESS");
-    assertThat(response).containsEntry("results", asList(modified.toJsonMap()));
+    assertThat(response).containsEntry("results", ImmutableList.of(modified.toJsonMap()));
     assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }

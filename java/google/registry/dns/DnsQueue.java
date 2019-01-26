@@ -61,7 +61,7 @@ import org.joda.time.Duration;
  * {@link ReadDnsQueueAction}, which is run as a cron job with running time shorter than the cron
  * repeat time - meaning there should never be two instances running at once.
  *
- * @see google.registry.config.RegistryConfig#provideReadDnsQueueRuntime
+ * @see google.registry.config.RegistryConfig.ConfigModule#provideReadDnsQueueRuntime
  */
 public class DnsQueue {
 

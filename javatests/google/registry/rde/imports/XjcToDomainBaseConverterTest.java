@@ -46,6 +46,7 @@ import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.poll.PollMessage.Autorenew;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
@@ -377,9 +378,9 @@ public class XjcToDomainBaseConverterTest {
     // First import in a transaction, then verify in another transaction.
     // Ancestor queries don't work within the same transaction.
     DomainBase domain = persistResource(convertDomainInTransaction(xjcDomain));
-    PollMessage pollMessage = ofy().load().key(domain.getAutorenewPollMessage()).now();
+    Autorenew pollMessage = ofy().load().key(domain.getAutorenewPollMessage()).now();
     assertThat(pollMessage).isInstanceOf(PollMessage.Autorenew.class);
-    assertThat(((PollMessage.Autorenew) pollMessage).getTargetId()).isEqualTo(xjcDomain.getRoid());
+    assertThat(pollMessage.getTargetId()).isEqualTo(xjcDomain.getRoid());
     assertThat(pollMessage.getClientId()).isEqualTo("RegistrarX");
     assertThat(pollMessage.getEventTime()).isEqualTo(xjcDomain.getExDate());
     assertThat(pollMessage.getMsg()).isEqualTo("Domain was auto-renewed.");

@@ -24,7 +24,6 @@ import google.registry.export.datastore.Operation.Metadata;
 import google.registry.export.datastore.Operation.Progress;
 import google.registry.testing.FakeClock;
 import google.registry.testing.TestDataHelper;
-import google.registry.util.Clock;
 import java.io.IOException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -91,8 +90,8 @@ public class OperationTest {
     Operation.OperationList operationList =
         loadJson("operation_list.json", Operation.OperationList.class);
     assertThat(operationList.toList()).hasSize(2);
-    Clock clock = new FakeClock(DateTime.parse("2018-10-29T16:01:04.645299Z"));
-    ((FakeClock) clock).advanceOneMilli();
+    FakeClock clock = new FakeClock(DateTime.parse("2018-10-29T16:01:04.645299Z"));
+    clock.advanceOneMilli();
     assertThat(operationList.toList().get(0).getRunningTime(clock)).isEqualTo(Duration.millis(1));
     assertThat(operationList.toList().get(0).getProgress())
         .isEqualTo("Progress: [51797/54513 entities]");

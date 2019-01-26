@@ -23,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static java.math.BigDecimal.ROUND_UNNECESSARY;
 import static org.joda.money.CurrencyUnit.JPY;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
@@ -135,7 +136,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
     Registry registry = Registry.get("xn--q9jyb4c");
     assertThat(registry.getEapFeeFor(now.minusHours(1)).getCost())
-        .isEqualTo(BigDecimal.ZERO.setScale(2));
+        .isEqualTo(BigDecimal.ZERO.setScale(2, ROUND_UNNECESSARY));
     assertThat(registry.getEapFeeFor(now.plusHours(1)).getCost())
         .isEqualTo(new BigDecimal("50.00"));
     assertThat(registry.getEapFeeFor(now.plusDays(1).plusHours(1)).getCost())

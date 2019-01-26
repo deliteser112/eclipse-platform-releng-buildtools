@@ -67,8 +67,6 @@ public class CidrAddressBlockTest extends TestCase {
     assertEquals(32, b1.getNetmask());
     b1 = new CidrAddressBlock("2001:db8::1");
     assertEquals(128, b1.getNetmask());
-    b1 = new CidrAddressBlock("3ffe::/16");
-
     b1 = new CidrAddressBlock(InetAddresses.forString("5ffe::1"));
     assertEquals(128, b1.getNetmask());
     assertEquals("5ffe:0:0:0:0:0:0:1", b1.getIp());

@@ -26,7 +26,7 @@ public class FakeLockHandler implements LockHandler {
 
   private static final long serialVersionUID = 6437880915118738492L;
 
-  boolean lockSucceeds = true;
+  boolean lockSucceeds;
 
   /**
    * @param lockSucceeds if true - the lock acquisition will succeed and the callable will be

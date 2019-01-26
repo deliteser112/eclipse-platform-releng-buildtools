@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+package google.registry.tools;
+
 /**
  * Marker interface for commands that use the remote api.
  *
- * <p>Just implementing this is sufficient to use the remote api; {@link RegistryTool} will
- * install it as needed.
+ * <p>Just implementing this is sufficient to use the remote api; {@link RegistryTool} will install
+ * it as needed.
  */
-package google.registry.tools;
-
 interface CommandWithRemoteApi extends Command {}

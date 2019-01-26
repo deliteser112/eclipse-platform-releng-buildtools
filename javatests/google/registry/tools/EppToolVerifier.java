@@ -36,10 +36,11 @@ import org.mockito.ArgumentCaptor;
 /**
  * Class for verifying EPP commands sent to the server via the tool endpoint.
  *
- * <p>Provides its own (mock) {@link Connection} that will be monitored for EPP transmission. This
- * Connection needs to be registered with the tool endpoint - something like this:
+ * <p>Provides its own (mock) {@link AppEngineConnection} that will be monitored for EPP
+ * transmission. This Connection needs to be registered with the tool endpoint - something like
+ * this:
  *
- * <pre>   {@code
+ * <pre>{@code
  * SomeToolCommand command = ...;
  * EppToolVerifier eppToolVerifier = EppToolVerifier.create(command);
  * // run command...

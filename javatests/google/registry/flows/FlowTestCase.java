@@ -30,7 +30,6 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Streams;
@@ -171,29 +170,6 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
 
   protected void assertNoHistory() {
     assertThat(ofy().load().type(HistoryEntry.class)).isEmpty();
-  }
-
-  public <T> T getOnlyGlobalResource(Class<T> clazz) {
-    return Iterables.getOnlyElement(ofy().load().type(clazz));
-  }
-
-  /** Helper to remove the grace period's billing event key to facilitate comparison. */
-  /** A helper class that sets the billing event parent history entry to facilitate comparison. */
-  public static class BillingEventParentSetter implements Function<BillingEvent, BillingEvent> {
-    private HistoryEntry historyEntry;
-
-    public static BillingEventParentSetter withParent(HistoryEntry historyEntry) {
-      BillingEventParentSetter instance = new BillingEventParentSetter();
-      instance.historyEntry = historyEntry;
-      return instance;
-    }
-
-    @Override
-    public BillingEvent apply(BillingEvent billingEvent) {
-      return billingEvent.asBuilder().setParent(historyEntry).build();
-    }
-
-    private BillingEventParentSetter() {}
   }
 
   /**
@@ -340,7 +316,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
           String.format(
               "Invalid xml.\nExpected:\n%s\n\nActual:\n%s\n",
               xml,
-              marshal(output, ValidationMode.LENIENT)),
+              Arrays.toString(marshal(output, ValidationMode.LENIENT))),
           e);
     }
     // Clear the cache so that we don't see stale results in tests.

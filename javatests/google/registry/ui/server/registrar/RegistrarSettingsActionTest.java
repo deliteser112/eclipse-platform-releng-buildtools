@@ -20,7 +20,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.testing.TestDataHelper.loadFile;
-import static java.util.Arrays.asList;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -108,7 +107,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         .containsExactly(
             "status", "SUCCESS",
             "message", "Success",
-            "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
+            "results", ImmutableList.of(loadRegistrar(CLIENT_ID).toJsonMap()));
     assertMetric(CLIENT_ID, "read", "[OWNER]", "SUCCESS");
   }
 
@@ -164,7 +163,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     assertThat(response).containsExactly(
         "status", "SUCCESS",
         "message", "Saved TheRegistrar",
-        "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
+        "results", ImmutableList.of(loadRegistrar(CLIENT_ID).toJsonMap()));
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 
@@ -285,7 +284,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     // This role is authorized to perform this change, make sure the change succeeded
     // We got a success result:
     assertThat(response).containsEntry("status", "SUCCESS");
-    assertThat(response).containsEntry("results", asList(updatedRegistrar.toJsonMap()));
+    assertThat(response).containsEntry("results", ImmutableList.of(updatedRegistrar.toJsonMap()));
     // The updatedRegistrar had its value changed:
     // (We check it separately from the next assert to get better error message on failure)
     assertThat(getter.apply(updatedRegistrar)).isEqualTo(newValue);
@@ -467,7 +466,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         .containsExactly(
             "status", "SUCCESS",
             "message", "Saved TheRegistrar",
-            "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
+            "results", ImmutableList.of(loadRegistrar(CLIENT_ID).toJsonMap()));
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
   }
 

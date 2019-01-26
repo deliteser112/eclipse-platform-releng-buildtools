@@ -14,13 +14,12 @@
 
 package google.registry.util;
 
-import static java.util.Arrays.asList;
-
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.flogger.FluentLogger;
 import java.io.Serializable;
@@ -65,7 +64,7 @@ public class TaskQueueUtils implements Serializable {
    * @return successfully enqueued task
    */
   public TaskHandle enqueue(Queue queue, TaskOptions task) {
-    return enqueue(queue, asList(task)).get(0);
+    return enqueue(queue, ImmutableList.of(task)).get(0);
   }
 
   /**

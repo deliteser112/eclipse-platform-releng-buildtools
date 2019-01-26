@@ -325,27 +325,27 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_subordinate_hosts.xml");
     persistReferencedEntities();
     DomainBase domain = persistDomain();
-    HostResource existingHost = persistActiveSubordinateHost("ns1.example.tld", domain);
+    persistActiveSubordinateHost("ns1.example.tld", domain);
     HostResource addedHost = persistActiveSubordinateHost("ns2.example.tld", domain);
-    domain =
-        persistResource(
-            domain
-                .asBuilder()
-                .addSubordinateHost("ns1.example.tld")
-                .addSubordinateHost("ns2.example.tld")
-                .setNameservers(
-                    ImmutableSet.of(
-                        Key.create(
-                            loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc())
-                                .get())))
-                .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .addSubordinateHost("ns1.example.tld")
+            .addSubordinateHost("ns2.example.tld")
+            .setNameservers(
+                ImmutableSet.of(
+                    Key.create(
+                        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc())
+                            .get())))
+            .build());
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
     runFlowAssertResponse(loadFile("generic_success_response.xml"));
     domain = reloadResourceByForeignKey();
     assertThat(domain.getNameservers()).containsExactly(Key.create(addedHost));
     assertThat(domain.getSubordinateHosts()).containsExactly("ns1.example.tld", "ns2.example.tld");
-    existingHost = loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()).get();
+    HostResource existingHost =
+        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()).get();
     addedHost = loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc()).get();
     assertThat(existingHost.getSuperordinateDomain()).isEqualTo(Key.create(domain));
     assertThat(addedHost.getSuperordinateDomain()).isEqualTo(Key.create(domain));

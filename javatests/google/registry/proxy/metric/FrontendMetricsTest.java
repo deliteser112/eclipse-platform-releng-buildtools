@@ -88,7 +88,8 @@ public class FrontendMetricsTest {
         .and()
         .hasNoOtherValues();
 
-    ChannelFuture unusedFuture = channel1.close();
+    @SuppressWarnings("unused")
+    ChannelFuture unusedFuture1 = channel1.close();
     assertThat(channel1.isActive()).isFalse();
     assertThat(FrontendMetrics.activeConnectionsGauge)
         .hasValueForLabels(1, PROTOCOL, CERT_HASH)
@@ -99,7 +100,8 @@ public class FrontendMetricsTest {
         .and()
         .hasNoOtherValues();
 
-    unusedFuture = channel2.close();
+    @SuppressWarnings("unused")
+    ChannelFuture unusedFuture2 = channel2.close();
     assertThat(channel2.isActive()).isFalse();
     assertThat(FrontendMetrics.activeConnectionsGauge).hasNoOtherValues();
     assertThat(FrontendMetrics.totalConnectionsCounter)

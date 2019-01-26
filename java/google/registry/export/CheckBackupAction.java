@@ -110,7 +110,7 @@ public class CheckBackupAction implements Runnable {
       throw e;
     } catch (Throwable e) {
       throw new InternalServerErrorException(
-          String.format("Exception occurred while checking datastore exports."), e);
+          "Exception occurred while checking datastore exports.", e);
     }
   }
 

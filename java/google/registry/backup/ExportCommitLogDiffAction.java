@@ -29,7 +29,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static java.nio.channels.Channels.newOutputStream;
-import static java.util.Arrays.asList;
 import static java.util.Comparator.comparingLong;
 
 import com.google.appengine.tools.cloudstorage.GcsFileOptions;
@@ -208,7 +207,7 @@ public final class ExportCommitLogDiffAction implements Runnable {
     ImmutableList.Builder<Iterable<? extends ImmutableObject>> entities =
         new ImmutableList.Builder<>();
     for (CommitLogManifest manifest : chunk) {
-      entities.add(asList(manifest));
+      entities.add(ImmutableList.of(manifest));
       entities.add(ofy().load().type(CommitLogMutation.class).ancestor(manifest));
     }
     for (ImmutableObject entity : concat(entities.build())) {

@@ -137,7 +137,7 @@ public final class KmsUpdater {
    * Encrypts updated secrets using KMS. If the configured {@code KeyRing} or {@code CryptoKey}
    * associated with a secret doesn't exist, they will first be created.
    *
-   * @see google.registry.config.RegistryConfigSettings#kms
+   * @see google.registry.config.RegistryConfigSettings.Kms
    */
   private ImmutableMap<String, EncryptResponse> encryptValues(Map<String, byte[]> keyValues) {
     ImmutableMap.Builder<String, EncryptResponse> encryptedValues = new ImmutableMap.Builder<>();

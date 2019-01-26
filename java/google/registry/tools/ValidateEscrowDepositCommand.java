@@ -131,7 +131,7 @@ final class ValidateEscrowDepositCommand implements Command {
       }
     }
     System.out.println();
-    System.out.printf("Contents:\n");
+    System.out.println("Contents:");
     for (Map.Entry<String, Long> count : counts.entrySet()) {
       System.out.printf("  - %s: %,d %s\n",
           count.getKey(),
@@ -158,9 +158,9 @@ final class ValidateEscrowDepositCommand implements Command {
       good = false;
     }
     if (good) {
-      System.out.printf("RDE deposit is XML schema valid\n");
+      System.out.println("RDE deposit is XML schema valid");
     } else {
-      System.out.printf("RDE deposit is XML schema valid but has bad references\n");
+      System.out.println("RDE deposit is XML schema valid but has bad references");
     }
   }
 

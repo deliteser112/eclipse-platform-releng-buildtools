@@ -50,27 +50,27 @@ public class CollectionUtils {
 
   /** Turns a null set into an empty set. JAXB leaves lots of null sets lying around. */
   public static <T> Set<T> nullToEmpty(@Nullable Set<T> potentiallyNull) {
-    return firstNonNull(potentiallyNull, ImmutableSet.<T>of());
+    return firstNonNull(potentiallyNull, ImmutableSet.of());
   }
 
   /** Turns a null list into an empty list. */
   public static <T> List<T> nullToEmpty(@Nullable List<T> potentiallyNull) {
-    return firstNonNull(potentiallyNull, ImmutableList.<T>of());
+    return firstNonNull(potentiallyNull, ImmutableList.of());
   }
 
   /** Turns a null map into an empty map. */
   public static <T, U> Map<T, U> nullToEmpty(@Nullable Map<T, U> potentiallyNull) {
-    return firstNonNull(potentiallyNull, ImmutableMap.<T, U>of());
+    return firstNonNull(potentiallyNull, ImmutableMap.of());
   }
 
   /** Turns a null multimap into an empty multimap. */
   public static <T, U> Multimap<T, U> nullToEmpty(@Nullable Multimap<T, U> potentiallyNull) {
-    return firstNonNull(potentiallyNull, ImmutableMultimap.<T, U>of());
+    return firstNonNull(potentiallyNull, ImmutableMultimap.of());
   }
 
   /** Turns a null sorted map into an empty sorted map.. */
   public static <T, U> SortedMap<T, U> nullToEmpty(@Nullable SortedMap<T, U> potentiallyNull) {
-    return firstNonNull(potentiallyNull, ImmutableSortedMap.<T, U>of());
+    return firstNonNull(potentiallyNull, ImmutableSortedMap.of());
   }
 
   /** Defensive copy helper for {@link Set}. */

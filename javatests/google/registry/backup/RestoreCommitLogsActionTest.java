@@ -25,7 +25,6 @@ import static google.registry.backup.ExportCommitLogDiffAction.DIFF_FILE_PREFIX;
 import static google.registry.model.ofy.CommitLogBucket.getBucketIds;
 import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static java.util.Arrays.asList;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -135,7 +134,7 @@ public class RestoreCommitLogsActionTest {
     assertExpectedIds("previous to keep", "b", "d", "e", "f");
     assertInDatastore(file1CommitLogs);
     assertInDatastore(file2CommitLogs);
-    assertInDatastore(asList(CommitLogCheckpointRoot.create(now)));
+    assertInDatastore(CommitLogCheckpointRoot.create(now));
     assertCommitLogBuckets(ImmutableMap.of(1, now.minusMinutes(1), 2, now.minusMinutes(2)));
   }
 
@@ -149,7 +148,7 @@ public class RestoreCommitLogsActionTest {
     ofy().clearSessionCache();
     assertExpectedIds("previous to keep");
     assertInDatastore(commitLogs);
-    assertInDatastore(asList(CommitLogCheckpointRoot.create(now)));
+    assertInDatastore(CommitLogCheckpointRoot.create(now));
     assertCommitLogBuckets(ImmutableMap.of());
   }
 
@@ -168,7 +167,7 @@ public class RestoreCommitLogsActionTest {
     ofy().clearSessionCache();
     assertExpectedIds("previous to keep", "a", "b");
     assertInDatastore(commitLogs);
-    assertInDatastore(asList(CommitLogCheckpointRoot.create(now)));
+    assertInDatastore(CommitLogCheckpointRoot.create(now));
     assertCommitLogBuckets(ImmutableMap.of(1, now));
 }
 
@@ -188,7 +187,7 @@ public class RestoreCommitLogsActionTest {
     ofy().clearSessionCache();
     assertExpectedIds("previous to keep");
     assertInDatastore(commitLogs);
-    assertInDatastore(asList(CommitLogCheckpointRoot.create(now)));
+    assertInDatastore(CommitLogCheckpointRoot.create(now));
     assertCommitLogBuckets(ImmutableMap.of(1, now));
   }
 
@@ -205,7 +204,7 @@ public class RestoreCommitLogsActionTest {
     ofy().clearSessionCache();
     assertExpectedIds("previous to keep");
     assertInDatastore(commitLogs);
-    assertInDatastore(asList(CommitLogCheckpointRoot.create(now)));
+    assertInDatastore(CommitLogCheckpointRoot.create(now));
     assertCommitLogBuckets(ImmutableMap.of(1, now));
   }
 
@@ -222,7 +221,7 @@ public class RestoreCommitLogsActionTest {
     ofy().clearSessionCache();
     assertThat(ofy().load().entity(TestObject.create("existing")).now().getField()).isEqualTo("b");
     assertInDatastore(commitLogs);
-    assertInDatastore(asList(CommitLogCheckpointRoot.create(now)));
+    assertInDatastore(CommitLogCheckpointRoot.create(now));
     assertCommitLogBuckets(ImmutableMap.of(1, now));
   }
 
@@ -242,7 +241,7 @@ public class RestoreCommitLogsActionTest {
     assertExpectedIds("previous to keep");
     assertInDatastore(commitLogs);
     assertCommitLogBuckets(ImmutableMap.of(1, now));
-    assertInDatastore(asList(CommitLogCheckpointRoot.create(now)));
+    assertInDatastore(CommitLogCheckpointRoot.create(now));
   }
 
   private CommitLogCheckpoint createCheckpoint(DateTime now) {
@@ -278,6 +277,10 @@ public class RestoreCommitLogsActionTest {
   private void assertExpectedIds(String... ids) {
     assertThat(transform(ofy().load().type(TestObject.class), TestObject::getId))
         .containsExactly((Object[]) ids);
+  }
+
+  private void assertInDatastore(ImmutableObject entity) {
+    assertThat(ofy().load().entity(entity).now()).isEqualTo(entity);
   }
 
   private void assertInDatastore(Iterable<? extends ImmutableObject> entities) {

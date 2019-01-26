@@ -290,11 +290,13 @@ public final class AppEngineRule extends ExternalResource {
 
     if (withUserService) {
       // Set top-level properties on LocalServiceTestConfig for user login.
-      helper.setEnvIsLoggedIn(userInfo.isLoggedIn())
+      helper
+          .setEnvIsLoggedIn(userInfo.isLoggedIn())
           // This envAttributes thing is the only way to set userId.
           // see https://code.google.com/p/googleappengine/issues/detail?id=3579
-          .setEnvAttributes(ImmutableMap.<String, Object>of(
-              "com.google.appengine.api.users.UserService.user_id_key", userInfo.gaeUserId()))
+          .setEnvAttributes(
+              ImmutableMap.of(
+                  "com.google.appengine.api.users.UserService.user_id_key", userInfo.gaeUserId()))
           .setEnvAuthDomain(userInfo.authDomain())
           .setEnvEmail(userInfo.email())
           .setEnvIsAdmin(userInfo.isAdmin());

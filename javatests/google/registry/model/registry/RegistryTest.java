@@ -30,6 +30,7 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static java.math.BigDecimal.ROUND_UNNECESSARY;
 import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -497,7 +498,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testEapFee_undefined() {
     assertThat(Registry.get("tld").getEapFeeFor(clock.nowUtc()).getCost())
-        .isEqualTo(BigDecimal.ZERO.setScale(2));
+        .isEqualTo(BigDecimal.ZERO.setScale(2, ROUND_UNNECESSARY));
   }
 
   @Test
@@ -514,7 +515,7 @@ public class RegistryTest extends EntityTestCase {
     assertThat(registry.getEapFeeFor(clock.nowUtc()).getCost())
         .isEqualTo(new BigDecimal("100.00"));
     assertThat(registry.getEapFeeFor(clock.nowUtc().minusDays(2)).getCost())
-        .isEqualTo(BigDecimal.ZERO.setScale(2));
+        .isEqualTo(BigDecimal.ZERO.setScale(2, ROUND_UNNECESSARY));
     assertThat(registry.getEapFeeFor(clock.nowUtc().plusDays(2)).getCost())
         .isEqualTo(new BigDecimal("50.00"));
   }

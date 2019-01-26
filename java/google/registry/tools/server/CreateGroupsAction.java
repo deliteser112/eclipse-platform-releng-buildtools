@@ -83,13 +83,13 @@ public class CreateGroupsAction implements Runnable {
                 // that type.
                 groupsConnection.createGroup(groupKey);
                 groupsConnection.addMemberToGroup(parentGroup, groupKey, Role.MEMBER);
-                return Optional.<Exception>empty();
+                return Optional.empty();
               } catch (Exception e) {
                 return Optional.of(e);
               }
             });
     // Return the correct server response based on the results of the group creations.
-    if (results.stream().filter(Optional::isPresent).count() > 0) {
+    if (results.stream().anyMatch(Optional::isPresent)) {
       StringWriter responseString = new StringWriter();
       PrintWriter responseWriter = new PrintWriter(responseString);
       for (int i = 0; i < results.size(); i++) {

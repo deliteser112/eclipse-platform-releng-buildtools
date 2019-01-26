@@ -59,15 +59,15 @@ public class EppConsoleActionTest extends ShardableTestCase {
     ArgumentCaptor<TransportCredentials> credentialsCaptor =
         ArgumentCaptor.forClass(TransportCredentials.class);
     ArgumentCaptor<SessionMetadata> metadataCaptor = ArgumentCaptor.forClass(SessionMetadata.class);
-    verify(action.eppRequestHandler).executeEpp(
-        metadataCaptor.capture(),
-        credentialsCaptor.capture(),
-        eq(EppRequestSource.CONSOLE),
-        eq(false),
-        eq(false),
-        eq(INPUT_XML_BYTES));
-    assertThat(((GaeUserCredentials) credentialsCaptor.getValue()).toString())
-        .contains("user=TestUserId");
+    verify(action.eppRequestHandler)
+        .executeEpp(
+            metadataCaptor.capture(),
+            credentialsCaptor.capture(),
+            eq(EppRequestSource.CONSOLE),
+            eq(false),
+            eq(false),
+            eq(INPUT_XML_BYTES));
+    assertThat(credentialsCaptor.getValue().toString()).contains("user=TestUserId");
     assertThat(metadataCaptor.getValue().getClientId()).isEqualTo("ClientIdentifier");
   }
 }

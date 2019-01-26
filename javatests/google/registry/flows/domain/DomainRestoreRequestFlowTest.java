@@ -99,25 +99,24 @@ public class DomainRestoreRequestFlowTest
                 .setType(HistoryEntry.Type.DOMAIN_DELETE)
                 .setParent(domain)
                 .build());
-    domain =
-        persistResource(
-            domain
-                .asBuilder()
-                .setRegistrationExpirationTime(clock.nowUtc().plusYears(5).plusDays(45))
-                .setDeletionTime(clock.nowUtc().plusDays(35))
-                .addGracePeriod(
-                    GracePeriod.create(
-                        GracePeriodStatus.REDEMPTION, clock.nowUtc().plusDays(1), "foo", null))
-                .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
-                .setDeletePollMessage(
-                    Key.create(
-                        persistResource(
-                            new PollMessage.OneTime.Builder()
-                                .setClientId("TheRegistrar")
-                                .setEventTime(clock.nowUtc().plusDays(5))
-                                .setParent(historyEntry)
-                                .build())))
-                .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .setRegistrationExpirationTime(clock.nowUtc().plusYears(5).plusDays(45))
+            .setDeletionTime(clock.nowUtc().plusDays(35))
+            .addGracePeriod(
+                GracePeriod.create(
+                    GracePeriodStatus.REDEMPTION, clock.nowUtc().plusDays(1), "foo", null))
+            .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
+            .setDeletePollMessage(
+                Key.create(
+                    persistResource(
+                        new PollMessage.OneTime.Builder()
+                            .setClientId("TheRegistrar")
+                            .setEventTime(clock.nowUtc().plusDays(5))
+                            .setParent(historyEntry)
+                            .build())))
+            .build());
     clock.advanceOneMilli();
   }
 

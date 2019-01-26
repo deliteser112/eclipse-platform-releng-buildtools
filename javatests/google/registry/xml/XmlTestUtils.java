@@ -139,8 +139,7 @@ public class XmlTestUtils {
         }
         // First, handle all namespace specifications, updating our ns-to-URI map. Use a HashMap
         // rather than an ImmutableMap.Builder so that we can override existing map entries.
-        HashMap<String, String> newNsMap = new HashMap<>();
-        newNsMap.putAll(nsMap);
+        HashMap<String, String> newNsMap = new HashMap<>(nsMap);
         for (String key : namespacesBuilder.build()) {
           // Parse the attribute name, of the form xmlns:nsid, and extract the namespace identifier.
           // If there's no colon, we are setting the default namespace.

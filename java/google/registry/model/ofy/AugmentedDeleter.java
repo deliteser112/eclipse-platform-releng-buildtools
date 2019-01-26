@@ -60,7 +60,7 @@ abstract class AugmentedDeleter implements Deleter {
 
   @Override
   public Result<Void> key(Key<?> key) {
-    handleDeletion(Arrays.asList(key));
+    handleDeletion(ImmutableList.of(key));
     return delegate.keys(key);
   }
 

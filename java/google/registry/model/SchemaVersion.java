@@ -33,11 +33,10 @@ public final class SchemaVersion {
    */
   private static SortedSet<Class<?>> getAllPersistedTypes() {
     SortedSet<Class<?>> persistedTypes = new TreeSet<>(Ordering.usingToString());
-    Queue<Class<?>> queue = new ArrayDeque<>();
     // Do a breadth-first search for persisted types, starting with @Entity types and expanding each
     // ImmutableObject by querying it for all its persisted field types.
     persistedTypes.addAll(EntityClasses.ALL_CLASSES);
-    queue.addAll(persistedTypes);
+    Queue<Class<?>> queue = new ArrayDeque<>(persistedTypes);
     while (!queue.isEmpty()) {
       Class<?> clazz = queue.remove();
       if (ImmutableObject.class.isAssignableFrom(clazz)) {

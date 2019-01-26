@@ -19,13 +19,13 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterators.peekingIterator;
 import static google.registry.backup.BackupUtils.createDeserializingIterator;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static java.util.Arrays.asList;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityTranslator;
 import com.google.appengine.tools.cloudstorage.GcsFileMetadata;
 import com.google.appengine.tools.cloudstorage.GcsService;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.collect.Streams;
@@ -106,7 +106,7 @@ public class RestoreCommitLogsAction implements Runnable {
         PeekingIterator<ImmutableObject> commitLogs =
             peekingIterator(createDeserializingIterator(input));
         lastCheckpoint = (CommitLogCheckpoint) commitLogs.next();
-        saveOfy(asList(lastCheckpoint));  // Save the checkpoint itself.
+        saveOfy(ImmutableList.of(lastCheckpoint));  // Save the checkpoint itself.
         while (commitLogs.hasNext()) {
           CommitLogManifest manifest = restoreOneTransaction(commitLogs);
           bucketTimestamps.put(manifest.getBucketId(), manifest.getCommitTime());

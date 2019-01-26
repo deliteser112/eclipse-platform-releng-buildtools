@@ -43,10 +43,12 @@ final class GetResourceByKeyCommand implements CommandWithRemoteApi {
   public void run() {
     for (String keyString : mainParameters) {
       System.out.println("\n");
-      Key<EppResource> resourceKey = checkNotNull(
-          Key.<EppResource>create(keyString), "Could not parse key string: " + keyString);
-      EppResource resource = checkNotNull(
-          ofy().load().key(resourceKey).now(), "Could not load resource for key: " + resourceKey);
+      Key<EppResource> resourceKey =
+          checkNotNull(Key.create(keyString), "Could not parse key string: " + keyString);
+      EppResource resource =
+          checkNotNull(
+              ofy().load().key(resourceKey).now(),
+              "Could not load resource for key: " + resourceKey);
       System.out.println(expand ? resource.toHydratedString() : resource.toString());
     }
   }

@@ -181,7 +181,7 @@ public final class ComparatorKeyring extends ComparingInvocationHandler<Keyring>
       return "null";
     }
 
-    StringBuilder builder = new StringBuilder("");
+    StringBuilder builder = new StringBuilder();
     for (byte b : a.getFingerprint()) {
       builder.append(String.format("%02x:", b));
     }

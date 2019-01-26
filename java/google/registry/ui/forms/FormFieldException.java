@@ -31,8 +31,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Exception thrown when a form field contains a bad value.
  *
- * <p>You can safely throw {@code FormFieldException} from within your validator functions, and
- * the field name will automatically be propagated into the exception object for you.
+ * <p>You can safely throw {@code FormFieldException} from within your validator functions, and the
+ * field name will automatically be propagated into the exception object for you.
  *
  * <p>The way that field names work is a bit complicated, because we need to support complex nested
  * field names like {@code foo[3].bar}. So what happens is the original exception will be thrown by
@@ -41,9 +41,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * name of that component. Then when the exception reaches the user, the {@link #getFieldName()}
  * method will produce the fully-qualified field name.
  *
- * <p>This propagation mechanism is also very important when writing
- * {@link FormField.Builder#transform(com.google.common.base.Function) transform} functions, which
- * oftentimes will not know the name of the field they're validating.
+ * <p>This propagation mechanism is also very important when writing {@link
+ * FormField.Builder#transform} functions, which oftentimes will not know the name of the field
+ * they're validating.
  */
 @NotThreadSafe
 @SuppressWarnings("OverrideThrowableToString")
