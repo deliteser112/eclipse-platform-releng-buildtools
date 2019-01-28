@@ -87,7 +87,7 @@ public class Spec11EmailUtilsTest {
   }
 
   @Test
-  public void testSuccess_emailSpec11Reports() throws Exception {
+  public void testSuccess_emailMonthlySpec11Reports() throws Exception {
     emailUtils.emailSpec11Reports(
         Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL,
         "Super Cool Registry Monthly Threat Detector [2018-07-15]",
@@ -126,6 +126,61 @@ public class Spec11EmailUtilsTest {
         "b@fake.com",
         "my-reply-to@test.com",
         "Super Cool Registry Monthly Threat Detector [2018-07-15]",
+        String.format(
+            emailFormat,
+            "<tr><td>b.com</td><td>MALWARE</td></tr><tr><td>c.com</td><td>MALWARE</td></tr>"),
+        "text/html");
+    validateMessage(
+        capturedMessages.get(2),
+        "my-sender@test.com",
+        "my-receiver@test.com",
+        null,
+        "Spec11 Pipeline Success 2018-07-15",
+        "Spec11 reporting completed successfully.",
+        "text/plain");
+  }
+
+  @Test
+  public void testSuccess_emailDailySpec11Reports() throws Exception {
+    emailUtils.emailSpec11Reports(
+        Spec11EmailSoyInfo.DAILY_SPEC_11_EMAIL,
+        "Super Cool Registry Daily Threat Detector [2018-07-15]",
+        sampleThreatMatches());
+    // We inspect individual parameters because Message doesn't implement equals().
+    verify(emailService, times(3)).sendMessage(gotMessage.capture());
+    List<Message> capturedMessages = gotMessage.getAllValues();
+    String emailFormat =
+        "Dear registrar partner,<p>"
+            + "Super Cool Registry conducts a daily analysis of all domains registered in its TLDs "
+            + "to identify potential security concerns. On 2018-07-15, the following domains that "
+            + "your registrar manages were flagged for potential security concerns:</p><table><tr>"
+            + "<th>Domain Name</th><th>Threat Type</th></tr>%s</table><p><b>Please communicate "
+            + "these findings to the registrant and work with the registrant to mitigate any "
+            + "security issues and have the domains delisted.</b></p>Some helpful resources for "
+            + "getting off a blocked list include:<ul><li>foo</li></ul><p>You will continue to "
+            + "receive daily notices when new domains managed by your registrar are flagged for "
+            + "abuse, as well as a monthly summary of all of your domains under management that "
+            + "remain flagged for abuse. Once the registrant has resolved the security issues and "
+            + "followed the steps to have his or her domain reviewed and delisted it will "
+            + "automatically be removed from our reporting.</p><p>If you would like to change "
+            + "the email to which these notices are sent please update your abuse contact using "
+            + "your registrar portal account.</p><p>If you have any questions regarding this "
+            + "notice, please contact my-reply-to@test.com.</p>";
+
+    validateMessage(
+        capturedMessages.get(0),
+        "my-sender@test.com",
+        "a@fake.com",
+        "my-reply-to@test.com",
+        "Super Cool Registry Daily Threat Detector [2018-07-15]",
+        String.format(emailFormat, "<tr><td>a.com</td><td>MALWARE</td></tr>"),
+        "text/html");
+    validateMessage(
+        capturedMessages.get(1),
+        "my-sender@test.com",
+        "b@fake.com",
+        "my-reply-to@test.com",
+        "Super Cool Registry Daily Threat Detector [2018-07-15]",
         String.format(
             emailFormat,
             "<tr><td>b.com</td><td>MALWARE</td></tr><tr><td>c.com</td><td>MALWARE</td></tr>"),

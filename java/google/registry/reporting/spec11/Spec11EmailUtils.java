@@ -141,6 +141,7 @@ public class Spec11EmailUtils {
 
     Map<String, Object> data =
         ImmutableMap.of(
+            "date", date.toString(),
             "registry", registryName,
             "replyToEmail", spec11ReplyToAddress,
             "threats", threatMatchMap,
