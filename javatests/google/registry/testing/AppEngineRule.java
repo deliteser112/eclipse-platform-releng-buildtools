@@ -94,7 +94,7 @@ public final class AppEngineRule extends ExternalResource {
   private LocalServiceTestHelper helper;
 
   /** A rule-within-a-rule to provide a temporary folder for AppEngineRule's internal temp files. */
-  private TemporaryFolder temporaryFolder = new TemporaryFolder();
+  TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   private boolean withDatastore;
   private boolean withLocalModules;
@@ -328,14 +328,22 @@ public final class AppEngineRule extends ExternalResource {
     helper.tearDown();
     helper = null;
     // Test that Datastore didn't need any indexes we don't have listed in our index file.
+    File indexFile = new File(temporaryFolder.getRoot(), "datastore-indexes-auto.xml");
+    if (!indexFile.exists()) {
+      return;
+    }
     try {
-      Set<String> autoIndexes = getIndexXmlStrings(Files.asCharSource(
-          new File(temporaryFolder.getRoot(), "datastore-indexes-auto.xml"), UTF_8).read());
+      String indexFileContent = Files.asCharSource(indexFile, UTF_8).read();
+      if (indexFileContent.trim().isEmpty()) {
+        return;
+      }
+      Set<String> autoIndexes = getIndexXmlStrings(indexFileContent);
       Set<String> missingIndexes = Sets.difference(autoIndexes, MANUAL_INDEXES);
       if (!missingIndexes.isEmpty()) {
         assert_().fail("Missing indexes:\n%s", Joiner.on('\n').join(missingIndexes));
       }
-    } catch (IOException e) {  // This is fine; no indexes were written.
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -352,12 +360,6 @@ public final class AppEngineRule extends ExternalResource {
       // To normalize the indexes, we are going to pass them through JSON and then rewrite the xml.
       JSONObject datastoreIndexes = new JSONObject();
       JSONObject indexFileObject = toJSONObject(indexFile);
-      if (!indexFileObject.has("datastore-indexes")) {
-        // Log for flaky appearance. We suspect that this is not a problem but need to inspect
-        // the content of this file to make sure.
-        // TODO(weiminyu): inspect file content and decide if this should be ignored.
-        logger.atWarning().log("Unexpected datastore-indexes-auto.xml:\n%s", indexFileObject);
-      }
       Object indexes = indexFileObject.get("datastore-indexes");
       if (indexes instanceof JSONObject) {
         datastoreIndexes = (JSONObject) indexes;
@@ -366,7 +368,8 @@ public final class AppEngineRule extends ExternalResource {
         builder.add(getIndexXmlString(index));
       }
     } catch (JSONException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException(
+          String.format("Error parsing datastore-indexes-auto.xml: [%s]", indexFile), e);
     }
     return builder.build();
   }

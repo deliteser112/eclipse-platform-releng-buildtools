@@ -5,10 +5,15 @@ package(
 
 licenses(["notice"])  # Apache 2.0
 
+load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
+
+TEST_CLASSES = ["AppEngineRuleTest.java"]
+
 java_library(
     name = "testing",
     srcs = glob(
         ["*.java"],
+        exclude = TEST_CLASSES,
     ),
     resources = [
         "logging.properties",
@@ -55,5 +60,24 @@ java_library(
         "@org_joda_money",
         "@org_json",
         "@org_mockito_all",
+    ],
+)
+
+java_library(
+    name = "tests",
+    srcs = TEST_CLASSES,
+    deps = [
+        ":testing",
+        "@com_google_guava",
+        "@junit",
+    ],
+)
+
+GenTestRules(
+    name = "GeneratedTestRules",
+    default_test_size = "small",
+    test_files = glob(["*Test.java"]),
+    deps = [
+        ":tests",
     ],
 )
