@@ -6,6 +6,7 @@ buildscript {
 
   dependencies {
     classpath 'com.google.cloud.tools:appengine-gradle-plugin:1.3.3'
+    classpath "net.ltgt.gradle:gradle-errorprone-plugin:0.6.1"
     classpath 'org.sonatype.aether:aether-api:1.13.1'
     classpath 'org.sonatype.aether:aether-impl:1.13.1'
   }
@@ -18,6 +19,8 @@ plugins {
   // Ensures that source code is generated at an appropriate location.
   id 'net.ltgt.apt' version '0.19' apply false
   id 'com.bmuschko.docker-java-application' version '4.0.4' apply false
+  id 'net.ltgt.errorprone' version '0.6.1'
+  id 'checkstyle'
 }
 
 apply from: 'dependencies.gradle'
@@ -104,6 +107,27 @@ subprojects {
   apply plugin: 'nebula.dependency-lock'
   apply plugin: 'nebula.lint'
   apply plugin: 'net.ltgt.apt'
+  apply plugin: 'net.ltgt.errorprone'
+  apply plugin: 'checkstyle'
+
+  // Checkstyle should run as part of the testing task
+  tasks.test.dependsOn tasks.checkstyleMain
+  tasks.test.dependsOn tasks.checkstyleTest
+
+  dependencies {
+    // compatibility with Java 8
+    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
+    errorprone("com.google.errorprone:error_prone_core:2.3.2")
+  }
+
+  tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Werror"
+    options.errorprone.disableWarningsInGeneratedCode = true
+    options.errorprone.errorproneArgumentProviders.add([
+            asArguments: {
+              return ['-XepExcludedPaths:.*/build/generated/.*']
+            }] as CommandLineArgumentProvider)
+  }
 
   version = '1.0'
   sourceCompatibility = '1.8'
