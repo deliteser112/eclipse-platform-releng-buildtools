@@ -59,11 +59,6 @@ import google.registry.rde.RdeReportAction;
 import google.registry.rde.RdeReporter;
 import google.registry.rde.RdeStagingAction;
 import google.registry.rde.RdeUploadAction;
-import google.registry.rde.imports.RdeContactImportAction;
-import google.registry.rde.imports.RdeDomainImportAction;
-import google.registry.rde.imports.RdeHostImportAction;
-import google.registry.rde.imports.RdeHostLinkAction;
-import google.registry.rde.imports.RdeImportsModule;
 import google.registry.reporting.ReportingModule;
 import google.registry.reporting.billing.BillingModule;
 import google.registry.reporting.billing.CopyDetailReportsAction;
@@ -104,7 +99,6 @@ import google.registry.tmch.TmchSmdrlAction;
         IcannReportingModule.class,
         MapreduceModule.class,
         RdeModule.class,
-        RdeImportsModule.class,
         ReportingModule.class,
         RequestModule.class,
         SheetModule.class,
@@ -139,10 +133,6 @@ interface BackendRequestComponent {
   PublishDnsUpdatesAction publishDnsUpdatesAction();
   PublishSpec11ReportAction publishSpec11ReportAction();
   ReadDnsQueueAction readDnsQueueAction();
-  RdeContactImportAction rdeContactImportAction();
-  RdeDomainImportAction rdeDomainImportAction();
-  RdeHostImportAction rdeHostImportAction();
-  RdeHostLinkAction rdeHostLinkAction();
   RdeReportAction rdeReportAction();
   RdeStagingAction rdeStagingAction();
   RdeUploadAction rdeUploadAction();

@@ -31,7 +31,6 @@ java_library(
         "//java/google/registry/module",
         "//java/google/registry/monitoring/whitebox",
         "//java/google/registry/rde",
-        "//java/google/registry/rde/imports",
         "//java/google/registry/reporting",
         "//java/google/registry/reporting/billing",
         "//java/google/registry/reporting/icann",

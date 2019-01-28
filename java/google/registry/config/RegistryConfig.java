@@ -726,18 +726,6 @@ public final class RegistryConfig {
     }
 
     /**
-     * Returns the Google Cloud Storage bucket for importing escrow files.
-     *
-     * @see google.registry.rde.imports.RdeContactImportAction
-     * @see google.registry.rde.imports.RdeHostImportAction
-     */
-    @Provides
-    @Config("rdeImportBucket")
-    public static String provideRdeImportBucket(@Config("projectId") String projectId) {
-      return projectId + "-rde-import";
-    }
-
-    /**
      * Amount of time between RDE deposits.
      *
      * @see google.registry.rde.PendingDepositChecker
