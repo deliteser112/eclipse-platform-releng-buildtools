@@ -87,7 +87,8 @@ public class NordnVerifyActionTest {
   @Captor private ArgumentCaptor<HTTPRequest> httpRequestCaptor;
 
   private final FakeResponse response = new FakeResponse();
-  private final LordnRequestInitializer lordnRequestInitializer = new LordnRequestInitializer();
+  private final LordnRequestInitializer lordnRequestInitializer =
+      new LordnRequestInitializer(Optional.of("attack"));
   private final NordnVerifyAction action = new NordnVerifyAction();
 
   @Before
@@ -97,7 +98,6 @@ public class NordnVerifyActionTest {
     when(fetchService.fetch(any(HTTPRequest.class))).thenReturn(httpResponse);
     createTld("gtld");
     persistResource(Registry.get("gtld").asBuilder().setLordnUsername("lolcat").build());
-    lordnRequestInitializer.marksdbLordnPassword = Optional.of("attack");
     action.tld = "gtld";
     action.fetchService = fetchService;
     action.lordnRequestInitializer = lordnRequestInitializer;
@@ -125,7 +125,7 @@ public class NordnVerifyActionTest {
 
   @Test
   public void testSuccess_noLordnPassword_doesntSetAuthorizationHeader() throws Exception {
-    lordnRequestInitializer.marksdbLordnPassword = Optional.empty();
+    action.lordnRequestInitializer = new LordnRequestInitializer(Optional.empty());
     action.run();
     assertThat(getHeaderFirst(getCapturedHttpRequest(), AUTHORIZATION)).isEmpty();
   }

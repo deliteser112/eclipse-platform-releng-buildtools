@@ -104,7 +104,8 @@ public class NordnUploadActionTest {
   @Captor private ArgumentCaptor<HTTPRequest> httpRequestCaptor;
 
   private final FakeClock clock = new FakeClock(DateTime.parse("2010-05-01T10:11:12Z"));
-  private final LordnRequestInitializer lordnRequestInitializer = new LordnRequestInitializer();
+  private final LordnRequestInitializer lordnRequestInitializer =
+      new LordnRequestInitializer(Optional.of("attack"));
   private final NordnUploadAction action = new NordnUploadAction();
 
   @Before
@@ -117,7 +118,6 @@ public class NordnUploadActionTest {
     persistResource(loadRegistrar("TheRegistrar").asBuilder().setIanaIdentifier(99999L).build());
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setLordnUsername("lolcat").build());
-    lordnRequestInitializer.marksdbLordnPassword = Optional.of("attack");
     action.clock = clock;
     action.fetchService = fetchService;
     action.lordnRequestInitializer = lordnRequestInitializer;
@@ -210,7 +210,7 @@ public class NordnUploadActionTest {
 
   @Test
   public void testRun_noPassword_doesntSendAuthorizationHeader() throws Exception {
-    lordnRequestInitializer.marksdbLordnPassword = Optional.empty();
+    action.lordnRequestInitializer = new LordnRequestInitializer(Optional.empty());
     persistClaimsModeDomain();
     action.run();
     assertThat(getHeaderFirst(getCapturedHttpRequest(), AUTHORIZATION)).isEmpty();
