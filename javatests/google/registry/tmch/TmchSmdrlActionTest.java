@@ -33,7 +33,7 @@ public class TmchSmdrlActionTest extends TmchActionTestCase {
   private TmchSmdrlAction newTmchSmdrlAction() {
     TmchSmdrlAction action = new TmchSmdrlAction();
     action.marksdb = marksdb;
-    action.marksdbSmdrlLogin = Optional.empty();
+    action.marksdbSmdrlLogin = Optional.of("username:password");
     return action;
   }
 

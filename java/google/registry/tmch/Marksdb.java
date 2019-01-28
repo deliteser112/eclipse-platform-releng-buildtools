@@ -16,6 +16,7 @@ package google.registry.tmch;
 
 import static com.google.appengine.api.urlfetch.FetchOptions.Builder.validateCertificate;
 import static com.google.appengine.api.urlfetch.HTTPMethod.GET;
+import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.HexDumper.dumpHex;
 import static google.registry.util.UrlFetchUtils.setAuthorizationHeader;
 import static java.nio.charset.StandardCharsets.US_ASCII;
@@ -24,6 +25,8 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
+import com.google.common.collect.ImmutableList;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteSource;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
@@ -33,6 +36,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.security.Security;
 import java.security.SignatureException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Tainted;
@@ -49,6 +53,9 @@ import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
 
 /** Shared code for tasks that download stuff from MarksDB. */
 public final class Marksdb {
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final int MAX_DNL_LOGGING_LENGTH = 500;
 
   @Inject URLFetchService fetchService;
   @Inject @Config("tmchMarksdbUrl") String tmchMarksdbUrl;
@@ -115,12 +122,36 @@ public final class Marksdb {
     return rsp.getContent();
   }
 
-  List<String> fetchSignedCsv(
-      Optional<String> login, String csvPath, String sigPath)
+  List<String> fetchSignedCsv(Optional<String> login, String csvPath, String sigPath)
       throws IOException, SignatureException, PGPException {
-    byte[] csv = fetch(new URL(tmchMarksdbUrl + csvPath), login);
-    byte[] sig = fetch(new URL(tmchMarksdbUrl + sigPath), login);
+    checkArgument(login.isPresent(), "Cannot fetch from MarksDB without login credentials");
+
+    String csvUrl = tmchMarksdbUrl + csvPath;
+    byte[] csv = fetch(new URL(csvUrl), login);
+    logFetchedBytes(csvUrl, csv);
+
+    String sigUrl = tmchMarksdbUrl + sigPath;
+    byte[] sig = fetch(new URL(sigUrl), login);
+    logFetchedBytes(sigUrl, sig);
+
     pgpVerifySignature(csv, sig, marksdbPublicKey);
-    return ByteSource.wrap(csv).asCharSource(US_ASCII).readLines();
+    ImmutableList<String> lines = ByteSource.wrap(csv).asCharSource(US_ASCII).readLines();
+    logger.atInfo().log("Parsed %d lines.", lines.size());
+    return lines;
+  }
+
+  /**
+   * Logs the length and first 500 characters of a byte array of the given name.
+   *
+   * <p>Note that the DNL is long, hence truncating it instead of logging the whole thing.
+   */
+  private static void logFetchedBytes(String sourceUrl, byte[] bytes) throws IOException {
+    logger.atInfo().log(
+        "Fetched contents of %s -- Size: %d bytes; first %d chars:\n\n%s%s",
+        sourceUrl,
+        bytes.length,
+        MAX_DNL_LOGGING_LENGTH,
+        new String(Arrays.copyOf(bytes, Math.min(bytes.length, MAX_DNL_LOGGING_LENGTH)), US_ASCII),
+        (bytes.length > MAX_DNL_LOGGING_LENGTH) ? "<truncated>" : "");
   }
 }
