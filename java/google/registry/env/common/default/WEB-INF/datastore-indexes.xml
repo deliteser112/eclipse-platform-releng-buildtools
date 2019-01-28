@@ -31,11 +31,6 @@
     <property name="deletionTime" direction="asc"/>
     <property name="fullyQualifiedHostName" direction="asc"/>
   </datastore-index>
-  <!-- For finding account balance of registrar and viewing billing history. -->
-  <datastore-index kind="RegistrarBillingEntry" ancestor="true" source="manual">
-    <property name="currency" direction="asc"/>
-    <property name="created" direction="desc"/>
-  </datastore-index>
   <!-- For determining the active domains linked to a given contact. -->
   <datastore-index kind="DomainBase" ancestor="false" source="manual">
     <property name="allContacts.contact" direction="asc"/>
