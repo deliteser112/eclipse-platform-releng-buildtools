@@ -31,7 +31,7 @@ public class TmchDnlActionTest extends TmchActionTestCase {
   private TmchDnlAction newTmchDnlAction() {
     TmchDnlAction action = new TmchDnlAction();
     action.marksdb = marksdb;
-    action.marksdbDnlLogin = Optional.of(MARKSDB_LOGIN);
+    action.marksdbDnlLoginAndPassword = Optional.of(MARKSDB_LOGIN_AND_PASSWORD);
     return action;
   }
 

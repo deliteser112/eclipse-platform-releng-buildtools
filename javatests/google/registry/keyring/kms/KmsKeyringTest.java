@@ -137,12 +137,12 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getMarksdbDnlLogin() {
+  public void test_getMarksdbDnlLoginAndPassword() {
     saveCleartextSecret("marksdb-dnl-login-string");
 
-    String marksdbDnlLogin = keyring.getMarksdbDnlLogin();
+    String marksdbDnlLoginAndPassword = keyring.getMarksdbDnlLoginAndPassword();
 
-    assertThat(marksdbDnlLogin).isEqualTo("marksdb-dnl-login-stringmoo");
+    assertThat(marksdbDnlLoginAndPassword).isEqualTo("marksdb-dnl-login-stringmoo");
   }
 
   @Test
@@ -155,12 +155,12 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getMarksdbSmdrlLogin() {
+  public void test_getMarksdbSmdrlLoginAndPassword() {
     saveCleartextSecret("marksdb-smdrl-login-string");
 
-    String marksdbSmdrlLogin = keyring.getMarksdbSmdrlLogin();
+    String marksdbSmdrlLoginAndPassword = keyring.getMarksdbSmdrlLoginAndPassword();
 
-    assertThat(marksdbSmdrlLogin).isEqualTo("marksdb-smdrl-login-stringmoo");
+    assertThat(marksdbSmdrlLoginAndPassword).isEqualTo("marksdb-smdrl-login-stringmoo");
 
   }
 

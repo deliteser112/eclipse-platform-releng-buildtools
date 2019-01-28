@@ -37,7 +37,7 @@ import org.mockito.Mock;
 @RunWith(JUnit4.class)
 public class TmchActionTestCase {
 
-  static final String MARKSDB_LOGIN = "lolcat:attack";
+  static final String MARKSDB_LOGIN_AND_PASSWORD = "lolcat:attack";
   static final String MARKSDB_URL = "http://127.0.0.1/love";
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();

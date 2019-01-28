@@ -42,7 +42,7 @@ public final class TmchSmdrlAction implements Runnable {
   private static final String SMDRL_SIG_PATH = "/smdrl/smdrl-latest.sig";
 
   @Inject Marksdb marksdb;
-  @Inject @Key("marksdbSmdrlLogin") Optional<String> marksdbSmdrlLogin;
+  @Inject @Key("marksdbSmdrlLoginAndPassword") Optional<String> marksdbSmdrlLoginAndPassword;
   @Inject TmchSmdrlAction() {}
 
   /** Synchronously fetches latest signed mark revocation list and saves it to Datastore. */
@@ -50,7 +50,7 @@ public final class TmchSmdrlAction implements Runnable {
   public void run() {
     List<String> lines;
     try {
-      lines = marksdb.fetchSignedCsv(marksdbSmdrlLogin, SMDRL_CSV_PATH, SMDRL_SIG_PATH);
+      lines = marksdb.fetchSignedCsv(marksdbSmdrlLoginAndPassword, SMDRL_CSV_PATH, SMDRL_SIG_PATH);
     } catch (SignatureException | IOException | PGPException e) {
       throw new RuntimeException(e);
     }

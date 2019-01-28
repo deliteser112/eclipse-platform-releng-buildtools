@@ -74,14 +74,14 @@ final class GetKeyringSecretCommand implements CommandWithRemoteApi {
       case JSON_CREDENTIAL:
         out.write(KeySerializer.serializeString(keyring.getJsonCredential()));
         break;
-      case MARKSDB_DNL_LOGIN:
-        out.write(KeySerializer.serializeString(keyring.getMarksdbDnlLogin()));
+      case MARKSDB_DNL_LOGIN_AND_PASSWORD:
+        out.write(KeySerializer.serializeString(keyring.getMarksdbDnlLoginAndPassword()));
         break;
       case MARKSDB_LORDN_PASSWORD:
         out.write(KeySerializer.serializeString(keyring.getMarksdbLordnPassword()));
         break;
-      case MARKSDB_SMDRL_LOGIN:
-        out.write(KeySerializer.serializeString(keyring.getMarksdbSmdrlLogin()));
+      case MARKSDB_SMDRL_LOGIN_AND_PASSWORD:
+        out.write(KeySerializer.serializeString(keyring.getMarksdbSmdrlLoginAndPassword()));
         break;
       case RDE_RECEIVER_PUBLIC_KEY:
         out.write(KeySerializer.serializePublicKey(keyring.getRdeReceiverKey()));

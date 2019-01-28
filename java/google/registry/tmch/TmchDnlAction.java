@@ -42,7 +42,7 @@ public final class TmchDnlAction implements Runnable {
   private static final String DNL_SIG_PATH = "/dnl/dnl-latest.sig";
 
   @Inject Marksdb marksdb;
-  @Inject @Key("marksdbDnlLogin") Optional<String> marksdbDnlLogin;
+  @Inject @Key("marksdbDnlLoginAndPassword") Optional<String> marksdbDnlLoginAndPassword;
   @Inject TmchDnlAction() {}
 
   /** Synchronously fetches latest domain name list and saves it to Datastore. */
@@ -50,7 +50,7 @@ public final class TmchDnlAction implements Runnable {
   public void run() {
     List<String> lines;
     try {
-      lines = marksdb.fetchSignedCsv(marksdbDnlLogin, DNL_CSV_PATH, DNL_SIG_PATH);
+      lines = marksdb.fetchSignedCsv(marksdbDnlLoginAndPassword, DNL_CSV_PATH, DNL_SIG_PATH);
     } catch (SignatureException | IOException | PGPException e) {
       throw new RuntimeException(e);
     }

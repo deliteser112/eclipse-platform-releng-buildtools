@@ -50,7 +50,7 @@ public class KmsUpdaterTest {
   @Test
   public void test_setMultipleSecrets() {
     updater
-        .setMarksdbDnlLogin("value1")
+        .setMarksdbDnlLoginAndPassword("value1")
         .setIcannReportingPassword("value2")
         .setJsonCredential("value3")
         .update();
@@ -110,8 +110,8 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setMarksdbDnlLogin() {
-    updater.setMarksdbDnlLogin("value1").update();
+  public void test_setMarksdbDnlLoginAndPassword() {
+    updater.setMarksdbDnlLoginAndPassword("value1").update();
 
     verifySecretAndSecretRevisionWritten(
         "marksdb-dnl-login-string", "marksdb-dnl-login-string/foo", getCiphertext("value1"));
@@ -128,8 +128,8 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setMarksdbSmdrlLogin() {
-    updater.setMarksdbSmdrlLogin("value1").update();
+  public void test_setMarksdbSmdrlLoginAndPassword() {
+    updater.setMarksdbSmdrlLoginAndPassword("value1").update();
 
     verifySecretAndSecretRevisionWritten(
         "marksdb-smdrl-login-string", "marksdb-smdrl-login-string/foo", getCiphertext("value1"));

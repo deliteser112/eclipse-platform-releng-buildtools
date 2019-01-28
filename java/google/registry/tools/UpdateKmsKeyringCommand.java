@@ -71,14 +71,14 @@ final class UpdateKmsKeyringCommand implements CommandWithRemoteApi {
       case JSON_CREDENTIAL:
         kmsUpdater.setJsonCredential(deserializeString(input));
         break;
-      case MARKSDB_DNL_LOGIN:
-        kmsUpdater.setMarksdbDnlLogin(deserializeString(input));
+      case MARKSDB_DNL_LOGIN_AND_PASSWORD:
+        kmsUpdater.setMarksdbDnlLoginAndPassword(deserializeString(input));
         break;
       case MARKSDB_LORDN_PASSWORD:
         kmsUpdater.setMarksdbLordnPassword(deserializeString(input));
         break;
-      case MARKSDB_SMDRL_LOGIN:
-        kmsUpdater.setMarksdbSmdrlLogin(deserializeString(input));
+      case MARKSDB_SMDRL_LOGIN_AND_PASSWORD:
+        kmsUpdater.setMarksdbSmdrlLoginAndPassword(deserializeString(input));
         break;
       case RDE_RECEIVER_PUBLIC_KEY:
         kmsUpdater.setRdeReceiverPublicKey(deserializePublicKey(input));

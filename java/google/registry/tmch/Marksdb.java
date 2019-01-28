@@ -112,9 +112,9 @@ public final class Marksdb {
     }
   }
 
-  byte[] fetch(URL url, Optional<String> login) throws IOException {
+  byte[] fetch(URL url, Optional<String> loginAndPassword) throws IOException {
     HTTPRequest req = new HTTPRequest(url, GET, validateCertificate().setDeadline(60d));
-    setAuthorizationHeader(req, login);
+    setAuthorizationHeader(req, loginAndPassword);
     HTTPResponse rsp = fetchService.fetch(req);
     if (rsp.getResponseCode() != SC_OK) {
       throw new UrlFetchException("Failed to fetch from MarksDB", req, rsp);
@@ -122,16 +122,17 @@ public final class Marksdb {
     return rsp.getContent();
   }
 
-  List<String> fetchSignedCsv(Optional<String> login, String csvPath, String sigPath)
+  List<String> fetchSignedCsv(Optional<String> loginAndPassword, String csvPath, String sigPath)
       throws IOException, SignatureException, PGPException {
-    checkArgument(login.isPresent(), "Cannot fetch from MarksDB without login credentials");
+    checkArgument(
+        loginAndPassword.isPresent(), "Cannot fetch from MarksDB without login credentials");
 
     String csvUrl = tmchMarksdbUrl + csvPath;
-    byte[] csv = fetch(new URL(csvUrl), login);
+    byte[] csv = fetch(new URL(csvUrl), loginAndPassword);
     logFetchedBytes(csvUrl, csv);
 
     String sigUrl = tmchMarksdbUrl + sigPath;
-    byte[] sig = fetch(new URL(sigUrl), login);
+    byte[] sig = fetch(new URL(sigUrl), loginAndPassword);
     logFetchedBytes(sigUrl, sig);
 
     pgpVerifySignature(csv, sig, marksdbPublicKey);

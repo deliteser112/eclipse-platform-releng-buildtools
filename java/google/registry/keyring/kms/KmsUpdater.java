@@ -104,7 +104,7 @@ public final class KmsUpdater {
     return setString(password, ICANN_REPORTING_PASSWORD_STRING);
   }
 
-  public KmsUpdater setMarksdbDnlLogin(String login) {
+  public KmsUpdater setMarksdbDnlLoginAndPassword(String login) {
     return setString(login, MARKSDB_DNL_LOGIN_STRING);
   }
 
@@ -112,7 +112,7 @@ public final class KmsUpdater {
     return setString(password, MARKSDB_LORDN_PASSWORD_STRING);
   }
 
-  public KmsUpdater setMarksdbSmdrlLogin(String login) {
+  public KmsUpdater setMarksdbSmdrlLoginAndPassword(String login) {
     return setString(login, MARKSDB_SMDRL_LOGIN_STRING);
   }
 

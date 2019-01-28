@@ -55,9 +55,9 @@ public final class KeyModule {
   }
 
   @Provides
-  @Key("marksdbDnlLogin")
-  static Optional<String> provideMarksdbDnlLogin(Keyring keyring) {
-    return Optional.ofNullable(emptyToNull(keyring.getMarksdbDnlLogin()));
+  @Key("marksdbDnlLoginAndPassword")
+  static Optional<String> provideMarksdbDnlLoginAndPassword(Keyring keyring) {
+    return Optional.ofNullable(emptyToNull(keyring.getMarksdbDnlLoginAndPassword()));
   }
 
   @Provides
@@ -67,9 +67,9 @@ public final class KeyModule {
   }
 
   @Provides
-  @Key("marksdbSmdrlLogin")
-  static Optional<String> provideMarksdbSmdrlLogin(Keyring keyring) {
-    return Optional.ofNullable(emptyToNull(keyring.getMarksdbSmdrlLogin()));
+  @Key("marksdbSmdrlLoginAndPassword")
+  static Optional<String> provideMarksdbSmdrlLoginAndPassword(Keyring keyring) {
+    return Optional.ofNullable(emptyToNull(keyring.getMarksdbSmdrlLoginAndPassword()));
   }
 
   @Provides

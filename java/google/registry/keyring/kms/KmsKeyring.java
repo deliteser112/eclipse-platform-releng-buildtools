@@ -139,7 +139,7 @@ public class KmsKeyring implements Keyring {
   }
 
   @Override
-  public String getMarksdbDnlLogin() {
+  public String getMarksdbDnlLoginAndPassword() {
     return getString(StringKeyLabel.MARKSDB_DNL_LOGIN_STRING);
   }
 
@@ -149,7 +149,7 @@ public class KmsKeyring implements Keyring {
   }
 
   @Override
-  public String getMarksdbSmdrlLogin() {
+  public String getMarksdbSmdrlLoginAndPassword() {
     return getString(StringKeyLabel.MARKSDB_SMDRL_LOGIN_STRING);
   }
 

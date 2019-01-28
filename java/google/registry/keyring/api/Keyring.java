@@ -129,7 +129,7 @@ public interface Keyring extends AutoCloseable {
    *
    * @see google.registry.tmch.TmchDnlAction
    */
-  String getMarksdbDnlLogin();
+  String getMarksdbDnlLoginAndPassword();
 
   /**
    * Returns password for TMCH MarksDB HTTP server LORDN interface.
@@ -143,7 +143,7 @@ public interface Keyring extends AutoCloseable {
    *
    * @see google.registry.tmch.TmchSmdrlAction
    */
-  String getMarksdbSmdrlLogin();
+  String getMarksdbSmdrlLoginAndPassword();
 
   /**
    * Returns the credentials for a service account on the Google AppEngine project downloaded from

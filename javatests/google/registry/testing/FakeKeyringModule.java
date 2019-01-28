@@ -52,9 +52,9 @@ public final class FakeKeyringModule {
       loadBytes(FakeKeyringModule.class, "pgp-private-keyring-registry.asc");
   private static final String ICANN_REPORTING_PASSWORD = "yolo";
   private static final String SAFE_BROWSING_API_KEY = "a/b_c";
-  private static final String MARKSDB_DNL_LOGIN = "dnl:yolo";
+  private static final String MARKSDB_DNL_LOGIN_AND_PASSWORD = "dnl:yolo";
   private static final String MARKSDB_LORDN_PASSWORD = "yolo";
-  private static final String MARKSDB_SMDRL_LOGIN = "smdrl:yolo";
+  private static final String MARKSDB_SMDRL_LOGIN_AND_PASSWORD = "smdrl:yolo";
   private static final String JSON_CREDENTIAL = "json123";
 
   @Provides
@@ -111,8 +111,8 @@ public final class FakeKeyringModule {
       }
 
       @Override
-      public String getMarksdbSmdrlLogin() {
-        return MARKSDB_SMDRL_LOGIN;
+      public String getMarksdbSmdrlLoginAndPassword() {
+        return MARKSDB_SMDRL_LOGIN_AND_PASSWORD;
       }
 
       @Override
@@ -121,8 +121,8 @@ public final class FakeKeyringModule {
       }
 
       @Override
-      public String getMarksdbDnlLogin() {
-        return MARKSDB_DNL_LOGIN;
+      public String getMarksdbDnlLoginAndPassword() {
+        return MARKSDB_DNL_LOGIN_AND_PASSWORD;
       }
 
       @Override

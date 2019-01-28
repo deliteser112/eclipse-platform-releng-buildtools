@@ -35,9 +35,9 @@ public final class InMemoryKeyring implements Keyring {
   private final String rdeSshClientPrivateKey;
   private final String icannReportingPassword;
   private final String safeBrowsingAPIKey;
-  private final String marksdbDnlLogin;
+  private final String marksdbDnlLoginAndPassword;
   private final String marksdbLordnPassword;
-  private final String marksdbSmdrlLogin;
+  private final String marksdbSmdrlLoginAndPassword;
   private final String jsonCredential;
 
   public InMemoryKeyring(
@@ -50,9 +50,9 @@ public final class InMemoryKeyring implements Keyring {
       String rdeSshClientPrivateKey,
       String icannReportingPassword,
       String safeBrowsingAPIKey,
-      String marksdbDnlLogin,
+      String marksdbDnlLoginAndPassword,
       String marksdbLordnPassword,
-      String marksdbSmdrlLogin,
+      String marksdbSmdrlLoginAndPassword,
       String jsonCredential) {
     checkArgument(PgpHelper.isSigningKey(rdeSigningKey.getPublicKey()),
         "RDE signing key must support signing: %s", rdeSigningKey.getKeyID());
@@ -73,9 +73,11 @@ public final class InMemoryKeyring implements Keyring {
     this.rdeSshClientPrivateKey = checkNotNull(rdeSshClientPrivateKey, "rdeSshClientPrivateKey");
     this.icannReportingPassword = checkNotNull(icannReportingPassword, "icannReportingPassword");
     this.safeBrowsingAPIKey = checkNotNull(safeBrowsingAPIKey, "safeBrowsingAPIKey");
-    this.marksdbDnlLogin = checkNotNull(marksdbDnlLogin, "marksdbDnlLogin");
+    this.marksdbDnlLoginAndPassword =
+        checkNotNull(marksdbDnlLoginAndPassword, "marksdbDnlLoginAndPassword");
     this.marksdbLordnPassword = checkNotNull(marksdbLordnPassword, "marksdbLordnPassword");
-    this.marksdbSmdrlLogin = checkNotNull(marksdbSmdrlLogin, "marksdbSmdrlLogin");
+    this.marksdbSmdrlLoginAndPassword =
+        checkNotNull(marksdbSmdrlLoginAndPassword, "marksdbSmdrlLoginAndPassword");
     this.jsonCredential = checkNotNull(jsonCredential, "jsonCredential");
   }
 
@@ -130,8 +132,8 @@ public final class InMemoryKeyring implements Keyring {
   }
 
     @Override
-  public String getMarksdbDnlLogin() {
-    return marksdbDnlLogin;
+  public String getMarksdbDnlLoginAndPassword() {
+    return marksdbDnlLoginAndPassword;
   }
 
   @Override
@@ -140,8 +142,8 @@ public final class InMemoryKeyring implements Keyring {
   }
 
   @Override
-  public String getMarksdbSmdrlLogin() {
-    return marksdbSmdrlLogin;
+  public String getMarksdbSmdrlLoginAndPassword() {
+    return marksdbSmdrlLoginAndPassword;
   }
 
   @Override
