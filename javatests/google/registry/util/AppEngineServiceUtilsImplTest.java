@@ -110,4 +110,37 @@ public class AppEngineServiceUtilsImplTest {
             () -> appEngineServiceUtils.setNumInstances("service", "version", -10L));
     assertThat(thrown).hasMessageThat().isEqualTo("Number of instances must be greater than 0");
   }
+
+  @Test
+  public void test_convertToSingleSubdomain_doesNothingWithoutServiceOrHostname() {
+    assertThat(appEngineServiceUtils.convertToSingleSubdomain("projectid.appspot.com"))
+        .isEqualTo("projectid.appspot.com");
+  }
+
+  @Test
+  public void test_convertToSingleSubdomain_doesNothingWhenItCannotParseCorrectly() {
+    assertThat(appEngineServiceUtils.convertToSingleSubdomain("garbage.notrealhost.example"))
+        .isEqualTo("garbage.notrealhost.example");
+  }
+
+  @Test
+  public void test_convertToSingleSubdomain_convertsWithServiceName() {
+    assertThat(appEngineServiceUtils.convertToSingleSubdomain("service.projectid.appspot.com"))
+        .isEqualTo("service-dot-projectid.appspot.com");
+  }
+
+  @Test
+  public void test_convertToSingleSubdomain_convertsWithVersionAndServiceName() {
+    assertThat(
+            appEngineServiceUtils.convertToSingleSubdomain("version.service.projectid.appspot.com"))
+        .isEqualTo("version-dot-service-dot-projectid.appspot.com");
+  }
+
+  @Test
+  public void test_convertToSingleSubdomain_convertsWithInstanceAndVersionAndServiceName() {
+    assertThat(
+            appEngineServiceUtils.convertToSingleSubdomain(
+                "instanceid.version.service.projectid.appspot.com"))
+        .isEqualTo("instanceid-dot-version-dot-service-dot-projectid.appspot.com");
+  }
 }

@@ -18,10 +18,17 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.appengine.api.modules.ModulesService;
+import com.google.common.flogger.FluentLogger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 /** A wrapper for {@link ModulesService} that provides a saner API. */
 public class AppEngineServiceUtilsImpl implements AppEngineServiceUtils {
+
+  private static final Pattern APPSPOT_HOSTNAME_PATTERN =
+      Pattern.compile("^(.*)\\.appspot\\.com$");
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final ModulesService modulesService;
 
@@ -55,5 +62,15 @@ public class AppEngineServiceUtilsImpl implements AppEngineServiceUtils {
     checkArgumentNotNull(version, "Must specify the version");
     checkArgument(numInstances > 0, "Number of instances must be greater than 0");
     modulesService.setNumInstances(service, version, numInstances);
+  }
+
+  @Override
+  public String convertToSingleSubdomain(String hostname) {
+    Matcher matcher = APPSPOT_HOSTNAME_PATTERN.matcher(hostname);
+    if (!matcher.matches()) {
+      logger.atWarning().log("Skipping conversion because hostname can't be parsed: %s", hostname);
+      return hostname;
+    }
+    return matcher.group(1).replace(".", "-dot-") + ".appspot.com";
   }
 }

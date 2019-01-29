@@ -94,7 +94,8 @@ public class ExportDomainListsActionTest extends MapreduceTestCase<ExportDomainL
     runMapreduce();
     assertThat(response.getPayload())
         .startsWith(
-            "Mapreduce console: https://backend.hostname.tld/_ah/pipeline/status.html?root=");
+            "Mapreduce console: https://backend-dot-projectid.appspot.com"
+                + "/_ah/pipeline/status.html?root=");
   }
 
   @Test

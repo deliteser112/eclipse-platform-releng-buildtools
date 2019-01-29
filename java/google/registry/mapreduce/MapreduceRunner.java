@@ -284,7 +284,10 @@ public class MapreduceRunner {
 
   private String renderMapreduceConsoleLink(String jobId) {
     return String.format(
-        MAPREDUCE_CONSOLE_LINK_FORMAT, appEngineServiceUtils.getServiceHostname("backend"), jobId);
+        MAPREDUCE_CONSOLE_LINK_FORMAT,
+        appEngineServiceUtils.convertToSingleSubdomain(
+            appEngineServiceUtils.getServiceHostname("backend")),
+        jobId);
   }
 
   /**
@@ -301,7 +304,7 @@ public class MapreduceRunner {
     }
 
     public void sendLinkToMapreduceConsole(Response response) {
-      response.setPayload(getLinkToMapreduceConsole());
+      response.setPayload(getLinkToMapreduceConsole() + "\n");
     }
 
     public String getLinkToMapreduceConsole() {

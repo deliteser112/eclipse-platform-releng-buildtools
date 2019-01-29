@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.blobstore.dev.LocalBlobstoreService;
+import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.dev.LocalTaskQueue;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.HeaderWrapper;
@@ -38,6 +39,7 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.ShardableTestCase;
 import google.registry.util.AppEngineServiceUtils;
+import google.registry.util.AppEngineServiceUtilsImpl;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.UnsupportedEncodingException;
@@ -84,8 +86,9 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
 
   @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
-  @Mock
   AppEngineServiceUtils appEngineServiceUtils;
+
+  @Mock ModulesService modulesService;
 
   @Before
   public void setUp() {
@@ -93,7 +96,9 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
     ApiProxyLocal proxy = (ApiProxyLocal) ApiProxy.getDelegate();
     // Creating files is not allowed in some test execution environments, so don't.
     proxy.setProperty(LocalBlobstoreService.NO_STORAGE_PROPERTY, "true");
-    when(appEngineServiceUtils.getServiceHostname("backend")).thenReturn("backend.hostname.tld");
+    appEngineServiceUtils = new AppEngineServiceUtilsImpl(modulesService);
+    when(modulesService.getVersionHostname("backend", null))
+        .thenReturn("version.backend.projectid.appspot.com");
   }
 
   protected MapreduceRunner makeDefaultRunner() {

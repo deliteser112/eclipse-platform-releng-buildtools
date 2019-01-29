@@ -132,7 +132,8 @@ public class GenerateZoneFilesActionTest extends MapreduceTestCase<GenerateZoneF
     assertThat(response).containsKey("mapreduceConsoleLink");
     assertThat(response.get("mapreduceConsoleLink").toString())
         .startsWith(
-            "Mapreduce console: https://backend.hostname.tld/_ah/pipeline/status.html?root=");
+            "Mapreduce console: https://backend-dot-projectid.appspot.com"
+                + "/_ah/pipeline/status.html?root=");
 
     executeTasksUntilEmpty("mapreduce");
 

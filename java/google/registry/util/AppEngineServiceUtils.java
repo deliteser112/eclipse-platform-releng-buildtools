@@ -38,6 +38,25 @@ public interface AppEngineServiceUtils {
   /** Returns a host name to use for the given service and version. */
   String getVersionHostname(String service, String version);
 
+  /**
+   * Converts a multi-level App Engine host name (not URL) to the -dot- single subdomain format.
+   *
+   * <p>This is needed because appspot.com only has a single wildcard SSL certificate, so the native
+   * App Engine URLs of the form service.projectid.appspot.com or
+   * version.service.projectid.appspot.com won't work over HTTPS when being fetched from outside of
+   * GCP. The work-around is to change all of the "." subdomain markers to "-dot-". E.g.:
+   *
+   * <ul>
+   *   <li>tools.projectid.appspot.com --> tools-dot-projectid.appspot.com
+   *   <li>version.backend.projectid.appspot.com --> version-dot-backend-dot-projectid.appspot.com
+   * </ul>
+   *
+   * @see <a
+   *     href="https://cloud.google.com/appengine/docs/standard/java/how-requests-are-routed">How
+   *     App Engine requests are routed</a>
+   */
+  String convertToSingleSubdomain(String hostname);
+
   /** Set the number of instances at runtime for a given service and version. */
   void setNumInstances(String service, String version, long numInstances);
 }
