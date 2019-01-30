@@ -2,26 +2,10 @@ This folder contains experimental Gradle scripts as an alternative to Bazel for
 the open-source Nomulus project. These are work-in-progress and are expected to
 evolve in the near future.
 
-All testing is done with Gradle v4.10.2.
-
-## Current status
-
-Currently there are two sub-projects, third_party, which contains the
-back-ported JUnit 4.13 code; and core, which contains all Nomulus source code.
-Gradle can be used to compile and run all Java tests.
-
 Gradle is configured to use the directory containing this file as root, but use
 the existing Nomulus source tree.
 
-Dependencies are mostly the same as in Bazel, with a few exceptions:
-
-*   com.googlecode.java-diff-utils:diffutils is not included. Bazel needs it for
-    Truth's equality check, but Gradle works fine without it.
-*   jaxb 2.2.11 is used instead of 2.3 in Bazel, since the latter breaks the
-    ant.xjc task. The problem is reportedly fixed in jaxb 2.4.
-*   The other dependencies are copied from Nomulus' repository.bzl config.
-    *   We still need to verify if there are unused dependencies.
-    *   Many dependencies are behind their latest versions.
+All testing is done with Gradle v5.1.1.
 
 ### Notable Issues
 
@@ -63,3 +47,12 @@ To upgrade to a new Gradle version for this project, use:
 ```shell
 gradle wrapper --gradle-version version-number
 ```
+
+## Deploy to AppEngine
+
+Use the Gradle task 'appengineDeploy' to build and deploy to AppEngine. For now
+you must update the appengine.deploy.project in build.gradle to your
+GCP project ID.
+
+To deploy the Gradle build, you will need the Google Cloud SDK and its
+app-engine-java component.
