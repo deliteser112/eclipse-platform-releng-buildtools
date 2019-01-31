@@ -145,6 +145,8 @@ subprojects {
       // TODO(weiminyu): enable more dependency checks
   ]
 
+  dependencyLock.includeTransitives = true
+
   publishing {
     repositories {
       maven {
