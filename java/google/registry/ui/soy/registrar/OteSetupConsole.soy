@@ -74,7 +74,7 @@
             <span class="{css('description')}">Copy and paste this into an email to the registrars</span>
           </td>
           <td class="{css('setting')}">
-            <textarea rows="7" cols="100" readonly>
+            <textarea rows="7" cols="100" spellcheck="false" readonly>
               {for $clientId in mapKeys($clientIdToTld)}
                   Login: {$clientId}{sp}{sp}{sp}{sp}{sp}{sp}
                   Password: {$password}{sp}{sp}{sp}{sp}{sp}{sp}

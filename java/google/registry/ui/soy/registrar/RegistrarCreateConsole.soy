@@ -113,7 +113,7 @@
             <span class="{css('description')}">Copy and paste this into an email to the registrars</span>
           </td>
           <td class="{css('setting')}">
-            <textarea rows="5" cols="30" readonly>
+            <textarea rows="5" cols="30" spellcheck="false" readonly>
               Login: {$clientId}{\n}
               Password: {$password}{\n}
               Phone passcode: {$passcode}{\n}
@@ -199,6 +199,7 @@
                "Example:{\n}
                 USD=billing-id-for-usd{\n}
                 JPY=billing-id-for-yen{\n}"
+             spellcheck="false"
              required>{$billingAccount ?: ''}</textarea>
         </td>
       </tr>

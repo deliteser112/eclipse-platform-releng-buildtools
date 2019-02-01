@@ -128,7 +128,10 @@
         <tr>
           <td>Mark Data
             <td>
-              <textarea class="{css('reg-domain-mark')}" {if $readonly}readonly{/if}>
+              <textarea
+                  class="{css('reg-domain-mark')}"
+                  spellcheck="false"
+                  {if $readonly}readonly{/if}>
                 {$item['mark:mark']['keyValue']}</textarea>
             </td>
         </tr>
