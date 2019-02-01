@@ -26,6 +26,7 @@ import static google.registry.tmch.LordnTaskUtils.COLUMNS_CLAIMS;
 import static google.registry.tmch.LordnTaskUtils.COLUMNS_SUNRISE;
 import static google.registry.util.UrlFetchUtils.getHeaderFirst;
 import static google.registry.util.UrlFetchUtils.setPayloadMultipart;
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
 
@@ -191,9 +192,13 @@ public final class NordnUploadAction implements Runnable {
     lordnRequestInitializer.initialize(req, tld);
     setPayloadMultipart(req, "file", "claims.csv", CSV_UTF_8, csvData, random);
     HTTPResponse rsp = fetchService.fetch(req);
-    logger.atInfo().log(
-        "LORDN upload task %s response: HTTP response code %d, response data: %s",
-        actionLogId, rsp.getResponseCode(), rsp.getContent());
+    if (logger.atInfo().isEnabled()) {
+      String response =
+          (rsp.getContent() == null) ? "(null)" : new String(rsp.getContent(), US_ASCII);
+      logger.atInfo().log(
+          "LORDN upload task %s response: HTTP response code %d, response data: %s",
+          actionLogId, rsp.getResponseCode(), response);
+    }
     if (rsp.getResponseCode() != SC_ACCEPTED) {
       throw new UrlFetchException(
           String.format(

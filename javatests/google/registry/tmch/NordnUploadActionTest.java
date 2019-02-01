@@ -28,6 +28,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.UrlFetchUtils.getHeaderFirst;
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -112,6 +113,7 @@ public class NordnUploadActionTest {
   public void before() throws Exception {
     inject.setStaticField(Ofy.class, "clock", clock);
     when(fetchService.fetch(any(HTTPRequest.class))).thenReturn(httpResponse);
+    when(httpResponse.getContent()).thenReturn("Success".getBytes(US_ASCII));
     when(httpResponse.getResponseCode()).thenReturn(SC_ACCEPTED);
     when(httpResponse.getHeadersUncombined())
         .thenReturn(ImmutableList.of(new HTTPHeader(LOCATION, "http://trololol")));
@@ -235,6 +237,15 @@ public class NordnUploadActionTest {
 
   @Test
   public void testRun_sunriseMode_payloadMatchesSunriseCsv() throws Exception {
+    persistSunriseModeDomain();
+    action.run();
+    assertThat(new String(getCapturedHttpRequest().getPayload(), UTF_8)).contains(SUNRISE_CSV);
+  }
+
+  @Test
+  public void test_noResponseContent_stillWorksNormally() throws Exception {
+    // Returning null only affects logging.
+    when(httpResponse.getContent()).thenReturn(null);
     persistSunriseModeDomain();
     action.run();
     assertThat(new String(getCapturedHttpRequest().getPayload(), UTF_8)).contains(SUNRISE_CSV);
