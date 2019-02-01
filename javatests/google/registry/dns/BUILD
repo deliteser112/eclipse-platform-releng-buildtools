@@ -10,7 +10,6 @@ load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 java_library(
     name = "dns",
     srcs = glob(["*.java"]),
-    resources = glob(["testdata/*.txt"]),
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/cron",
