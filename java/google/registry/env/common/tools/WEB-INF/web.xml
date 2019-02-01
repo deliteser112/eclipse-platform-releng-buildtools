@@ -121,11 +121,6 @@
     <url-pattern>/_dr/task/generateZoneFiles</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>tools-servlet</servlet-name>
-    <url-pattern>/_dr/task/pollMapreduce</url-pattern>
-  </servlet-mapping>
-
   <!-- Security config -->
   <security-constraint>
     <web-resource-collection>

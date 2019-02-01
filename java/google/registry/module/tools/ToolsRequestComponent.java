@@ -41,7 +41,6 @@ import google.registry.tools.server.ListPremiumListsAction;
 import google.registry.tools.server.ListRegistrarsAction;
 import google.registry.tools.server.ListReservedListsAction;
 import google.registry.tools.server.ListTldsAction;
-import google.registry.tools.server.PollMapreduceAction;
 import google.registry.tools.server.RefreshDnsForAllDomainsAction;
 import google.registry.tools.server.ResaveAllHistoryEntriesAction;
 import google.registry.tools.server.ToolsServerModule;
@@ -77,7 +76,6 @@ interface ToolsRequestComponent {
   ListReservedListsAction listReservedListsAction();
   ListTldsAction listTldsAction();
   LoadTestAction loadTestAction();
-  PollMapreduceAction pollMapReduceAction();
   RefreshDnsForAllDomainsAction refreshDnsForAllDomainsAction();
   ResaveAllHistoryEntriesAction resaveAllHistoryEntriesAction();
   RestoreCommitLogsAction restoreCommitLogsAction();
