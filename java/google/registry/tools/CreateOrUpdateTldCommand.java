@@ -307,8 +307,9 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
         if (renewBillingCostTransitions.size() > 1) {
           System.err.println(
               "----------------------\n"
-              + "WARNING: Do not set multiple renew cost transitions until b/20764952 is fixed.\n"
-              + "----------------------\n");
+                  + "WARNING: Do not set multiple renew cost transitions "
+                  + "until b/20764952 is fixed.\n"
+                  + "----------------------\n");
         }
         builder.setRenewBillingCostTransitions(renewBillingCostTransitions);
       }

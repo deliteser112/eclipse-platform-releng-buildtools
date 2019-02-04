@@ -158,22 +158,22 @@ public class RequestAuthenticator {
   private AuthResult authenticate(AuthSettings auth, HttpServletRequest req) {
     checkAuthConfig(auth);
     for (AuthMethod authMethod : auth.methods()) {
+      AuthResult authResult;
       switch (authMethod) {
-        // App Engine internal authentication, using the queue name header
-        case INTERNAL: {
-            // checkAuthConfig will have insured that the user policy is not USER.
-            AuthResult authResult = appEngineInternalAuthenticationMechanism.authenticate(req);
-            if (authResult.isAuthenticated()) {
-              logger.atInfo().log("Authenticated via internal auth: %s", authResult);
-              return authResult;
-            }
+          // App Engine internal authentication, using the queue name header
+        case INTERNAL:
+          // checkAuthConfig will have insured that the user policy is not USER.
+          authResult = appEngineInternalAuthenticationMechanism.authenticate(req);
+          if (authResult.isAuthenticated()) {
+            logger.atInfo().log("Authenticated via internal auth: %s", authResult);
+            return authResult;
           }
           break;
         // API-based user authentication mechanisms, such as OAuth
         case API:
           // checkAuthConfig will have insured that the user policy is not IGNORED.
           for (AuthenticationMechanism authMechanism : apiAuthenticationMechanisms) {
-            AuthResult authResult = authMechanism.authenticate(req);
+            authResult = authMechanism.authenticate(req);
             if (authResult.isAuthenticated()) {
               logger.atInfo().log(
                   "Authenticated via %s: %s", authMechanism.getClass().getSimpleName(), authResult);
@@ -184,7 +184,7 @@ public class RequestAuthenticator {
         // Legacy authentication via UserService
         case LEGACY:
           // checkAuthConfig will have insured that the user policy is not IGNORED.
-          AuthResult authResult = legacyAuthenticationMechanism.authenticate(req);
+          authResult = legacyAuthenticationMechanism.authenticate(req);
           if (authResult.isAuthenticated()) {
             logger.atInfo().log("Authenticated via legacy auth: %s", authResult);
             return authResult;

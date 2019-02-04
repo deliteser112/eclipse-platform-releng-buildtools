@@ -183,15 +183,14 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
 
   @Nullable
   @Parameter(
-    names = "--billing_account_map",
-    description =
-        "Registrar Billing Account key-value pairs (formatted as key=value[,key=value...]), "
-            + "where key is a currency unit (USD, JPY, etc) and value is the registrar's billing "
-            + "account id for that currency. During update, only the pairs that need updating need "
-            + "to be provided.",
-    converter = CurrencyUnitToStringMap.class,
-    validateWith = CurrencyUnitToStringMap.class
-  )
+      names = "--billing_account_map",
+      description =
+          "Registrar Billing Account key-value pairs (formatted as key=value[,key=value...]), "
+              + "where key is a currency unit (USD, JPY, etc) and value is the registrar's billing "
+              + "account id for that currency. During update, only the pairs that need updating "
+              + "need to be provided.",
+      converter = CurrencyUnitToStringMap.class,
+      validateWith = CurrencyUnitToStringMap.class)
   private Map<CurrencyUnit, String> billingAccountMap;
 
   @Nullable

@@ -83,8 +83,9 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand {
 
   @Parameter(
       names = {"-p", "--locks_to_preserve"},
-      description = "Comma-delimited set of locks to preserve (only valid with --undo). "
-          + "Valid locks: serverDeleteProhibited, serverTransferProhibited, serverUpdateProhibited")
+      description =
+          "Comma-delimited set of locks to preserve (only valid with --undo). Valid "
+              + "locks: serverDeleteProhibited, serverTransferProhibited, serverUpdateProhibited")
   private List<String> locksToPreserve = new ArrayList<>();
 
   @Parameter(
