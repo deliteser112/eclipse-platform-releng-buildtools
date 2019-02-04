@@ -4,6 +4,11 @@ buildscript {
     mavenCentral()
   }
 
+  // Lock buildscript dependencies.
+  configurations.classpath {
+    resolutionStrategy.activateDependencyLocking()
+  }
+
   dependencies {
     classpath 'com.google.cloud.tools:appengine-gradle-plugin:1.3.3'
     classpath "net.ltgt.gradle:gradle-errorprone-plugin:0.6.1"
@@ -13,7 +18,6 @@ buildscript {
 }
 
 plugins {
-  id 'nebula.dependency-lock' version '7.1.0'
   id 'nebula.lint' version '10.3.5'
   // Config helper for annotation processors such as AutoValue and Dagger.
   // Ensures that source code is generated at an appropriate location.
@@ -54,9 +58,21 @@ subprojects {
   // Skip no-op project
   if (project.name == 'services') return
 
+  buildscript {
+    // Lock buildscript dependencies.
+    configurations.classpath {
+      resolutionStrategy.activateDependencyLocking()
+    }
+  }
+
   repositories {
     jcenter()
     mavenCentral()
+  }
+
+  // Lock application dependencies.
+  dependencyLocking {
+    lockAllConfigurations()
   }
 
   def services = [':services:default',
@@ -104,7 +120,6 @@ subprojects {
 
   apply plugin: 'java'
   apply plugin: 'maven-publish'
-  apply plugin: 'nebula.dependency-lock'
   apply plugin: 'nebula.lint'
   apply plugin: 'net.ltgt.apt'
   apply plugin: 'net.ltgt.errorprone'
@@ -145,8 +160,6 @@ subprojects {
       // TODO(weiminyu): enable more dependency checks
   ]
 
-  dependencyLock.includeTransitives = true
-
   publishing {
     repositories {
       maven {
@@ -157,8 +170,13 @@ subprojects {
 
   ext.getDistinctResolvedArtifacts = {
     def distinctResolvedArtifacts = [:]
+    def allconfigs = []
 
-    configurations.each {
+    allconfigs.addAll(configurations)
+    allconfigs.addAll(buildscript.configurations)
+    allconfigs.addAll(rootProject.buildscript.configurations)
+
+    allconfigs.each {
       if (!it.isCanBeResolved()) {
         return
       }
