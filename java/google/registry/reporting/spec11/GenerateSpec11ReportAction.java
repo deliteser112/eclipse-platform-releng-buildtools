@@ -14,6 +14,7 @@
 
 package google.registry.reporting.spec11;
 
+import static google.registry.reporting.ReportingModule.PARAM_DATE;
 import static google.registry.reporting.ReportingUtils.enqueueBeamReportingTask;
 import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -30,6 +31,7 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.reporting.ReportingModule;
 import google.registry.request.Action;
+import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
@@ -70,7 +72,7 @@ public class GenerateSpec11ReportAction implements Runnable {
       @Config("spec11TemplateUrl") String spec11TemplateUrl,
       @Config("defaultJobZone") String jobZone,
       @Key("safeBrowsingAPIKey") String apiKey,
-      LocalDate date,
+      @Parameter(PARAM_DATE) LocalDate date,
       Response response,
       Dataflow dataflow) {
     this.projectId = projectId;

@@ -83,7 +83,8 @@ public class ReportingModule {
    */
   @Provides
   static YearMonth provideYearMonth(
-      @Parameter(PARAM_YEAR_MONTH) Optional<YearMonth> yearMonthOptional, LocalDate date) {
+      @Parameter(PARAM_YEAR_MONTH) Optional<YearMonth> yearMonthOptional,
+      @Parameter(PARAM_DATE) LocalDate date) {
     return yearMonthOptional.orElseGet(() -> new YearMonth(date.minusMonths(1)));
   }
 
@@ -108,9 +109,10 @@ public class ReportingModule {
    * current date.
    */
   @Provides
-  static LocalDate provideDate(
-      @Parameter(PARAM_DATE) Optional<LocalDate> dateOptional, Clock clock) {
-    return dateOptional.orElseGet(() -> new LocalDate(clock.nowUtc(), DateTimeZone.UTC));
+  @Parameter(PARAM_DATE)
+  static LocalDate provideDate(HttpServletRequest req, Clock clock) {
+    return provideDateOptional(req)
+        .orElseGet(() -> new LocalDate(clock.nowUtc(), DateTimeZone.UTC));
   }
 
   /** Constructs a {@link Dataflow} API client with default settings. */

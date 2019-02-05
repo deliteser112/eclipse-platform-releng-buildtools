@@ -52,7 +52,6 @@ public class Spec11EmailUtils {
           .compileToTofu();
 
   private final SendEmailService emailService;
-  private final LocalDate date;
   private final String outgoingEmailAddress;
   private final String alertRecipientAddress;
   private final String spec11ReplyToAddress;
@@ -63,7 +62,6 @@ public class Spec11EmailUtils {
   @Inject
   Spec11EmailUtils(
       SendEmailService emailService,
-      LocalDate date,
       @Config("gSuiteOutgoingEmailAddress") String outgoingEmailAddress,
       @Config("alertRecipientEmailAddress") String alertRecipientAddress,
       @Config("spec11ReplyToEmailAddress") String spec11ReplyToAddress,
@@ -71,7 +69,6 @@ public class Spec11EmailUtils {
       @Config("registryName") String registryName,
       Retrier retrier) {
     this.emailService = emailService;
-    this.date = date;
     this.outgoingEmailAddress = outgoingEmailAddress;
     this.alertRecipientAddress = alertRecipientAddress;
     this.spec11ReplyToAddress = spec11ReplyToAddress;
@@ -85,6 +82,7 @@ public class Spec11EmailUtils {
    * appropriate address.
    */
   void emailSpec11Reports(
+      LocalDate date,
       SoyTemplateInfo soyTemplateInfo,
       String subject,
       Set<RegistrarThreatMatches> registrarThreatMatchesSet) {
@@ -92,7 +90,7 @@ public class Spec11EmailUtils {
       retrier.callWithRetry(
           () -> {
             for (RegistrarThreatMatches registrarThreatMatches : registrarThreatMatchesSet) {
-              emailRegistrar(soyTemplateInfo, subject, registrarThreatMatches);
+              emailRegistrar(date, soyTemplateInfo, subject, registrarThreatMatches);
             }
           },
           IOException.class,
@@ -110,13 +108,14 @@ public class Spec11EmailUtils {
   }
 
   private void emailRegistrar(
+      LocalDate date,
       SoyTemplateInfo soyTemplateInfo,
       String subject,
       RegistrarThreatMatches registrarThreatMatches)
       throws MessagingException {
     Message msg = emailService.createMessage();
     msg.setSubject(subject);
-    String content = getContent(soyTemplateInfo, registrarThreatMatches);
+    String content = getContent(date, soyTemplateInfo, registrarThreatMatches);
     msg.setContent(content, "text/html");
     msg.setHeader("Content-Type", "text/html");
     msg.setFrom(new InternetAddress(outgoingEmailAddress));
@@ -127,7 +126,9 @@ public class Spec11EmailUtils {
   }
 
   private String getContent(
-      SoyTemplateInfo soyTemplateInfo, RegistrarThreatMatches registrarThreatMatches) {
+      LocalDate date,
+      SoyTemplateInfo soyTemplateInfo,
+      RegistrarThreatMatches registrarThreatMatches) {
     Renderer renderer = SOY_SAUCE.newRenderer(soyTemplateInfo);
     // Soy templates require that data be in raw map/list form.
     List<Map<String, String>> threatMatchMap =

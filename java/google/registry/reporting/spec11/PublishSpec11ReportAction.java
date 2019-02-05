@@ -15,6 +15,7 @@
 package google.registry.reporting.spec11;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static google.registry.reporting.ReportingModule.PARAM_DATE;
 import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
@@ -83,7 +84,7 @@ public class PublishSpec11ReportAction implements Runnable {
       Spec11RegistrarThreatMatchesParser spec11RegistrarThreatMatchesParser,
       Dataflow dataflow,
       Response response,
-      LocalDate date) {
+      @Parameter(PARAM_DATE) LocalDate date) {
     this.projectId = projectId;
     this.registryName = registryName;
     this.jobId = jobId;
@@ -148,7 +149,7 @@ public class PublishSpec11ReportAction implements Runnable {
         spec11RegistrarThreatMatchesParser.getRegistrarThreatMatches(date);
     String subject = String.format("%s Monthly Threat Detector [%s]", registryName, date);
     emailUtils.emailSpec11Reports(
-        Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL, subject, monthlyMatchesSet);
+        date, Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL, subject, monthlyMatchesSet);
   }
 
   private void processDailyDiff(LocalDate previousDate) throws IOException, JSONException {
@@ -158,6 +159,7 @@ public class PublishSpec11ReportAction implements Runnable {
         spec11RegistrarThreatMatchesParser.getRegistrarThreatMatches(date);
     String dailySubject = String.format("%s Daily Threat Detector [%s]", registryName, date);
     emailUtils.emailSpec11Reports(
+        date,
         Spec11EmailSoyInfo.DAILY_SPEC_11_EMAIL,
         dailySubject,
         getNewMatches(previousMatches, currentMatches));

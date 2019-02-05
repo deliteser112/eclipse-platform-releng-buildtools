@@ -61,6 +61,7 @@ public class Spec11EmailUtilsTest {
   private Spec11EmailUtils emailUtils;
   private Spec11RegistrarThreatMatchesParser parser;
   private ArgumentCaptor<Message> gotMessage;
+  private final LocalDate date = new LocalDate(2018, 7, 15);
 
   @Before
   public void setUp() throws Exception {
@@ -69,7 +70,6 @@ public class Spec11EmailUtilsTest {
         .thenAnswer((args) -> new MimeMessage(Session.getInstance(new Properties(), null)));
 
     parser = mock(Spec11RegistrarThreatMatchesParser.class);
-    LocalDate date = new LocalDate(2018, 7, 15);
     when(parser.getRegistrarThreatMatches(date)).thenReturn(sampleThreatMatches());
 
     gotMessage = ArgumentCaptor.forClass(Message.class);
@@ -77,7 +77,6 @@ public class Spec11EmailUtilsTest {
     emailUtils =
         new Spec11EmailUtils(
             emailService,
-            date,
             "my-sender@test.com",
             "my-receiver@test.com",
             "my-reply-to@test.com",
@@ -89,6 +88,7 @@ public class Spec11EmailUtilsTest {
   @Test
   public void testSuccess_emailMonthlySpec11Reports() throws Exception {
     emailUtils.emailSpec11Reports(
+        date,
         Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL,
         "Super Cool Registry Monthly Threat Detector [2018-07-15]",
         sampleThreatMatches());
@@ -143,6 +143,7 @@ public class Spec11EmailUtilsTest {
   @Test
   public void testSuccess_emailDailySpec11Reports() throws Exception {
     emailUtils.emailSpec11Reports(
+        date,
         Spec11EmailSoyInfo.DAILY_SPEC_11_EMAIL,
         "Super Cool Registry Daily Threat Detector [2018-07-15]",
         sampleThreatMatches());
@@ -224,7 +225,7 @@ public class Spec11EmailUtilsTest {
             RuntimeException.class,
             () ->
                 emailUtils.emailSpec11Reports(
-                    Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL, "bar", sampleThreatMatches()));
+                    date, Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL, "bar", sampleThreatMatches()));
     assertThat(thrown).hasMessageThat().isEqualTo("Emailing spec11 report failed");
     assertThat(thrown)
         .hasCauseThat()

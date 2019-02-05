@@ -108,13 +108,13 @@ public class ReportingModuleTest {
 
   @Test
   public void testEmptyDate_returnsToday() {
-    assertThat(ReportingModule.provideDate(Optional.empty(), clock))
-        .isEqualTo(new LocalDate(2017, 7, 1));
+    when(req.getParameter("date")).thenReturn(null);
+    assertThat(ReportingModule.provideDate(req, clock)).isEqualTo(new LocalDate(2017, 7, 1));
   }
 
   @Test
   public void testGivenDate_returnsThatDate() {
-    assertThat(ReportingModule.provideDate(Optional.of(new LocalDate(2017, 7, 2)), clock))
-        .isEqualTo(new LocalDate(2017, 7, 2));
+    when(req.getParameter("date")).thenReturn("2017-07-02");
+    assertThat(ReportingModule.provideDate(req, clock)).isEqualTo(new LocalDate(2017, 7, 2));
   }
 }

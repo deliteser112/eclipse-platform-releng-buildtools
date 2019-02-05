@@ -105,6 +105,7 @@ public class PublishSpec11ReportActionTest {
     assertThat(response.getStatus()).isEqualTo(SC_OK);
     verify(emailUtils)
         .emailSpec11Reports(
+            secondOfMonth,
             Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL,
             "Super Cool Registry Monthly Threat Detector [2018-06-02]",
             sampleThreatMatches());
@@ -154,6 +155,7 @@ public class PublishSpec11ReportActionTest {
     assertThat(response.getStatus()).isEqualTo(SC_OK);
     verify(emailUtils)
         .emailSpec11Reports(
+            date,
             Spec11EmailSoyInfo.DAILY_SPEC_11_EMAIL,
             "Super Cool Registry Daily Threat Detector [2018-06-05]",
             sampleThreatMatches());
