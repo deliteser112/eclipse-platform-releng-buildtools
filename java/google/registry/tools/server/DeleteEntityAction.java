@@ -58,9 +58,14 @@ public class DeleteEntityAction implements Runnable {
   public static final String PATH = "/_dr/admin/deleteEntity";
   public static final String PARAM_RAW_KEYS = "rawKeys";
 
-  @Inject @Parameter(PARAM_RAW_KEYS) String rawKeys;
-  @Inject Response response;
-  @Inject DeleteEntityAction() {}
+  private final String rawKeys;
+  private final Response response;
+
+  @Inject
+  DeleteEntityAction(@Parameter(PARAM_RAW_KEYS) String rawKeys, Response response) {
+    this.rawKeys = rawKeys;
+    this.response = response;
+  }
 
   @Override
   public void run() {

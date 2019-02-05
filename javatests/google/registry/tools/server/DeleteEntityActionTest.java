@@ -26,7 +26,6 @@ import google.registry.model.registry.label.ReservedList;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,34 +35,23 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class DeleteEntityActionTest {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
   FakeResponse response = new FakeResponse();
-  DeleteEntityAction action = new DeleteEntityAction();
-
-  @Before
-  public void init() {
-    action.response = response;
-  }
 
   @Test
   public void test_deleteSingleRawEntitySuccessfully() {
     Entity entity = new Entity("single", "raw");
     getDatastoreService().put(entity);
-    action.rawKeys = KeyFactory.keyToString(entity.getKey());
-    action.run();
-    assertThat(response.getPayload())
-        .isEqualTo("Deleted 1 raw entities and 0 registered entities");
+    new DeleteEntityAction(KeyFactory.keyToString(entity.getKey()), response).run();
+    assertThat(response.getPayload()).isEqualTo("Deleted 1 raw entities and 0 registered entities");
   }
 
   @Test
   public void test_deleteSingleRegisteredEntitySuccessfully() {
     ReservedList ofyEntity = new ReservedList.Builder().setName("foo").build();
     ofy().saveWithoutBackup().entity(ofyEntity).now();
-    action.rawKeys = KeyFactory.keyToString(create(ofyEntity).getRaw());
-    action.run();
-    assertThat(response.getPayload())
-        .isEqualTo("Deleted 0 raw entities and 1 registered entities");
+    new DeleteEntityAction(KeyFactory.keyToString(create(ofyEntity).getRaw()), response).run();
+    assertThat(response.getPayload()).isEqualTo("Deleted 0 raw entities and 1 registered entities");
   }
 
   @Test
@@ -71,10 +59,8 @@ public class DeleteEntityActionTest {
     Entity entity = new Entity("single", "raw");
     entity.setIndexedProperty("^d", "UnregType");
     getDatastoreService().put(entity);
-    action.rawKeys = KeyFactory.keyToString(entity.getKey());
-    action.run();
-    assertThat(response.getPayload())
-        .isEqualTo("Deleted 1 raw entities and 0 registered entities");
+    new DeleteEntityAction(KeyFactory.keyToString(entity.getKey()), response).run();
+    assertThat(response.getPayload()).isEqualTo("Deleted 1 raw entities and 0 registered entities");
   }
 
   @Test
@@ -85,18 +71,17 @@ public class DeleteEntityActionTest {
     ReservedList ofyEntity = new ReservedList.Builder().setName("registered").build();
     ofy().saveWithoutBackup().entity(ofyEntity).now();
     String ofyKey = KeyFactory.keyToString(create(ofyEntity).getRaw());
-    action.rawKeys = String.format("%s,%s", rawKey, ofyKey);
-    action.run();
-    assertThat(response.getPayload())
-        .isEqualTo("Deleted 1 raw entities and 1 registered entities");
+    new DeleteEntityAction(String.format("%s,%s", rawKey, ofyKey), response).run();
+    assertThat(response.getPayload()).isEqualTo("Deleted 1 raw entities and 1 registered entities");
   }
 
   @Test
   public void test_deleteNonExistentEntityRepliesWithError() {
     Entity entity = new Entity("not", "here");
     String rawKey = KeyFactory.keyToString(entity.getKey());
-    action.rawKeys = rawKey;
-    BadRequestException thrown = assertThrows(BadRequestException.class, action::run);
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class, () -> new DeleteEntityAction(rawKey, response).run());
     assertThat(thrown).hasMessageThat().contains("Could not find entity with key " + rawKey);
   }
 
@@ -105,10 +90,11 @@ public class DeleteEntityActionTest {
     ReservedList ofyEntity = new ReservedList.Builder().setName("first_registered").build();
     ofy().saveWithoutBackup().entity(ofyEntity).now();
     String ofyKey = KeyFactory.keyToString(create(ofyEntity).getRaw());
-    Entity entity = new Entity("non", "existent");
-    String rawKey = KeyFactory.keyToString(entity.getKey());
-    action.rawKeys = String.format("%s,%s", ofyKey, rawKey);
-    BadRequestException thrown = assertThrows(BadRequestException.class, action::run);
+    String rawKey = KeyFactory.keyToString(new Entity("non", "existent").getKey());
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class,
+            () -> new DeleteEntityAction(String.format("%s,%s", ofyKey, rawKey), response).run());
     assertThat(thrown).hasMessageThat().contains("Could not find entity with key " + rawKey);
   }
 }

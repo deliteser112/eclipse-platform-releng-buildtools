@@ -38,11 +38,22 @@ import javax.inject.Inject;
     auth = Auth.AUTH_INTERNAL_ONLY)
 public final class RefreshDnsAction implements Runnable {
 
-  @Inject Clock clock;
-  @Inject DnsQueue dnsQueue;
-  @Inject @Parameter("domainOrHostName") String domainOrHostName;
-  @Inject @Parameter("type") TargetType type;
-  @Inject RefreshDnsAction() {}
+  private final Clock clock;
+  private final DnsQueue dnsQueue;
+  private final String domainOrHostName;
+  private final TargetType type;
+
+  @Inject
+  RefreshDnsAction(
+      @Parameter("domainOrHostName") String domainOrHostName,
+      @Parameter("type") TargetType type,
+      Clock clock,
+      DnsQueue dnsQueue) {
+    this.domainOrHostName = domainOrHostName;
+    this.type = type;
+    this.clock = clock;
+    this.dnsQueue = dnsQueue;
+  }
 
   @Override
   public void run() {

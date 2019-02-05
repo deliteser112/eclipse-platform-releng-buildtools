@@ -41,20 +41,14 @@ import org.junit.runners.JUnit4;
 public class RefreshDnsActionTest {
 
   @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .withTaskQueue()
-      .build();
+  public final AppEngineRule appEngine =
+      AppEngineRule.builder().withDatastore().withTaskQueue().build();
+
   private final DnsQueue dnsQueue = mock(DnsQueue.class);
   private final FakeClock clock = new FakeClock();
 
   private void run(TargetType type, String name) {
-    RefreshDnsAction action = new RefreshDnsAction();
-    action.clock = clock;
-    action.domainOrHostName = name;
-    action.type = type;
-    action.dnsQueue = dnsQueue;
-    action.run();
+    new RefreshDnsAction(name, type, clock, dnsQueue).run();
   }
 
   @Before
