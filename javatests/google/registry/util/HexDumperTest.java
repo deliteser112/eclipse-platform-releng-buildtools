@@ -122,10 +122,11 @@ public class HexDumperTest {
       assertThat(out.toString()).isEmpty();
       // But one more byte will bring the total to N+1, thereby flushing a line of hexdump output.
       dumper.write(0);
-      assertThat(out.toString()).isEqualTo(""
-          + "00000000  53 77 65 65 74 20 74 6f 20 74 6f 6e 67 75 65 20 61 6e 64 20 73 6f 75 6e 64 "
-          + "20 74 6f 20 65 79 65 3b 20 43 6f 6d 65 20 62 75 79 2c 20 63 6f 6d 65 20 62 75 79 2e "
-          + "00  Sweet to tongue and sound to eye; Come buy, come buy..\n");
+      assertThat(out.toString())
+          .isEqualTo(
+              "00000000  53 77 65 65 74 20 74 6f 20 74 6f 6e 67 75 65 20 61 6e 64 20 73 6f "
+                  + "75 6e 64 20 74 6f 20 65 79 65 3b 20 43 6f 6d 65 20 62 75 79 2c 20 63 6f 6d 65 "
+                  + "20 62 75 79 2e 00  Sweet to tongue and sound to eye; Come buy, come buy..\n");
       // No additional data will need to be written upon close.
       int oldTotal = out.toString().length();
       assertThat(out.toString().length()).isEqualTo(oldTotal);

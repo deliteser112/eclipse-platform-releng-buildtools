@@ -44,42 +44,46 @@ public class PosixTarHeaderTest {
     //   head -c 1024 <hello.tar | base64
     //
     // As you can see, we're only going to bother with the first 1024 characters.
-    byte[] gnuTarGeneratedData = base64().decode(""
-        + "aGVsbG8ueG1sAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2NDAAMDU0MTI2"
-        + "NgAwMDExNjEwADAwMDAwMDAwMDE0ADEyMjAyMzEwMzI0ADAxMjQ2MQAgMAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMGphcnQAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAZW5nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAw"
-        + "MDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABo"
-        + "ZWxsbyBraXR0eQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==");
+    byte[] gnuTarGeneratedData =
+        base64()
+            .decode(
+                ""
+                    + "aGVsbG8ueG1sAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAwMDA2NDAAMDU0MTI2"
+                    + "NgAwMDExNjEwADAwMDAwMDAwMDE0ADEyMjAyMzEwMzI0ADAxMjQ2MQAgMAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB1c3RhcgAwMGphcnQAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAZW5nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMDAwMDAwADAwMDAw"
+                    + "MDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABo"
+                    + "ZWxsbyBraXR0eQoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                    + "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==");
     assertThat(gnuTarGeneratedData.length).isEqualTo(1024);
 
     // Now we have to replicate it.
     byte[] data = "hello kitty\n".getBytes(UTF_8);
-    PosixTarHeader header = new PosixTarHeader.Builder()
-        .setType(PosixTarHeader.Type.REGULAR)
-        .setName("hello.xml")
-        .setSize(data.length)
-        .setMode(0640)
-        // This timestamp should have been midnight but I think GNU tar might not understand
-        // daylight savings time. Woe is me.
-        .setMtime(DateTime.parse("2013-08-13T01:50:12Z"))
-        .setUname("jart")
-        .setGname("eng")
-        .setUid(180918)  // echo $UID
-        .setGid(5000)  // import grp; print grp.getgrnam('eng').gr_gid
-        .build();
+    PosixTarHeader header =
+        new PosixTarHeader.Builder()
+            .setType(PosixTarHeader.Type.REGULAR)
+            .setName("hello.xml")
+            .setSize(data.length)
+            .setMode(0640)
+            // This timestamp should have been midnight but I think GNU tar might not understand
+            // daylight savings time. Woe is me.
+            .setMtime(DateTime.parse("2013-08-13T01:50:12Z"))
+            .setUname("jart")
+            .setGname("eng")
+            .setUid(180918) // echo $UID
+            .setGid(5000) // import grp; print grp.getgrnam('eng').gr_gid
+            .build();
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     output.write(header.getBytes());
     output.write(data);
@@ -87,7 +91,7 @@ public class PosixTarHeaderTest {
     if (data.length % 512 != 0) {
       output.write(new byte[512 - data.length % 512]);
     }
-    output.write(new byte[1024]);  // Bunch of null bytes to indicate end of archive.
+    output.write(new byte[1024]); // Bunch of null bytes to indicate end of archive.
     byte[] tarData = output.toByteArray();
     assertThat(tarData.length % 512).isEqualTo(0);
     data = Arrays.copyOf(tarData, 1024);
@@ -117,17 +121,18 @@ public class PosixTarHeaderTest {
 
   @Test
   public void testFields() {
-    PosixTarHeader header = new PosixTarHeader.Builder()
-        .setType(PosixTarHeader.Type.REGULAR)
-        .setName("(◕‿◕).txt")
-        .setSize(666)
-        .setMode(0777)
-        .setMtime(DateTime.parse("1984-12-18T04:20:00Z"))
-        .setUname("everything i ever touched")
-        .setGname("everything i ever had, has died")
-        .setUid(180918)
-        .setGid(5000)
-        .build();
+    PosixTarHeader header =
+        new PosixTarHeader.Builder()
+            .setType(PosixTarHeader.Type.REGULAR)
+            .setName("(◕‿◕).txt")
+            .setSize(666)
+            .setMode(0777)
+            .setMtime(DateTime.parse("1984-12-18T04:20:00Z"))
+            .setUname("everything i ever touched")
+            .setGname("everything i ever had, has died")
+            .setUid(180918)
+            .setGid(5000)
+            .build();
     assertThat(header.getType()).isEqualTo(PosixTarHeader.Type.REGULAR);
     assertThat(header.getName()).isEqualTo("(◕‿◕).txt");
     assertThat(header.getSize()).isEqualTo(666);
@@ -143,17 +148,18 @@ public class PosixTarHeaderTest {
 
   @Test
   public void testFieldsSomeMoar() {
-    PosixTarHeader header = new PosixTarHeader.Builder()
-        .setType(PosixTarHeader.Type.DIRECTORY)
-        .setName("Black lung full of fumes, choke on memories")
-        .setSize(1024 * 1024 * 1024)
-        .setMode(31337)
-        .setMtime(DateTime.parse("2020-12-18T04:20:00Z"))
-        .setUname("every street i ever walked")
-        .setGname("every home i ever had, is lost")
-        .setUid(0)
-        .setGid(31337)
-        .build();
+    PosixTarHeader header =
+        new PosixTarHeader.Builder()
+            .setType(PosixTarHeader.Type.DIRECTORY)
+            .setName("Black lung full of fumes, choke on memories")
+            .setSize(1024 * 1024 * 1024)
+            .setMode(31337)
+            .setMtime(DateTime.parse("2020-12-18T04:20:00Z"))
+            .setUname("every street i ever walked")
+            .setGname("every home i ever had, is lost")
+            .setUid(0)
+            .setGid(31337)
+            .build();
     assertThat(header.getType()).isEqualTo(PosixTarHeader.Type.DIRECTORY);
     assertThat(header.getName()).isEqualTo("Black lung full of fumes, choke on memories");
     assertThat(header.getSize()).isEqualTo(1024 * 1024 * 1024);
@@ -167,18 +173,19 @@ public class PosixTarHeaderTest {
 
   @Test
   public void testLoad() {
-    PosixTarHeader header = new PosixTarHeader.Builder()
-        .setType(PosixTarHeader.Type.REGULAR)
-        .setName("(◕‿◕).txt")
-        .setSize(31337)
-        .setMode(0777)
-        .setMtime(DateTime.parse("1984-12-18T04:20:00Z"))
-        .setUname("everything i ever touched")
-        .setGname("everything i ever had, has died")
-        .setUid(180918)
-        .setGid(5000)
-        .build();
-    header = PosixTarHeader.from(header.getBytes());  // <-- Pay attention to this line.
+    PosixTarHeader header =
+        new PosixTarHeader.Builder()
+            .setType(PosixTarHeader.Type.REGULAR)
+            .setName("(◕‿◕).txt")
+            .setSize(31337)
+            .setMode(0777)
+            .setMtime(DateTime.parse("1984-12-18T04:20:00Z"))
+            .setUname("everything i ever touched")
+            .setGname("everything i ever had, has died")
+            .setUid(180918)
+            .setGid(5000)
+            .build();
+    header = PosixTarHeader.from(header.getBytes()); // <-- Pay attention to this line.
     assertThat(header.getType()).isEqualTo(PosixTarHeader.Type.REGULAR);
     assertThat(header.getName()).isEqualTo("(◕‿◕).txt");
     assertThat(header.getSize()).isEqualTo(31337);
@@ -194,10 +201,8 @@ public class PosixTarHeaderTest {
 
   @Test
   public void testBadChecksum() {
-    PosixTarHeader header = new PosixTarHeader.Builder()
-        .setName("(◕‿◕).txt")
-        .setSize(31337)
-        .build();
+    PosixTarHeader header =
+        new PosixTarHeader.Builder().setName("(◕‿◕).txt").setSize(31337).build();
     byte[] bytes = header.getBytes();
     bytes[150] = '0';
     bytes[151] = '0';
@@ -230,7 +235,7 @@ public class PosixTarHeaderTest {
                 .build())
         .addEqualityGroup(
             new PosixTarHeader.Builder()
-                .setName("(•︵•).txt")  // Awwwww! It looks so sad...
+                .setName("(•︵•).txt") // Awwwww! It looks so sad...
                 .setSize(123)
                 .build())
         .testEquals();
@@ -245,11 +250,15 @@ public class PosixTarHeaderTest {
     // echo no wind can soothe my pain >inrain
     // chmod 0600 liketears inrain
     // tar --format=ustar -c liketears inrain | gzip | base64
-    InputStream input = new GZIPInputStream(new ByteArrayInputStream(base64().decode(""
-        + "H4sIAIl5DVIAA+3T0QqCMBTGca97ivMIx03n84waaNkMNcS3T4OCbuymFcH/dzc22Dd2vrY5hTH"
-        + "4fsjSUVWnKllZ5MY5Wde6rvXBVpIbo9ZUpnKFaG7VlZlowkxP12H0/RLl6Ptx69xUh9Bu7L8+Sj"
-        + "4bMp3YSe+bKHsfZfJDLX7ys5xnuQ/F7tfxkFgT1+9Pe8f7/ttn/12hS/+NLSr6/w1L/6cmHu79H"
-        + "7purMNa/ssyE3QfAAAAAAAAAAAAAADgH9wAqAJg4gAoAAA=")));
+    InputStream input =
+        new GZIPInputStream(
+            new ByteArrayInputStream(
+                base64()
+                    .decode(
+                        "H4sIAM17DVIAA+3T0QqCMBTGca97ivMIx03n84waaNkMNcS3T4OCbuymFcH/dzc22Dd2vrY5h"
+                            + "TH4fsjSUVWnKllZ5MY5Wde6rvXBVpIbo9ZUpnKFaG7VlZlowkxP12H0/RLl6Ptx69xUh"
+                            + "9Bu7L8+Sj4bMp3YSe+bKHsfZfJDLX7ys5xnuQ/F7tfxkFgT1+9Pe8f7/ttn/12hS/+NL"
+                            + "Sr6/w1L/6cmHu79H7purMNa/ssyE3QfAAAAAAAAAAAAAADgH9wAqAJg4gAoAAA=")));
 
     PosixTarHeader header;
     byte[] block = new byte[512];
@@ -299,11 +308,15 @@ public class PosixTarHeaderTest {
     // echo no wind can soothe my pain >inrain
     // chmod 0600 liketears inrain
     // tar -c liketears inrain | gzip | base64
-    InputStream input = new GZIPInputStream(new ByteArrayInputStream(base64().decode(""
-        + "H4sIAM17DVIAA+3T0QqCMBTGca97ivMIx03n84waaNkMNcS3T4OCbuymFcH/dzc22Dd2vrY5hTH"
-        + "4fsjSUVWnKllZ5MY5Wde6rvXBVpIbo9ZUpnKFaG7VlZlowkxP12H0/RLl6Ptx69xUh9Bu7L8+Sj"
-        + "4bMp3YSe+bKHsfZfJDLX7ys5xnuQ/F7tfxkFgT1+9Pe8f7/ttn/12hS/+NLSr6/w1L/6cmHu79H"
-        + "7purMNa/ssyE3QfAAAAAAAAAAAAAADgH9wAqAJg4gAoAAA=")));
+    InputStream input =
+        new GZIPInputStream(
+            new ByteArrayInputStream(
+                base64()
+                    .decode(
+                        "H4sIAM17DVIAA+3T0QqCMBTGca97ivMIx03n84waaNkMNcS3T4OCbuymFcH/dzc22Dd2vrY5h"
+                            + "TH4fsjSUVWnKllZ5MY5Wde6rvXBVpIbo9ZUpnKFaG7VlZlowkxP12H0/RLl6Ptx69xUh"
+                            + "9Bu7L8+Sj4bMp3YSe+bKHsfZfJDLX7ys5xnuQ/F7tfxkFgT1+9Pe8f7/ttn/12hS/+NL"
+                            + "Sr6/w1L/6cmHu79H7purMNa/ssyE3QfAAAAAAAAAAAAAADgH9wAqAJg4gAoAAA=")));
 
     PosixTarHeader header;
     byte[] block = new byte[512];
@@ -353,11 +366,15 @@ public class PosixTarHeaderTest {
     // echo no wind can soothe my pain >inrain
     // chmod 0600 liketears inrain
     // tar -c liketears inrain | gzip | base64
-    InputStream input = new GZIPInputStream(new ByteArrayInputStream(base64().decode(""
-        + "H4sIAHV8DVIAA+3TTQ6CMBCG4a49xRxhWqCcp1Ei+FMMYIi3t3RhXOkKjMn77Npp0klmvkt3bqY"
-        + "mDKNZjyZe1WhVWud9Olvrreb7rKiNdU4LV3tblSaVnVcjumJPL/dxCoOIOYVh+vSuicct2tla7G"
-        + "UIXZR9iDKHsZUwh4dcH5KXYvfr9rCyLi7jX/eP7/kv3vKf6larqiD/W0j5n7t4yPkf+35qmyX8t"
-        + "7QTZB8AAAAAAAAAAAAAAOAfPAE43i9LACgAAA==")));
+    InputStream input =
+        new GZIPInputStream(
+            new ByteArrayInputStream(
+                base64()
+                    .decode(
+                        "H4sIAOB8DVIAA+3TTQ6DIBCGYdY9BUcYUPE8pDWV/mCjNsbbF01jurIr25i8z4ZACAxhvlu4V"
+                            + "n3l205tRxInoqTIjXUuzY1xRub1WVYqY61ktnSmyJUYWzhRWjasafHset+mUi6+7df2V"
+                            + "fG8es77Kcu4E7HRrQ9RH33Ug+9q7Qc/6vuo56Y4/Ls8bCzE6fu3veN7/rOP/Lsp/1Jk5"
+                            + "P8XUv6HEE9z/rum6etqCv8j9QTZBwAAAAAAAAAAAAAA2IMXm3pYMgAoAAA=")));
 
     PosixTarHeader header;
     byte[] block = new byte[512];
@@ -407,11 +424,15 @@ public class PosixTarHeaderTest {
     // echo no wind can soothe my pain >inrain
     // chmod 0600 liketears inrain
     // tar --format=ustar -c liketears inrain | gzip | base64
-    InputStream input = new GZIPInputStream(new ByteArrayInputStream(base64().decode(""
-        + "H4sIAOB8DVIAA+3TTQ6DIBCGYdY9BUcYUPE8pDWV/mCjNsbbF01jurIr25i8z4ZACAxhvlu4Vn3"
-        + "l205tRxInoqTIjXUuzY1xRub1WVYqY61ktnSmyJUYWzhRWjasafHset+mUi6+7df2VfG8es77Kc"
-        + "u4E7HRrQ9RH33Ug+9q7Qc/6vuo56Y4/Ls8bCzE6fu3veN7/rOP/Lsp/1Jk5P8XUv6HEE9z/rum6"
-        + "etqCv8j9QTZBwAAAAAAAAAAAAAA2IMXm3pYMgAoAAA=")));
+    InputStream input =
+        new GZIPInputStream(
+            new ByteArrayInputStream(
+                base64()
+                    .decode(
+                        "H4sIAOB8DVIAA+3TTQ6DIBCGYdY9BUcYUPE8pDWV/mCjNsbbF01jurIr25i8z4ZACAxhvlu4V"
+                            + "n3l205tRxInoqTIjXUuzY1xRub1WVYqY61ktnSmyJUYWzhRWjasafHset+mUi6+7df2V"
+                            + "fG8es77Kcu4E7HRrQ9RH33Ug+9q7Qc/6vuo56Y4/Ls8bCzE6fu3veN7/rOP/Lsp/1Jk5"
+                            + "P8XUv6HEE9z/rum6etqCv8j9QTZBwAAAAAAAAAAAAAA2IMXm3pYMgAoAAA=")));
 
     PosixTarHeader header;
     byte[] block = new byte[512];
