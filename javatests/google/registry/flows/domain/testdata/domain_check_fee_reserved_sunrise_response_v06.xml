@@ -10,16 +10,13 @@
           <domain:reason>Reserved</domain:reason>
         </domain:cd>
         <domain:cd>
-          <domain:name avail="0">allowedinsunrise.tld</domain:name>
-          <domain:reason>Reserved for non-sunrise</domain:reason>
+          <domain:name avail="1">allowedinsunrise.tld</domain:name>
         </domain:cd>
         <domain:cd>
-          <domain:name avail="0">collision.tld</domain:name>
-          <domain:reason>Cannot be delegated</domain:reason>
+          <domain:name avail="1">collision.tld</domain:name>
         </domain:cd>
         <domain:cd>
-          <domain:name avail="0">premiumcollision.tld</domain:name>
-          <domain:reason>Cannot be delegated</domain:reason>
+          <domain:name avail="1">premiumcollision.tld</domain:name>
         </domain:cd>
       </domain:chkData>
     </resData>

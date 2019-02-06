@@ -20,15 +20,18 @@ import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
+import static google.registry.flows.domain.DomainFlowUtils.isReserved;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.model.registry.label.ReservationType.getTypeOfHighestSeverity;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.flows.EppException;
@@ -56,11 +59,13 @@ import google.registry.model.eppoutput.CheckData.DomainCheckData;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservationType;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
@@ -153,9 +158,11 @@ public final class DomainCheckFlow implements Flow {
                 now)
             : ImmutableMap.of();
     ImmutableList.Builder<DomainCheck> checks = new ImmutableList.Builder<>();
+    ImmutableMap<String, TldState> tldStates =
+        Maps.toMap(seenTlds, tld -> Registry.get(tld).getTldState(now));
     for (String targetId : targetIds) {
       Optional<String> message =
-          getMessageForCheck(domainNames.get(targetId), existingIds, tokenCheckResults);
+          getMessageForCheck(domainNames.get(targetId), existingIds, tokenCheckResults, tldStates);
       checks.add(DomainCheck.create(!message.isPresent(), targetId, message.orElse(null)));
     }
     BeforeResponseReturnData responseData =
@@ -174,13 +181,17 @@ public final class DomainCheckFlow implements Flow {
   private Optional<String> getMessageForCheck(
       InternetDomainName domainName,
       Set<String> existingIds,
-      ImmutableMap<InternetDomainName, String> tokenCheckResults) {
+      ImmutableMap<InternetDomainName, String> tokenCheckResults,
+      Map<String, TldState> tldStates) {
     if (existingIds.contains(domainName.toString())) {
       return Optional.of("In use");
     }
-    ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
-    if (!reservationTypes.isEmpty()) {
-      return Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
+    TldState tldState = tldStates.get(domainName.parent().toString());
+    if (isReserved(domainName, START_DATE_SUNRISE.equals(tldState))) {
+      ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
+      if (!reservationTypes.isEmpty()) {
+        return Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
+      }
     }
     return Optional.ofNullable(emptyToNull(tokenCheckResults.get(domainName)));
   }

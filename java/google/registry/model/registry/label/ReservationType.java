@@ -38,7 +38,7 @@ public enum ReservationType {
   NAMESERVER_RESTRICTED("Nameserver restricted", 0),
 
   /** The domain can only be registered during sunrise, and is reserved thereafter. */
-  ALLOWED_IN_SUNRISE("Reserved for non-sunrise", 1),
+  ALLOWED_IN_SUNRISE("Reserved", 1),
 
   /** The domain can only be registered by providing a specific token. */
   RESERVED_FOR_SPECIFIC_USE("Reserved", 2),

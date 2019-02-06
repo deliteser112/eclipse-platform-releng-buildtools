@@ -11,7 +11,7 @@
         </domain:cd>
         <domain:cd>
           <domain:name avail="0">allowedinsunrise.tld</domain:name>
-          <domain:reason>Reserved for non-sunrise</domain:reason>
+          <domain:reason>Reserved</domain:reason>
         </domain:cd>
         <domain:cd>
           <domain:name avail="0">collision.tld</domain:name>

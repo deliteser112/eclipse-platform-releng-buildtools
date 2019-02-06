@@ -170,16 +170,28 @@ public class DomainCheckFlowTest
         create(false, "collision.tld", "Cannot be delegated"),
         create(false, "reserved.tld", "Reserved"),
         create(false, "anchor.tld", "Reserved"),
-        create(false, "allowedinsunrise.tld", "Reserved for non-sunrise"),
+        create(false, "allowedinsunrise.tld", "Reserved"),
         create(false, "premiumcollision.tld", "Cannot be delegated"));
   }
 
   @Test
-  public void testSuccess_oneReserved() throws Exception {
+  public void testSuccess_oneReservedInSunrise() throws Exception {
+    createTld("tld", START_DATE_SUNRISE);
+    persistResource(Registry.get("tld").asBuilder().setReservedLists(createReservedList()).build());
     setEppInput("domain_check_one_tld_reserved.xml");
     doCheckTest(
         create(false, "reserved.tld", "Reserved"),
-        create(false, "allowedinsunrise.tld", "Reserved for non-sunrise"),
+        create(true, "allowedinsunrise.tld", null),
+        create(true, "example2.tld", null),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
+  public void testSuccess_twoReservedOutsideSunrise() throws Exception {
+    setEppInput("domain_check_one_tld_reserved.xml");
+    doCheckTest(
+        create(false, "reserved.tld", "Reserved"),
+        create(false, "allowedinsunrise.tld", "Reserved"),
         create(true, "example2.tld", null),
         create(true, "example3.tld", null));
   }
@@ -221,7 +233,7 @@ public class DomainCheckFlowTest
     setEppInput("domain_check_one_multipart_tld_reserved.xml");
     doCheckTest(
         create(false, "reserved.tld.foo", "Reserved"),
-        create(false, "allowedinsunrise.tld.foo", "Reserved for non-sunrise"),
+        create(false, "allowedinsunrise.tld.foo", "Reserved"),
         create(true, "example2.tld.foo", null),
         create(true, "example3.tld.foo", null));
   }
