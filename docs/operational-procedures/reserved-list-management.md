@@ -36,7 +36,9 @@ a price, it has a reservation type. The valid values for reservation types are:
     collision
     list](https://www.icann.org/resources/pages/name-collision-2013-12-06-en).
     It may be registered during sunrise by a registrant with a valid claim but
-    is reserved thereafter.
+    is reserved thereafter. The `SERVER_HOLD` status is automatically applied
+    upon registration, which will prevent the domain name from ever resolving in
+    DNS.
 *   **`FULLY_BLOCKED`** - The label is fully reserved, no further reason
     specified.
 
