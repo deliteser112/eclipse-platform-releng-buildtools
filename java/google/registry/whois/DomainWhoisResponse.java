@@ -59,11 +59,16 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
   /** Whether the full WHOIS output is to be displayed. */
   private final boolean fullOutput;
 
-  /** Creates new WHOIS domain response on the given domain. */
-  DomainWhoisResponse(DomainBase domain, boolean fullOutput, DateTime timestamp) {
+  /** When fullOutput is false, the text to display for the registrant's email fields. */
+  private final String whoisRedactedEmailText;
+
+ /** Creates new WHOIS domain response on the given domain. */
+  DomainWhoisResponse(
+      DomainBase domain, boolean fullOutput, String whoisRedactedEmailText, DateTime timestamp) {
     super(timestamp);
     this.domain = checkNotNull(domain, "domain");
     this.fullOutput = fullOutput;
+    this.whoisRedactedEmailText = whoisRedactedEmailText;
   }
 
   @Override
@@ -176,8 +181,9 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
       }
       emitPhone(contactType, "Phone", contactResource.getVoiceNumber());
       emitPhone(contactType, "Fax", contactResource.getFaxNumber());
-      emitField(
-          ImmutableList.of(contactType, "Email"), contactResource.getEmailAddress(), fullOutput);
+      String emailFieldContent =
+          fullOutput ? contactResource.getEmailAddress() : whoisRedactedEmailText;
+      emitField(ImmutableList.of(contactType, "Email"), emailFieldContent);
       return this;
     }
 

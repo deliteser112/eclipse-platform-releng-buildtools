@@ -25,15 +25,20 @@ import org.joda.time.DateTime;
 public class DomainLookupCommand extends DomainOrHostLookupCommand {
 
   private final boolean fullOutput;
+  private final String whoisRedactedEmailText;
 
-  public DomainLookupCommand(InternetDomainName domainName, boolean fullOutput) {
+  public DomainLookupCommand(
+      InternetDomainName domainName,
+      boolean fullOutput,
+      String whoisRedactedEmailText) {
     super(domainName, "Domain");
     this.fullOutput = fullOutput;
+    this.whoisRedactedEmailText = whoisRedactedEmailText;
   }
 
   @Override
   protected Optional<WhoisResponse> getResponse(InternetDomainName domainName, DateTime now) {
     return loadByForeignKeyCached(DomainBase.class, domainName.toString(), now)
-        .map(domain -> new DomainWhoisResponse(domain, fullOutput, now));
+        .map(domain -> new DomainWhoisResponse(domain, fullOutput, whoisRedactedEmailText, now));
   }
 }

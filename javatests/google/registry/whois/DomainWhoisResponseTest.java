@@ -256,7 +256,7 @@ public class DomainWhoisResponseTest {
   @Test
   public void getPlainTextOutputTest() {
     DomainWhoisResponse domainWhoisResponse =
-        new DomainWhoisResponse(domainBase, false, clock.nowUtc());
+        new DomainWhoisResponse(domainBase, false, "Please contact registrar", clock.nowUtc());
     assertThat(
             domainWhoisResponse.getResponse(
                 false,
@@ -268,8 +268,9 @@ public class DomainWhoisResponseTest {
   public void getPlainTextOutputTest_registrarAbuseInfoMissing() {
     persistResource(abuseContact.asBuilder().setVisibleInDomainWhoisAsAbuse(false).build());
     DomainWhoisResponse domainWhoisResponse =
-        new DomainWhoisResponse(domainBase, false, clock.nowUtc());
-    assertThat(domainWhoisResponse.getResponse(false, "Footer"))
+        new DomainWhoisResponse(domainBase, false, "Please contact registrar", clock.nowUtc());
+    assertThat(
+        domainWhoisResponse.getResponse(false, "Footer"))
         .isEqualTo(
             WhoisResponseResults.create(
                 loadFile("whois_domain_registrar_abuse_info_missing.txt"), 1));
@@ -278,7 +279,7 @@ public class DomainWhoisResponseTest {
   @Test
   public void getPlainTextOutputTest_fullOutput() {
     DomainWhoisResponse domainWhoisResponse =
-        new DomainWhoisResponse(domainBase, true, clock.nowUtc());
+        new DomainWhoisResponse(domainBase, true, "Please contact registrar", clock.nowUtc());
     assertThat(
             domainWhoisResponse.getResponse(
                 false,
@@ -290,7 +291,10 @@ public class DomainWhoisResponseTest {
   public void addImplicitOkStatusTest() {
     DomainWhoisResponse domainWhoisResponse =
         new DomainWhoisResponse(
-            domainBase.asBuilder().setStatusValues(null).build(), false, clock.nowUtc());
+            domainBase.asBuilder().setStatusValues(null).build(),
+            false,
+            "Contact the registrar",
+            clock.nowUtc());
     assertThat(
             domainWhoisResponse
                 .getResponse(

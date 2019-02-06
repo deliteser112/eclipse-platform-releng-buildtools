@@ -104,6 +104,12 @@ registryPolicy:
     to publish. This list is subject to change. The most up-to-date source
     is always the registry itself, by sending domain check EPP commands.
 
+  # Redaction text for email address in WHOIS
+  whoisRedactedEmailText: |
+    Please query the WHOIS server of the owning registrar identified in this
+    output for information on how to contact the Registrant, Admin, or Tech
+    contact of the queried domain name.
+
   # Disclaimer at the top of WHOIS results.
   whoisDisclaimer: |
     WHOIS information is provided by the registry solely for query-based,

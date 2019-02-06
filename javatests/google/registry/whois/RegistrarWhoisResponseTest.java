@@ -131,6 +131,7 @@ public class RegistrarWhoisResponseTest {
         new RegistrarWhoisResponse(registrar, clock.nowUtc());
     // Just make sure this doesn't NPE.
     registrarWhoisResponse.getResponse(
-        false, "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested.");
+        false,
+        "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested.");
   }
 }

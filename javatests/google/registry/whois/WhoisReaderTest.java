@@ -48,7 +48,7 @@ public class WhoisReaderTest {
   @SuppressWarnings({"TypeParameterUnusedInFormals", "unchecked"})
   <T> T readCommand(String commandStr) throws Exception {
     return (T)
-        new WhoisReader(new WhoisCommandFactory())
+        new WhoisReader(new WhoisCommandFactory(), "Please contact registrar")
             .readCommand(new StringReader(commandStr), false, clock.nowUtc());
   }
 

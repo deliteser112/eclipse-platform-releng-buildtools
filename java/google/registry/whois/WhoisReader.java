@@ -74,11 +74,15 @@ class WhoisReader {
   static final String REGISTRAR_LOOKUP_COMMAND = "registrar";
 
   private final WhoisCommandFactory commandFactory;
+  private final String whoisRedactedEmailText;
 
   /** Creates a new WhoisReader that extracts its command from the specified Reader. */
   @Inject
-  WhoisReader(@Config("whoisCommandFactory") WhoisCommandFactory commandFactory) {
+  WhoisReader(
+      @Config("whoisCommandFactory") WhoisCommandFactory commandFactory,
+      @Config("whoisRedactedEmailText") String whoisRedactedEmailText) {
     this.commandFactory = commandFactory;
+    this.whoisRedactedEmailText = whoisRedactedEmailText;
   }
 
   /**
@@ -117,7 +121,9 @@ class WhoisReader {
       try {
         logger.atInfo().log("Attempting domain lookup command using domain name %s", tokens.get(1));
         return commandFactory.domainLookup(
-            InternetDomainName.from(canonicalizeDomainName(tokens.get(1))), fullOutput);
+            InternetDomainName.from(canonicalizeDomainName(tokens.get(1))),
+            fullOutput,
+            whoisRedactedEmailText);
       } catch (IllegalArgumentException iae) {
         // If we can't interpret the argument as a host name, then return an error.
         throw new WhoisException(now, SC_BAD_REQUEST, String.format(
@@ -195,7 +201,7 @@ class WhoisReader {
         // (SLD) and we should do a domain lookup on it.
         if (targetName.parent().equals(tld.get())) {
           logger.atInfo().log("Attempting domain lookup using %s as a domain name", targetName);
-          return commandFactory.domainLookup(targetName, fullOutput);
+          return commandFactory.domainLookup(targetName, fullOutput, whoisRedactedEmailText);
         }
 
         // The target is more than one level above the TLD, so we'll assume it's a nameserver.

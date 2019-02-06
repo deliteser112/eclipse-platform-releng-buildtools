@@ -981,6 +981,17 @@ public final class RegistryConfig {
     }
 
     /**
+     * Redaction text for email address in WHOIS
+     *
+     * @see google.registry.whois.WhoisResponse
+     */
+    @Provides
+    @Config("whoisRedactedEmailText")
+    public static String provideWhoisRedactedEmailText(RegistryConfigSettings config) {
+      return config.registryPolicy.whoisRedactedEmailText;
+    }
+
+    /**
      * Disclaimer displayed at the end of WHOIS query results.
      *
      * @see google.registry.whois.WhoisResponse

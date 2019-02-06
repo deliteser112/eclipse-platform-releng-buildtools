@@ -89,6 +89,7 @@ public class RegistryConfigSettings {
     public String registryAdminClientId;
     public String premiumTermsExportDisclaimer;
     public String reservedTermsExportDisclaimer;
+    public String whoisRedactedEmailText;
     public String whoisDisclaimer;
     public String rdapTos;
     public String rdapTosStaticUrl;

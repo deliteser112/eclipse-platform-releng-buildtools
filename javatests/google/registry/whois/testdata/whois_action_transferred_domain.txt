@@ -23,7 +23,7 @@ Registrant Postal Code: REDACTED FOR PRIVACY
 Registrant Country: US
 Registrant Phone: REDACTED FOR PRIVACY
 Registrant Fax: REDACTED FOR PRIVACY
-Registrant Email: REDACTED FOR PRIVACY
+Registrant Email: Please contact registrar
 Registry Admin ID: REDACTED FOR PRIVACY
 Admin Name: REDACTED FOR PRIVACY
 Admin Organization: REDACTED FOR PRIVACY
@@ -34,7 +34,7 @@ Admin Postal Code: REDACTED FOR PRIVACY
 Admin Country: REDACTED FOR PRIVACY
 Admin Phone: REDACTED FOR PRIVACY
 Admin Fax: REDACTED FOR PRIVACY
-Admin Email: REDACTED FOR PRIVACY
+Admin Email: Please contact registrar
 Registry Tech ID: REDACTED FOR PRIVACY
 Tech Name: REDACTED FOR PRIVACY
 Tech Organization: REDACTED FOR PRIVACY
@@ -45,7 +45,7 @@ Tech Postal Code: REDACTED FOR PRIVACY
 Tech Country: REDACTED FOR PRIVACY
 Tech Phone: REDACTED FOR PRIVACY
 Tech Fax: REDACTED FOR PRIVACY
-Tech Email: REDACTED FOR PRIVACY
+Tech Email: Please contact registrar
 Name Server: ns1.cat.lol
 Name Server: ns2.cat.lol
 DNSSEC: signedDelegation
