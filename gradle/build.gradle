@@ -18,6 +18,7 @@ buildscript {
 }
 
 plugins {
+  id 'maven-publish'
   id 'nebula.lint' version '10.3.5'
   // Config helper for annotation processors such as AutoValue and Dagger.
   // Ensures that source code is generated at an appropriate location.
@@ -54,111 +55,9 @@ task stage {
   description = 'Generates application directories for all services.'
 }
 
-subprojects {
+allprojects {
   // Skip no-op project
   if (project.name == 'services') return
-
-  buildscript {
-    // Lock buildscript dependencies.
-    configurations.classpath {
-      resolutionStrategy.activateDependencyLocking()
-    }
-  }
-
-  repositories {
-    jcenter()
-    mavenCentral()
-  }
-
-  // Lock application dependencies.
-  dependencyLocking {
-    lockAllConfigurations()
-  }
-
-  def services = [':services:default',
-                  ':services:backend',
-                  ':services:tools',
-                  ':services:pubapi']
-
-  // Set up all of the deployment projects.
-  if (services.contains(project.path)) {
-
-    apply plugin: 'war'
-
-    // Set this directory before applying the appengine plugin so that the
-    // plugin will recognize this as an app-engine standard app (and also
-    // obtains the appengine-web.xml from the correct location)
-    project.convention.plugins['war'].webAppDirName =
-        "../../../java/google/registry/env/crash/${project.name}"
-
-    apply plugin: 'com.google.cloud.tools.appengine'
-
-    // Get the web.xml file for the service.
-    war {
-      webInf {
-        from "../../../java/google/registry/env/common/${project.name}/WEB-INF"
-      }
-    }
-
-    appengine {
-      deploy {
-        // TODO: change this to a variable.
-        project = 'domain-registry-crash'
-      }
-    }
-
-    dependencies {
-      compile project(':core')
-    }
-
-    rootProject.deploy.dependsOn appengineDeploy
-    rootProject.stage.dependsOn appengineStage
-
-    // Return early, do not apply the settings below.
-    return
-  }
-
-  apply plugin: 'java'
-  apply plugin: 'maven-publish'
-  apply plugin: 'nebula.lint'
-  apply plugin: 'net.ltgt.apt'
-  apply plugin: 'net.ltgt.errorprone'
-  apply plugin: 'checkstyle'
-
-  // Checkstyle should run as part of the testing task
-  tasks.test.dependsOn tasks.checkstyleMain
-  tasks.test.dependsOn tasks.checkstyleTest
-
-  dependencies {
-    // compatibility with Java 8
-    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
-    errorprone("com.google.errorprone:error_prone_core:2.3.2")
-  }
-
-  tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << "-Werror"
-    options.errorprone.disableWarningsInGeneratedCode = true
-    options.errorprone.errorproneArgumentProviders.add([
-            asArguments: {
-              return ['-XepExcludedPaths:.*/build/generated/.*']
-            }] as CommandLineArgumentProvider)
-  }
-
-  version = '1.0'
-  sourceCompatibility = '1.8'
-  targetCompatibility = '1.8'
-
-  compileJava {options.encoding = "UTF-8"}
-
-  gradleLint.rules = [
-      // Checks if Gradle wrapper is up-to-date
-      'archaic-wrapper',
-      // Checks for indirect dependencies with dynamic version spec. Best
-      // practice calls for declaring them with specific versions.
-      'undeclared-dependency',
-      'unused-dependency'
-      // TODO(weiminyu): enable more dependency checks
-  ]
 
   publishing {
     repositories {
@@ -173,8 +72,8 @@ subprojects {
     def allconfigs = []
 
     allconfigs.addAll(configurations)
+    // This only adds buildscript dependencies declare in this project.
     allconfigs.addAll(buildscript.configurations)
-    allconfigs.addAll(rootProject.buildscript.configurations)
 
     allconfigs.each {
       if (!it.isCanBeResolved()) {
@@ -262,6 +161,114 @@ subprojects {
       }
     }
   }
+}
+
+subprojects {
+  // Skip no-op project
+  if (project.name == 'services') return
+
+  buildscript {
+    // Lock buildscript dependencies.
+    configurations.classpath {
+      resolutionStrategy.activateDependencyLocking()
+    }
+  }
+
+  repositories {
+    jcenter()
+    mavenCentral()
+  }
+
+  // Lock application dependencies.
+  dependencyLocking {
+    lockAllConfigurations()
+  }
+
+  apply plugin: 'maven-publish'
+
+  def services = [':services:default',
+                  ':services:backend',
+                  ':services:tools',
+                  ':services:pubapi']
+
+  // Set up all of the deployment projects.
+  if (services.contains(project.path)) {
+
+    apply plugin: 'war'
+
+    // Set this directory before applying the appengine plugin so that the
+    // plugin will recognize this as an app-engine standard app (and also
+    // obtains the appengine-web.xml from the correct location)
+    project.convention.plugins['war'].webAppDirName =
+        "../../../java/google/registry/env/crash/${project.name}"
+
+    apply plugin: 'com.google.cloud.tools.appengine'
+
+    // Get the web.xml file for the service.
+    war {
+      webInf {
+        from "../../../java/google/registry/env/common/${project.name}/WEB-INF"
+      }
+    }
+
+    appengine {
+      deploy {
+        // TODO: change this to a variable.
+        project = 'domain-registry-crash'
+      }
+    }
+
+    dependencies {
+      compile project(':core')
+    }
+
+    rootProject.deploy.dependsOn appengineDeploy
+    rootProject.stage.dependsOn appengineStage
+
+    // Return early, do not apply the settings below.
+    return
+  }
+
+  apply plugin: 'java'
+  apply plugin: 'nebula.lint'
+  apply plugin: 'net.ltgt.apt'
+  apply plugin: 'net.ltgt.errorprone'
+  apply plugin: 'checkstyle'
+
+  // Checkstyle should run as part of the testing task
+  tasks.test.dependsOn tasks.checkstyleMain
+  tasks.test.dependsOn tasks.checkstyleTest
+
+  dependencies {
+    // compatibility with Java 8
+    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
+    errorprone("com.google.errorprone:error_prone_core:2.3.2")
+  }
+
+  tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Werror"
+    options.errorprone.disableWarningsInGeneratedCode = true
+    options.errorprone.errorproneArgumentProviders.add([
+            asArguments: {
+              return ['-XepExcludedPaths:.*/build/generated/.*']
+            }] as CommandLineArgumentProvider)
+  }
+
+  version = '1.0'
+  sourceCompatibility = '1.8'
+  targetCompatibility = '1.8'
+
+  compileJava {options.encoding = "UTF-8"}
+
+  gradleLint.rules = [
+      // Checks if Gradle wrapper is up-to-date
+      'archaic-wrapper',
+      // Checks for indirect dependencies with dynamic version spec. Best
+      // practice calls for declaring them with specific versions.
+      'undeclared-dependency',
+      'unused-dependency'
+      // TODO(weiminyu): enable more dependency checks
+  ]
 
   if (project.name == 'third_party') return
 
