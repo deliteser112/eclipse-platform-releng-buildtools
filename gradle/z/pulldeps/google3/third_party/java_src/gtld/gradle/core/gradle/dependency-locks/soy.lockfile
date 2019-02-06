@@ -1,0 +1,24 @@
+# This is a Gradle generated file for dependency locking.
+# Manual edits can break the build and are not advised.
+# This file is expected to be part of source control.
+aopalliance:aopalliance:1.0
+args4j:args4j:2.0.23
+com.google.code.findbugs:jsr305:2.0.3
+com.google.code.gson:gson:2.7
+com.google.common.html.types:types:1.0.4
+com.google.guava:guava:21.0
+com.google.gwt:gwt-user:2.8.0-beta1
+com.google.inject.extensions:guice-multibindings:4.1.0
+com.google.inject:guice:4.1.0
+com.google.protobuf:protobuf-java:3.3.0
+com.google.template:soy:2018-03-14
+com.ibm.icu:icu4j:57.1
+javax.annotation:jsr250-api:1.0
+javax.inject:javax.inject:1
+javax.validation:validation-api:1.0.0.GA
+org.json:json:20160212
+org.ow2.asm:asm-analysis:6.0
+org.ow2.asm:asm-commons:6.0
+org.ow2.asm:asm-tree:6.0
+org.ow2.asm:asm-util:6.0
+org.ow2.asm:asm:6.0
