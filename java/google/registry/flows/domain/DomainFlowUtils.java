@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMultimap;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
@@ -41,6 +42,7 @@ import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -49,6 +51,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import com.google.common.net.InternetDomainName;
@@ -116,9 +119,11 @@ import google.registry.model.tmch.ClaimsListShard;
 import google.registry.tldconfig.idn.IdnLabelValidator;
 import google.registry.util.Idn;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
@@ -360,11 +365,20 @@ public class DomainFlowUtils {
 
   static void validateNoDuplicateContacts(Set<DesignatedContact> contacts)
       throws ParameterValuePolicyErrorException {
-    Set<Type> roles = new HashSet<>();
-    for (DesignatedContact contact : nullToEmpty(contacts)) {
-      if (!roles.add(contact.getType())) {
-        throw new DuplicateContactForRoleException();
-      }
+    Map<Type, Collection<String>> roleToDupContacts =
+        nullToEmpty(contacts).stream()
+            .collect(
+                toImmutableSetMultimap(
+                    contact -> contact.getType(),
+                    contact -> ofy().load().key(contact.getContactKey()).now().getContactId()))
+            .asMap()
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue().size() >= 2)
+            .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+
+    if (!roleToDupContacts.isEmpty()) {
+      throw new DuplicateContactForRoleException(roleToDupContacts);
     }
   }
 
@@ -1140,9 +1154,30 @@ public class DomainFlowUtils {
 
   /** More than one contact for a given role is not allowed. */
   static class DuplicateContactForRoleException extends ParameterValuePolicyErrorException {
-    public DuplicateContactForRoleException() {
-      super("More than one contact for a given role is not allowed");
+    public DuplicateContactForRoleException(Map<Type, Collection<String>> roleToDupContacts) {
+      super(constructErrorMessageFrom(roleToDupContacts));
     }
+  }
+
+  private static String constructErrorMessageFrom(Map<Type, Collection<String>> roleToDupContacts) {
+    String detailError =
+        Joiner.on(", ")
+            .join(
+                sort(
+                    roleToDupContacts.entrySet().stream()
+                        .map(DomainFlowUtils::formatDetailMessage)
+                        .collect(Collectors.toSet())));
+    return String.format("More than one contact for a given role is not allowed: %s", detailError);
+  }
+
+  private static String formatDetailMessage(Map.Entry<Type, Collection<String>> entry) {
+    return String.format(
+        "contacts [%s] have same role [%s]",
+        Joiner.on(", ").join(sort(entry.getValue())), Ascii.toLowerCase(entry.getKey().toString()));
+  }
+
+  private static ImmutableSortedSet<Comparable<?>> sort(Collection<String> unsorted) {
+    return ImmutableSortedSet.naturalOrder().addAll(unsorted).build();
   }
 
   /** Declared launch extension phase does not match the current registry phase. */

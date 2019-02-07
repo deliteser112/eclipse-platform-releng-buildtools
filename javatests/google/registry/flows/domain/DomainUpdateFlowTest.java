@@ -120,6 +120,31 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     unusedContact = persistActiveContact("unused");
   }
 
+  private DomainBase persistDomainWithRegistrant() throws Exception {
+    HostResource host =
+        loadByForeignKey(HostResource.class, "ns1.example.foo", clock.nowUtc()).get();
+    DomainBase domain =
+        persistResource(
+            newDomainBase(getUniqueIdFromCommand())
+                .asBuilder()
+                .setContacts(
+                    ImmutableSet.of(
+                        DesignatedContact.create(Type.TECH, Key.create(mak21Contact)),
+                        DesignatedContact.create(Type.ADMIN, Key.create(mak21Contact)),
+                        DesignatedContact.create(Type.BILLING, Key.create(mak21Contact))))
+                .setRegistrant(Key.create(mak21Contact))
+                .setNameservers(ImmutableSet.of(Key.create(host)))
+                .build());
+    historyEntryDomainCreate =
+        persistResource(
+            new HistoryEntry.Builder()
+                .setType(HistoryEntry.Type.DOMAIN_CREATE)
+                .setParent(domain)
+                .build());
+    clock.advanceOneMilli();
+    return domain;
+  }
+
   private DomainBase persistDomain() throws Exception {
     HostResource host =
         loadByForeignKey(HostResource.class, "ns1.example.foo", clock.nowUtc()).get();
@@ -758,6 +783,10 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .build());
     EppException thrown = assertThrows(DuplicateContactForRoleException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
+    assertThat(thrown.getResult().getMsg())
+        .isEqualTo(
+            "More than one contact for a given role is not allowed: "
+                + "contacts [foo, mak21] have same role [tech]");
   }
 
   @Test
@@ -865,6 +894,19 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistDomain();
     EppException thrown = assertThrows(DuplicateContactForRoleException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_multipleDuplicateContactInCommand() throws Exception {
+    setEppInput("domain_update_multiple_duplicate_contacts.xml");
+    persistReferencedEntities();
+    persistDomain();
+    EppException thrown = assertThrows(DuplicateContactForRoleException.class, this::runFlow);
+    assertThat(thrown.getMessage())
+        .isEqualTo("More than one contact for a given role is not allowed: "
+            + "contacts [mak21, sh8013] have same role [billing], "
+            + "contacts [mak21, sh8013] have same role [tech]");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1087,6 +1129,35 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
     runFlow();
+    assertThat(ofy().load().key(reloadResourceByForeignKey().getRegistrant()).now().getContactId())
+        .isEqualTo("sh8013");
+  }
+
+  @Test
+  public void testSuccess_changeContactsAndRegistrant() throws Exception {
+    setEppInput("domain_update_contacts_and_registrant.xml");
+    persistReferencedEntities();
+    persistDomainWithRegistrant();
+
+    reloadResourceByForeignKey()
+        .getContacts()
+        .forEach(
+            contact -> {
+              assertThat(ofy().load().key(contact.getContactKey()).now().getContactId())
+                  .isEqualTo("mak21");
+            });
+    assertThat(ofy().load().key(reloadResourceByForeignKey().getRegistrant()).now().getContactId())
+        .isEqualTo("mak21");
+
+    runFlow();
+
+    reloadResourceByForeignKey()
+        .getContacts()
+        .forEach(
+            contact -> {
+              assertThat(ofy().load().key(contact.getContactKey()).now().getContactId())
+                  .isEqualTo("sh8013");
+            });
     assertThat(ofy().load().key(reloadResourceByForeignKey().getRegistrant()).now().getContactId())
         .isEqualTo("sh8013");
   }
