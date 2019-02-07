@@ -388,11 +388,12 @@ public class DomainCommand {
       /** Creates a copy of this {@link Change} with hard links to hosts and contacts. */
       Change cloneAndLinkReferences(DateTime now) throws InvalidReferencesException {
         Change clone = clone(this);
-        clone.registrant = Strings.isNullOrEmpty(clone.registrantContactId)
-            ? null
-            : getOnlyElement(
-                loadByForeignKeys(
-                    ImmutableSet.of(clone.registrantContactId), ContactResource.class, now)
+        clone.registrant =
+            Strings.isNullOrEmpty(clone.registrantContactId)
+                ? null
+                : getOnlyElement(
+                    loadByForeignKeysCached(
+                            ImmutableSet.of(clone.registrantContactId), ContactResource.class, now)
                         .values());
         return clone;
       }
@@ -420,7 +421,7 @@ public class DomainCommand {
       return null;
     }
     return ImmutableSet.copyOf(
-        loadByForeignKeys(fullyQualifiedHostNames, HostResource.class, now).values());
+        loadByForeignKeysCached(fullyQualifiedHostNames, HostResource.class, now).values());
   }
 
   private static Set<DesignatedContact> linkContacts(
@@ -433,7 +434,7 @@ public class DomainCommand {
       foreignKeys.add(contact.contactId);
     }
     ImmutableMap<String, Key<ContactResource>> loadedContacts =
-        loadByForeignKeys(foreignKeys.build(), ContactResource.class, now);
+        loadByForeignKeysCached(foreignKeys.build(), ContactResource.class, now);
     ImmutableSet.Builder<DesignatedContact> linkedContacts = new ImmutableSet.Builder<>();
     for (ForeignKeyedDesignatedContact contact : contacts) {
       linkedContacts.add(DesignatedContact.create(
@@ -442,8 +443,8 @@ public class DomainCommand {
     return linkedContacts.build();
   }
 
-  /** Loads keys to EPP resources by their foreign keys. */
-  private static <T extends EppResource> ImmutableMap<String, Key<T>> loadByForeignKeys(
+  /** Loads keys to cached EPP resources by their foreign keys. */
+  private static <T extends EppResource> ImmutableMap<String, Key<T>> loadByForeignKeysCached(
       final Set<String> foreignKeys, final Class<T> clazz, final DateTime now)
       throws InvalidReferencesException {
     Map<String, ForeignKeyIndex<T>> fkis = ForeignKeyIndex.loadCached(clazz, foreignKeys, now);
