@@ -57,6 +57,7 @@ ext {
       'com.google.http-client:google-http-client:1.28.0',
       'com.google.http-client:google-http-client-appengine:1.22.0',
       'com.google.http-client:google-http-client-jackson2:1.25.0',
+      'com.google.javascript:closure-compiler:v20190121',
       'com.google.monitoring-client:contrib:1.0.4',
       'com.google.monitoring-client:metrics:1.0.4',
       'com.google.monitoring-client:stackdriver:1.0.4',
