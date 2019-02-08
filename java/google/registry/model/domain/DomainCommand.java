@@ -43,6 +43,7 @@ import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -90,6 +91,7 @@ public class DomainCommand {
       return registrantContactId;
     }
 
+    @Nullable
     public Key<ContactResource> getRegistrant() {
       return registrant;
     }
@@ -153,15 +155,15 @@ public class DomainCommand {
     }
 
     public ImmutableSet<String> getNameserverFullyQualifiedHostNames() {
-      return nullSafeImmutableCopy(nameserverFullyQualifiedHostNames);
+      return nullToEmptyImmutableCopy(nameserverFullyQualifiedHostNames);
     }
 
     public ImmutableSet<Key<HostResource>> getNameservers() {
-      return nullSafeImmutableCopy(nameservers);
+      return nullToEmptyImmutableCopy(nameservers);
     }
 
     public ImmutableSet<DesignatedContact> getContacts() {
-      return nullSafeImmutableCopy(contacts);
+      return nullToEmptyImmutableCopy(contacts);
     }
 
     @Override

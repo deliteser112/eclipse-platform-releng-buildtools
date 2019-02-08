@@ -786,7 +786,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     assertThat(thrown.getResult().getMsg())
         .isEqualTo(
             "More than one contact for a given role is not allowed: "
-                + "contacts [foo, mak21] have same role [tech]");
+                + "role [tech] has contacts [foo, mak21]");
   }
 
   @Test
@@ -903,10 +903,12 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistDomain();
     EppException thrown = assertThrows(DuplicateContactForRoleException.class, this::runFlow);
-    assertThat(thrown.getMessage())
-        .isEqualTo("More than one contact for a given role is not allowed: "
-            + "contacts [mak21, sh8013] have same role [billing], "
-            + "contacts [mak21, sh8013] have same role [tech]");
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            "More than one contact for a given role is not allowed: "
+                + "role [billing] has contacts [mak21, sh8013], "
+                + "role [tech] has contacts [mak21, sh8013]");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

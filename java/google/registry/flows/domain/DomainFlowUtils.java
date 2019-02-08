@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMultimap;
 import static com.google.common.collect.Iterables.any;
@@ -41,6 +42,8 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.joining;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
@@ -51,7 +54,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import com.google.common.net.InternetDomainName;
@@ -127,7 +132,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -317,9 +321,9 @@ public class DomainFlowUtils {
       Set<Key<HostResource>> nameservers)
       throws EppException {
     ImmutableList.Builder<Key<? extends EppResource>> keysToLoad = new ImmutableList.Builder<>();
-    nullToEmpty(contacts).stream().map(DesignatedContact::getContactKey).forEach(keysToLoad::add);
+    contacts.stream().map(DesignatedContact::getContactKey).forEach(keysToLoad::add);
     Optional.ofNullable(registrant).ifPresent(keysToLoad::add);
-    keysToLoad.addAll(nullToEmpty(nameservers));
+    keysToLoad.addAll(nameservers);
     verifyNotInPendingDelete(EppResource.loadCached(keysToLoad.build()).values());
   }
 
@@ -335,7 +339,7 @@ public class DomainFlowUtils {
 
   static void validateContactsHaveTypes(Set<DesignatedContact> contacts)
       throws ParameterValuePolicyErrorException {
-    for (DesignatedContact contact : nullToEmpty(contacts)) {
+    for (DesignatedContact contact : contacts) {
       if (contact.getType() == null) {
         throw new MissingContactTypeException();
       }
@@ -365,32 +369,39 @@ public class DomainFlowUtils {
 
   static void validateNoDuplicateContacts(Set<DesignatedContact> contacts)
       throws ParameterValuePolicyErrorException {
-    Map<Type, Collection<String>> roleToDupContacts =
-        nullToEmpty(contacts).stream()
+    ImmutableMultimap<Type, Key<ContactResource>> contactsByType =
+        contacts.stream()
             .collect(
                 toImmutableSetMultimap(
-                    contact -> contact.getType(),
-                    contact -> ofy().load().key(contact.getContactKey()).now().getContactId()))
-            .asMap()
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getValue().size() >= 2)
-            .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+                    DesignatedContact::getType, DesignatedContact::getContactKey));
 
-    if (!roleToDupContacts.isEmpty()) {
-      throw new DuplicateContactForRoleException(roleToDupContacts);
+    // If any contact type has multiple contacts:
+    if (contactsByType.asMap().values().stream().anyMatch(v -> v.size() > 1)) {
+      // Find the duplicates.
+      Map<Type, Collection<Key<ContactResource>>> dupeKeysMap =
+          Maps.filterEntries(contactsByType.asMap(), e -> e.getValue().size() > 1);
+      ImmutableList<Key<ContactResource>> dupeKeys =
+          dupeKeysMap.values().stream().flatMap(Collection::stream).collect(toImmutableList());
+      // Load the duplicates in one batch.
+      Map<Key<ContactResource>, ContactResource> dupeContacts = ofy().load().keys(dupeKeys);
+      ImmutableMultimap.Builder<Type, Key<ContactResource>> typesMap =
+          new ImmutableMultimap.Builder<>();
+      dupeKeysMap.forEach(typesMap::putAll);
+      // Create an error message showing the type and contact IDs of the duplicates.
+      throw new DuplicateContactForRoleException(
+          Multimaps.transformValues(typesMap.build(), key -> dupeContacts.get(key).getContactId()));
     }
   }
 
   static void validateRequiredContactsPresent(
-      Key<ContactResource> registrant, Set<DesignatedContact> contacts)
+      @Nullable Key<ContactResource> registrant, Set<DesignatedContact> contacts)
       throws RequiredParameterMissingException {
     if (registrant == null) {
       throw new MissingRegistrantException();
     }
 
     Set<Type> roles = new HashSet<>();
-    for (DesignatedContact contact : nullToEmpty(contacts)) {
+    for (DesignatedContact contact : contacts) {
       roles.add(contact.getType());
     }
     if (!roles.contains(Type.ADMIN)) {
@@ -912,8 +923,7 @@ public class DomainFlowUtils {
     validateRegistrantAllowedOnTld(tld, command.getRegistrantContactId());
     validateNoDuplicateContacts(command.getContacts());
     validateRequiredContactsPresent(command.getRegistrant(), command.getContacts());
-    Set<String> fullyQualifiedHostNames =
-        nullToEmpty(command.getNameserverFullyQualifiedHostNames());
+    ImmutableSet<String> fullyQualifiedHostNames = command.getNameserverFullyQualifiedHostNames();
     validateNameserversCountForTld(tld, domainName, fullyQualifiedHostNames.size());
     validateNameserversAllowedOnTld(tld, fullyQualifiedHostNames);
     validateNameserversAllowedOnDomain(domainName, fullyQualifiedHostNames);
@@ -1154,30 +1164,21 @@ public class DomainFlowUtils {
 
   /** More than one contact for a given role is not allowed. */
   static class DuplicateContactForRoleException extends ParameterValuePolicyErrorException {
-    public DuplicateContactForRoleException(Map<Type, Collection<String>> roleToDupContacts) {
-      super(constructErrorMessageFrom(roleToDupContacts));
+
+    public DuplicateContactForRoleException(Multimap<Type, String> dupeContactsByType) {
+      super(
+          String.format(
+              "More than one contact for a given role is not allowed: %s",
+              dupeContactsByType.asMap().entrySet().stream()
+                  .sorted(comparing(e -> e.getKey().name()))
+                  .map(
+                      e ->
+                          String.format(
+                              "role [%s] has contacts [%s]",
+                              Ascii.toLowerCase(e.getKey().name()),
+                              e.getValue().stream().sorted().collect(joining(", "))))
+                  .collect(joining(", "))));
     }
-  }
-
-  private static String constructErrorMessageFrom(Map<Type, Collection<String>> roleToDupContacts) {
-    String detailError =
-        Joiner.on(", ")
-            .join(
-                sort(
-                    roleToDupContacts.entrySet().stream()
-                        .map(DomainFlowUtils::formatDetailMessage)
-                        .collect(Collectors.toSet())));
-    return String.format("More than one contact for a given role is not allowed: %s", detailError);
-  }
-
-  private static String formatDetailMessage(Map.Entry<Type, Collection<String>> entry) {
-    return String.format(
-        "contacts [%s] have same role [%s]",
-        Joiner.on(", ").join(sort(entry.getValue())), Ascii.toLowerCase(entry.getKey().toString()));
-  }
-
-  private static ImmutableSortedSet<Comparable<?>> sort(Collection<String> unsorted) {
-    return ImmutableSortedSet.naturalOrder().addAll(unsorted).build();
   }
 
   /** Declared launch extension phase does not match the current registry phase. */
@@ -1418,7 +1419,7 @@ public class DomainFlowUtils {
           String.format(
               "The fee description \"%s\" passed in the transform matches multiple fee types: %s",
               description,
-              types.stream().map(FeeType::toString).collect(Collectors.joining(", "))));
+              types.stream().map(FeeType::toString).collect(joining(", "))));
     }
   }
 
