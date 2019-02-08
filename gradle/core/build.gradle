@@ -305,7 +305,6 @@ task jaxbToJava {
             todir: "${xjcTempSourceDir}",
             overwrite: true,
             file: bindingsFile)
-
     ant.taskdef(
             name: 'xjc',
             classname: 'com.sun.tools.xjc.XJCTask',
@@ -476,12 +475,21 @@ task compileProdJS(type: JavaExec) {
   main = 'com.google.javascript.jscomp.CommandLineRunner'
 
   def closureArgs = []
-  closureArgs << "--compilation_level=SIMPLE_OPTIMIZATIONS"
   closureArgs << "--js_output_file=${resourcesDir}/google/registry/ui/registrar_bin.js"
-  closureArgs << "--js=${rootDir}/node_modules/google-closure-library/**.js"
-  closureArgs << "--js=${rootDir}/node_modules/soyutils_usegoog.js"
+  // sourcemap-related configuration
+  closureArgs << "--create_source_map=${resourcesDir}/google/registry/ui/registrar_bin.js.map"
+  closureArgs << "--source_map_include_content=true"
+  closureArgs << "--source_map_location_mapping=${rootDir}/|"
+  closureArgs << "--output_wrapper=\"%output% //# sourceMappingURL=registrar_bin.js.map\""
+
+  // compilation options
+  closureArgs << "--compilation_level=ADVANCED"
   closureArgs << "--entry_point=goog:registry.registrar.main"
   closureArgs << "--externs=${javaDir}/google/registry/ui/externs/json.js"
+
+  // manually include all the required js files
+  closureArgs << "--js=${rootDir}/node_modules/google-closure-library/**.js"
+  closureArgs << "--js=${rootDir}/node_modules/soyutils_usegoog.js"
   closureArgs << "--js=${resourcesDir}/google/registry/ui/css/registrar_bin.css.js"
   closureArgs << "--js=${javaDir}/google/registry/ui/js/**.js"
   closureArgs << "--js=${generatedDir}/google/registry/ui/soy/**.js"
@@ -490,6 +498,7 @@ task compileProdJS(type: JavaExec) {
 
 compileJava.dependsOn jaxbToJava
 compileJava.dependsOn soyToJava
+compileJava.dependsOn compileProdJS
 
 // stylesheetsToJavascript must happen after processResources, which wipes the
 // resources folder before copying data into it.
