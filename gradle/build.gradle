@@ -1,7 +1,16 @@
 buildscript {
+  ext.repositoryUrl = project.findProperty('repositoryUrl')
+  ext.publishUrl = project.findProperty('publishUrl')
   repositories {
-    jcenter()
-    mavenCentral()
+    if (repositoryUrl == null) {
+      println "Using Maven central..."
+      mavenCentral()
+    } else {
+      maven {
+        println "Using GCS Maven repo..."
+        url repositoryUrl
+      }
+    }
   }
 
   // Lock buildscript dependencies.
@@ -19,11 +28,10 @@ buildscript {
 
 plugins {
   id 'maven-publish'
-  id 'nebula.lint' version '10.3.5'
+  id 'nebula.lint' version '10.4.2'
   // Config helper for annotation processors such as AutoValue and Dagger.
   // Ensures that source code is generated at an appropriate location.
   id 'net.ltgt.apt' version '0.19' apply false
-  id 'com.bmuschko.docker-java-application' version '4.0.4' apply false
   id 'net.ltgt.errorprone' version '0.6.1'
   id 'checkstyle'
   id "com.moowork.node" version "1.2.0"
@@ -56,20 +64,75 @@ task stage {
   description = 'Generates application directories for all services.'
 }
 
+
+if (publishUrl != null) {
+  publishing {
+    repositories {
+      maven {
+        url publishUrl
+      }
+    }
+  }
+}
+
+ext.processedDependencies = [] as Set<String>
+ext.processDependencies = { Set<ResolvedDependency> deps ->
+
+  if (deps.isEmpty()) {
+    return
+  }
+  deps.each { ResolvedDependency dep ->
+    if (dep.moduleGroup == "nomulus" ||
+        rootProject.processedDependencies.contains(dep.module.toString())) {
+      return
+    }
+    def name = "${dep.moduleGroup}_${dep.moduleName}_${dep.moduleVersion}"
+    rootProject.publishing {
+      publications {
+        "${name}"(MavenPublication) {
+          groupId = dep.moduleGroup
+          artifactId = dep.moduleName
+          version = dep.moduleVersion
+          dep.moduleArtifacts.each { moduleArtifact ->
+            artifact(moduleArtifact.file) {
+              classifier = moduleArtifact.classifier
+            }
+          }
+          if (!dep.children.isEmpty()) {
+            pom.withXml {
+              def dependenciesNode = asNode().appendNode("dependencies")
+              dep.children.each {
+                def dependencyNode =
+                    dependenciesNode.appendNode("dependency")
+                dependencyNode.appendNode("groupId", it.moduleGroup)
+                dependencyNode.appendNode("artifactId", it.moduleName)
+                dependencyNode.appendNode("version", it.moduleVersion)
+              }
+            }
+          }
+        }
+      }
+    }
+    rootProject.processedDependencies.add(dep.module.toString())
+    rootProject.processDependencies(dep.children)
+  }
+}
+
 allprojects {
   // Skip no-op project
   if (project.name == 'services') return
 
-  publishing {
-    repositories {
+  repositories {
+    if (rootProject.repositoryUrl == null) {
+      mavenCentral()
+    } else {
       maven {
-        url = project.findProperty('repositoryUrl')
+        url rootProject.repositoryUrl
       }
     }
   }
 
-  ext.getDistinctResolvedArtifacts = {
-    def distinctResolvedArtifacts = [:]
+  ext.generateDependencyPublications = {
     def allconfigs = []
 
     allconfigs.addAll(configurations)
@@ -80,34 +143,8 @@ allprojects {
       if (!it.isCanBeResolved()) {
         return
       }
-      it.resolvedConfiguration.resolvedArtifacts.each { resolvedArtifact ->
-        if (resolvedArtifact.id.componentIdentifier.displayName in
-          ['project :core', 'project :proxy', 'project :util', 'project :third_party']) {
-          return
-        }
-        distinctResolvedArtifacts[resolvedArtifact.id.toString()] = resolvedArtifact
-      }
-    }
-
-    return distinctResolvedArtifacts
-  }
-
-  ext.generateDependencyPublications = {
-    def distinctResolvedArtifacts = project.ext.getDistinctResolvedArtifacts()
-
-    distinctResolvedArtifacts.values().eachWithIndex { resolvedArtifact, n ->
-      project.publishing {
-        publications {
-          "maven${n}"(MavenPublication) {
-            artifact(resolvedArtifact.file) {
-              groupId = resolvedArtifact.moduleVersion.id.group
-              artifactId = resolvedArtifact.moduleVersion.id.name
-              version = resolvedArtifact.moduleVersion.id.version
-              classifier = resolvedArtifact.classifier
-            }
-          }
-        }
-      }
+      rootProject.processDependencies(
+          it.resolvedConfiguration.firstLevelModuleDependencies)
     }
   }
 
@@ -127,7 +164,7 @@ allprojects {
     def artifactId = resolvedArtifact.moduleVersion.id.name
     def version = resolvedArtifact.moduleVersion.id.version
     def relativeFileName =
-      [groupId, artifactId, 'README.domainregistry'].join('/')
+        [groupId, artifactId, 'README.domainregistry'].join('/')
     def metadataFile = new File(gitRepositoryPath, relativeFileName)
     metadataFile.parentFile.mkdirs()
     def writer = metadataFile.newWriter()
@@ -137,8 +174,8 @@ allprojects {
     writer.close()
   }
 
-  // This task generates a metadata file for each resolved dependency artifact.
-  // The file contains the name, url and version for the artifact.
+// This task generates a metadata file for each resolved dependency artifact.
+// The file contains the name, url and version for the artifact.
   task generateDependencyMetadata {
     doLast {
       def distinctResolvedArtifacts = project.ext.getDistinctResolvedArtifacts()
@@ -146,16 +183,16 @@ allprojects {
 
       distinctResolvedArtifacts.values().each { resolvedArtifact ->
         def artifact = new org.sonatype.aether.util.artifact.DefaultArtifact(
-          resolvedArtifact.id.componentIdentifier.toString())
+            resolvedArtifact.id.componentIdentifier.toString())
         for (repository in project.repositories) {
           def mavenRepository = (MavenArtifactRepository) repository
           def repositoryUri = URI.create(mavenRepository.url.toString())
           def artifactUri = repositoryUri.resolve(defaultLayout.getPath(artifact))
           if (project.ext.urlExists(artifactUri.toURL())) {
             project.ext.writeMetadata(
-              resolvedArtifact,
-              artifactUri.toURL(),
-              project.findProperty('privateRepository') + "/${project.name}")
+                resolvedArtifact,
+                artifactUri.toURL(),
+                project.findProperty('privateRepository') + "/${project.name}")
             break
           }
         }
@@ -173,11 +210,6 @@ subprojects {
     configurations.classpath {
       resolutionStrategy.activateDependencyLocking()
     }
-  }
-
-  repositories {
-    jcenter()
-    mavenCentral()
   }
 
   // Lock application dependencies.
@@ -276,16 +308,16 @@ subprojects {
     options.compilerArgs << "-Werror"
     options.errorprone.disableWarningsInGeneratedCode = true
     options.errorprone.errorproneArgumentProviders.add([
-            asArguments: {
-              return ['-XepExcludedPaths:.*/build/generated/.*']
-            }] as CommandLineArgumentProvider)
+        asArguments: {
+          return ['-XepExcludedPaths:.*/build/generated/.*']
+        }] as CommandLineArgumentProvider)
   }
 
   version = '1.0'
   sourceCompatibility = '1.8'
   targetCompatibility = '1.8'
 
-  compileJava {options.encoding = "UTF-8"}
+  compileJava { options.encoding = "UTF-8" }
 
   gradleLint.rules = [
       // Checks if Gradle wrapper is up-to-date
@@ -299,9 +331,9 @@ subprojects {
 
   if (project.name == 'third_party') return
 
-  // Path to code generated with annotation processors. Note that this path is
-  // chosen by the 'net.ltgt.apt' plugin, and may change if IDE-specific plugins
-  // are applied, e.g., 'idea' or 'eclipse'
+// Path to code generated with annotation processors. Note that this path is
+// chosen by the 'net.ltgt.apt' plugin, and may change if IDE-specific plugins
+// are applied, e.g., 'idea' or 'eclipse'
   def aptGeneratedDir = "${project.buildDir}/generated/source/apt/main"
   def aptGeneratedTestDir = "${project.buildDir}/generated/source/apt/test"
 
@@ -311,13 +343,13 @@ subprojects {
     main {
       java {
         srcDirs = [
-            project(':').javaDir,
+            rootProject.javaDir,
             aptGeneratedDir
         ]
       }
       resources {
         srcDirs = [
-            project(':').javaDir
+            rootProject.javaDir
         ]
         exclude commonlyExcludedResources
       }
@@ -325,13 +357,13 @@ subprojects {
     test {
       java {
         srcDirs = [
-            project(':').javatestsDir,
+            rootProject.javatestsDir,
             aptGeneratedTestDir
         ]
       }
       resources {
         srcDirs = [
-            project(':').javatestsDir,
+            rootProject.javatestsDir,
         ]
         exclude commonlyExcludedResources
       }
@@ -339,7 +371,7 @@ subprojects {
   }
 
   test {
-      testLogging.showStandardStreams = Boolean.parseBoolean(showAllOutput)
+    testLogging.showStandardStreams = Boolean.parseBoolean(showAllOutput)
   }
 
   if (project.name == 'core') return
@@ -363,3 +395,5 @@ subprojects {
     }
   }
 }
+
+generateDependencyPublications()

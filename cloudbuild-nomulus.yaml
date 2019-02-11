@@ -19,12 +19,17 @@ steps:
   args: ['chmod', '-R', '777', '.']
 # Clone the private repo and merge its contents.
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['source', 'repos', 'clone', 'nomulus-config']
+  args: ['source', 'repos', 'clone', 'nomulus-internal']
 - name: 'alpine'
-  args: ['sh', '-c', 'cp -r nomulus-config/* .']
+  args: ['sh', '-c', 'cp -r nomulus-internal/* .']
 # Build the deployment files.
 - name: 'google/cloud-sdk'
-  args: ['./gradlew', 'stage', '-x', 'autoLintGradle']
+  args:
+    - './gradlew'
+    - 'stage'
+    - '-x'
+    - 'autoLintGradle'
+    - '-PrepositoryUrl=gcs://domain-registry-maven-repository'
   dir: 'gradle'
 # Tar the deployment files as we cannot upload directories to GCS.
 - name: 'alpine'

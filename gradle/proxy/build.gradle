@@ -1,18 +1,3 @@
-apply plugin: 'com.google.osdetector'
-apply plugin: 'application'
-apply plugin: 'com.bmuschko.docker-java-application'
-
-// TODO(jianglai): use plugins block once the osdetctor v1.6.0 works with it.
-// see: https://github.com/google/osdetector-gradle-plugin/issues/15
-buildscript {
-  repositories {
-    mavenCentral()
-  }
-  dependencies {
-    classpath 'com.google.gradle:osdetector-gradle-plugin:1.6.0'
-  }
-}
-
 sourceSets {
   main {
     resources {
@@ -21,8 +6,6 @@ sourceSets {
     }
   }
 }
-
-mainClassName = 'google.registry.proxy.ProxyServer'
 
 task deployJar(type: Jar) {
   manifest {
@@ -74,7 +57,7 @@ dependencies {
 
   runtime deps['com.google.flogger:flogger-system-backend']
   runtime deps['com.google.auto.value:auto-value']
-  runtime deps['io.netty:netty-tcnative-boringssl-static'] + ":${osdetector.classifier}"
+  runtime deps['io.netty:netty-tcnative-boringssl-static']
 
   testCompile deps['com.google.monitoring-client:contrib']
   testCompile deps['com.google.truth:truth']
@@ -92,12 +75,4 @@ dependencies {
   testAnnotationProcessor deps['com.google.dagger:dagger-compiler']
 }
 
-docker {
-  javaApplication {
-    // TODO(jianglai): Peg to a specific hash to enable reproducible build.
-    baseImage = 'openjdk:8-jre-alpine'
-    ports = [30000, 30001, 30002, 30011, 30012]
-  }
-}
-
-ext.generateDependencyPublications()
+generateDependencyPublications()

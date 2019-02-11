@@ -19,12 +19,17 @@ steps:
   args: ['chmod', '-R', '777', '.']
 # Clone the private repo merge its contents.
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['source', 'repos', 'clone', 'nomulus-config']
+  args: ['source', 'repos', 'clone', 'nomulus-internal']
 - name: 'alpine'
-  args: ['sh', '-c', 'cp -r nomulus-config/* .']
+  args: ['sh', '-c', 'cp -r nomulus-internal/* .']
 # Build the deploy jar.
 - name: 'openjdk:8-slim'
-  args: ['./gradlew', ':proxy:deployJar', '-x', 'autoLintGradle']
+  args:
+    - './gradlew'
+    - ':proxy:deployJar'
+    - '-x'
+    - 'autoLintGradle'
+    - '-PrepositoryUrl=gcs://domain-registry-maven-repository'
   dir: 'gradle'
 # Build the docker image.
 - name: 'gcr.io/cloud-builders/docker'

@@ -1,6 +1,5 @@
 dependencies {
   def deps = rootProject.dependencyMap
-
   compile deps['com.google.appengine:appengine-api-1.0-sdk']
   compile deps['com.google.appengine:appengine-testing']
   compile deps['com.google.code.findbugs:jsr305']
@@ -13,7 +12,6 @@ dependencies {
   compile deps['javax.mail:mail']
   compile deps['javax.xml.bind:jaxb-api']
   compile deps['joda-time:joda-time']
-  compile deps['nomulus:util']
   compile deps['org.yaml:snakeyaml']
   testCompile deps['com.google.appengine:appengine-api-stubs']
   testCompile deps['com.google.guava:guava-testlib']
@@ -28,3 +26,5 @@ dependencies {
   annotationProcessor deps['com.google.dagger:dagger-compiler']
   testAnnotationProcessor deps['com.google.dagger:dagger-compiler']
 }
+
+generateDependencyPublications()
