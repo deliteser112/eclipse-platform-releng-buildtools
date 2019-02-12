@@ -1,0 +1,21 @@
+
+repositories {
+  if (project.ext.properties.repositoryUrl == null) {
+    println "Plugins: Using Maven central..."
+    mavenCentral()
+  } else {
+    maven {
+      println "Plugins: Using repo ${repositoryUrl}..."
+      url repositoryUrl
+    }
+  }
+}
+
+apply from: '../dependencies.gradle'
+
+
+dependencies {
+  def deps = dependencyMap
+  compile deps['com.google.guava:guava']
+  testCompile deps['com.google.truth:truth']
+}
