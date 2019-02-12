@@ -224,8 +224,24 @@ subprojects {
                   ':services:tools',
                   ':services:pubapi']
 
+  def environments = ['production', 'sandbox', 'alpha', 'crash']
+
+  def projects = ['production': 'domain-registry',
+                  'sandbox'   : 'domain-registry-sandbox',
+                  'alpha'     : 'domain-registry-alpha',
+                  'crash'     : 'domain-registry-crash']
+
   // Set up all of the deployment projects.
   if (services.contains(project.path)) {
+
+    def environment = rootProject.findProperty("environment")
+    if (environment == null) {
+      environment = 'alpha'
+    }
+    def gcpProject = projects[environment]
+    if (gcpProject == null) {
+      throw new GradleException("-Penvironment must be one of ${environments}.")
+    }
 
     apply plugin: 'war'
 
@@ -233,7 +249,7 @@ subprojects {
     // plugin will recognize this as an app-engine standard app (and also
     // obtains the appengine-web.xml from the correct location)
     project.convention.plugins['war'].webAppDirName =
-        "../../../java/google/registry/env/crash/${project.name}"
+        "../../../java/google/registry/env/${environment}/${project.name}"
 
     apply plugin: 'com.google.cloud.tools.appengine'
 
@@ -244,13 +260,19 @@ subprojects {
       }
     }
 
-    if (project.path.contains("default")) {
-      def coreResourcesDir = "${rootDir}/core/build/resources/main"
+    def coreResourcesDir = "${rootDir}/core/build/resources/main"
+    war {
+      from("${coreResourcesDir}/google/registry/ui/html") {
+        include "*.html"
+      }
+    }
+
+    if (project.path == ":services:default") {
       war {
         from("${coreResourcesDir}/google/registry/ui") {
           include "registrar_bin*"
           into("assets/js")
-          rename { String filename -> filename.replace("bin", "dbg")}
+          rename { String filename -> filename.replace("bin", "dbg") }
         }
         from("${coreResourcesDir}/google/registry/ui") {
           include "registrar_bin*"
@@ -264,16 +286,13 @@ subprojects {
           include "**/*"
           into("assets/images")
         }
-        from("${coreResourcesDir}/google/registry/ui/html") {
-          include "*.html"
-        }
       }
     }
 
     appengine {
       deploy {
         // TODO: change this to a variable.
-        project = 'domain-registry-crash'
+        project = gcpProject
       }
     }
 

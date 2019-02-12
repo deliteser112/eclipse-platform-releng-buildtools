@@ -30,6 +30,7 @@ steps:
     - '-x'
     - 'autoLintGradle'
     - '-PrepositoryUrl=gcs://domain-registry-maven-repository'
+    - '-Penvironment=${_ENVIRONMENT}'
   dir: 'gradle'
 # Tar the deployment files as we cannot upload directories to GCS.
 - name: 'alpine'
@@ -47,12 +48,15 @@ steps:
 # Tar files to upload to GCS.
 artifacts:
   objects:
-    location: 'gs://${PROJECT_ID}-deploy/${TAG_NAME}'
+    location: 'gs://${PROJECT_ID}-deploy/${TAG_NAME}/${_ENVIRONMENT}'
     paths:
       - 'gradle/services/default.tar'
       - 'gradle/services/pubapi.tar'
       - 'gradle/services/backend.tar'
       - 'gradle/services/tools.tar'
 timeout: 3600s
+# Default values
+substitutions:
+  _ENVIRONMENT: alpha
 options:
   machineType: 'N1_HIGHCPU_8'
