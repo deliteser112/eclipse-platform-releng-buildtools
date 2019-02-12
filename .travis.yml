@@ -28,6 +28,10 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
+# Get Chrome binary for WebDriver tests
+addons:
+  chrome: stable
+
 env:
   # Disable fancy status information (looks bad on travis and exceeds logfile
   # quota)
