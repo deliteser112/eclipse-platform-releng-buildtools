@@ -17,6 +17,7 @@ package google.registry.reporting.icann;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static google.registry.reporting.icann.IcannReportingModule.MANIFEST_FILE_NAME;
+import static google.registry.reporting.icann.IcannReportingModule.PARAM_SUBDIR;
 import static google.registry.request.Action.Method.POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -29,8 +30,8 @@ import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
-import google.registry.reporting.icann.IcannReportingModule.ReportingSubdir;
 import google.registry.request.Action;
+import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Retrier;
@@ -67,8 +68,7 @@ public final class IcannReportingUploadAction implements Runnable {
   @Config("reportingBucket")
   String reportingBucket;
 
-  @Inject @ReportingSubdir
-  String subdir;
+  @Inject @Parameter(PARAM_SUBDIR) String subdir;
 
   @Inject GcsUtils gcsUtils;
   @Inject IcannHttpReporter icannReporter;

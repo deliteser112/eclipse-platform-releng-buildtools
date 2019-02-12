@@ -15,12 +15,10 @@
 package google.registry.reporting.icann;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import google.registry.reporting.icann.IcannReportingModule.ReportType;
-import google.registry.request.HttpException.BadRequestException;
-import java.util.Optional;
-import org.joda.time.YearMonth;
+import javax.servlet.http.HttpServletRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -30,39 +28,30 @@ import org.junit.runners.JUnit4;
 public class IcannReportingModuleTest {
 
   @Test
-  public void testEmptySubDir_returnsDefaultSubdir() {
-    assertThat(IcannReportingModule.provideSubdir(Optional.empty(), new YearMonth(2017, 6)))
-        .isEqualTo("icann/monthly/2017-06");
-  }
+  public void testProvideReportTypes() {
+    HttpServletRequest req = mock(HttpServletRequest.class);
 
-  @Test
-  public void testGivenSubdir_returnsManualSubdir() {
-    assertThat(
-            IcannReportingModule.provideSubdir(Optional.of("manual/dir"), new YearMonth(2017, 6)))
-        .isEqualTo("manual/dir");
-  }
+    when(req.getParameter("reportTypes")).thenReturn(null);
+    assertThat(IcannReportingModule.provideReportTypes(req))
+        .containsExactly(
+            IcannReportingModule.ReportType.ACTIVITY, IcannReportingModule.ReportType.TRANSACTIONS);
 
-  @Test
-  public void testInvalidSubdir_throwsException() {
-    BadRequestException thrown =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                IcannReportingModule.provideSubdir(Optional.of("/whoops"), new YearMonth(2017, 6)));
-    assertThat(thrown)
-        .hasMessageThat()
-        .contains("subdir must not start or end with a \"/\", got /whoops instead.");
-  }
+    when(req.getParameter("reportTypes")).thenReturn("");
+    assertThat(IcannReportingModule.provideReportTypes(req))
+        .containsExactly(
+            IcannReportingModule.ReportType.ACTIVITY, IcannReportingModule.ReportType.TRANSACTIONS);
 
-  @Test
-  public void testGivenReportType_returnsReportType() {
-    assertThat(IcannReportingModule.provideReportTypes(Optional.of(ReportType.ACTIVITY)))
-        .containsExactly(ReportType.ACTIVITY);
-  }
+    when(req.getParameter("reportTypes")).thenReturn("activity");
+    assertThat(IcannReportingModule.provideReportTypes(req))
+        .containsExactly(IcannReportingModule.ReportType.ACTIVITY);
 
-  @Test
-  public void testNoReportType_returnsBothReportTypes() {
-    assertThat(IcannReportingModule.provideReportTypes(Optional.empty()))
-        .containsExactly(ReportType.ACTIVITY, ReportType.TRANSACTIONS);
+    when(req.getParameter("reportTypes")).thenReturn("transactions");
+    assertThat(IcannReportingModule.provideReportTypes(req))
+        .containsExactly(IcannReportingModule.ReportType.TRANSACTIONS);
+
+    when(req.getParameter("reportTypes")).thenReturn("activity,transactions");
+    assertThat(IcannReportingModule.provideReportTypes(req))
+        .containsExactly(
+            IcannReportingModule.ReportType.ACTIVITY, IcannReportingModule.ReportType.TRANSACTIONS);
   }
 }

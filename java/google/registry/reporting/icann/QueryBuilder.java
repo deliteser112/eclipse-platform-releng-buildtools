@@ -15,13 +15,14 @@
 package google.registry.reporting.icann;
 
 import com.google.common.collect.ImmutableMap;
+import org.joda.time.YearMonth;
 
 /** Interface defining the necessary methods to construct ICANN reporting SQL queries. */
 public interface QueryBuilder {
 
   /** Returns a map from an intermediary view's table name to the query that generates it. */
-  ImmutableMap<String, String> getViewQueryMap();
+  ImmutableMap<String, String> getViewQueryMap(YearMonth yearMonth);
 
   /** Returns a query that retrieves the overall report from the previously generated view. */
-  String getReportQuery();
+  String getReportQuery(YearMonth yearMonth);
 }

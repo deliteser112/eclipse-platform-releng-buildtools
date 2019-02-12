@@ -21,7 +21,6 @@ import dagger.Module;
 import dagger.Provides;
 import google.registry.bigquery.BigqueryConnection;
 import google.registry.config.RegistryConfig.Config;
-import org.joda.time.YearMonth;
 
 /** Dagger module to provide the DnsCountQueryCoordinator. */
 @Module
@@ -31,10 +30,9 @@ public class DnsCountQueryCoordinatorModule {
   static DnsCountQueryCoordinator provideDnsCountQueryCoordinator(
       @Config("dnsCountQueryCoordinatorClass") String customClass,
       BigqueryConnection bigquery,
-      YearMonth yearMonth,
       @Config("projectId") String projectId) {
     DnsCountQueryCoordinator.Params params =
-        new DnsCountQueryCoordinator.Params(bigquery, yearMonth, projectId);
+        new DnsCountQueryCoordinator.Params(bigquery, projectId);
     DnsCountQueryCoordinator result =
         instantiate(getClassFromString(customClass, DnsCountQueryCoordinator.class), params);
     return result;

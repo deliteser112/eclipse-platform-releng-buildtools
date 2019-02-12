@@ -36,7 +36,6 @@ import google.registry.bigquery.BigqueryUtils.TableType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.reporting.icann.IcannReportingModule.ReportType;
-import google.registry.reporting.icann.IcannReportingModule.ReportingSubdir;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,10 +61,6 @@ public class IcannReportingStager {
 
   @Inject @Config("reportingBucket") String reportingBucket;
 
-  @Inject YearMonth yearMonth;
-  @Inject @ReportingSubdir
-  String subdir;
-
   @Inject ActivityReportingQueryBuilder activityQueryBuilder;
   @Inject TransactionsReportingQueryBuilder transactionsQueryBuilder;
   @Inject GcsUtils gcsUtils;
@@ -79,16 +74,17 @@ public class IcannReportingStager {
    *
    * <p>This is factored out to facilitate choosing which reports to upload,
    */
-  ImmutableList<String> stageReports(ReportType reportType) throws Exception {
+  ImmutableList<String> stageReports(YearMonth yearMonth, String subdir, ReportType reportType)
+      throws Exception {
     QueryBuilder queryBuilder =
         (reportType == ReportType.ACTIVITY) ? activityQueryBuilder : transactionsQueryBuilder;
 
     if (reportType == ReportType.ACTIVITY) {
       // Prepare for the DNS count query, which may have special needs.
-      activityQueryBuilder.prepareForQuery();
+      activityQueryBuilder.prepareForQuery(yearMonth);
     }
 
-    ImmutableMap<String, String> viewQueryMap = queryBuilder.getViewQueryMap();
+    ImmutableMap<String, String> viewQueryMap = queryBuilder.getViewQueryMap(yearMonth);
     // Generate intermediary views
     for (Entry<String, String> entry : viewQueryMap.entrySet()) {
       createIntermediaryTableView(entry.getKey(), entry.getValue(), reportType);
@@ -96,14 +92,14 @@ public class IcannReportingStager {
 
     // Get an in-memory table of the aggregate query's result
     ImmutableTable<Integer, TableFieldSchema, Object> reportTable =
-        bigquery.queryToLocalTableSync(queryBuilder.getReportQuery());
+        bigquery.queryToLocalTableSync(queryBuilder.getReportQuery(yearMonth));
 
     // Get report headers from the table schema and convert into CSV format
     String headerRow = constructRow(getHeaders(reportTable.columnKeySet()));
 
     return (reportType == ReportType.ACTIVITY)
-        ? stageActivityReports(headerRow, reportTable.rowMap().values())
-        : stageTransactionsReports(headerRow, reportTable.rowMap().values());
+        ? stageActivityReports(yearMonth, subdir, headerRow, reportTable.rowMap().values())
+        : stageTransactionsReports(yearMonth, subdir, headerRow, reportTable.rowMap().values());
   }
 
   private void createIntermediaryTableView(String queryName, String query, ReportType reportType)
@@ -129,7 +125,10 @@ public class IcannReportingStager {
 
   /** Creates and stores activity reports on GCS, returns a list of files stored. */
   private ImmutableList<String> stageActivityReports(
-      String headerRow, ImmutableCollection<Map<TableFieldSchema, Object>> rows)
+      YearMonth yearMonth,
+      String subdir,
+      String headerRow,
+      ImmutableCollection<Map<TableFieldSchema, Object>> rows)
       throws IOException {
     ImmutableList.Builder<String> manifestBuilder = new ImmutableList.Builder<>();
     // Create a report csv for each tld from query table, and upload to GCS
@@ -142,14 +141,18 @@ public class IcannReportingStager {
       ImmutableList<String> rowStrings = ImmutableList.of(constructRow(row.values()));
       // Create and upload the activity report with a single row
       manifestBuilder.add(
-          saveReportToGcs(tld, createReport(headerRow, rowStrings), ReportType.ACTIVITY));
+          saveReportToGcs(
+              tld, yearMonth, subdir, createReport(headerRow, rowStrings), ReportType.ACTIVITY));
     }
     return manifestBuilder.build();
   }
 
   /** Creates and stores transactions reports on GCS, returns a list of files stored. */
   private ImmutableList<String> stageTransactionsReports(
-      String headerRow, ImmutableCollection<Map<TableFieldSchema, Object>> rows)
+      YearMonth yearMonth,
+      String subdir,
+      String headerRow,
+      ImmutableCollection<Map<TableFieldSchema, Object>> rows)
       throws IOException {
     // Map from tld to rows
     ListMultimap<String, String> tldToRows = ArrayListMultimap.create();
@@ -175,7 +178,11 @@ public class IcannReportingStager {
       tldToRows.put(tld, constructTotalRow(tldToTotals.get(tld)));
       manifestBuilder.add(
           saveReportToGcs(
-              tld, createReport(headerRow, tldToRows.get(tld)), ReportType.TRANSACTIONS));
+              tld,
+              yearMonth,
+              subdir,
+              createReport(headerRow, tldToRows.get(tld)),
+              ReportType.TRANSACTIONS));
     }
     return manifestBuilder.build();
   }
@@ -238,7 +245,8 @@ public class IcannReportingStager {
   }
 
   /** Stores a report on GCS, returning the name of the file stored. */
-  private String saveReportToGcs(String tld, String reportCsv, ReportType reportType)
+  private String saveReportToGcs(
+      String tld, YearMonth yearMonth, String subdir, String reportCsv, ReportType reportType)
       throws IOException {
     // Upload resulting CSV file to GCS
     byte[] reportBytes = reportCsv.getBytes(UTF_8);
@@ -256,7 +264,7 @@ public class IcannReportingStager {
   }
 
   /** Creates and stores a manifest file on GCS, indicating which reports were generated. */
-  void createAndUploadManifest(ImmutableList<String> filenames) throws IOException {
+  void createAndUploadManifest(String subdir, ImmutableList<String> filenames) throws IOException {
     String reportBucketname = String.format("%s/%s", reportingBucket, subdir);
     final GcsFilename gcsFilename = new GcsFilename(reportBucketname, MANIFEST_FILE_NAME);
     StringBuilder manifestString = new StringBuilder();

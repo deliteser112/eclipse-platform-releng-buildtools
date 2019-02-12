@@ -50,6 +50,8 @@ public class IcannReportingStagerTest {
   BigqueryConnection bigquery = mock(BigqueryConnection.class);
   FakeResponse response = new FakeResponse();
   GcsService gcsService = GcsServiceFactory.createGcsService();
+  YearMonth yearMonth = new YearMonth(2017, 6);
+  String subdir = "icann/monthly/2017-06";
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -61,16 +63,12 @@ public class IcannReportingStagerTest {
     IcannReportingStager action = new IcannReportingStager();
     ActivityReportingQueryBuilder activityBuilder = new ActivityReportingQueryBuilder();
     activityBuilder.projectId = "test-project";
-    activityBuilder.yearMonth = new YearMonth(2017, 6);
     activityBuilder.dnsCountQueryCoordinator = new BasicDnsCountQueryCoordinator(null);
     action.activityQueryBuilder = activityBuilder;
     TransactionsReportingQueryBuilder transactionsBuilder = new TransactionsReportingQueryBuilder();
     transactionsBuilder.projectId = "test-project";
-    transactionsBuilder.yearMonth = new YearMonth(2017, 6);
     action.transactionsQueryBuilder = transactionsBuilder;
     action.reportingBucket = "test-bucket";
-    action.yearMonth = new YearMonth(2017, 6);
-    action.subdir = "icann/monthly/2017-06";
     action.bigquery = bigquery;
     action.gcsUtils = new GcsUtils(gcsService, 1024);
     return action;
@@ -100,7 +98,7 @@ public class IcannReportingStagerTest {
             .build();
     when(bigquery.queryToLocalTableSync(any(String.class))).thenReturn(activityReportTable);
     IcannReportingStager stager = createStager();
-    stager.stageReports(ReportType.ACTIVITY);
+    stager.stageReports(yearMonth, subdir, ReportType.ACTIVITY);
 
     String expectedReport1 = "fooField,barField\r\n12,34";
     String expectedReport2 = "fooField,barField\r\n56,78";
@@ -143,7 +141,7 @@ public class IcannReportingStagerTest {
             .build();
     when(bigquery.queryToLocalTableSync(any(String.class))).thenReturn(transactionReportTable);
     IcannReportingStager stager = createStager();
-    stager.stageReports(ReportType.TRANSACTIONS);
+    stager.stageReports(yearMonth, subdir, ReportType.TRANSACTIONS);
 
     String expectedReport1 =
         "registrar,iana,field\r\n\"reg1\",123,10\r\n\"reg2\",456,20\r\nTotals,,30";
@@ -165,7 +163,7 @@ public class IcannReportingStagerTest {
     IcannReportingStager stager = createStager();
     ImmutableList<String> filenames =
         ImmutableList.of("fooTld-transactions-201706.csv", "barTld-activity-201706.csv");
-    stager.createAndUploadManifest(filenames);
+    stager.createAndUploadManifest(subdir, filenames);
 
     String expectedManifest = "fooTld-transactions-201706.csv\nbarTld-activity-201706.csv\n";
     byte[] generatedManifest =

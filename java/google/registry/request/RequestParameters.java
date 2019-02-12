@@ -96,7 +96,7 @@ public final class RequestParameters {
   }
 
   /**
-   * Returns all GET or POST parameters associated with {@code name} (or {@code nameLegacy}).
+   * Returns all GET or POST parameters associated with {@code name}.
    *
    * <p>The parameter value is assumed to be a comma-delimited set of values - so tlds=com,net would
    * result in ImmutableSet.of("com", "net").
@@ -109,36 +109,49 @@ public final class RequestParameters {
    * @param name the name of the parameter, should be in plural form (e.g. tlds=, not tld=)
    */
   public static ImmutableSet<String> extractSetOfParameters(HttpServletRequest req, String name) {
+    // First we make sure the user didn't accidentally try to pass the "set of parameters" as
+    // multiple tld=a&tld=b parameters instead of tld=a,b
     String[] parameters = req.getParameterValues(name);
-    if (parameters == null || parameters.length == 0) {
-      return ImmutableSet.of();
-    }
-    if (parameters.length > 1) {
+    if (parameters != null && parameters.length > 1) {
       throw new BadRequestException(
           String.format(
               "Bad 'set of parameters' input! Received multiple values instead of single "
                   + "comma-delimited value for parameter %s",
               name));
     }
+    // Now we parse the single parameter.
+    // We use the req.getParameter(name) instead of parameters[0] to make tests more consistent (all
+    // extractXxx read the data from req.getParameter, so mocking the parameter is consistent)
+    String parameter = req.getParameter(name);
+    if (parameter == null || parameter.isEmpty()) {
+      return ImmutableSet.of();
+    }
     return Splitter.on(',')
-        .splitToList(parameters[0])
+        .splitToList(parameter)
         .stream()
         .filter(s -> !s.isEmpty())
         .collect(toImmutableSet());
   }
 
   /**
-   * Returns the first GET or POST parameter associated with {@code name}, absent otherwise.
+   * Returns all GET or POST parameters associated with {@code name}.
    *
-   * @throws BadRequestException if request parameter named {@code name} is not equal to any of the
-   *     values in {@code enumClass}
+   * <p>The parameter value is assumed to be a comma-delimited set of values - so tlds=com,net would
+   * result in ImmutableSet.of("com", "net").
+   *
+   * <p>Empty strings are not supported, and are automatically removed from the result.
+   *
+   * <p>Both missing parameter and parameter with empty value result in an empty set.
+   *
+   * @param req the request that has the parameter
+   * @param enumClass the Class of the expected Enum type
+   * @param name the name of the parameter, should be in plural form (e.g. tlds=, not tld=)
+   * @throws BadRequestException if any of the comma-delimited values of the request parameter named
+   *     {@code name} aren't equal to any of the values in {@code enumClass}
    */
   public static <C extends Enum<C>> Optional<C> extractOptionalEnumParameter(
       HttpServletRequest req, Class<C> enumClass, String name) {
-    String stringParam = req.getParameter(name);
-    return isNullOrEmpty(stringParam)
-        ? Optional.empty()
-        : Optional.of(extractEnumParameter(req, enumClass, name));
+    return extractOptionalParameter(req, name).map(value -> getEnumValue(enumClass, value, name));
   }
 
   /**
@@ -149,11 +162,32 @@ public final class RequestParameters {
    */
   public static <C extends Enum<C>>
       C extractEnumParameter(HttpServletRequest req, Class<C> enumClass, String name) {
+    return getEnumValue(enumClass, extractRequiredParameter(req, name), name);
+  }
+
+  /**
+   * Returns the first GET or POST parameter associated with {@code name}.
+   *
+   * @throws BadRequestException if request parameter named {@code name} is absent, empty, or not
+   *     equal to any of the values in {@code enumClass}
+   */
+  public static <C extends Enum<C>> ImmutableSet<C> extractSetOfEnumParameters(
+      HttpServletRequest req, Class<C> enumClass, String name) {
+    return extractSetOfParameters(req, name).stream()
+        .map(value -> getEnumValue(enumClass, value, name))
+        .collect(toImmutableSet());
+  }
+
+  /** Translates a string name into the enum value, or throws a BadRequestException. */
+  private static <C extends Enum<C>> C getEnumValue(
+      Class<C> enumClass, String value, String parameterName) {
     try {
-      return Enum.valueOf(enumClass, Ascii.toUpperCase(extractRequiredParameter(req, name)));
+      return Enum.valueOf(enumClass, Ascii.toUpperCase(value));
     } catch (IllegalArgumentException e) {
       throw new BadRequestException(
-          String.format("Invalid %s parameter: %s", enumClass.getSimpleName(), name));
+          String.format(
+              "Invalid parameter %s: expected enum of type %s, but got '%s'",
+              parameterName, enumClass.getSimpleName(), value));
     }
   }
 

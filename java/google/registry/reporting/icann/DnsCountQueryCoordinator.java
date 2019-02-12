@@ -37,22 +37,18 @@ public interface DnsCountQueryCoordinator {
   public class Params {
     public BigqueryConnection bigquery;
 
-    /** The year and month of the report. */
-    public YearMonth yearMonth;
-
     /** The Google Cloud project id. */
     public String projectId;
 
-    public Params(BigqueryConnection bigquery, YearMonth yearMonth, String projectId) {
+    public Params(BigqueryConnection bigquery, String projectId) {
       this.bigquery = bigquery;
-      this.yearMonth = yearMonth;
       this.projectId = projectId;
     }
   }
 
   /** Creates the string used to query bigtable for DNS count information. */
-  String createQuery();
+  String createQuery(YearMonth yearMonth);
 
   /** Do any necessry preparation for the DNS query. */
-  void prepareForQuery() throws Exception;
+  void prepareForQuery(YearMonth yearMonth) throws Exception;
 }

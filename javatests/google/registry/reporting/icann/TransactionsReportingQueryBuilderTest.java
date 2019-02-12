@@ -27,9 +27,10 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class TransactionsReportingQueryBuilderTest {
 
+  private final YearMonth yearMonth = new YearMonth(2017, 9);
+
   private TransactionsReportingQueryBuilder getQueryBuilder() {
     TransactionsReportingQueryBuilder queryBuilder = new TransactionsReportingQueryBuilder();
-    queryBuilder.yearMonth = new YearMonth(2017, 9);
     queryBuilder.projectId = "domain-registry-alpha";
     return queryBuilder;
   }
@@ -37,7 +38,7 @@ public class TransactionsReportingQueryBuilderTest {
   @Test
   public void testAggregateQueryMatch() {
     TransactionsReportingQueryBuilder queryBuilder = getQueryBuilder();
-    assertThat(queryBuilder.getReportQuery())
+    assertThat(queryBuilder.getReportQuery(yearMonth))
         .isEqualTo(
             "#standardSQL\nSELECT * FROM "
                 + "`domain-registry-alpha.icann_reporting.transactions_report_aggregation_201709`");
@@ -56,7 +57,7 @@ public class TransactionsReportingQueryBuilderTest {
             TransactionsReportingQueryBuilder.ATTEMPTED_ADDS);
 
     TransactionsReportingQueryBuilder queryBuilder = getQueryBuilder();
-    ImmutableMap<String, String> actualQueries = queryBuilder.getViewQueryMap();
+    ImmutableMap<String, String> actualQueries = queryBuilder.getViewQueryMap(yearMonth);
     for (String queryName : expectedQueryNames) {
       String actualTableName = String.format("%s_201709", queryName);
       String testFilename = String.format("%s_test.sql", queryName);

@@ -27,21 +27,21 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ActivityReportingQueryBuilderTest {
 
+  private final YearMonth yearMonth = new YearMonth(2017, 9);
+
   private ActivityReportingQueryBuilder getQueryBuilder() {
     ActivityReportingQueryBuilder queryBuilder = new ActivityReportingQueryBuilder();
-    queryBuilder.yearMonth = new YearMonth(2017, 9);
     queryBuilder.projectId = "domain-registry-alpha";
     queryBuilder.dnsCountQueryCoordinator =
         new BasicDnsCountQueryCoordinator(
-            new BasicDnsCountQueryCoordinator.Params(null, queryBuilder.yearMonth,
-                                                     queryBuilder.projectId));
+            new BasicDnsCountQueryCoordinator.Params(null, queryBuilder.projectId));
     return queryBuilder;
   }
 
   @Test
   public void testAggregateQueryMatch() {
     ActivityReportingQueryBuilder queryBuilder = getQueryBuilder();
-    assertThat(queryBuilder.getReportQuery())
+    assertThat(queryBuilder.getReportQuery(yearMonth))
         .isEqualTo(
             "#standardSQL\nSELECT * FROM "
                 + "`domain-registry-alpha.icann_reporting.activity_report_aggregation_201709`");
@@ -59,7 +59,7 @@ public class ActivityReportingQueryBuilderTest {
             ActivityReportingQueryBuilder.ACTIVITY_REPORT_AGGREGATION);
 
     ActivityReportingQueryBuilder queryBuilder = getQueryBuilder();
-    ImmutableMap<String, String> actualQueries = queryBuilder.getViewQueryMap();
+    ImmutableMap<String, String> actualQueries = queryBuilder.getViewQueryMap(yearMonth);
     for (String queryName : expectedQueryNames) {
       String actualTableName = String.format("%s_201709", queryName);
       String testFilename = String.format("%s_test.sql", queryName);

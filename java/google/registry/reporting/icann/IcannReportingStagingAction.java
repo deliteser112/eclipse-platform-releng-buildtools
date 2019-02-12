@@ -15,6 +15,8 @@
 package google.registry.reporting.icann;
 
 import static com.google.common.base.Throwables.getRootCause;
+import static google.registry.reporting.icann.IcannReportingModule.PARAM_REPORT_TYPES;
+import static google.registry.reporting.icann.IcannReportingModule.PARAM_SUBDIR;
 import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -24,18 +26,21 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.bigquery.BigqueryJobFailureException;
 import google.registry.reporting.icann.IcannReportingModule.ReportType;
-import google.registry.reporting.icann.IcannReportingModule.ReportingSubdir;
 import google.registry.request.Action;
+import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Retrier;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.Duration;
 import org.joda.time.YearMonth;
+import org.joda.time.format.DateTimeFormat;
 
 /**
  * Action that generates monthly ICANN activity and transactions reports.
@@ -53,7 +58,7 @@ import org.joda.time.YearMonth;
  * to "icann/monthly/[yearMonth]".
  *
  * <p>reportTypes: the type of reports to generate. You can specify either 'activity' or
- * 'transactions'. Defaults to generating both.
+ * 'transactions'. If none specified - defaults to generating both.
  */
 @Action(
     service = Action.Service.BACKEND,
@@ -66,10 +71,11 @@ public final class IcannReportingStagingAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final String CRON_QUEUE = "retryable-cron-tasks";
+  private static final String DEFAULT_SUBDIR = "icann/monthly";
 
   @Inject YearMonth yearMonth;
-  @Inject @ReportingSubdir String subdir;
-  @Inject ImmutableList<ReportType> reportTypes;
+  @Inject @Parameter(PARAM_SUBDIR) Optional<String> overrideSubdir;
+  @Inject @Parameter(PARAM_REPORT_TYPES) ImmutableSet<ReportType> reportTypes;
   @Inject IcannReportingStager stager;
   @Inject Retrier retrier;
   @Inject Response response;
@@ -79,14 +85,15 @@ public final class IcannReportingStagingAction implements Runnable {
   @Override
   public void run() {
     try {
+      String subdir = getSubdir(yearMonth);
       retrier.callWithRetry(
           () -> {
             ImmutableList.Builder<String> manifestedFilesBuilder = new ImmutableList.Builder<>();
             for (ReportType reportType : reportTypes) {
-              manifestedFilesBuilder.addAll(stager.stageReports(reportType));
+              manifestedFilesBuilder.addAll(stager.stageReports(yearMonth, subdir, reportType));
             }
             ImmutableList<String> manifestedFiles = manifestedFilesBuilder.build();
-            stager.createAndUploadManifest(manifestedFiles);
+            stager.createAndUploadManifest(subdir, manifestedFiles);
 
             logger.atInfo().log("Completed staging %d report files.", manifestedFiles.size());
             emailUtils.emailResults(
@@ -104,7 +111,7 @@ public final class IcannReportingStagingAction implements Runnable {
                 TaskOptions.Builder.withUrl(IcannReportingUploadAction.PATH)
                     .method(Method.POST)
                     .countdownMillis(Duration.standardMinutes(2).getMillis())
-                    .param(IcannReportingModule.PARAM_SUBDIR, subdir);
+                    .param(PARAM_SUBDIR, subdir);
             QueueFactory.getQueue(CRON_QUEUE).add(uploadTask);
             return null;
           },
@@ -123,5 +130,12 @@ public final class IcannReportingStagingAction implements Runnable {
               getRootCause(e).toString()));
       throw new RuntimeException("Staging action failed.", e);
     }
+  }
+
+  String getSubdir(YearMonth yearMonth) {
+    return IcannReportingModule.checkSubdirValid(
+        overrideSubdir.orElse(
+            String.format(
+                "%s/%s", DEFAULT_SUBDIR, DateTimeFormat.forPattern("yyyy-MM").print(yearMonth))));
   }
 }

@@ -14,6 +14,7 @@ java_library(
         "//java/google/registry/gcs",
         "//java/google/registry/keyring/api",
         "//java/google/registry/model",
+        "//java/google/registry/reporting",
         "//java/google/registry/request",
         "//java/google/registry/request/auth",
         "//java/google/registry/util",

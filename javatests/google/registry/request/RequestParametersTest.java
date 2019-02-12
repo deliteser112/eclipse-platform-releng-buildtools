@@ -23,6 +23,7 @@ import static google.registry.request.RequestParameters.extractOptionalEnumParam
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
+import static google.registry.request.RequestParameters.extractSetOfEnumParameters;
 import static google.registry.request.RequestParameters.extractSetOfParameters;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -86,25 +87,25 @@ public class RequestParametersTest {
 
   @Test
   public void testExtractSetOfParameters_empty_returnsEmpty() {
-    when(req.getParameterValues("spin")).thenReturn(new String[]{""});
+    when(req.getParameter("spin")).thenReturn("");
     assertThat(extractSetOfParameters(req, "spin")).isEmpty();
   }
 
   @Test
   public void testExtractSetOfParameters_oneValue_returnsValue() {
-    when(req.getParameterValues("spin")).thenReturn(new String[]{"bog"});
+    when(req.getParameter("spin")).thenReturn("bog");
     assertThat(extractSetOfParameters(req, "spin")).containsExactly("bog");
   }
 
   @Test
   public void testExtractSetOfParameters_multipleValues_returnsAll() {
-    when(req.getParameterValues("spin")).thenReturn(new String[]{"bog,gob"});
+    when(req.getParameter("spin")).thenReturn("bog,gob");
     assertThat(extractSetOfParameters(req, "spin")).containsExactly("bog", "gob");
   }
 
   @Test
   public void testExtractSetOfParameters_multipleValuesWithEmpty_removesEmpty() {
-    when(req.getParameterValues("spin")).thenReturn(new String[]{",bog,,gob,"});
+    when(req.getParameter("spin")).thenReturn(",bog,,gob,");
     assertThat(extractSetOfParameters(req, "spin")).containsExactly("bog", "gob");
   }
 
@@ -113,6 +114,53 @@ public class RequestParametersTest {
     when(req.getParameterValues("spin")).thenReturn(new String[]{"bog", "gob"});
     BadRequestException thrown =
         assertThrows(BadRequestException.class, () -> extractSetOfParameters(req, "spin"));
+    assertThat(thrown).hasMessageThat().contains("spin");
+  }
+
+  @Test
+  public void testExtractSetOfEnumParameters_notPresent_returnsEmpty() {
+    assertThat(extractSetOfEnumParameters(req, Club.class, "spin")).isEmpty();
+  }
+
+  @Test
+  public void testExtractSetOfEnumParameters_empty_returnsEmpty() {
+    when(req.getParameter("spin")).thenReturn("");
+    assertThat(extractSetOfEnumParameters(req, Club.class, "spin")).isEmpty();
+  }
+
+  @Test
+  public void testExtractSetOfEnumParameters_oneValue_returnsValue() {
+    when(req.getParameter("spin")).thenReturn("DANCE");
+    assertThat(extractSetOfEnumParameters(req, Club.class, "spin")).containsExactly(Club.DANCE);
+  }
+
+  @Test
+  public void testExtractSetOfEnumParameters_multipleValues_returnsAll() {
+    when(req.getParameter("spin")).thenReturn("DANCE,FLOOR");
+    assertThat(extractSetOfEnumParameters(req, Club.class, "spin"))
+        .containsExactly(Club.DANCE, Club.FLOOR);
+  }
+
+  @Test
+  public void testExtractSetOfEnumParameters_multipleValuesWithEmpty_removesEmpty() {
+    when(req.getParameter("spin")).thenReturn(",DANCE,,FLOOR,");
+    assertThat(extractSetOfEnumParameters(req, Club.class, "spin"))
+        .containsExactly(Club.DANCE, Club.FLOOR);
+  }
+
+  @Test
+  public void testExtractSetOfEnumParameters_multipleValues_caseInsensitive() {
+    when(req.getParameter("spin")).thenReturn("danCE,FlooR");
+    assertThat(extractSetOfEnumParameters(req, Club.class, "spin"))
+        .containsExactly(Club.DANCE, Club.FLOOR);
+  }
+
+  @Test
+  public void testExtractSetOfEnumParameters_multipleParameters_error() {
+    when(req.getParameterValues("spin")).thenReturn(new String[]{"DANCE", "FLOOR"});
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class, () -> extractSetOfEnumParameters(req, Club.class, "spin"));
     assertThat(thrown).hasMessageThat().contains("spin");
   }
 

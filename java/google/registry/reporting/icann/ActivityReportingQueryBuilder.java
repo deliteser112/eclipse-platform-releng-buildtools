@@ -16,13 +16,12 @@ package google.registry.reporting.icann;
 
 import static google.registry.reporting.icann.IcannReportingModule.DATASTORE_EXPORT_DATA_SET;
 import static google.registry.reporting.icann.IcannReportingModule.ICANN_REPORTING_DATA_SET;
+import static google.registry.reporting.icann.QueryBuilderUtils.getQueryFromFile;
+import static google.registry.reporting.icann.QueryBuilderUtils.getTableName;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Resources;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.util.ResourceUtils;
 import google.registry.util.SqlTemplate;
-import java.net.URL;
 import javax.inject.Inject;
 import org.joda.time.LocalDate;
 import org.joda.time.YearMonth;
@@ -44,8 +43,6 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
   @Config("projectId")
   String projectId;
 
-  @Inject YearMonth yearMonth;
-
   @Inject DnsCountQueryCoordinator dnsCountQueryCoordinator;
 
   @Inject
@@ -53,28 +50,19 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
 
   /** Returns the aggregate query which generates the activity report from the saved view. */
   @Override
-  public String getReportQuery() {
+  public String getReportQuery(YearMonth yearMonth) {
     return String.format(
         "#standardSQL\nSELECT * FROM `%s.%s.%s`",
-        projectId, ICANN_REPORTING_DATA_SET, getTableName(ACTIVITY_REPORT_AGGREGATION));
+        projectId, ICANN_REPORTING_DATA_SET, getTableName(ACTIVITY_REPORT_AGGREGATION, yearMonth));
   }
 
   /** Sets the month we're doing activity reporting for, and returns the view query map. */
   @Override
-  public ImmutableMap<String, String> getViewQueryMap() {
+  public ImmutableMap<String, String> getViewQueryMap(YearMonth yearMonth) {
+
     LocalDate firstDayOfMonth = yearMonth.toLocalDate(1);
     // The pattern-matching is inclusive, so we subtract 1 day to only report that month's data.
     LocalDate lastDayOfMonth = yearMonth.toLocalDate(1).plusMonths(1).minusDays(1);
-    return createQueryMap(firstDayOfMonth, lastDayOfMonth);
-  }
-
-  public void prepareForQuery() throws Exception {
-    dnsCountQueryCoordinator.prepareForQuery();
-  }
-
-  /** Returns a map from view name to its associated SQL query. */
-  private ImmutableMap<String, String> createQueryMap(
-      LocalDate firstDayOfMonth, LocalDate lastDayOfMonth) {
 
     ImmutableMap.Builder<String, String> queriesBuilder = ImmutableMap.builder();
     String operationalRegistrarsQuery =
@@ -83,10 +71,11 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
             .put("DATASTORE_EXPORT_DATA_SET", DATASTORE_EXPORT_DATA_SET)
             .put("REGISTRAR_TABLE", "Registrar")
             .build();
-    queriesBuilder.put(getTableName(REGISTRAR_OPERATING_STATUS), operationalRegistrarsQuery);
+    queriesBuilder.put(
+        getTableName(REGISTRAR_OPERATING_STATUS, yearMonth), operationalRegistrarsQuery);
 
-    String dnsCountsQuery = dnsCountQueryCoordinator.createQuery();
-    queriesBuilder.put(getTableName(DNS_COUNTS), dnsCountsQuery);
+    String dnsCountsQuery = dnsCountQueryCoordinator.createQuery(yearMonth);
+    queriesBuilder.put(getTableName(DNS_COUNTS, yearMonth), dnsCountsQuery);
 
     // Convert reportingMonth into YYYYMMDD format for Bigquery table partition pattern-matching.
     DateTimeFormatter logTableFormatter = DateTimeFormat.forPattern("yyyyMMdd");
@@ -99,55 +88,47 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
             .put("FIRST_DAY_OF_MONTH", logTableFormatter.print(firstDayOfMonth))
             .put("LAST_DAY_OF_MONTH", logTableFormatter.print(lastDayOfMonth))
             .build();
-    queriesBuilder.put(getTableName(MONTHLY_LOGS), monthlyLogsQuery);
+    queriesBuilder.put(getTableName(MONTHLY_LOGS, yearMonth), monthlyLogsQuery);
 
     String eppQuery =
         SqlTemplate.create(getQueryFromFile("epp_metrics.sql"))
             .put("PROJECT_ID", projectId)
             .put("ICANN_REPORTING_DATA_SET", ICANN_REPORTING_DATA_SET)
-            .put("MONTHLY_LOGS_TABLE", getTableName(MONTHLY_LOGS))
+            .put("MONTHLY_LOGS_TABLE", getTableName(MONTHLY_LOGS, yearMonth))
             // All metadata logs for reporting come from google.registry.flows.FlowReporter.
             .put(
                 "METADATA_LOG_PREFIX",
                 "google.registry.flows.FlowReporter recordToLogs: FLOW-LOG-SIGNATURE-METADATA")
             .build();
-    queriesBuilder.put(getTableName(EPP_METRICS), eppQuery);
+    queriesBuilder.put(getTableName(EPP_METRICS, yearMonth), eppQuery);
 
     String whoisQuery =
         SqlTemplate.create(getQueryFromFile("whois_counts.sql"))
             .put("PROJECT_ID", projectId)
             .put("ICANN_REPORTING_DATA_SET", ICANN_REPORTING_DATA_SET)
-            .put("MONTHLY_LOGS_TABLE", getTableName(MONTHLY_LOGS))
+            .put("MONTHLY_LOGS_TABLE", getTableName(MONTHLY_LOGS, yearMonth))
             .build();
-    queriesBuilder.put(getTableName(WHOIS_COUNTS), whoisQuery);
+    queriesBuilder.put(getTableName(WHOIS_COUNTS, yearMonth), whoisQuery);
 
     String aggregateQuery =
         SqlTemplate.create(getQueryFromFile("activity_report_aggregation.sql"))
             .put("PROJECT_ID", projectId)
             .put("ICANN_REPORTING_DATA_SET", ICANN_REPORTING_DATA_SET)
-            .put("REGISTRAR_OPERATING_STATUS_TABLE", getTableName(REGISTRAR_OPERATING_STATUS))
-            .put("DNS_COUNTS_TABLE", getTableName(DNS_COUNTS))
-            .put("EPP_METRICS_TABLE", getTableName(EPP_METRICS))
-            .put("WHOIS_COUNTS_TABLE", getTableName(WHOIS_COUNTS))
+            .put(
+                "REGISTRAR_OPERATING_STATUS_TABLE",
+                getTableName(REGISTRAR_OPERATING_STATUS, yearMonth))
+            .put("DNS_COUNTS_TABLE", getTableName(DNS_COUNTS, yearMonth))
+            .put("EPP_METRICS_TABLE", getTableName(EPP_METRICS, yearMonth))
+            .put("WHOIS_COUNTS_TABLE", getTableName(WHOIS_COUNTS, yearMonth))
             .put("DATASTORE_EXPORT_DATA_SET", DATASTORE_EXPORT_DATA_SET)
             .put("REGISTRY_TABLE", "Registry")
             .build();
-    queriesBuilder.put(getTableName(ACTIVITY_REPORT_AGGREGATION), aggregateQuery);
+    queriesBuilder.put(getTableName(ACTIVITY_REPORT_AGGREGATION, yearMonth), aggregateQuery);
 
     return queriesBuilder.build();
   }
 
-  /** Returns the table name of the query, suffixed with the yearMonth in _yyyyMM format. */
-  private String getTableName(String queryName) {
-    return String.format("%s_%s", queryName, DateTimeFormat.forPattern("yyyyMM").print(yearMonth));
-  }
-
-  /** Returns {@link String} for file in {@code reporting/sql/} directory. */
-  private static String getQueryFromFile(String filename) {
-    return ResourceUtils.readResourceUtf8(getUrl(filename));
-  }
-
-  private static URL getUrl(String filename) {
-    return Resources.getResource(ActivityReportingQueryBuilder.class, "sql/" + filename);
+  public void prepareForQuery(YearMonth yearMonth) throws Exception {
+    dnsCountQueryCoordinator.prepareForQuery(yearMonth);
   }
 }

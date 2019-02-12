@@ -14,25 +14,20 @@
 
 package google.registry.reporting.icann;
 
-import static google.registry.request.RequestParameters.extractOptionalEnumParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
+import static google.registry.request.RequestParameters.extractSetOfEnumParameters;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.bigquery.BigqueryConnection;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
 import java.util.Optional;
-import javax.inject.Qualifier;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.Duration;
-import org.joda.time.YearMonth;
-import org.joda.time.format.DateTimeFormat;
 
 /** Module for dependencies required by ICANN monthly transactions/activity reporting. */
 @Module
@@ -45,28 +40,26 @@ public final class IcannReportingModule {
   }
 
   static final String PARAM_SUBDIR = "subdir";
-  static final String PARAM_REPORT_TYPE = "reportType";
+  static final String PARAM_REPORT_TYPES = "reportTypes";
   static final String ICANN_REPORTING_DATA_SET = "icann_reporting";
   static final String DATASTORE_EXPORT_DATA_SET = "latest_datastore_export";
   static final String MANIFEST_FILE_NAME = "MANIFEST.txt";
-  private static final String DEFAULT_SUBDIR = "icann/monthly";
 
   /** Provides an optional subdirectory to store/upload reports to, extracted from the request. */
   @Provides
   @Parameter(PARAM_SUBDIR)
   static Optional<String> provideSubdirOptional(HttpServletRequest req) {
-    return extractOptionalParameter(req, PARAM_SUBDIR);
+    return extractOptionalParameter(req, PARAM_SUBDIR).map(IcannReportingModule::checkSubdirValid);
   }
 
-  /** Provides the subdirectory to store/upload reports to, defaults to icann/monthly/yearMonth. */
+  /** Provides the subdirectory to store/upload reports to, extracted from the request. */
   @Provides
-  @ReportingSubdir
-  static String provideSubdir(
-      @Parameter(PARAM_SUBDIR) Optional<String> subdirOptional, YearMonth yearMonth) {
-    String subdir =
-        subdirOptional.orElse(
-            String.format(
-                "%s/%s", DEFAULT_SUBDIR, DateTimeFormat.forPattern("yyyy-MM").print(yearMonth)));
+  @Parameter(PARAM_SUBDIR)
+  static String provideSubdir(HttpServletRequest req) {
+    return checkSubdirValid(extractRequiredParameter(req, PARAM_SUBDIR));
+  }
+
+  static String checkSubdirValid(String subdir) {
     if (subdir.startsWith("/") || subdir.endsWith("/")) {
       throw new BadRequestException(
           String.format("subdir must not start or end with a \"/\", got %s instead.", subdir));
@@ -76,17 +69,11 @@ public final class IcannReportingModule {
 
   /** Provides an optional reportType to store/upload reports to, extracted from the request. */
   @Provides
-  @Parameter(PARAM_REPORT_TYPE)
-  static Optional<ReportType> provideReportTypeOptional(HttpServletRequest req) {
-    return extractOptionalEnumParameter(req, ReportType.class, PARAM_REPORT_TYPE);
-  }
-
-  /** Provides a list of reportTypes specified. If absent, we default to both report types. */
-  @Provides
-  static ImmutableList<ReportType> provideReportTypes(
-      @Parameter(PARAM_REPORT_TYPE) Optional<ReportType> reportTypeOptional) {
-    return reportTypeOptional.map(ImmutableList::of)
-        .orElseGet(() -> ImmutableList.of(ReportType.ACTIVITY, ReportType.TRANSACTIONS));
+  @Parameter(PARAM_REPORT_TYPES)
+  static ImmutableSet<ReportType> provideReportTypes(HttpServletRequest req) {
+    ImmutableSet<ReportType> reportTypes =
+        extractSetOfEnumParameters(req, ReportType.class, PARAM_REPORT_TYPES);
+    return reportTypes.isEmpty() ? ImmutableSet.copyOf(ReportType.values()) : reportTypes;
   }
 
   /**
@@ -113,11 +100,4 @@ public final class IcannReportingModule {
       throw new RuntimeException("Could not initialize BigqueryConnection!", e);
     }
   }
-
-  /** Dagger qualifier for the subdirectory we stage to/upload from. */
-  @Qualifier
-  @Documented
-  @Retention(RUNTIME)
-  public @interface ReportingSubdir {}
 }
-

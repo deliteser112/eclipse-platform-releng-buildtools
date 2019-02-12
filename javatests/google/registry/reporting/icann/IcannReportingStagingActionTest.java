@@ -24,14 +24,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import google.registry.bigquery.BigqueryJobFailureException;
 import google.registry.reporting.icann.IcannReportingModule.ReportType;
+import google.registry.request.HttpException.BadRequestException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
+import java.util.Optional;
 import org.joda.time.YearMonth;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,6 +49,9 @@ public class IcannReportingStagingActionTest {
   FakeResponse response = new FakeResponse();
   IcannReportingStager stager = mock(IcannReportingStager.class);
   ReportingEmailUtils emailUtils = mock(ReportingEmailUtils.class);
+  YearMonth yearMonth = new YearMonth(2017, 6);
+  String subdir = "default/dir";
+  IcannReportingStagingAction action;
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -56,37 +62,36 @@ public class IcannReportingStagingActionTest {
 
   @Before
   public void setUp() throws Exception {
-    when(stager.stageReports(ReportType.ACTIVITY)).thenReturn(ImmutableList.of("a", "b"));
-    when(stager.stageReports(ReportType.TRANSACTIONS)).thenReturn(ImmutableList.of("c", "d"));
-  }
-
-  private static void assertUploadTaskEnqueued(String subDir) {
-    TaskMatcher matcher =
-        new TaskMatcher()
-            .url("/_dr/task/icannReportingUpload")
-            .method("POST")
-            .param("subdir", subDir);
-    assertTasksEnqueued("retryable-cron-tasks", matcher);
-  }
-
-  private IcannReportingStagingAction createAction(ImmutableList<ReportType> reportingMode) {
-    IcannReportingStagingAction action = new IcannReportingStagingAction();
-    action.yearMonth = new YearMonth(2017, 6);
-    action.subdir = "default/dir";
-    action.reportTypes = reportingMode;
+    action = new IcannReportingStagingAction();
+    action.yearMonth = yearMonth;
+    action.overrideSubdir = Optional.of(subdir);
+    action.reportTypes = ImmutableSet.of(ReportType.ACTIVITY, ReportType.TRANSACTIONS);
     action.response = response;
     action.stager = stager;
     action.retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
     action.emailUtils = emailUtils;
-    return action;
+
+    when(stager.stageReports(yearMonth, subdir, ReportType.ACTIVITY))
+        .thenReturn(ImmutableList.of("a", "b"));
+    when(stager.stageReports(yearMonth, subdir, ReportType.TRANSACTIONS))
+        .thenReturn(ImmutableList.of("c", "d"));
+  }
+
+  private static void assertUploadTaskEnqueued(String subdir) {
+    TaskMatcher matcher =
+        new TaskMatcher()
+            .url("/_dr/task/icannReportingUpload")
+            .method("POST")
+            .param("subdir", subdir);
+    assertTasksEnqueued("retryable-cron-tasks", matcher);
   }
 
   @Test
   public void testActivityReportingMode_onlyStagesActivityReports() throws Exception {
-    IcannReportingStagingAction action = createAction(ImmutableList.of(ReportType.ACTIVITY));
+    action.reportTypes = ImmutableSet.of(ReportType.ACTIVITY);
     action.run();
-    verify(stager).stageReports(ReportType.ACTIVITY);
-    verify(stager).createAndUploadManifest(ImmutableList.of("a", "b"));
+    verify(stager).stageReports(yearMonth, subdir, ReportType.ACTIVITY);
+    verify(stager).createAndUploadManifest(subdir, ImmutableList.of("a", "b"));
     verify(emailUtils)
         .emailResults(
             "ICANN Monthly report staging summary [SUCCESS]",
@@ -96,12 +101,10 @@ public class IcannReportingStagingActionTest {
 
   @Test
   public void testAbsentReportingMode_stagesBothReports() throws Exception {
-    IcannReportingStagingAction action =
-        createAction(ImmutableList.of(ReportType.ACTIVITY, ReportType.TRANSACTIONS));
     action.run();
-    verify(stager).stageReports(ReportType.ACTIVITY);
-    verify(stager).stageReports(ReportType.TRANSACTIONS);
-    verify(stager).createAndUploadManifest(ImmutableList.of("a", "b", "c", "d"));
+    verify(stager).stageReports(yearMonth, subdir, ReportType.ACTIVITY);
+    verify(stager).stageReports(yearMonth, subdir, ReportType.TRANSACTIONS);
+    verify(stager).createAndUploadManifest(subdir, ImmutableList.of("a", "b", "c", "d"));
     verify(emailUtils)
         .emailResults(
             "ICANN Monthly report staging summary [SUCCESS]",
@@ -111,15 +114,13 @@ public class IcannReportingStagingActionTest {
 
   @Test
   public void testRetryOnBigqueryException() throws Exception {
-    IcannReportingStagingAction action =
-        createAction(ImmutableList.of(ReportType.ACTIVITY, ReportType.TRANSACTIONS));
-    when(stager.stageReports(ReportType.TRANSACTIONS))
+    when(stager.stageReports(yearMonth, subdir, ReportType.TRANSACTIONS))
         .thenThrow(new BigqueryJobFailureException("Expected failure", null, null, null))
         .thenReturn(ImmutableList.of("c", "d"));
     action.run();
-    verify(stager, times(2)).stageReports(ReportType.ACTIVITY);
-    verify(stager, times(2)).stageReports(ReportType.TRANSACTIONS);
-    verify(stager).createAndUploadManifest(ImmutableList.of("a", "b", "c", "d"));
+    verify(stager, times(2)).stageReports(yearMonth, subdir, ReportType.ACTIVITY);
+    verify(stager, times(2)).stageReports(yearMonth, subdir, ReportType.TRANSACTIONS);
+    verify(stager).createAndUploadManifest(subdir, ImmutableList.of("a", "b", "c", "d"));
     verify(emailUtils)
         .emailResults(
             "ICANN Monthly report staging summary [SUCCESS]",
@@ -129,15 +130,14 @@ public class IcannReportingStagingActionTest {
 
   @Test
   public void testEmailEng_onMoreThanRetriableFailure() throws Exception {
-    IcannReportingStagingAction action =
-        createAction(ImmutableList.of(ReportType.ACTIVITY));
-    when(stager.stageReports(ReportType.ACTIVITY))
+    action.reportTypes = ImmutableSet.of(ReportType.ACTIVITY);
+    when(stager.stageReports(yearMonth, subdir, ReportType.ACTIVITY))
         .thenThrow(new BigqueryJobFailureException("Expected failure", null, null, null));
     RuntimeException thrown = assertThrows(RuntimeException.class, action::run);
     assertThat(thrown).hasCauseThat().isInstanceOf(BigqueryJobFailureException.class);
     assertThat(thrown).hasMessageThat().isEqualTo("Staging action failed.");
     assertThat(thrown).hasCauseThat().hasMessageThat().isEqualTo("Expected failure");
-    verify(stager, times(3)).stageReports(ReportType.ACTIVITY);
+    verify(stager, times(3)).stageReports(yearMonth, subdir, ReportType.ACTIVITY);
     verify(emailUtils)
         .emailResults(
             "ICANN Monthly report staging summary [FAILURE]",
@@ -145,5 +145,30 @@ public class IcannReportingStagingActionTest {
                 + " check logs for more details.");
     // Assert no upload task enqueued
     assertNoTasksEnqueued("retryable-cron-tasks");
+  }
+
+  @Test
+  public void testEmptySubDir_returnsDefaultSubdir() {
+    action.overrideSubdir = Optional.empty();
+    assertThat(action.getSubdir(new YearMonth(2017, 6))).isEqualTo("icann/monthly/2017-06");
+  }
+
+  @Test
+  public void testGivenSubdir_returnsManualSubdir() {
+    action.overrideSubdir = Optional.of("manual/dir");
+    assertThat(action.getSubdir(new YearMonth(2017, 6))).isEqualTo("manual/dir");
+  }
+
+  @Test
+  public void testInvalidSubdir_throwsException() {
+    action.overrideSubdir = Optional.of("/whoops");
+    BadRequestException thrown =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                action.getSubdir(new YearMonth(2017, 6)));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("subdir must not start or end with a \"/\", got /whoops instead.");
   }
 }
