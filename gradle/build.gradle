@@ -1,4 +1,18 @@
 buildscript {
+  ext.repositoryUrl = project.findProperty('repositoryUrl')
+  ext.publishUrl = project.findProperty('publishUrl')
+  repositories {
+    if (repositoryUrl == null) {
+      println "Using Maven central..."
+      mavenCentral()
+    } else {
+      maven {
+        println "Using GCS Maven repo..."
+        url repositoryUrl
+      }
+    }
+  }
+
   // Lock buildscript dependencies.
   configurations.classpath {
     resolutionStrategy.activateDependencyLocking()
@@ -57,7 +71,7 @@ task stage {
 }
 
 
-if (publishUrl) {
+if (publishUrl != null) {
   publishing {
     repositories {
       maven {
@@ -115,12 +129,12 @@ allprojects {
   if (project.name == 'services') return
 
   repositories {
-    if (rootProject.repositoryUrl) {
+    if (rootProject.repositoryUrl == null) {
+      mavenCentral()
+    } else {
       maven {
         url rootProject.repositoryUrl
       }
-    } else {
-      mavenCentral()
     }
   }
 

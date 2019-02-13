@@ -1,16 +1,3 @@
-if (repositoryUrl) {
-  println "Using repository $repositoryUrl for plugins"
-  pluginManagement {
-    repositories {
-      maven {
-        url repositoryUrl
-      }
-    }
-  }
-} else {
-  println "Using default repository for plugins"
-}
-
 rootProject.name = 'nomulus'
 
 include 'core'
