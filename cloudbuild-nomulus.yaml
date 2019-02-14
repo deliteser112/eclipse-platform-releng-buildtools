@@ -23,7 +23,7 @@ steps:
 - name: 'alpine'
   args: ['sh', '-c', 'cp -r nomulus-internal/* .']
 # Build the deployment files.
-- name: 'google/cloud-sdk'
+- name: 'gcr.io/${PROJECT_ID}/builder'
   args:
     - './gradlew'
     - 'stage'
