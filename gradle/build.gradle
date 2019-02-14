@@ -262,12 +262,10 @@ subprojects {
     if (project.path == ":services:default") {
       war {
         from("${coreResourcesDir}/google/registry/ui") {
-          include "registrar_bin*"
-          into("assets/js")
-          rename { String filename -> filename.replace("bin", "dbg") }
-        }
-        from("${coreResourcesDir}/google/registry/ui") {
-          include "registrar_bin*"
+          include "registrar_bin.js"
+          if (environment != "production") {
+            include "registrar_bin.js.map"
+          }
           into("assets/js")
         }
         from("${coreResourcesDir}/google/registry/ui/css") {

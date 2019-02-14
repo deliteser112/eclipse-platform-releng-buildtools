@@ -363,7 +363,6 @@ task soyToJava {
   }
 
   doLast {
-
     soyToJava('google.registry.tools.soy',
             "${generatedDir}/${toolsSoyDir}",
             fileTree(
@@ -393,6 +392,11 @@ task soyToJava {
 }
 
 task soyToJS {
+  def rootSoyDirectory = "${javaDir}/google/registry/ui/soy"
+  def outputSoyDirectory = "${generatedDir}/google/registry/ui/soy"
+  inputs.dir rootSoyDirectory
+  outputs.dir outputSoyDirectory
+
   ext.soyToJS = { outputDirectory, soyFiles , deps->
     javaexec {
       main = "com.google.template.soy.SoyToJsSrcCompiler"
@@ -410,13 +414,13 @@ task soyToJS {
   doLast {
     def rootSoyFiles =
       fileTree(
-        dir: "${javaDir}/google/registry/ui/soy",
+        dir: "${rootSoyDirectory}",
         include: ['*.soy'])
 
-    soyToJS("${generatedDir}/google/registry/ui/soy", rootSoyFiles, "")
-    soyToJS("${generatedDir}/google/registry/ui/soy/registrar",
+    soyToJS("${outputSoyDirectory}", rootSoyFiles, "")
+    soyToJS("${outputSoyDirectory}/registrar",
       files {
-        file("${javaDir}/google/registry/ui/soy/registrar").listFiles()
+        file("${rootSoyDirectory}/registrar").listFiles()
       }.filter {
         it.name.endsWith(".soy")
       }.filter{
@@ -477,17 +481,25 @@ task stylesheetsToJavascript {
 }
 
 task compileProdJS(type: JavaExec) {
-  // TODO(b/123647609) clean this up in general
-  // - have two separate tasks for dev/prod
-  // - the prod task uses the ADVANCED_OPTIMIZATION flag.
-  // - have this be a configurable task so we can change the inputs/outputs
+  def outputDir = "${resourcesDir}/google/registry/ui"
+  def nodeModulesDir = "${rootDir}/node_modules"
+  def cssSourceDir = "${resourcesDir}/google/registry/ui/css"
+  def jsSourceDir = "${javaDir}/google/registry/ui/js"
+  def externsDir = "${javaDir}/google/registry/ui/externs"
+  def soySourceDir = "${generatedDir}/google/registry/ui/soy"
+
+  [nodeModulesDir, cssSourceDir, jsSourceDir, externsDir, soySourceDir].each {
+    inputs.dir "${it}"
+  }
+  outputs.dir outputDir
+
   classpath configurations.closureCompiler
   main = 'com.google.javascript.jscomp.CommandLineRunner'
 
   def closureArgs = []
-  closureArgs << "--js_output_file=${resourcesDir}/google/registry/ui/registrar_bin.js"
+  closureArgs << "--js_output_file=${outputDir}/registrar_bin.js"
   // sourcemap-related configuration
-  closureArgs << "--create_source_map=${resourcesDir}/google/registry/ui/registrar_bin.js.map"
+  closureArgs << "--create_source_map=${outputDir}/registrar_bin.js.map"
   closureArgs << "--source_map_include_content=true"
   closureArgs << "--source_map_location_mapping=${rootDir}/|"
   closureArgs << "--output_wrapper=\"%output% //# sourceMappingURL=registrar_bin.js.map\""
@@ -498,13 +510,13 @@ task compileProdJS(type: JavaExec) {
   closureArgs << "--generate_exports"
 
   // manually include all the required js files
-  closureArgs << "--js=${rootDir}/node_modules/google-closure-library/**.js"
-  closureArgs << "--js=${rootDir}/node_modules/soyutils_usegoog.js"
-  closureArgs << "--js=${resourcesDir}/google/registry/ui/css/registrar_bin.css.js"
-  closureArgs << "--js=${javaDir}/google/registry/ui/js/**.js"
+  closureArgs << "--js=${nodeModulesDir}/google-closure-library/**.js"
+  closureArgs << "--js=${nodeModulesDir}/soyutils_usegoog.js"
+  closureArgs << "--js=${cssSourceDir}/registrar_bin.css.js"
+  closureArgs << "--js=${jsSourceDir}/**.js"
   // TODO(shicong) Verify the compiled JS file works in Alpha
-  closureArgs << "--js=${javaDir}/google/registry/ui/externs/json.js"
-  closureArgs << "--js=${generatedDir}/google/registry/ui/soy/**.js"
+  closureArgs << "--js=${externsDir}/json.js"
+  closureArgs << "--js=${soySourceDir}/**.js"
   args closureArgs
 }
 
