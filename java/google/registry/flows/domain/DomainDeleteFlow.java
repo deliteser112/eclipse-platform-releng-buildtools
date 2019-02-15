@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static google.registry.flows.FlowUtils.persistEntityChanges;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
@@ -81,7 +82,6 @@ import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.poll.PollMessage.OneTime;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.model.reporting.DomainTransactionRecord;
@@ -177,16 +177,13 @@ public final class DomainDeleteFlow implements TransactionalFlow {
             ? Duration.ZERO
             // By default, this should be 30 days of grace, and 5 days of pending delete.
             : redemptionGracePeriodLength.plus(pendingDeleteLength);
-    HistoryEntry historyEntry = buildHistoryEntry(
-        existingDomain, registry, now, durationUntilDelete, inAddGracePeriod);
+    HistoryEntry historyEntry =
+        buildHistoryEntry(existingDomain, registry, now, durationUntilDelete, inAddGracePeriod);
+    DateTime deletionTime = now.plus(durationUntilDelete);
     if (durationUntilDelete.equals(Duration.ZERO)) {
       builder.setDeletionTime(now).setStatusValues(null);
     } else {
-      DateTime deletionTime = now.plus(durationUntilDelete);
       DateTime redemptionTime = now.plus(redemptionGracePeriodLength);
-      PollMessage.OneTime deletePollMessage =
-          createDeletePollMessage(existingDomain, historyEntry, deletionTime);
-      entitiesToSave.add(deletePollMessage);
       asyncTaskEnqueuer.enqueueAsyncResave(
           existingDomain, now, ImmutableSortedSet.of(redemptionTime, deletionTime));
       builder.setDeletionTime(deletionTime)
@@ -196,13 +193,23 @@ public final class DomainDeleteFlow implements TransactionalFlow {
           .setGracePeriods(ImmutableSet.of(GracePeriod.createWithoutBillingEvent(
               GracePeriodStatus.REDEMPTION,
               redemptionTime,
-              clientId)))
-          .setDeletePollMessage(Key.create(deletePollMessage));
+              clientId)));
       // Note: The expiration time is unchanged, so if it's before the new deletion time, there will
       // be a "phantom autorenew" where the expiration time advances but no billing event or poll
       // message are produced (since we are ending the autorenew recurrences at "now" below).  For
       // now at least this is working as intended.
     }
+
+    // Enqueue the deletion poll message if the delete is asynchronous or if requested by a
+    // superuser (i.e. the registrar didn't request this delete and thus should be notified even if
+    // it is synchronous).
+    if (!durationUntilDelete.equals(Duration.ZERO) || isSuperuser) {
+      PollMessage.OneTime deletePollMessage =
+          createDeletePollMessage(existingDomain, historyEntry, deletionTime);
+      entitiesToSave.add(deletePollMessage);
+      builder.setDeletePollMessage(Key.create(deletePollMessage));
+    }
+
     DomainBase newDomain = builder.build();
     updateForeignKeyIndexDeletionTime(newDomain);
     handlePendingTransferOnDelete(existingDomain, newDomain, now, historyEntry);
@@ -296,15 +303,26 @@ public final class DomainDeleteFlow implements TransactionalFlow {
         .build();
   }
 
-  private OneTime createDeletePollMessage(
-      DomainBase existingResource, HistoryEntry historyEntry, DateTime deletionTime) {
+  private PollMessage.OneTime createDeletePollMessage(
+      DomainBase existingDomain, HistoryEntry historyEntry, DateTime deletionTime) {
+    Optional<MetadataExtension> metadataExtension =
+        eppInput.getSingleExtension(MetadataExtension.class);
+    boolean hasMetadataMessage =
+        metadataExtension.isPresent() && !isNullOrEmpty(metadataExtension.get().getReason());
+    String message =
+        isSuperuser
+            ? (hasMetadataMessage
+                ? metadataExtension.get().getReason()
+                : "Deleted by registry administrator.")
+            : "Domain deleted.";
     return new PollMessage.OneTime.Builder()
-        .setClientId(existingResource.getCurrentSponsorClientId())
+        .setClientId(existingDomain.getCurrentSponsorClientId())
         .setEventTime(deletionTime)
-        .setMsg("Domain deleted.")
-        .setResponseData(ImmutableList.of(
-            DomainPendingActionNotificationResponse.create(
-                existingResource.getFullyQualifiedDomainName(), true, trid, deletionTime)))
+        .setMsg(message)
+        .setResponseData(
+            ImmutableList.of(
+                DomainPendingActionNotificationResponse.create(
+                    existingDomain.getFullyQualifiedDomainName(), true, trid, deletionTime)))
         .setParent(historyEntry)
         .build();
   }

@@ -406,8 +406,6 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
                 .plus(Registry.get("tld").getRedemptionGracePeriodLength())
                 .plus(Registry.get("tld").getPendingDeleteLength()))
         .and()
-        .hasDeletePollMessage()
-        .and()
         .hasExactlyStatusValues(StatusValue.INACTIVE, StatusValue.PENDING_DELETE)
         .and()
         .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_DELETE);
@@ -427,13 +425,20 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
                 clock.nowUtc().plus(Registry.get("tld").getRedemptionGracePeriodLength()),
                 "TheRegistrar",
                 null));
+    assertDeletionPollMessageFor(resource, "Domain deleted.");
+  }
+
+  private void assertDeletionPollMessageFor(DomainBase domain, String expectedMessage) {
     // There should be a future poll message at the deletion time. The previous autorenew poll
     // message should now be deleted.
-    DateTime deletionTime = resource.getDeletionTime();
+    assertAboutDomains().that(domain).hasDeletePollMessage();
+    DateTime deletionTime = domain.getDeletionTime();
     assertThat(getPollMessages("TheRegistrar", deletionTime.minusMinutes(1))).isEmpty();
     assertThat(getPollMessages("TheRegistrar", deletionTime)).hasSize(1);
-    assertThat(resource.getDeletePollMessage())
+    assertThat(domain.getDeletePollMessage())
         .isEqualTo(Key.create(getOnlyPollMessage("TheRegistrar")));
+    PollMessage.OneTime deletePollMessage = ofy().load().key(domain.getDeletePollMessage()).now();
+    assertThat(deletePollMessage.getMsg()).isEqualTo(expectedMessage);
   }
 
   @Test
@@ -1069,6 +1074,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
                 clock.nowUtc().plus(standardDays(15)),
                 "TheRegistrar",
                 null));
+    assertDeletionPollMessageFor(resource, "Deleted by registry administrator.");
   }
 
   @Test
@@ -1089,6 +1095,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         .and()
         .hasDeletionTime(clock.nowUtc().plus(standardDays(4)));
     assertThat(resource.getGracePeriods()).isEmpty();
+    assertDeletionPollMessageFor(resource, "Deleted by registry administrator.");
   }
 
   @Test
@@ -1115,6 +1122,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
                 clock.nowUtc().plus(standardDays(15)),
                 "TheRegistrar",
                 null));
+    assertDeletionPollMessageFor(resource, "Deleted by registry administrator.");
   }
 
   @Test
@@ -1128,6 +1136,23 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
     assertThat(reloadResourceByForeignKey()).isNull();
+    DomainBase resavedDomain = ofy().load().entity(domain).now();
+    assertDeletionPollMessageFor(resavedDomain, "Deleted by registry administrator.");
+  }
+
+  @Test
+  public void testSuccess_immediateDelete_withSuperuserAndMetadataExtension() throws Exception {
+    eppRequestSource = EppRequestSource.TOOL;
+    setEppInput(
+        "domain_delete_superuser_and_metadata_extension.xml",
+        ImmutableMap.of("REDEMPTION_GRACE_PERIOD_DAYS", "0", "PENDING_DELETE_DAYS", "0"));
+    setUpSuccessfulTest();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
+    assertThat(reloadResourceByForeignKey()).isNull();
+    assertDeletionPollMessageFor(
+        ofy().load().entity(domain).now(), "Deleted by registry administrator: Broke world.");
   }
 
   @Test
