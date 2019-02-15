@@ -367,7 +367,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         "--fax=null",
         "--email=null",
         "--url=null",
-        "--drive_id=null",
+        "--drive_folder_id=null",
         "--force",
         "NewRegistrar");
 
@@ -411,7 +411,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         "--fax=",
         "--email=",
         "--url=",
-        "--drive_id=",
+        "--drive_folder_id=",
         "--force",
         "NewRegistrar");
 
