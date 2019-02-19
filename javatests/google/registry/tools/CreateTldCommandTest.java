@@ -99,18 +99,6 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testSuccess_initialRenewBillingCostFlag() throws Exception {
-    runCommandForced(
-        "--initial_renew_billing_cost=\"USD 42.42\"",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
-
-    assertThat(Registry.get("xn--q9jyb4c").getStandardRenewCost(DateTime.now(UTC)))
-        .isEqualTo(Money.of(USD, 42.42));
-  }
-
-  @Test
   public void testSuccess_initialTldStateFlag() throws Exception {
     runCommandForced(
         "--initial_tld_state=GENERAL_AVAILABILITY",
@@ -118,7 +106,18 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getTldState(DateTime.now(UTC)))
-        .isEqualTo(TldState.GENERAL_AVAILABILITY);
+        .isEqualTo(GENERAL_AVAILABILITY);
+  }
+
+  @Test
+  public void testSuccess_initialRenewBillingCostFlag() throws Exception {
+    runCommandForced(
+        "--initial_renew_billing_cost=\"USD 42.42\"",
+        "--roid_suffix=Q9JYB4C",
+        "--dns_writers=VoidDnsWriter",
+        "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getStandardRenewCost(DateTime.now(UTC)))
+        .isEqualTo(Money.of(USD, 42.42));
   }
 
   @Test
