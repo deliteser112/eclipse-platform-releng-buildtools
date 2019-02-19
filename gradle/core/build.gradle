@@ -609,6 +609,8 @@ test {
   // This setting makes the build take 35 minutes, without it it takes about 10.
   // forkEvery 1
 
+  forkEvery 1
+
   // Sets the maximum number of test executors that may exist at the same time.
   maxParallelForks 5
 
