@@ -17,5 +17,19 @@ apply from: '../dependencies.gradle'
 dependencies {
   def deps = dependencyMap
   compile deps['com.google.guava:guava']
+  compile deps['com.google.auto.value:auto-value-annotations']
+  compile deps['com.google.cloud:google-cloud-storage']
+  compile deps['org.apache.commons:commons-text']
+  compile deps['com.google.auth:google-auth-library-credentials']
+  compile deps['com.google.template:soy']
+  annotationProcessor deps['com.google.auto.value:auto-value']
   testCompile deps['com.google.truth:truth']
+  testCompile deps['com.google.truth.extensions:truth-java8-extension']
+  testCompile deps['org.mockito:mockito-all']
+}
+
+gradle.projectsEvaluated {
+  tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:unchecked"
+  }
 }

@@ -26,7 +26,24 @@ plugins {
 apply plugin: google.registry.gradle.plugin.GcsReportUploaderPlugin
 
 gcsReportUploader {
-  bucket = 'my-bucket'
+  // Set the bucket here to upload build results to a GCS bucket.
+  // e.g. -P gcsBucket=domain-registry-alpha-build-result-test
+  //
+  // If no bucket it set - the uploading will be skipped.
+  bucket = gcsBucket
+
+  // The location of the file containing the OAuth2 Google Cloud credentials.
+  //
+  // The file can contain a Service Account key file in JSON format from the
+  // Google Developers Console or a stored user credential using the format
+  // supported by the Cloud SDK.
+  //
+  // If no file is given - the default credentials are used.
+  credentialsFile = gcsCredentialsFile
+
+  // If set to 'yes', each file will be uploaded to GCS in a separate thread.
+  // This is MUCH faster.
+  multithreadedUpload = gcsMultithreadedUpload
 }
 
 apply from: 'dependencies.gradle'

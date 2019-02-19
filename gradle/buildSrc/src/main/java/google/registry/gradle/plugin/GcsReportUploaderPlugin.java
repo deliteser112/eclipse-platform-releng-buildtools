@@ -36,8 +36,6 @@ public class GcsReportUploaderPlugin implements Plugin<Project> {
           task.setGroup("uploads");
         });
 
-    for (Project subProject : project.getAllprojects()) {
-      subProject.getTasks().all(reportUploader::addTask);
-    }
+    reportUploader.setProject(project);
   }
 }
