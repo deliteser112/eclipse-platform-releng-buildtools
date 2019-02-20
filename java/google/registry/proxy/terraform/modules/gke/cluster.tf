@@ -33,8 +33,8 @@ resource "google_container_cluster" "proxy_cluster" {
     }
 
     management {
-      auto_repair  = true
-      auto_upgrade = true
+      auto_repair  = "true"
+      auto_upgrade = "true"
     }
   }
 }

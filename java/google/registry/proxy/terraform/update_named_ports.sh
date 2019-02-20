@@ -25,6 +25,6 @@ CANARY_PORTS="whois-canary:31001,epp-canary:31002,"\
 while read line
 do
   gcloud compute instance-groups set-named-ports --named-ports \
-    ${PROD_PORTS},${CANARY_PORTS} $line
+    "${PROD_PORTS}","${CANARY_PORTS}" "$line"
 done < <(terraform output proxy_instance_groups | awk '{print $3}' | \
   awk -F '/' '{print "--project", $7, "--zone", $9, $11}')
