@@ -11,6 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Collecting report files from a travis build to GCS requires setting the
+# "CREDZ" and "REPORT_GCS_BUCKET" environment variables in your travis
+# repository.
+#
+# The report bucket id should just be the bucket id without any scheme or path
+# (e.g. "my-bucket-name", not "gcs://my-bucket-name").  You'll want to select
+# "Display value in build log", otherwise travis will hide the bucket name in
+# the URL that is displayed.
+#
+# The CREDZ variable should be the contents of a json credentials file for
+# a service account with write access to the bucket, escaped for bash shell
+# usage (usually just wrapping it in single quotes should suffice).
 
 language: java
 install: true
@@ -41,4 +54,6 @@ env:
 # directory.
 # The "travis_wait 45" lets our build spend up to 45 minutes without writing
 # output, instead of the default 10.
-script: cd gradle && chmod 755 ./gradlew && travis_wait 45 ./gradlew build
+# See notes on the CREDZ and REPORT_GCS_BUCKET environment variable in the
+# comments at the top of the file.
+script: cd gradle && echo "$CREDZ" >credz.json && chmod 755 ./gradlew && travis_wait 45 ./gradlew build  -P gcsBucket="$REPORT_GCS_BUCKET" -P gcsCredentialsFile=credz.json -P gcsMultithreadedUpload=yes
