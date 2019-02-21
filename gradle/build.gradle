@@ -127,6 +127,20 @@ ext.processDependencies = { Set<ResolvedDependency> deps ->
   }
 }
 
+ext.constructMavenCoordinate = { deps, distinctMetadata ->
+  if (deps.isEmpty()) {
+    return
+  }
+  deps.each { ResolvedDependency dep ->
+    if (dep.moduleGroup == "nomulus") {
+      return
+    }
+    def artifactId = "${dep.moduleGroup}:${dep.moduleName}:${dep.moduleVersion}"
+    distinctMetadata.add(artifactId)
+    rootProject.constructMavenCoordinate(dep.children, distinctMetadata)
+  }
+}
+
 allprojects {
   // Skip no-op project
   if (project.name == 'services') return
@@ -157,54 +171,32 @@ allprojects {
     }
   }
 
-  ext.urlExists = { url ->
-    def connection = (HttpURLConnection) url.openConnection()
-    connection.setRequestMethod("HEAD")
-    connection.connect()
-    if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-      return true
-    } else {
-      return false
-    }
-  }
-
-  ext.writeMetadata = { resolvedArtifact, url, gitRepositoryPath ->
-    def groupId = resolvedArtifact.moduleVersion.id.group
-    def artifactId = resolvedArtifact.moduleVersion.id.name
-    def version = resolvedArtifact.moduleVersion.id.version
-    def relativeFileName =
-        [groupId, artifactId, 'README.domainregistry'].join('/')
-    def metadataFile = new File(gitRepositoryPath, relativeFileName)
-    metadataFile.parentFile.mkdirs()
-    def writer = metadataFile.newWriter()
-    writer << "Name: ${artifactId}\n"
-    writer << "Url: ${url}\n"
-    writer << "Version: ${version}\n"
-    writer.close()
-  }
-
-// This task generates a metadata file for each resolved dependency artifact.
-// The file contains the name, url and version for the artifact.
-  task generateDependencyMetadata {
+  // This task generates a Maven coordinate for each resolved dependency and
+  // stores them in the given file.
+  task generateMavenCoordinateForDependency {
     doLast {
-      def distinctResolvedArtifacts = project.ext.getDistinctResolvedArtifacts()
-      def defaultLayout = new org.sonatype.aether.util.layout.MavenDefaultLayout()
+      def allconfigs = []
+      def distinctMetadata = [] as Set
+      if (!rootProject.mavenCoordinateFile) {
+        throw new IllegalArgumentException("mavenCoordinateFile must be set")
+      }
+      def outputFile = new File(rootProject.mavenCoordinateFile)
 
-      distinctResolvedArtifacts.values().each { resolvedArtifact ->
-        def artifact = new org.sonatype.aether.util.artifact.DefaultArtifact(
-            resolvedArtifact.id.componentIdentifier.toString())
-        for (repository in project.repositories) {
-          def mavenRepository = (MavenArtifactRepository) repository
-          def repositoryUri = URI.create(mavenRepository.url.toString())
-          def artifactUri = repositoryUri.resolve(defaultLayout.getPath(artifact))
-          if (project.ext.urlExists(artifactUri.toURL())) {
-            project.ext.writeMetadata(
-                resolvedArtifact,
-                artifactUri.toURL(),
-                project.findProperty('privateRepository') + "/${project.name}")
-            break
-          }
+      allconfigs.addAll(configurations)
+      // This only adds buildscript dependencies declare in this project.
+      allconfigs.addAll(buildscript.configurations)
+
+      allconfigs.each {
+        if (!it.isCanBeResolved()) {
+          return
         }
+        rootProject.constructMavenCoordinate(
+          it.resolvedConfiguration.firstLevelModuleDependencies,
+          distinctMetadata)
+      }
+
+      distinctMetadata.each { metadata ->
+        outputFile.append("${metadata}\n")
       }
     }
   }
