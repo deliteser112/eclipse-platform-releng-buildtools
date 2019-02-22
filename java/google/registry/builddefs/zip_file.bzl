@@ -178,11 +178,11 @@ def _zip_file(ctx):
     else:
         # TODO(kchodorow): remove this once Bazel 4.0+ is required.
         script = ctx.new_file(ctx.configuration.bin_dir, "%s.sh" % ctx.label.name)
-    ctx.file_action(output = script, content = "\n".join(cmd), executable = True)
+    ctx.actions.write(output = script, content = "\n".join(cmd), is_executable = True)
     inputs = [ctx.file._zipper]
     inputs += [dep.zip_file for dep in ctx.attr.deps]
     inputs += srcs.to_list()
-    ctx.action(
+    ctx.actions.run(
         inputs = inputs,
         outputs = [ctx.outputs.out],
         executable = script,
@@ -251,6 +251,6 @@ zip_file = rule(
         "deps": attr.label_list(providers = ["zip_file"]),
         "exclude": attr.string_list(),
         "mappings": attr.string_dict(),
-        "_zipper": attr.label(default = Label(ZIPPER), single_file = True),
+        "_zipper": attr.label(default = Label(ZIPPER), allow_single_file = True),
     },
 )

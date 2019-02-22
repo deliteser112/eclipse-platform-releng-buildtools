@@ -48,10 +48,10 @@ def _impl(ctx):
         'cd "${repo}"',
         'rm -rf "${tmp}"',
     ]
-    ctx.file_action(
+    ctx.actions.write(
         output = ctx.outputs.executable,
         content = "\n".join(cmd),
-        executable = True,
+        is_executable = True,
     )
     return struct(runfiles = ctx.runfiles([ctx.file.src, ctx.file._zipper]))
 
@@ -61,6 +61,6 @@ zip_contents_test = rule(
     attrs = {
         "src": attr.label(allow_single_file = True),
         "contents": attr.string_dict(),
-        "_zipper": attr.label(default = Label(ZIPPER), single_file = True),
+        "_zipper": attr.label(default = Label(ZIPPER), allow_single_file = True),
     },
 )
