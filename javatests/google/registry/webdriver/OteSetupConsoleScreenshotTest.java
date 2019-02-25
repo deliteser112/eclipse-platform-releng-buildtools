@@ -24,12 +24,10 @@ import google.registry.server.RegistryTestServer;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.openqa.selenium.By;
-import org.openqa.selenium.Dimension;
 
 /** Registrar Console Screenshot Differ tests. */
-@RunWith(JUnit4.class)
+@RunWith(RepeatableRunner.class)
 public class OteSetupConsoleScreenshotTest {
 
   @Rule
@@ -46,7 +44,6 @@ public class OteSetupConsoleScreenshotTest {
 
   @Test
   public void get_owner_fails() throws Throwable {
-    driver.manage().window().setSize(new Dimension(1200, 2000));
     driver.get(server.getUrl("/registrar-ote-setup"));
     driver.waitForElement(By.tagName("h1"));
     driver.diffPage("unauthorized");
@@ -55,7 +52,6 @@ public class OteSetupConsoleScreenshotTest {
   @Test
   public void get_admin_succeeds() throws Throwable {
     server.setIsAdmin(true);
-    driver.manage().window().setSize(new Dimension(1200, 2000));
     driver.get(server.getUrl("/registrar-ote-setup"));
     driver.waitForElement(By.tagName("h1"));
     driver.diffPage("formEmpty");
@@ -71,7 +67,6 @@ public class OteSetupConsoleScreenshotTest {
   @Test
   public void get_admin_fails_badEmail() throws Throwable {
     server.setIsAdmin(true);
-    driver.manage().window().setSize(new Dimension(1200, 2000));
     driver.get(server.getUrl("/registrar-ote-setup"));
     driver.waitForElement(By.tagName("h1"));
     driver.findElement(By.id("clientId")).sendKeys("acmereg");

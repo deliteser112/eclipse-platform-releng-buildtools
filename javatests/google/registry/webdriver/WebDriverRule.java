@@ -14,6 +14,7 @@
 
 package google.registry.webdriver;
 
+import static com.google.common.io.Resources.getResource;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.text.StringEscapeUtils.escapeEcmaScript;
 
@@ -29,6 +30,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.HasCapabilities;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
@@ -59,6 +61,12 @@ public final class WebDriverRule extends ExternalResource
   // number of pixels that vary (usually on the corners of "rounded" buttons or similar)
   private static final int MAX_PIXEL_DIFF = 0;
 
+  // Default size of the browser window when taking screenshot. Having a fixed size of window can
+  // help make visual regression test deterministic.
+  private static final Dimension DEFAULT_WINDOW_SIZE = new Dimension(1200, 2000);
+
+  private static final String GOLDENS_PATH =
+      getResource(WebDriverRule.class, "scuba_goldens/chrome-linux").getFile();
 
   private WebDriver driver;
   private WebDriverPlusScreenDiffer webDriverPlusScreenDiffer;
@@ -82,20 +90,21 @@ public final class WebDriverRule extends ExternalResource
   @Override
   protected void before() {
     webDriverPlusScreenDiffer =
-        new ChromeWebDriverPlusScreenDiffer();
+        new ChromeWebDriverPlusScreenDiffer(GOLDENS_PATH, MAX_COLOR_DIFF, MAX_PIXEL_DIFF);
     driver = webDriverPlusScreenDiffer.getWebDriver();
     // non-zero timeout so findByElement will wait for the element to appear
     driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+    driver.manage().window().setSize(DEFAULT_WINDOW_SIZE);
   }
 
   @Override
   protected void after() {
+    webDriverPlusScreenDiffer.verifyAndQuit();
     try {
       driver.quit();
     } finally {
       driver = null;
     }
-    webDriverPlusScreenDiffer.verifyAndQuit();
   }
 
   /** @see #get(String) */

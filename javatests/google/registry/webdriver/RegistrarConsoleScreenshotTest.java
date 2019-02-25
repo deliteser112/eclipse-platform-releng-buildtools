@@ -30,12 +30,11 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 
 /** Registrar Console Screenshot Differ tests. */
-@RunWith(JUnit4.class)
+@RunWith(RepeatableRunner.class)
 public class RegistrarConsoleScreenshotTest {
 
   @Rule
@@ -56,7 +55,6 @@ public class RegistrarConsoleScreenshotTest {
 
   @Test
   public void index_owner() throws Throwable {
-    driver.manage().window().setSize(new Dimension(1200, 2000));
     driver.get(server.getUrl("/registrar"));
     driver.waitForElement(By.tagName("h1"));
     driver.diffPage("page");
@@ -66,7 +64,6 @@ public class RegistrarConsoleScreenshotTest {
   @Test
   public void index_adminAndOwner() throws Throwable {
     server.setIsAdmin(true);
-    driver.manage().window().setSize(new Dimension(1200, 2000));
     driver.get(server.getUrl("/registrar"));
     driver.waitForElement(By.tagName("h1"));
     driver.diffPage("page");
@@ -76,7 +73,6 @@ public class RegistrarConsoleScreenshotTest {
   @Test
   public void index_admin() throws Throwable {
     server.setIsAdmin(true);
-    driver.manage().window().setSize(new Dimension(1200, 2000));
     // To make sure we're only ADMIN (and not also "OWNER"), we switch to the NewRegistrar we
     // aren't in the contacts of
     driver.get(server.getUrl("/registrar?clientId=NewRegistrar"));
