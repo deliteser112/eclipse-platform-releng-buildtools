@@ -31,6 +31,7 @@ import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.registry.Registry;
+import java.math.BigDecimal;
 import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.money.CurrencyUnit;
@@ -56,9 +57,10 @@ public final class DomainPricingLogic {
       throws EppException {
     CurrencyUnit currency = registry.getCurrency();
 
-    // Get the vanilla create cost.
-    BaseFee createFeeOrCredit =
-        Fee.create(getDomainCreateCost(domainName, date, years).getAmount(), FeeType.CREATE);
+    // Get the vanilla create cost, or 0 for anchor tenants.
+    BigDecimal domainCreateCost =
+        isAnchorTenant ? BigDecimal.ZERO : getDomainCreateCost(domainName, date, years).getAmount();
+    BaseFee createFeeOrCredit = Fee.create(domainCreateCost, FeeType.CREATE);
 
     // Create fees for the cost and the EAP fee, if any.
     Fee eapFee = registry.getEapFeeFor(date);

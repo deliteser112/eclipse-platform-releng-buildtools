@@ -214,16 +214,18 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
       String domainTld, ImmutableSet<BillingEvent.Flag> expectedBillingFlags) throws Exception {
     DomainBase domain = reloadResourceByForeignKey();
 
-    // Calculate the total cost.
-    Money cost =
-        isDomainPremium(getUniqueIdFromCommand(), clock.nowUtc())
-            ? Money.of(USD, 200)
-            : Money.of(USD, 26);
+    boolean isAnchorTenant = expectedBillingFlags.contains(ANCHOR_TENANT);
+    // Calculate the total creation cost.
+    Money creationCost =
+        isAnchorTenant
+            ? Money.of(USD, 0)
+            : isDomainPremium(getUniqueIdFromCommand(), clock.nowUtc())
+                ? Money.of(USD, 200)
+                : Money.of(USD, 26);
     Money eapFee =
         Money.of(
             Registry.get(domainTld).getCurrency(),
             Registry.get(domainTld).getEapFeeFor(clock.nowUtc()).getCost());
-    boolean isAnchorTenant = expectedBillingFlags.contains(ANCHOR_TENANT);
     DateTime billingTime =
         isAnchorTenant
             ? clock.nowUtc().plus(Registry.get(domainTld).getAnchorTenantAddGracePeriodLength())
@@ -244,7 +246,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .setReason(Reason.CREATE)
             .setTargetId(getUniqueIdFromCommand())
             .setClientId("TheRegistrar")
-            .setCost(cost)
+            .setCost(creationCost)
             .setPeriodYears(2)
             .setEventTime(clock.nowUtc())
             .setBillingTime(billingTime)
