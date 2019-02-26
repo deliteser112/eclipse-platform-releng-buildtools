@@ -254,8 +254,10 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
       Optional<DomainTransferRequestSuperuserExtension> superuserExtension)
       throws EppException {
     verifyNoDisallowedStatuses(existingDomain, DISALLOWED_STATUSES);
-    verifyAuthInfoPresentForResourceTransfer(authInfo);
-    verifyAuthInfo(authInfo.get(), existingDomain);
+    if (!isSuperuser) {
+      verifyAuthInfoPresentForResourceTransfer(authInfo);
+      verifyAuthInfo(authInfo.get(), existingDomain);
+    }
     // Verify that the resource does not already have a pending transfer.
     if (TransferStatus.PENDING.equals(existingDomain.getTransferData().getTransferStatus())) {
       throw new AlreadyPendingTransferException(targetId);
