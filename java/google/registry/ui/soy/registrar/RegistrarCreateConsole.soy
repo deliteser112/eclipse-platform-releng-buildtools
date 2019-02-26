@@ -31,7 +31,7 @@
   {@param? ianaId: int} /** If set - an initial value for the IANA ID. */
   {@param? referralEmail: string} /** If set - an initial value for the ICANN referral email. */
   {@param? driveId: string} /** If set - an initial value for the DRIVE ID. */
-  {@param? email: string} /** If set - an initial value for the email. */
+  {@param? consoleUserEmail: string} /** If set - the user to be given console access. */
   {@param? street1: string} /** If set - the first line of the street address. */
   {@param? street2: string} /** If set - the second line of the street address. */
   {@param? street3: string} /** If set - the third line of the street address. */
@@ -63,7 +63,7 @@
  */
 {template .resultSuccess}
   {@param clientId: string} /** The clientId of the registrar. */
-  {@param email: string} /** The email of the account with web access to the registrar. */
+  {@param consoleUserEmail: string} /** The email of the account with web access to the registrar. */
   {@param passcode: string} /** The phone passcode for this registrar. */
   {@param password: string} /** The password given for the created registrars. */
   {@param username: string} /** Arbitrary username to display. */
@@ -120,7 +120,7 @@
             </textarea>
           </td>
       </table>
-      Gave <label>{$email}</label> web-console access to this registrar.
+      Gave <label>{$consoleUserEmail}</label> web-console access to this registrar.
       <h1>You may want to set additional values using the web console:</h1>
       <span class="{css('description')}">
         <ol type="1">
@@ -147,7 +147,7 @@
   {@param? ianaId: int} /** If set - an initial value for the IANA ID. */
   {@param? referralEmail: string} /** If set - an initial value for the ICANN referral email. */
   {@param? driveId: string} /** If set - an initial value for the DRIVE ID. */
-  {@param? email: string} /** If set - an initial value for the email. */
+  {@param? consoleUserEmail: string} /** If set - the user to be given console access. */
   {@param? street1: string} /** If set - the first line of the street address. */
   {@param? street2: string} /** If set - the second line of the street address. */
   {@param? street3: string} /** If set - the third line of the street address. */
@@ -235,8 +235,8 @@
       {/call}
       {call registry.soy.forms.inputFieldRowWithValue}
         {param label: 'Delegated email' /}
-        {param name: 'email' /}
-        {param value: $email /}
+        {param name: 'consoleUserEmail' /}
+        {param value: $consoleUserEmail /}
         {param placeholder: 'required' /}
         {param description kind="text"}
           The email we created for the registrar.

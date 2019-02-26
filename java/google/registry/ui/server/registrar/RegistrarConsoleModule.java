@@ -74,6 +74,12 @@ public final class RegistrarConsoleModule {
   }
 
   @Provides
+  @Parameter("consoleUserEmail")
+  static Optional<String> provideOptionalConsoleUserEmail(HttpServletRequest req) {
+    return extractOptionalParameter(req, "consoleUserEmail");
+  }
+
+  @Provides
   @Parameter("email")
   static Optional<String> provideOptionalEmail(HttpServletRequest req) {
     return extractOptionalParameter(req, "email");

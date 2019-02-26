@@ -104,7 +104,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.ianaId = Optional.empty();
     action.referralEmail = Optional.empty();
     action.driveId = Optional.empty();
-    action.email = Optional.empty();
+    action.consoleUserEmail = Optional.empty();
 
     action.street1 = Optional.empty();
     action.optionalStreet2 = Optional.empty();
@@ -162,7 +162,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.ianaId = Optional.of(12321);
     action.referralEmail = Optional.of("icann@example.com");
     action.driveId = Optional.of("drive-id");
-    action.email = Optional.of("myclientid@registry.example");
+    action.consoleUserEmail = Optional.of("myclientid@registry.example");
 
     action.street1 = Optional.of("my street");
     action.city = Optional.of("my city");
@@ -196,6 +196,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     assertThat(registrar.getDriveFolderId()).isEqualTo("drive-id");
     assertThat(registrar.getIanaIdentifier()).isEqualTo(12321L);
     assertThat(registrar.getIcannReferralEmail()).isEqualTo("icann@example.com");
+    assertThat(registrar.getEmailAddress()).isEqualTo("icann@example.com");
     assertThat(registrar.testPassword("abcdefghijklmnop")).isTrue();
     assertThat(registrar.getPhonePasscode()).isEqualTo("31415");
     assertThat(registrar.getState()).isEqualTo(Registrar.State.PENDING);
@@ -226,7 +227,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.ianaId = Optional.of(12321);
     action.referralEmail = Optional.of("icann@example.com");
     action.driveId = Optional.of("drive-id");
-    action.email = Optional.of("myclientid@registry.example");
+    action.consoleUserEmail = Optional.of("myclientid@registry.example");
 
     action.street1 = Optional.of("my street");
     action.optionalStreet2 = Optional.of("more street");
@@ -261,7 +262,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.ianaId = Optional.of(12321);
     action.referralEmail = Optional.of("icann@example.com");
     action.driveId = Optional.of("drive-id");
-    action.email = Optional.of("myclientid@registry.example");
+    action.consoleUserEmail = Optional.of("myclientid@registry.example");
 
     action.street1 = Optional.of("my street");
     action.city = Optional.of("my city");
@@ -298,7 +299,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.ianaId = Optional.of(12321);
     action.referralEmail = Optional.of("icann@example.com");
     action.driveId = Optional.of("drive-id");
-    action.email = Optional.of("myclientid@registry.example");
+    action.consoleUserEmail = Optional.of("myclientid@registry.example");
 
     action.street1 = Optional.of("my street");
     action.city = Optional.of("my city");
@@ -326,7 +327,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.ianaId = Optional.of(12321);
     action.referralEmail = Optional.of("icann@example.com");
     action.driveId = Optional.of("drive-id");
-    action.email = Optional.of("myclientid@registry.example");
+    action.consoleUserEmail = Optional.of("myclientid@registry.example");
 
     action.street1 = Optional.of("my street");
     action.city = Optional.of("my city");
@@ -353,7 +354,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.ianaId = Optional.of(12321);
     action.referralEmail = Optional.of("icann@example.com");
     action.driveId = Optional.of("drive-id");
-    action.email = Optional.of("myclientid@registry.example");
+    action.consoleUserEmail = Optional.of("myclientid@registry.example");
 
     action.street1 = Optional.of("my street");
     action.city = Optional.of("my city");
@@ -383,7 +384,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.ianaId = Optional.of(12321);
     action.referralEmail = Optional.of("icann@example.com");
     action.driveId = Optional.of("drive-id");
-    action.email = Optional.of("myclientid@registry.example");
+    action.consoleUserEmail = Optional.of("myclientid@registry.example");
 
     action.street1 = Optional.of("my street");
     action.city = Optional.of("my city");
@@ -409,7 +410,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.registrarAccessor =
         AuthenticatedRegistrarAccessor.createForTesting(ImmutableSetMultimap.of());
     action.clientId = Optional.of("myclientid");
-    action.email = Optional.of("myclientid@registry.example");
+    action.consoleUserEmail = Optional.of("myclientid@registry.example");
     action.method = Method.POST;
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");

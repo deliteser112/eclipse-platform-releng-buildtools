@@ -117,7 +117,7 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
   @Inject @Parameter("ianaId") Optional<Integer> ianaId;
   @Inject @Parameter("referralEmail") Optional<String> referralEmail;
   @Inject @Parameter("driveId") Optional<String> driveId;
-  @Inject @Parameter("email") Optional<String> email;
+  @Inject @Parameter("consoleUserEmail") Optional<String> consoleUserEmail;
 
   // Address fields, some of which are required and others are optional.
   @Inject @Parameter("street1") Optional<String> street1;
@@ -229,7 +229,7 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
       checkPresent(ianaId, "ianaId");
       checkPresent(referralEmail, "referralEmail");
       checkPresent(driveId, "driveId");
-      checkPresent(email, "email");
+      checkPresent(consoleUserEmail, "consoleUserEmail");
       checkPresent(street1, "street");
       checkPresent(city, "city");
       checkPresent(countryCode, "countryCode");
@@ -240,7 +240,7 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
       data.put("referralEmail", referralEmail.get());
       data.put("billingAccount", billingAccount.get());
       data.put("driveId", driveId.get());
-      data.put("email", email.get());
+      data.put("consoleUserEmail", consoleUserEmail.get());
 
       data.put("street1", street1.get());
       optionalStreet2.ifPresent(street2 -> data.put("street2", street2));
@@ -252,9 +252,9 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
 
       String gaeUserId =
           checkNotNull(
-              convertEmailAddressToGaeUserId(email.get()),
+              convertEmailAddressToGaeUserId(consoleUserEmail.get()),
               "Email address %s is not associated with any GAE ID",
-              email.get());
+              consoleUserEmail.get());
       String password = optionalPassword.orElse(passwordGenerator.createString(PASSWORD_LENGTH));
       String phonePasscode =
           optionalPasscode.orElse(passcodeGenerator.createString(PASSCODE_LENGTH));
@@ -265,6 +265,7 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
               .setBillingAccountMap(parseBillingAccount(billingAccount.get()))
               .setIanaIdentifier(Long.valueOf(ianaId.get()))
               .setIcannReferralEmail(referralEmail.get())
+              .setEmailAddress(referralEmail.get())
               .setDriveFolderId(driveId.get())
               .setType(Registrar.Type.REAL)
               .setPassword(password)
@@ -286,8 +287,8 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
       RegistrarContact contact =
           new RegistrarContact.Builder()
               .setParent(registrar)
-              .setName(email.get())
-              .setEmailAddress(email.get())
+              .setName(consoleUserEmail.get())
+              .setEmailAddress(consoleUserEmail.get())
               .setGaeUserId(gaeUserId)
               .build();
       ofy()
@@ -331,7 +332,7 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
     data.put("ianaId", ianaId.orElse(null));
     data.put("referralEmail", referralEmail.orElse(null));
     data.put("driveId", driveId.orElse(null));
-    data.put("email", email.orElse(null));
+    data.put("consoleUserEmail", consoleUserEmail.orElse(null));
 
     response.setPayload(
         TOFU_SUPPLIER
@@ -362,7 +363,8 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
         .append(toEmailLine(ianaId, "ianaId"))
         .append(toEmailLine(referralEmail, "referralEmail"))
         .append(toEmailLine(driveId, "driveId"))
-        .append(String.format("Gave user %s web access to the registrar\n", email.get()));
+        .append(
+            String.format("Gave user %s web access to the registrar\n", consoleUserEmail.get()));
     sendEmailUtils.sendEmail(
         String.format("Registrar %s created in %s", clientId.get(), environment),
         builder.toString());

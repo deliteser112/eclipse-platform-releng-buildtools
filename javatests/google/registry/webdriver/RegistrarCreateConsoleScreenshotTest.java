@@ -65,7 +65,7 @@ public class RegistrarCreateConsoleScreenshotTest {
     driver.findElement(By.id("driveId")).sendKeys("drive-id");
     driver.findElement(By.id("ianaId")).sendKeys("15263");
     driver.findElement(By.id("referralEmail")).sendKeys("email@icann.example");
-    driver.findElement(By.id("email")).sendKeys("my-name@registry.example");
+    driver.findElement(By.id("consoleUserEmail")).sendKeys("my-name@registry.example");
     driver.findElement(By.id("street1")).sendKeys("123 Street st.");
     driver.findElement(By.id("city")).sendKeys("Citysville");
     driver.findElement(By.id("countryCode")).sendKeys("fr");
@@ -92,7 +92,7 @@ public class RegistrarCreateConsoleScreenshotTest {
     driver.findElement(By.id("driveId")).sendKeys("drive-id");
     driver.findElement(By.id("ianaId")).sendKeys("15263");
     driver.findElement(By.id("referralEmail")).sendKeys("email@icann.example");
-    driver.findElement(By.id("email")).sendKeys("bad email");
+    driver.findElement(By.id("consoleUserEmail")).sendKeys("bad email");
     driver.findElement(By.id("street1")).sendKeys("123 Street st.");
     driver.findElement(By.id("city")).sendKeys("Citysville");
     driver.findElement(By.id("countryCode")).sendKeys("fr");
