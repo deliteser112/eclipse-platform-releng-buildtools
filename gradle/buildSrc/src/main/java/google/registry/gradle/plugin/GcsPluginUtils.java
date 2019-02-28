@@ -25,6 +25,7 @@ import com.google.common.collect.Streams;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import google.registry.gradle.plugin.ProjectData.TaskData.ReportFiles;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -33,7 +34,8 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /** Utility functions used in the GCS plugin. */
 final class GcsPluginUtils {
@@ -150,8 +152,7 @@ final class GcsPluginUtils {
     if (destination.isFile()) {
       // The destination is a single file - find its root, and add this single file to the
       // ReportFiles.
-      return ReportFiles.create(
-          ImmutableMap.of(destinationPath, toByteArraySupplier(destination)), destinationPath);
+      return ReportFiles.createSingleFile(destinationPath, toByteArraySupplier(destination));
     }
 
     if (!destination.isDirectory()) {
@@ -189,17 +190,26 @@ final class GcsPluginUtils {
 
     // We weren't given an appropriate entry point. But we still need a single link to all this data
     // - so we'll zip it and just host a single file.
-    //
-    // TODO(guyben):the zip part is still unimplemented, but what we'll want to do is this:
-    // Supplier<byte[]> zippedSupplier = createZippedByteArraySupplier(files);
-    // Path zipFilePath = rootFolder.resolve(rootFolder.getFileName().toString() + ".zip");
-    // return ReportFiles.create(ImmutableMap.of(zipFilePath, zippedSupplier), zipFilePath);
-    Path unimplementedPath = destinationPath.resolve("unimplemented.txt");
-    String content =
-        "Zip files are currently unimplemented. Files:\n"
-            + files.keySet().stream().map(Object::toString).collect(Collectors.joining("\n"));
-    return ReportFiles.create(
-        ImmutableMap.of(unimplementedPath, toByteArraySupplier(content)), unimplementedPath);
+    Path zipFilePath = destinationPath.resolve(destinationPath.getFileName().toString() + ".zip");
+    return ReportFiles.createSingleFile(zipFilePath, createZippedByteArraySupplier(files));
+  }
+
+  static Supplier<byte[]> createZippedByteArraySupplier(Map<Path, Supplier<byte[]>> files) {
+    return () -> zipFiles(files);
+  }
+
+  private static byte[] zipFiles(Map<Path, Supplier<byte[]>> files) {
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    try (ZipOutputStream zip = new ZipOutputStream(output)) {
+      for (Path path : files.keySet()) {
+        zip.putNextEntry(new ZipEntry(path.toString()));
+        zip.write(files.get(path).get());
+        zip.closeEntry();
+      }
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    return output.toByteArray();
   }
 
   private GcsPluginUtils() {}

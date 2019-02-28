@@ -229,8 +229,8 @@ public final class GcsPluginUtilsTest {
 
     ReportFiles files = createReportFiles(destination, Optional.empty(), root);
 
-    assertThat(files.entryPoint().toString()).isEqualTo("some/path/unimplemented.txt");
-    assertThat(readAllFiles(files).keySet()).containsExactly("some/path/unimplemented.txt");
+    assertThat(files.entryPoint().toString()).isEqualTo("some/path/path.zip");
+    assertThat(readAllFiles(files).keySet()).containsExactly("some/path/path.zip");
   }
 
   /**
@@ -257,8 +257,8 @@ public final class GcsPluginUtilsTest {
 
     ReportFiles files = createReportFiles(destination, Optional.of(badEntryPoint), root);
 
-    assertThat(files.entryPoint().toString()).isEqualTo("some/path/unimplemented.txt");
-    assertThat(readAllFiles(files).keySet()).containsExactly("some/path/unimplemented.txt");
+    assertThat(files.entryPoint().toString()).isEqualTo("some/path/path.zip");
+    assertThat(readAllFiles(files).keySet()).containsExactly("some/path/path.zip");
   }
 
   @Test

@@ -164,6 +164,10 @@ abstract class ProjectData {
         checkArgument(files.isEmpty() || files.containsKey(entryPoint));
         return new AutoValue_ProjectData_TaskData_ReportFiles(files, entryPoint);
       }
+
+      static ReportFiles createSingleFile(Path path, Supplier<byte[]> data) {
+        return create(ImmutableMap.of(path, data), path);
+      }
     }
   }
 }
