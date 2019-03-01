@@ -24,17 +24,15 @@ goog.require('goog.history.EventType');
 goog.require('registry.util');
 
 goog.forwardDeclare('goog.events.KeyEvent');
-goog.forwardDeclare('registry.Session');
 
 
 
 /**
  * Abstract console for both admin and registrar console UIs.
- * @param {?registry.Session} session server request session.
  * @constructor
  * @extends {goog.Disposable}
  */
-registry.Console = function(session) {
+registry.Console = function() {
   registry.Console.base(this, 'constructor');
 
   /**
@@ -42,19 +40,37 @@ registry.Console = function(session) {
    * @protected
    */
   this.history = new goog.History();
+};
+goog.inherits(registry.Console, goog.Disposable);
+
+/**
+ * Registers the console's events and sets everything up.
+ *
+ * Should be called after the constructor.
+ *
+ * The reason this isn't done in the constructor is that this is a base class
+ * designed to be extended. We have to wait for the actual implementation to
+ * finish constructing before using it.
+ */
+registry.Console.prototype.setUp = function() {
   goog.events.listen(
       this.history,
       goog.history.EventType.NAVIGATE,
       goog.bind(this.handleHashChange, this));
 
-  /**
-   * @type {?registry.Session} The server session.
-   */
-  this.session = session;
-
   this.bindToDom();
+
+  // goog.History always starts off as "not enabled", meaning it doesn't trigger
+  // the listeners on change.
+  //
+  // When it's set to be enabled, it will start triggering the listeners on
+  // every change, but it also triggers the listeners immediately with the
+  // current history entry.
+  //
+  // This means the handleHashChange listener registered above will be called
+  // now.
+  this.history.setEnabled(true);
 };
-goog.inherits(registry.Console, goog.Disposable);
 
 
 /**
@@ -86,6 +102,8 @@ registry.Console.prototype.handleHashChange = goog.abstractMethod;
  * @param {string} resourcePath Resource description path.
  */
 registry.Console.prototype.view = function(resourcePath) {
+  // Setting the new history token will also trigger the handleHashChange
+  // listener registered in the setUp() function.
   this.history.setToken(resourcePath);
 };
 

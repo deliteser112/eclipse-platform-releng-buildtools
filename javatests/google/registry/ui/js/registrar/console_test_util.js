@@ -16,14 +16,9 @@ goog.provide('registry.registrar.ConsoleTestUtil');
 goog.setTestOnly('registry.registrar.ConsoleTestUtil');
 
 goog.require('goog.History');
-goog.require('goog.asserts');
-goog.require('goog.dom.xml');
 goog.require('goog.soy');
-goog.require('goog.testing.mockmatchers');
 goog.require('registry.registrar.Console');
-goog.require('registry.registrar.EppSession');
 goog.require('registry.soy.registrar.console');
-goog.require('registry.xml');
 
 
 /**
@@ -34,14 +29,8 @@ goog.require('registry.xml');
  */
 registry.registrar.ConsoleTestUtil.setup = function(test) {
   test.historyMock = test.mockControl.createLooseMock(goog.History, true);
-  test.sessionMock = test.mockControl.createLooseMock(
-      registry.registrar.EppSession, true);
   test.mockControl.createConstructorMock(goog, 'History')()
       .$returns(test.historyMock);
-  test.mockControl
-      .createConstructorMock(registry.registrar, 'EppSession')(
-          goog.testing.mockmatchers.isObject)
-      .$returns(test.sessionMock);
 };
 
 /**
@@ -76,10 +65,10 @@ registry.registrar.ConsoleTestUtil.renderConsoleMain = function(
 
 
 /**
- * Simulates visiting a page on the console.  Sets path, then mocks
- * session and calls `handleHashChange_`.
+ * Simulates visiting a page on the console.  Sets path, then calls
+ * `handleHashChange_`.
  * @param {!Object} test the test case to configure.
- * @param {?Object=} opt_args may include path, isEppLoggedIn.
+ * @param {?Object=} opt_args may include path.
  * @param {?Function=} opt_moar extra setup after called just before
  *     `$replayAll`.  See memegen/3437690.
  */
@@ -99,33 +88,17 @@ registry.registrar.ConsoleTestUtil.visit = function(
   if (opt_args.isOwner === undefined) {
     opt_args.isOwner = !opt_args.isAdmin;
   }
-  if (opt_args.isEppLoggedIn === undefined) {
-    opt_args.isEppLoggedIn = true;
-  }
   test.historyMock.$reset();
-  test.sessionMock.$reset();
   test.historyMock.getToken().$returns(opt_args.path).$anyTimes();
-  test.sessionMock.isEppLoggedIn().$returns(opt_args.isEppLoggedIn).$anyTimes();
-  test.sessionMock.getClientId().$returns(opt_args.isEppLoggedIn ?
-      opt_args.clientId : null).$anyTimes();
-  if (opt_args.rspXml) {
-    test.sessionMock
-        .send(goog.testing.mockmatchers.isString,
-              goog.testing.mockmatchers.isFunction)
-        .$does(function(args, cb) {
-          // XXX: Args should be checked.
-          const xml = goog.dom.xml.loadXml(opt_args.rspXml);
-          goog.asserts.assert(xml != null);
-          cb(registry.xml.convertToJson(xml));
-        }).$anyTimes();
-  }
   if (opt_moar) {
     opt_moar();
   }
   test.mockControl.$replayAll();
   /** @type {!registry.registrar.Console} */
   test.console = new registry.registrar.Console(opt_args);
-  // XXX: Should be triggered via event passing.
+  test.console.setUp();
+  // Should be triggered via the History object in test.console.setUp(), but
+  // since we're using a mock that isn't happening. So we call it manually.
   test.console.handleHashChange();
   test.mockControl.$verifyAll();
 };

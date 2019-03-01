@@ -40,10 +40,10 @@ registry.registrar.Dashboard = function(console) {
   /** @private {number} */
   this.x_ = 0;
 
-  /** @private {Element} */
+  /** @private {?Element} */
   this.gear_ = null;
 
-  /** @private {goog.Timer} */
+  /** @private {?goog.Timer} */
   this.timer_ = null;
 };
 goog.inherits(registry.registrar.Dashboard, registry.Component);
@@ -60,14 +60,6 @@ registry.registrar.Dashboard.prototype.bindToDom = function(id) {
                      goog.events.EventType.CLICK,
                      goog.bind(this.rotate_, this));
   this.gear_ = goog.dom.getRequiredElement('gear');
-};
-
-
-/**
- * Do EPP logout.
- */
-registry.registrar.Dashboard.prototype.doEppLogout = function() {
-  this.console.session.logout();
 };
 
 

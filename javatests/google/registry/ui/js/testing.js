@@ -15,15 +15,12 @@
 goog.provide('registry.testing');
 goog.setTestOnly('registry.testing');
 
-goog.require('goog.asserts');
 goog.require('goog.dom');
 goog.require('goog.dom.classlist');
-goog.require('goog.dom.xml');
 goog.require('goog.events.EventType');
 goog.require('goog.format.JsonPrettyPrinter');
 goog.require('goog.html.testing');
 goog.require('goog.json');
-goog.require('goog.testing.asserts');
 goog.require('goog.testing.events');
 goog.require('goog.testing.events.Event');
 goog.require('goog.testing.net.XhrIo');
@@ -37,32 +34,6 @@ registry.testing.addToDocument = function(html) {
   goog.global.document.body.appendChild(
       goog.dom.safeHtmlToNode(
           goog.html.testing.newSafeHtmlForTest(html)));
-};
-
-
-/**
- * Extracts XML document from inside an `<iframe>`.
- * @param {string} xmlText
- * @return {!Document}
- */
-registry.testing.loadXml = function(xmlText) {
-  var xml = goog.dom.xml.loadXml(xmlText);
-  goog.asserts.assert(xml != null);
-  if ('parsererror' in xml) {
-    fail(xml['parsererror']['keyValue']);
-  }
-  return xml;
-};
-
-
-/**
- * Extracts plain text string from inside an `<iframe>`.
- * @param {string|!Document|!Element} want
- * @param {string|!Document|!Element} got
- */
-registry.testing.assertXmlEquals = function(want, got) {
-  assertHTMLEquals(registry.testing.sanitizeXml_(want),
-                   registry.testing.sanitizeXml_(got));
 };
 
 
@@ -132,22 +103,6 @@ registry.testing.assertReqMockRsp =
   registry.testing.assertObjectEqualsPretty(
       expectReqJson, JSON.parse(xhr.getLastContent()));
   xhr.simulateResponse(200, goog.json.serialize(mockRspJson));
-};
-
-
-/**
- * Removes stuff from XML text that we don't want to compare.
- * @param {string|!Document|!Element} xml
- * @return {string}
- * @private
- */
-registry.testing.sanitizeXml_ = function(xml) {
-  var xmlString = goog.isString(xml) ? xml : goog.dom.xml.serialize(xml);
-  return xmlString
-      .replace(/^\s*<\?.*?\?>\s*/, '')       // Remove declaration thing.
-      .replace(/xmlns(:\w+)?="[^"]+"/g, '')  // Remove namespace things.
-      .replace(/>\s+</g, '><')               // Remove spaces between XML tags.
-      .replace(/<!--.*?-->/, '');            // Remove comments.
 };
 
 

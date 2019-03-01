@@ -22,13 +22,9 @@ goog.require('goog.net.XhrIo');
 goog.require('registry.Console');
 goog.require('registry.Resource');
 goog.require('registry.registrar.AdminSettings');
-goog.require('registry.registrar.Contact');
 goog.require('registry.registrar.ContactSettings');
 goog.require('registry.registrar.ContactUs');
 goog.require('registry.registrar.Dashboard');
-goog.require('registry.registrar.Domain');
-goog.require('registry.registrar.EppSession');
-goog.require('registry.registrar.Host');
 goog.require('registry.registrar.Resources');
 goog.require('registry.registrar.SecuritySettings');
 goog.require('registry.registrar.WhoisSettings');
@@ -49,15 +45,12 @@ goog.forwardDeclare('registry.Component');
  * @final
  */
 registry.registrar.Console = function(params) {
+  registry.registrar.Console.base(this, 'constructor');
+
   /**
    * @type {!Object}
    */
-  // We have to define this before creating an EppSession because EppSession's
-  // constructor expects us to have it as an attribute.
   this.params = params;
-
-  registry.registrar.Console.base(
-      this, 'constructor', new registry.registrar.EppSession(this));
 
   /**
    * Component that's currently embedded in the page.
@@ -66,13 +59,9 @@ registry.registrar.Console = function(params) {
    */
   this.component_ = null;
 
-  // XXX: This was in parent ctor but was triggering event dispatching before
-  //      ready here.
-  this.history.setEnabled(true);
-
   /**
    * Last active nav element.
-   * @type {Element}
+   * @type {?Element}
    */
   this.lastActiveNavElt;
 
@@ -107,13 +96,6 @@ registry.registrar.Console = function(params) {
   if (this.params.isAdmin) {
     this.pageMap['admin-settings'] = registry.registrar.AdminSettings;
   }
-
-  // sending EPPs through the console. Currently hidden (doesn't have a "tab")
-  // but still accessible if the user manually puts #domain (or other) in the
-  // fragment
-  this.pageMap['contact'] = registry.registrar.Contact;
-  this.pageMap['domain'] = registry.registrar.Domain;
-  this.pageMap['host'] = registry.registrar.Host;
 };
 goog.inherits(registry.registrar.Console, registry.Console);
 
@@ -134,17 +116,7 @@ goog.inherits(registry.registrar.Console, registry.Console);
  */
 registry.registrar.Console.prototype.handleHashChange = function() {
   var hashToken = this.history.getToken();
-  // On page reloads, opening a new tab, etc. it's possible that the
-  // session cookie for a logged-in session exists, but the
-  // this.session is not yet aware, so come back here after syncing.
-  //
-  // XXX: Method should be refactored to avoid this 2-stage behavior.
-  if (!this.session.isEppLoggedIn()) {
-    this.session.login(goog.bind(this.handleHashChange, this));
-    return;
-  }
 
-  // Otherwise, a resource operation.
   var parts = hashToken.split('/');
   var type = '';
   var id = '';

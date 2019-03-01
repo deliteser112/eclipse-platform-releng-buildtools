@@ -305,9 +305,9 @@ registry.EditItem.prototype.prepareUpdate = goog.abstractMethod;
 
 
 /**
- * Subclasses should provide a function to parse either XML or JSON response
- * from server and return a result object as described below.
- * @param {!Object} rsp Decoded XML/JSON response from the server.
+ * Subclasses should provide a function to parse JSON response from server and
+ * return a result object as described below.
+ * @param {!Object} rsp Decoded JSON response from the server.
  * @return {!Object} a result object describing next steps.  On
  *     success, if next is defined, visit(ret.next) is called, otherwise
  *     if err is set, the butterbar message is set to it.

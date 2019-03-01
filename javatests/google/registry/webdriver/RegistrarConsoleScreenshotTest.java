@@ -26,7 +26,6 @@ import google.registry.model.ofy.OfyFilter;
 import google.registry.module.frontend.FrontendServlet;
 import google.registry.server.RegistryTestServer;
 import google.registry.testing.CertificateSamples;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,8 +43,7 @@ public class RegistrarConsoleScreenshotTest {
           .setRoutes(
               route("/registrar", FrontendServlet.class),
               route("/registrar-ote-status", FrontendServlet.class),
-              route("/registrar-settings", FrontendServlet.class),
-              route("/registrar-xhr", FrontendServlet.class))
+              route("/registrar-settings", FrontendServlet.class))
           .setFilters(ObjectifyFilter.class, OfyFilter.class)
           .setFixtures(BASIC)
           .setEmail("Marla.Singer@google.com")
@@ -282,77 +280,6 @@ public class RegistrarConsoleScreenshotTest {
     driver.waitForElement(By.id("reg-app-btn-edit")).click();
     driver.setFormFieldsById(ImmutableMap.of("faxNumber", "cat"));
     driver.waitForElement(By.id("reg-app-btn-save")).click();
-    Thread.sleep(1000);
-    driver.diffPage("page");
-  }
-
-  // EPP pages aren't being included in launch, so temporarily disable the following tests.
-
-  @Test
-  public void domainCreate() throws Throwable {
-    // TODO(b/17675279): Change labels to unicode.
-    driver.get(server.getUrl("/registrar#domain"));
-    driver.waitForElement(By.tagName("h1"));
-    driver.diffPage("page");
-  }
-
-  @Test
-  @Ignore("TODO(b/26984251): Unflake nameserver ordering.")
-  public void domainView() throws Throwable {
-    driver.get(server.getUrl("/registrar#domain/love.xn--q9jyb4c"));
-    driver.waitForElement(By.tagName("h1"));
-    driver.diffPage("page");
-  }
-
-  @Test
-  @Ignore("TODO(b/26984251): Unflake nameserver ordering.")
-  public void domainEdit() throws Throwable {
-    driver.get(server.getUrl("/registrar#domain/love.xn--q9jyb4c"));
-    driver.waitForElement(By.id("reg-app-btn-edit")).click();
-    Thread.sleep(1000);
-    driver.diffPage("page");
-  }
-
-  @Test
-  public void contactCreate() throws Throwable {
-    driver.get(server.getUrl("/registrar#contact"));
-    driver.waitForElement(By.tagName("h1"));
-    driver.diffPage("page");
-  }
-
-  @Test
-  public void contactView() throws Throwable {
-    driver.get(server.getUrl("/registrar#contact/google"));
-    driver.waitForElement(By.tagName("h1"));
-    driver.diffPage("page");
-  }
-
-  @Test
-  public void contactEdit() throws Throwable {
-    driver.get(server.getUrl("/registrar#contact/google"));
-    driver.waitForElement(By.id("reg-app-btn-edit")).click();
-    Thread.sleep(1000);
-    driver.diffPage("page");
-  }
-
-  @Test
-  public void hostCreate() throws Throwable {
-    driver.get(server.getUrl("/registrar#host"));
-    driver.waitForElement(By.tagName("h1"));
-    driver.diffPage("page");
-  }
-
-  @Test
-  public void hostView() throws Throwable {
-    driver.get(server.getUrl("/registrar#host/ns1.love.xn--q9jyb4c"));
-    driver.waitForElement(By.tagName("h1"));
-    driver.diffPage("page");
-  }
-
-  @Test
-  public void hostEdit() throws Throwable {
-    driver.get(server.getUrl("/registrar#host/ns1.love.xn--q9jyb4c"));
-    driver.waitForElement(By.id("reg-app-btn-edit")).click();
     Thread.sleep(1000);
     driver.diffPage("page");
   }

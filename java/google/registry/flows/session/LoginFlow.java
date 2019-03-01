@@ -51,7 +51,6 @@ import javax.inject.Inject;
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.EppException.UnimplementedObjectServiceException}
  * @error {@link google.registry.flows.EppException.UnimplementedProtocolVersionException}
- * @error {@link google.registry.flows.GaeUserCredentials.UserForbiddenException}
  * @error {@link google.registry.flows.TlsCredentials.BadRegistrarCertificateException}
  * @error {@link google.registry.flows.TlsCredentials.BadRegistrarIpAddressException}
  * @error {@link google.registry.flows.TlsCredentials.MissingRegistrarCertificateException}

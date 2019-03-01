@@ -221,7 +221,7 @@ registry.registrar.ContactSettings.prototype.prepareUpdate =
  * Handler for contact save that navigates to that item on success.
  * Does nothing on failure as UI will be left with error messages for
  * the user to resolve.
- * @param {!Object} rsp Decoded XML/JSON response from the server.
+ * @param {!Object} rsp Decoded JSON response from the server.
  * @override
  */
 registry.registrar.ContactSettings.prototype.handleCreateResponse =
@@ -238,7 +238,7 @@ registry.registrar.ContactSettings.prototype.handleCreateResponse =
  * Handler for contact delete that navigates back to the collection on success.
  * Does nothing on failure as UI will be left with error messages for
  * the user to resolve.
- * @param {!Object} rsp Decoded XML/JSON response from the server.
+ * @param {!Object} rsp Decoded JSON response from the server.
  * @override
  */
 registry.registrar.ContactSettings.prototype.handleDeleteResponse =

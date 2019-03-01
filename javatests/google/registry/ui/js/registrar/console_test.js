@@ -21,7 +21,6 @@ goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.asserts');
 goog.require('goog.testing.jsunit');
-goog.require('goog.testing.mockmatchers');
 goog.require('goog.testing.net.XhrIo');
 goog.require('registry.registrar.ConsoleTestUtil');
 goog.require('registry.testing');
@@ -68,36 +67,6 @@ function testButter() {
   const butter = goog.dom.getElementByClass(goog.getCssName('kd-butterbar'));
   assertNotNull(butter.innerHTML.match(/.*butter msg.*/));
   assertTrue(goog.dom.classlist.contains(butter, goog.getCssName('shown')));
-}
-
-
-/**
- * The EPP login should be triggered if the user `isGaeLoggedIn`
- * but not yet `isEppLoggedIn`.
- */
-function testEppLogin() {
-  // This is a little complex, as handleHashChange triggers an async
-  // event to do the EPP login with a callback to come back to
-  // handleHashChange after completion.
-  registry.registrar.ConsoleTestUtil.visit(
-      test, {
-        isEppLoggedIn: true,
-        clientId: test.testClientId,
-        xsrfToken: test.testXsrfToken,
-        productName: 'Foo Registry'
-      }, function() {
-        test.sessionMock.login(
-            goog.testing.mockmatchers.isFunction).$does(function() {
-          test.sessionMock.$reset();
-          test.sessionMock.isEppLoggedIn().$returns(true).$anyTimes();
-          test.sessionMock.getClientId().$returns(
-              test.testClientId).$anyTimes();
-          test.sessionMock.$replay();
-          test.console.handleHashChange(test.testClientId);
-        }).$anyTimes();
-      });
-  assertTrue(test.console.session.isEppLoggedIn());
-  assertNotNull(goog.dom.getElement('domain-registrar-dashboard'));
 }
 
 

@@ -23,14 +23,13 @@ goog.forwardDeclare('goog.Uri');
 
 
 /**
- * XHR launcher for both JSON and XML requests.
+ * XHR launcher for JSON requests.
  * @param {!goog.Uri} defaultUri URI to which requests are POSTed.
  * @param {string} xsrfToken Cross-site request forgery protection token.
- * @param {!registry.Session.ContentType} contentType Payload mode.
  * @constructor
  * @template REQUEST, RESPONSE
  */
-registry.Session = function(defaultUri, xsrfToken, contentType) {
+registry.Session = function(defaultUri, xsrfToken) {
 
   /**
    * URI to which requests are posted.
@@ -40,32 +39,15 @@ registry.Session = function(defaultUri, xsrfToken, contentType) {
   this.uri = defaultUri;
 
   /**
-   * Content type set in request body.
-   * @private {!registry.Session.ContentType}
-   * @const
-   */
-  this.contentType_ = contentType;
-
-  /**
    * XHR request headers.
    * @private {!Object<string, string>}
    * @const
    */
   this.headers_ = {
-    'Content-Type': contentType,
+    'Content-Type': 'application/json; charset=utf-8',
     'X-CSRF-Token': xsrfToken,
     'X-Requested-With': 'XMLHttpRequest'
   };
-};
-
-
-/**
- * Payload modes supported by this class.
- * @enum {string}
- */
-registry.Session.ContentType = {
-  JSON: 'application/json; charset=utf-8',
-  EPP: 'application/epp+xml'
 };
 
 
@@ -99,9 +81,7 @@ registry.Session.prototype.sendXhrIo =
 registry.Session.prototype.onXhrComplete_ = function(onSuccess, onError, e) {
   if (e.target.isSuccess()) {
     onSuccess(/** @type {!RESPONSE} */ (
-        this.contentType_ == registry.Session.ContentType.JSON ?
-            e.target.getResponseJson(registry.Session.PARSER_BREAKER_) :
-            e.target.getResponseXml()));
+        e.target.getResponseJson(registry.Session.PARSER_BREAKER_)));
   } else {
     onError(e.target.getLastError());
   }

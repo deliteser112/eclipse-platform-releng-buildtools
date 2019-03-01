@@ -17,7 +17,6 @@ package google.registry.module.frontend;
 import dagger.Module;
 import dagger.Subcomponent;
 import google.registry.dns.DnsModule;
-import google.registry.flows.EppConsoleAction;
 import google.registry.flows.EppTlsAction;
 import google.registry.flows.FlowComponent;
 import google.registry.flows.TlsCredentials.EppTlsModule;
@@ -46,7 +45,6 @@ interface FrontendRequestComponent {
   ConsoleOteSetupAction consoleOteSetupAction();
   ConsoleRegistrarCreatorAction consoleRegistrarCreatorAction();
   ConsoleUiAction consoleUiAction();
-  EppConsoleAction eppConsoleAction();
   EppTlsAction eppTlsAction();
   FlowComponent.Builder flowComponentBuilder();
   OteStatusAction oteStatusAction();

@@ -31,8 +31,7 @@ goog.forwardDeclare('goog.Uri');
  * @constructor
  */
 registry.Resource = function(baseUri, id, xsrfToken) {
-  registry.Resource.base(this, 'constructor', baseUri, xsrfToken,
-                         registry.Session.ContentType.JSON);
+  registry.Resource.base(this, 'constructor', baseUri, xsrfToken);
   /** @const @private {string} the ID of the target resource. */
   this.id_ = id;
 };

@@ -26,7 +26,6 @@ import google.registry.module.frontend.FrontendServlet;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import java.util.Optional;
 import javax.servlet.Filter;
 
@@ -54,7 +53,6 @@ public final class RegistryTestServer {
           // Frontend Services
           route("/whois/*", FrontendServlet.class),
           route("/rdap/*", FrontendServlet.class),
-          route("/registrar-xhr", FrontendServlet.class),
           route("/check", FrontendServlet.class),
 
           // Proxy Services

@@ -17,9 +17,7 @@ package google.registry.webdriver;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.server.Fixture.BASIC;
 import static google.registry.server.Route.route;
-import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -31,7 +29,6 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.module.frontend.FrontendServlet;
 import google.registry.server.RegistryTestServer;
 import google.registry.testing.AppEngineRule;
-import google.registry.ui.server.registrar.ConsoleUiAction;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -55,7 +52,6 @@ public class RegistrarConsoleWebTest {
       new TestServerRule.Builder()
           .setRunfiles(RegistryTestServer.RUNFILES)
           .setRoutes(
-              route("/registrar-xhr", FrontendServlet.class),
               route("/registrar", FrontendServlet.class),
               route("/registrar-settings", FrontendServlet.class))
           .setFilters(ObjectifyFilter.class, OfyFilter.class)
@@ -208,45 +204,5 @@ public class RegistrarConsoleWebTest {
     assertThat(driver.findElement(By.id("phonePasscode"))
         .getAttribute("value"))
         .isEqualTo(registrar.getPhonePasscode());
-  }
-
-  @Test
-  public void testHostCreate_hostIsAnSld_eppErrorShowsInButterBar() throws Throwable {
-    driver.get(server.getUrl("/registrar#host"));
-    driver.waitForElement(By.id("domain-host-addr-add-button")).click();
-    driver.setFormFieldsById(ImmutableMap.of(
-        "host:name", "empire.vampyre",
-        "host:addr[0].value", "1.2.3.4"));
-    driver.findElement(By.id("reg-app-btn-save")).click();
-    Thread.sleep(1000);  // TODO(b/26129174): Change butterbar code to add/remove dynamically.
-    assertThat(getButterBarText())
-        .isEqualTo("Host names must be at least two levels below the registry suffix");
-  }
-
-  @Test
-  public void testHostCreate() throws Throwable {
-    server.runInAppEngineEnvironment(
-        () -> {
-          createTld("vampyre");
-          persistActiveDomain("empire.vampyre");
-          return null;
-        });
-    driver.get(server.getUrl("/registrar#host"));
-    driver.waitForElement(By.id("domain-host-addr-add-button")).click();
-    driver.setFormFieldsById(ImmutableMap.of(
-        "host:name", "the.empire.vampyre",
-        "host:addr[0].value", "1.2.3.4"));
-    driver.findElement(By.id("reg-app-btn-save")).click();
-    Thread.sleep(1000);  // TODO(b/26129174): Change butterbar code to add/remove dynamically.
-    assertThat(getButterBarText()).isEqualTo("Saved.");
-  }
-
-  private String getButterBarText() {
-    return (String) driver.executeScript(
-        String.format("return document.querySelector('.%s').innerText", css("kd-butterbar-text")));
-  }
-
-  private static String css(String name) {
-    return ConsoleUiAction.CSS_RENAMING_MAP_SUPPLIER.get().get(name);
   }
 }
