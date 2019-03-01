@@ -159,6 +159,16 @@
   <form name="item" class="{css('item')}" method="post" action="/registrar-create">
     <table>
       {call registry.soy.forms.inputFieldRowWithValue}
+        {param label: 'Name' /}
+        {param name: 'name' /}
+        {param value: $name /}
+        {param placeholder: 'required' /}
+        {param description kind="text"}
+          Name of the registrar.
+        {/param}
+        {param required: true /}
+      {/call}
+      {call registry.soy.forms.inputFieldRowWithValue}
         {param label: 'Client ID' /}
         {param name: 'clientId' /}
         {param value: $clientId /}
@@ -169,12 +179,13 @@
         {param required: true /}
       {/call}
       {call registry.soy.forms.inputFieldRowWithValue}
-        {param label: 'Name' /}
-        {param name: 'name' /}
-        {param value: $name /}
+        {param label: 'Registrar Console Username' /}
+        {param name: 'consoleUserEmail' /}
+        {param value: $consoleUserEmail /}
         {param placeholder: 'required' /}
         {param description kind="text"}
-          Name of the registrar.
+          The email we created for the registrar.
+          Will be granted web-console access to the registrar.
         {/param}
         {param required: true /}
       {/call}
@@ -233,17 +244,6 @@
         {/param}
         {param required: true /}
       {/call}
-      {call registry.soy.forms.inputFieldRowWithValue}
-        {param label: 'Delegated email' /}
-        {param name: 'consoleUserEmail' /}
-        {param value: $consoleUserEmail /}
-        {param placeholder: 'required' /}
-        {param description kind="text"}
-          The email we created for the registrar.
-          Will be granted web-console access to the registrar.
-        {/param}
-        {param required: true /}
-      {/call}
       <tr>
         <td colspan="2">
           <hr>
@@ -289,7 +289,7 @@
         {param placeholder: 'optional' /}
       {/call}
       {call registry.soy.forms.inputFieldRowWithValue}
-        {param label: 'Country Code' /}
+        {param label: 'Country Code (e.g. US)' /}
         {param name: 'countryCode' /}
         {param value: $countryCode /}
         {param placeholder: 'required' /}
