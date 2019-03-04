@@ -27,6 +27,7 @@ java_library(
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
         "//javatests/google/registry/testing/mapreduce",
+        "//third_party/java/mockito",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_bigquery",
@@ -46,7 +47,6 @@ java_library(
         "@javax_servlet_api",
         "@joda_time",
         "@junit",
-        "@org_mockito_all",
     ],
 )
 

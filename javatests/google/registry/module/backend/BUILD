@@ -17,11 +17,11 @@ java_library(
         "//java/google/registry/module/backend",
         "//java/google/registry/request",
         "//javatests/google/registry/testing",
+        "//third_party/java/mockito",
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",
         "@javax_servlet_api",
         "@junit",
-        "@org_mockito_all",
     ],
 )
 

@@ -13,6 +13,7 @@ java_library(
     deps = [
         "//java/google/registry/keyring/api",
         "//javatests/google/registry/testing",
+        "//third_party/java/mockito",
         "@com_google_flogger",
         "@com_google_flogger_system_backend",
         "@com_google_guava_testlib",
@@ -20,7 +21,6 @@ java_library(
         "@com_google_truth_extensions_truth_java8_extension",
         "@junit",
         "@org_bouncycastle_bcpg_jdk15on",
-        "@org_mockito_all",
     ],
 )
 

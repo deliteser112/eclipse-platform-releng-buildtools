@@ -25,6 +25,7 @@ java_library(
         "//javatests/google/registry/testing/mapreduce",
         "//javatests/google/registry/testing/sftp",
         "//javatests/google/registry/xml",
+        "//third_party/java/mockito",
         "//third_party/jaxb",
         "//third_party/jsch/v0_1_53",
         "//third_party/objectify:objectify-v4_1",
@@ -43,7 +44,6 @@ java_library(
         "@org_bouncycastle_bcpg_jdk15on",
         "@org_bouncycastle_bcpkix_jdk15on",
         "@org_joda_money",
-        "@org_mockito_all",
     ],
 )
 

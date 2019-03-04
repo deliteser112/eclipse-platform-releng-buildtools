@@ -13,6 +13,7 @@ java_library(
     deps = [
         "//java/google/registry/beam",
         "//javatests/google/registry/testing",
+        "//third_party/java/mockito",
         "@com_google_dagger",
         "@com_google_guava",
         "@com_google_truth",
@@ -23,7 +24,6 @@ java_library(
         "@org_apache_beam_runners_google_cloud_dataflow_java",
         "@org_apache_beam_sdks_java_core",
         "@org_apache_beam_sdks_java_io_google_cloud_platform",
-        "@org_mockito_all",
     ],
 )
 

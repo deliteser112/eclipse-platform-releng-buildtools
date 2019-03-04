@@ -16,6 +16,7 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
+        "//third_party/java/mockito",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_api_stubs",
         "@com_google_appengine_testing",
@@ -29,7 +30,6 @@ java_library(
         "@com_google_truth_extensions_truth_java8_extension",
         "@javax_servlet_api",
         "@junit",
-        "@org_mockito_all",
     ],
 )
 

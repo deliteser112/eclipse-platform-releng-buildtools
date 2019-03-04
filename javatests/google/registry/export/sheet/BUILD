@@ -13,6 +13,7 @@ java_library(
         "//java/google/registry/export/sheet",
         "//java/google/registry/model",
         "//javatests/google/registry/testing",
+        "//third_party/java/mockito",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_apis_google_api_services_sheets",
         "@com_google_code_findbugs_jsr305",
@@ -22,7 +23,6 @@ java_library(
         "@joda_time",
         "@junit",
         "@org_joda_money",
-        "@org_mockito_all",
     ],
 )
 

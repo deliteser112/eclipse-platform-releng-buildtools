@@ -18,6 +18,7 @@ java_library(
         "//java/google/registry/util",
         "//java/google/registry/whois",
         "//javatests/google/registry/testing",
+        "//third_party/java/mockito",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_testing",
@@ -32,7 +33,6 @@ java_library(
         "@javax_servlet_api",
         "@joda_time",
         "@junit",
-        "@org_mockito_all",
     ],
 )
 

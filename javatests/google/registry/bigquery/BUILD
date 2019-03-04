@@ -15,6 +15,7 @@ java_library(
         "//java/google/registry/bigquery",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
+        "//third_party/java/mockito",
         "@com_google_apis_google_api_services_bigquery",
         "@com_google_guava",
         "@com_google_http_client",
@@ -22,7 +23,6 @@ java_library(
         "@com_google_truth_extensions_truth_java8_extension",
         "@joda_time",
         "@junit",
-        "@org_mockito_all",
     ],
 )
 

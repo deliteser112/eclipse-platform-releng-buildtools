@@ -14,6 +14,7 @@ java_library(
         "//java/google/registry/dns/writer/dnsupdate",
         "//java/google/registry/model",
         "//javatests/google/registry/testing",
+        "//third_party/java/mockito",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_dagger",
         "@com_google_guava",
@@ -22,7 +23,6 @@ java_library(
         "@dnsjava",
         "@joda_time",
         "@junit",
-        "@org_mockito_all",
     ],
 )
 

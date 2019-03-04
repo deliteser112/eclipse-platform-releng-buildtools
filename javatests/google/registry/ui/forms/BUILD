@@ -13,13 +13,13 @@ java_library(
     deps = [
         "//java/google/registry/ui/forms",
         "//javatests/google/registry/testing",
+        "//third_party/java/mockito",
         "@com_google_guava",
         "@com_google_guava_testlib",
         "@com_google_re2j",
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",
         "@junit",
-        "@org_mockito_all",
     ],
 )
 

@@ -35,6 +35,7 @@ java_library(
         "//java/google/registry/tmch",
         "//java/google/registry/util",
         "//java/google/registry/xml",
+        "//third_party/java/mockito",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_apis_google_api_services_appengine",
         "@com_google_appengine_api_1_0_sdk",
@@ -59,7 +60,6 @@ java_library(
         "@org_bouncycastle_bcpkix_jdk15on",
         "@org_joda_money",
         "@org_json",
-        "@org_mockito_all",
     ],
 )
 

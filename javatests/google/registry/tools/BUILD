@@ -38,6 +38,7 @@ java_library(
         "//javatests/google/registry/tmch",
         "//javatests/google/registry/tools/server",
         "//javatests/google/registry/xml",
+        "//third_party/java/mockito",
         "//third_party/jaxb",
         "//third_party/objectify:objectify-v4_1",
         "@com_beust_jcommander",
@@ -60,7 +61,6 @@ java_library(
         "@joda_time",
         "@junit",
         "@org_joda_money",
-        "@org_mockito_all",
     ],
 )
 
