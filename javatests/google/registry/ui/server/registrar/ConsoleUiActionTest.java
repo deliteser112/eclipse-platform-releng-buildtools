@@ -27,6 +27,7 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.net.MediaType;
+import google.registry.config.RegistryEnvironment;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.AuthenticatedRegistrarAccessor;
@@ -78,6 +79,7 @@ public class ConsoleUiActionTest {
     action.paramClientId = Optional.empty();
     AuthResult authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     action.authResult = authResult;
+    action.environment = RegistryEnvironment.UNITTEST;
 
     action.registrarAccessor =
         AuthenticatedRegistrarAccessor.createForTesting(

@@ -54,12 +54,15 @@ registry.registrar.AdminSettings.prototype.bindToDom = function(id) {
 
 /** @override */
 registry.registrar.AdminSettings.prototype.runAfterRender = function(objArgs) {
-  goog.events.listen(
-      goog.dom.getRequiredElement('btn-ote-status'),
-      goog.events.EventType.CLICK,
-      goog.bind(
-          this.oteStatusCheck_, this, objArgs.xsrfToken, objArgs.clientId),
-      false, this);
+  const oteButton = goog.dom.getElement('btn-ote-status');
+  if (oteButton) {
+    goog.events.listen(
+        oteButton,
+        goog.events.EventType.CLICK,
+        goog.bind(
+            this.oteStatusCheck_, this, objArgs.xsrfToken, objArgs.clientId),
+        false, this);
+  }
 };
 
 /** @override */

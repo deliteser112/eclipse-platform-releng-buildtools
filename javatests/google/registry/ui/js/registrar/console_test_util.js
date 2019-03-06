@@ -60,6 +60,7 @@ registry.registrar.ConsoleTestUtil.renderConsoleMain = function(
     announcementsEmail: args.announcementsEmail || 'announcement@example.com',
     supportPhoneNumber: args.supportPhoneNumber || '+1 (888) 555 0123',
     technicalDocsUrl: args.technicalDocsUrl || 'http://example.com/techdocs',
+    environment: args.environment || 'UNITTEST',
   });
 };
 

@@ -36,11 +36,13 @@ goog.require('registry.registrar.Console');
  * @param {string} announcementsEmail
  * @param {string} supportPhoneNumber
  * @param {string} technicalDocsUrl
+ * @param {string} environment
  * @export
  */
 registry.registrar.main = function(
     xsrfToken, clientId, isAdmin, isOwner, productName, integrationEmail,
-    supportEmail, announcementsEmail, supportPhoneNumber, technicalDocsUrl) {
+    supportEmail, announcementsEmail, supportPhoneNumber, technicalDocsUrl,
+    environment) {
   const console = new registry.registrar.Console({
     xsrfToken: xsrfToken,
     clientId: clientId,
@@ -51,7 +53,8 @@ registry.registrar.main = function(
     supportEmail: supportEmail,
     announcementsEmail: announcementsEmail,
     supportPhoneNumber: supportPhoneNumber,
-    technicalDocsUrl: technicalDocsUrl
+    technicalDocsUrl: technicalDocsUrl,
+    environment: environment,
   });
 
   console.setUp();

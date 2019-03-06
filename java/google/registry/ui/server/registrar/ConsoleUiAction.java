@@ -35,6 +35,7 @@ import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.shared.SoyCssRenamingMap;
 import com.google.template.soy.tofu.SoyTofu;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.config.RegistryEnvironment;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
@@ -76,6 +77,7 @@ public final class ConsoleUiAction implements Runnable {
   @Inject UserService userService;
   @Inject XsrfTokenManager xsrfTokenManager;
   @Inject AuthResult authResult;
+  @Inject RegistryEnvironment environment;
   @Inject @Config("logoFilename") String logoFilename;
   @Inject @Config("productName") String productName;
   @Inject @Config("integrationEmail") String integrationEmail;
@@ -133,6 +135,7 @@ public final class ConsoleUiAction implements Runnable {
     data.put("xsrfToken", xsrfTokenManager.generateToken(user.getEmail()));
     ImmutableSetMultimap<String, Role> roleMap = registrarAccessor.getAllClientIdWithRoles();
     data.put("allClientIds", roleMap.keySet());
+    data.put("environment", environment.toString());
     // We set the initual value to the value that will show if guessClientId throws.
     String clientId = "<null>";
     try {
