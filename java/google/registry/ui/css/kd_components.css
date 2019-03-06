@@ -151,7 +151,6 @@ Stickersheet global styles
   top: 0;
   left: 0;
   margin-left: 0;
-  -webkit-transform: scale(1.0);
   z-index: 0;
 }
 #stickers #kd-tooltip {
@@ -298,7 +297,6 @@ Grid
   z-index: 100;
   -webkit-box-sizing: content-box;
   overflow: hidden;
-  -webkit-transition: all 0.218s;
 }
 html.x-expand #grid {
   border-left: 72px solid rgba(255,255,0,0.05);
@@ -477,7 +475,6 @@ Component: Shadows
   left:0;
   opacity:1;
   margin:16px 0;
-  -webkit-transform:none;
 }
 
 /*------------------------------------------------------------------
@@ -541,9 +538,6 @@ Component: Search Bar (Google Bar)
   width:21px;
   height:21px;
   margin:4px 0 0;
-  -moz-transition: all 0.218s;
-  -webkit-transition: all 0.218s;
-  -o-transition: all 0.218s;
 }
 .kd-googlebuttonbar .kd-button:hover .maskedIcon, .kd-googlebuttonbar .kd-button:active .maskedIcon, .kd-googlebuttonbar .kd-button.selected .maskedIcon{
   background:#DD4B39;
@@ -637,9 +631,6 @@ Component: Search Bar (Google Bar)
   position:relative;
   right:-24px;
   opacity:0.5;
-  -webkit-transform: rotate(90deg);
-  -moz-transform: rotate(90deg);
-  transform: rotate(90deg);
 }
 #kd-social .kd-avatar:hover .kd-disclosureindicator {
   opacity:1;
@@ -708,20 +699,10 @@ Subcomponent: App Switcher
   margin-top:-2px;
   margin-left:6px;
   background-position:0 0;
-  -webkit-transform:rotate(90deg);
-  -moz-transform:rotate(90deg);
-  transform:rotate(90deg);
   opacity:0.3;
-
-  -webkit-transition:opacity 0.218s;
-  -moz-transition:opacity 0.218s;
-  transition:opacity 0.218s;
 }
 .kd-appswitcher:hover .logo .kd-disclosureindicator {
   opacity:1;
-  -webkit-transition:opacity 0.18s;
-  -moz-transition:opacity 0.18s;
-  transition:opacity 0.18s;
 }
 /*.kd-appswitcher.open .logo .kd-disclosureindicator {
   opacity:0;
@@ -759,30 +740,12 @@ Subcomponent: App Switcher
 
   z-index:9999;
   opacity:0;
-  -webkit-transition-property:opacity, max-height, margin, left;
-  -webkit-transition-duration:0.218s, 0.218s, 0.218s, 0s;
-  -webkit-transition-delay:0s, 0s, 0s, 0.218s;
-  -moz-transition-property:opacity, max-height, margin, left;
-  -moz-transition-duration:0.218s, 0.218s, 0.218s, 0s;
-  -moz-transition-delay:0s, 0s, 0s, 0.218s;
-  transition-property:opacity, max-height, margin, left;
-  transition-duration:0.218s, 0.218s, 0.218s, 0s;
-  transition-delay:0s, 0s, 0s, 0.218s;
 }
 .kd-appswitcher.open .kd-appswitcher-menu {
   left:-18px;
   max-height:400px;
   opacity:1;
   margin-top:0;
-  -webkit-transition-property:opacity, max-height, margin, left;
-  -webkit-transition-duration:0s, 0s, 0.218s, 0s;
-  -webkit-transition-delay:0s;
-  -moz-transition-property:opacity, max-height, margin, left;
-  -moz-transition-duration:0s, 0s, 0.218s, 0s;
-  -moz-transition-delay:0s;
-  transition-property:opacity, max-height, margin, left;
-  transition-duration:0s, 0s, 0.218s, 0s;
-  transition-delay:0s;
 }
 .kd-appswitcher-menu:before {
   content:"";
@@ -887,11 +850,6 @@ a.logo:hover + .kd-appswitcher-menu .kd-app-search > a  {
 .kd-app-labs > a { background-image:url('../images/more_menu_labs.png'); }
 .kd-app-code > a { background-image:url('../images/more_menu_code.png'); }
 
-.killTransition {
-  -webkit-transition-duration:0;
-  -moz-transition-duration:0;
-  transition:0;
-}
 .kd-more-menu {
   position:absolute;
   top:0;
@@ -906,37 +864,11 @@ a.logo:hover + .kd-appswitcher-menu .kd-app-search > a  {
   -webkit-box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
   -moz-box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-
-  -webkit-transition-property:width, left;
-  -webkit-transition-duration:0.218s, 0s;
-  /*-webkit-transition-easing-function:ease-in, linear;*/
-  -webkit-transition-delay:0.2s, 0.418s;
-  -moz-transition-property:width, left;
-  -moz-transition-duration:0.218s, 0s;
-  /*-moz-transition-easing-function:ease-in, linear;*/
-  -moz-transition-delay:0.2s, 0.418s;
-  -o-transition-property:width, left;
-  -o-transition-duration:0.218s, 0s;
-  /*-o-transition-easing-function:ease-in, linear;*/
-  -o-transition-delay:0.2s, 0.418s;
-  transition-property:width, left;
-  transition-duration:0.218s, 0s;
-  /*transition-easing-function:ease-in, linear;*/
-  transition-delay:0.2s, 0.418s;
 }
 .kd-app:hover > .kd-more-menu,
 .kd-app .kd-more-menu.open {
   width:192px;
   left:100%;
-
-  /*-webkit-transition-easing-function:ease-out, linear;*/
-  -webkit-transition-delay:0.2s;
-  /*-moz-transition-easing-function:ease-out, linear;*/
-  -moz-transition-delay:0.2s;
-  /*-o-transition-easing-function:ease-out, linear;*/
-  -o-transition-delay:0.2s;
-  /*transition-easing-function:ease-out, linear;*/
-  transition-delay:0.2s;
 }
 .kd-more-menu .kd-more-container {
   position:absolute;
@@ -1062,9 +994,6 @@ Component: Sidebars
   background-position:center;
   margin-left:-1px;
   opacity: 0.8;
-  -moz-transition: none;
-  -o-transition: none;
-  -webkit-transition: none;
   cursor:default;
 }
 .kd-content-sidebar li:hover > .kd-disclosureindicator {
@@ -1326,14 +1255,6 @@ Component: App bars
   border-width:0 1px;
   background:#fff;
   cursor:pointer;
-  -webkit-transition:line-height 0.18s;
-  -moz-transition:line-height 0.18s;
-  transition:line-height 0.18s;
-}
-.maps .kd-maps-collapser .kd-disclosureindicator {
-  -webkit-transform: rotate(-180deg);
-  -moz-transform: rotate(-180deg);
-  transform: rotate(-180deg);
 }
 .maps .kd-maps-collapser:hover {
   background:#f1f1f1;
@@ -1423,10 +1344,6 @@ Component: Toolbar
 .kd-toolbarbutton:hover {
   border: 1px solid #C6C6C6;
   color: #333;
-  -webkit-transition: all 0.0s;
-  -moz-transition: all 0.0s;
-  -o-transition: all 0.0s;
-  transition: all 0.0s;
   background-color: #f8f8f8;
   background-image: -webkit-gradient(linear,left top,left bottom,from(#f8f8f8),to(#f1f1f1));
   /* @alternate */ background-image: -webkit-linear-gradient(top,#f8f8f8,#f1f1f1);
@@ -1536,10 +1453,6 @@ Component: Tabs
   height: 27px;
   padding: 0 8px;
   line-height: 27px;
-  -webkit-transition: all 0.218s;
-  -moz-transition: all 0.218s;
-  -o-transition: all 0.218s;
-  transition: all 0.218s;
   -webkit-user-select:none;
   -moz-user-select:none;
   cursor:default;
@@ -1605,10 +1518,6 @@ Component: Buttons
   -webkit-border-radius:2px;
   -moz-border-radius: 2px;
   border-radius: 2px;
-  -webkit-transition: all 0.218s;
-  -moz-transition: all 0.218s;
-  -o-transition: all 0.218s;
-  transition: all 0.218s;
   background-color: #f5f5f5;
   background-image: -webkit-gradient(linear,left top,left bottom,from(#f5f5f5),to(#f1f1f1));
   /* @alternate */ background-image: -webkit-linear-gradient(top,#f5f5f5,#f1f1f1);
@@ -1623,10 +1532,6 @@ Component: Buttons
 .kd-button:hover, .kd-button.hover {
   border: 1px solid #C6C6C6;
   color: #222;
-  -webkit-transition: all 0.0s;
-  -moz-transition: all 0.0s;
-  -o-transition: all 0.0s;
-  transition: all 0.0s;
   background-color: #f8f8f8;
   background-image: -webkit-gradient(linear,left top,left bottom,from(#f8f8f8),to(#f1f1f1));
   /* @alternate */ background-image: -webkit-linear-gradient(top,#f8f8f8,#f1f1f1);
@@ -1827,14 +1732,6 @@ Component: Buttons
   width: 5px;
   height: 7px;
   background: url('/assets/images/disclosure_arrow_dk_grey.png') center no-repeat;
-  -webkit-transition: all 0.218s;
-  -moz-transition: all 0.218s;
-  transition: all 0.218s;
-}
-.kd-disclosureindicator.active {
-  -webkit-transform: rotate(90deg);
-  -moz-transform: rotate(90deg);
-  transform: rotate(90deg);
 }
 
 /* Buttons of all styles */
@@ -1874,14 +1771,7 @@ Component: Buttons
   float: right;
   margin-top: 10px;
   margin-left: 7px;
-  -webkit-transform: rotate(90deg);
-  -moz-transform: rotate(90deg);
-  transform: rotate(90deg);
   opacity: .8;
-  -webkit-transition: none;
-  -moz-transition: none;
-  -o-transition: none;
-  transition: none;
 
 /*  ie hacks*/
   *float:none;
@@ -1894,9 +1784,6 @@ Component: Buttons
   background:url('/assets/images/disclosure_arrow_dk_grey_up_down.png');
   width:7px;
   height:11px;
-  -webkit-transform: none;
-  -moz-transform: none;
-  transform: none;
   margin-top:8px;
 }
 
@@ -1910,9 +1797,6 @@ Component: Buttons
 }
 .kd-menubutton .kd-menulist .kd-disclosureindicator {
   float: none;
-  -webkit-transform: rotate(0);
-  -moz-transform: rotate(0);
-  transform: rotate(0);
   opacity: .8;
 }
 .kd-menubutton img + .label{
@@ -1957,10 +1841,6 @@ Component: Buttons
   width: 88px;
   height: 29px;
   position: relative;
-  -webkit-transition: all 0.218s;
-  -moz-transition: all 0.218s;
-  -o-transition: all 0.218s;
-  transition: all 0.218s;
   cursor:pointer;
 }
 .kd-expandbutton:hover {
@@ -2001,10 +1881,6 @@ Component: Buttons
   margin-top: -3px;
   left: -3px;
   opacity: .5;
-  -webkit-transform: rotate(180deg);
-  -moz-transform: rotate(180deg);
-  transform: rotate(180deg);
-
 }
 .kd-expandbutton .main {
   z-index: 1;
@@ -2014,10 +1890,6 @@ Component: Buttons
 .kd-expandbutton:hover .kd-button.main{
   border: 1px solid #C6C6C6;
   color: #333;
-  -webkit-transition: all 0.0s;
-  -moz-transition: all 0.0s;
-  -o-transition: all 0.0s;
-  transition: all 0.0s;
   background-color: #f8f8f8;
   background-image: -webkit-gradient(linear,left top,left bottom,from(#f8f8f8),to(#f1f1f1));
   /* @alternate */ background-image: -webkit-linear-gradient(top,#f8f8f8,#f1f1f1);
@@ -2102,15 +1974,6 @@ input[type="text"].mini{
 .kd-viewtoggle .kd-button{
   position:absolute;
   margin:0;
-  -webkit-transition: right 0.13s;
-  -moz-transition: right 0.13s;
-  -o-transition: right 0.13s;
-  transition: right 0.13s;
-
-  -webkit-transition-delay:0.4s;
-  -moz-transition-delay:0.4s;
-  -o-transition-delay:0.4s;
-  transition-delay:0.4s;
 }
 .kd-viewtoggle .kd-button.selected{
   z-index:3;
@@ -2127,20 +1990,11 @@ input[type="text"].mini{
   -webkit-border-radius: 2px 0 0 2px;
   -moz-border-radius: 2px 0 0 2px;
   border-radius: 2px 0 0 2px;
-  -webkit-transition: all 0.218s linear 0.4s;
-  -moz-transition: all 0.218s linear 0.4s;
-  -o-transition: all 0.218s linear 0.4s;
-  transition: all 0.218s linear 0.4s;
 }
 .kd-viewtoggle.wide .tab{
   right:72px;
 }
-.kd-viewtoggle:hover .kd-button{
-  -webkit-transition-delay:0;
-  -moz-transition-delay:0;
-  -o-transition-delay:0;
-  transition-delay:0;
-}
+
 .kd-viewtoggle:hover .tab{
   right:0;
 }
@@ -2284,11 +2138,6 @@ input[type="text"].mini{
   /* @alternate */ background-image:     -ms-linear-gradient(top, #f8f8f8, #f1f1f1);
   /* @alternate */ background-image:      -o-linear-gradient(top, #f8f8f8, #f1f1f1);
   /* @alternate */ background-image:         linear-gradient(top, #f8f8f8, #f1f1f1);
-
-  -webkit-transition: all 0.130s ease-out;
-  -moz-transition: all 0.130s ease-out;
-  -o-transition: all 0.130s ease-out;
-  transition: all 0.130s ease-out;
 }
 .kd-slidetoggle.on .thumb{
   left:46px;
@@ -2335,26 +2184,10 @@ Component: Butter Bar
   -webkit-box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
   -moz-box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-
-  -webkit-transform:scale(.2);
-  -moz-transform:scale(.2);
-  -o-transform:scale(.2);
-  transform:scale(.2);
-
-  -webkit-transition: opacity 1s, -webkit-transform 0 linear 1s, left 0 linear 1s;
-  -moz-transition: opacity 0.130s;
-  -o-transition: opacity 0.130s;
-  transition: opacity 0.130s;
 }
 .kd-butterbar.shown{
   opacity:1;
   left:496px;
-  -webkit-transform:scale(1.00);
-
-  -webkit-transition: all 0.130s, left 0 linear 0;
-  -moz-transition: all 0.218s;
-  -o-transition: all 0.218s;
-/*  transition: all 0.218s, left 0;*/
 }
 .kd-butterbar p{
   margin-bottom:0;
@@ -2459,10 +2292,6 @@ Component: Zippy
   position: relative;
   overflow: hidden;
   height: 0;
-  -webkit-transition: all 0.218s;
-  -moz-transition: all 0.218s;
-  -o-transition: all 0.218s;
-  transition: all 0.218s;
 }
 .kd-zippycontent > *{position:absolute;bottom:0; left:0; width:100%;}
 .kd-zippy.expanded .kd-zippycontent{}
@@ -2514,12 +2343,6 @@ Component: Accordion
 }
 .kd-accordion .kd-zippycontent ul li input[type=radio]{
   margin-bottom:-2px;
-}
-.kd-accordion .row > a{
-  -webkit-transition: color 0.130s linear;
-  -moz-transition: color 0.130s linear;
-  -o-transition: color 0.130s linear;
-  transition: color 0.130s linear;
 }
 .kd-accordion .expanded .row > a{
   color:#222;
@@ -2573,11 +2396,6 @@ Compondent: Slider
   -webkit-box-shadow:0px 1px 1px rgba(0,0,0,0.1);
   -moz-box-shadow:0px 1px 1px rgba(0,0,0,0.1);
   box-shadow:0px 1px 1px rgba(0,0,0,0.1);
-
-  -webkit-transition: left 0.218s;
-  -moz-transition: left 0.218s;
-  -o-transition: left 0.218s;
-  transition: left 0.218s;
 }
 .kd-slider .kd-sliderhandle-inner {
   display:block;
@@ -2595,12 +2413,6 @@ Compondent: Slider
 }
 .kd-slider .kd-sliderhandle:active {
   background:#535252;
-}
-.kd-slider:active .kd-sliderhandle {
-  -webkit-transition: left 0;
-  -moz-transition: left 0;
-  -o-transition: left 0;
-  transition: left 0;
 }
 .kd-slider .kd-sliderhandle:active .kd-sliderhandle-inner {
   background:#535252;
@@ -2939,10 +2751,6 @@ Component: Menus
   outline:1px solid rgba(0,0,0,0.2);
   padding:0 0 6px;
   white-space: nowrap;
-  -moz-transition: opacity 0.218s;
-  -o-transition: opacity 0.218s;
-  -webkit-transition: opacity 0.218s;
-  transition: opacity 0.218s;
   -webkit-box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
   -moz-box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -3012,10 +2820,6 @@ Component: Menus
   overflow: hidden;
   opacity: 0.0;
   -moz-opacity: 0.0;
-/*  -moz-transition: opacity 0.218s;
-  -o-transition: opacity 0.218s;
-  -webkit-transition: opacity 0.218s;
-  transition: opacity 0.218s;*/
 }
 
 .kd-menulistitem:hover .kd-flyout {
@@ -3023,12 +2827,6 @@ Component: Menus
   overflow: visible;
   opacity: 1.0;
   -moz-opacity: 1.0;
-  -moz-transition: opacity 0s;
-  -webkit-transition: opacity 0s;
-  transition: opacity 0s;
-  -moz-transition-delay:0.130s;
-  -webkit-transition-delay:0.130s;
-  transition-delay:0.130s;
 }
 
 .kd-menulistitem .kd-disclosureindicator {
@@ -3042,18 +2840,10 @@ Component: Menus
 .kd-menulistitem:hover, .kd-menulistitem.selected {
   background-color: #f1f1f1;
   color: #222;
-
-  -moz-transition: background 0s;
-  -o-transition: background 0s;
-  -webkit-transition: background 0s;
-  transition: background 0s;
 }
 .kd-menulistitem:hover .kd-disclosureindicator {
   border-left-color: #999;
   opacity: 1;
-  -webkit-transition: none;
-  -moz-transition: none;
-  transition: none;
 }
 .kd-menurule {
   border-top: 1px solid #ebebeb;
@@ -3074,11 +2864,6 @@ Component: Menu Button
   left:-9999px;
   /*overflow: hidden;*/
 
-  -moz-transition: 0;
-  -o-transition: 0;
-  -webkit-transition: 0;
-  transition: 0;
-
   opacity: 0.0;
   -moz-opacity: 0.0;
 }
@@ -3087,10 +2872,6 @@ Component: Menu Button
   height: auto;
   opacity: 1.0;
   -moz-opacity: 1.0;
-  -moz-transition: 0;
-  -o-transition: 0;
-  -webkit-transition: 0;
-  transition: 0;
 }
 .kd-menubutton .kd-menulist.scroll.shown {
   max-height: 174px;
@@ -3108,10 +2889,6 @@ Component: Modal Dialog
   bottom: 0;
   z-index: 99;
   opacity: 0.0;
-  -webkit-transition: all 0.218s;
-  -moz-transition: all 0.218s;
-  -o-transition: all 0.218s;
-  transition: all 0.218s;
 }
 html.x-mobile #kd-modalshield {
   display: none;
@@ -3133,9 +2910,6 @@ html.y-expand #kd-modalshield {
 }
 .kd-modaldialog.visible {
   opacity: 1.0;
-  -webkit-transform: scale(1.0);
-  -moz-transform: scale(1.0);
-  transform: scale(1.0);
 }
 .kd-modaldialog {
   -webkit-box-shadow: 0 4px 16px rgba(0,0,0,0.2);
@@ -3155,12 +2929,6 @@ html.y-expand #kd-modalshield {
   top: 72px;
   margin-left: -256px;
   opacity: 0.0;
-  -webkit-transform: scale(1.05);
-  -moz-transform: scale(1.05);
-  transform: scale(1.05);
-  -webkit-transition: all 0.218s;
-  -moz-transition: all 0.218s;
-  transition: all 0.218s;
 }
 .kd-modaldialog.medium {
   padding:28px 32px;
@@ -3242,18 +3010,9 @@ Component: Settings
   top: 72px;
   margin-left: -256px;
   opacity: 0.0;
-  -webkit-transform: scale(1.05);
-  -moz-transform: scale(1.05);
-  transform: scale(1.05);
-  -webkit-transition: all 0.218s;
-  -moz-transition: all 0.218s;
-  transition: all 0.218s;
 }
 .kd-settings.visible {
   opacity: 1.0;
-  -webkit-transform: scale(1.0);
-  -moz-transform: scale(1.0);
-  transform: scale(1.0);
 }
 .kd-settings-hd {
   background-color: #f1f1f1;
@@ -3499,10 +3258,6 @@ Component: Hovercard
 .kd-hovercard {
   outline:1px solid rgba(0,0,0,0.2);
   width: 160px;
-  -moz-transition: opacity 0.218s;
-  -o-transition: opacity 0.218s;
-  -webkit-transition: opacity 0.218s;
-  transition: opacity 0.218s;
   -webkit-box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
   -moz-box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -3516,10 +3271,6 @@ Component: Hovercard
 .kd-hovercard .kd-menulist {
   outline: 0;
   width: auto;
-  -moz-transition: none;
-  -o-transition: none;
-  -webkit-transition: none;
-  transition: none;
   -webkit-box-shadow: 0;
   -moz-box-shadow: 0;
   box-shadow: 0;
@@ -3544,10 +3295,6 @@ Component: Date Picker
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   border-radius: 2px;
-  -webkit-transition: all 0.13s linear, left 0 linear .13s;
-  -moz-transition: all 0.13s linear;
-  -o-transition: all 0.13s linear;
-  transition: all 0.13s linear;
 }
 .kd-minicalendar{
   width:148px;
@@ -3560,10 +3307,6 @@ Component: Date Picker
 }
 .kd-datepicker.shown{
   opacity:1;
-  -webkit-transition:0, left 0 linear 0;
-  -moz-transition:0
-  /*-o-transition:0;*/
-  /*transition:0;*/
 }
 .kd-minicalendar h2{
   font-size:13px;
@@ -3676,18 +3419,6 @@ Component: Activity Indicator
   overflow:hidden;
 }
 
-#loader .mask.first {
-  -webkit-transition-property:border-color;
-  -webkit-transition-duration:0s;
-  -webkit-transition-delay:0.22s;
-  -moz-transition-property:border-color;
-  -moz-transition-duration:0s;
-  -moz-transition-delay:0.22s;
-  transition-property:border-color;
-  transition-duration:0s;
-  transition-delay:0.22s;
-}
-
 #loader .circle.initial .mask { top:0; height:50%; }
 
 #loader .circle.red .mask.first { top:0; height:50%; border-bottom:1px solid #555; }
@@ -3709,18 +3440,6 @@ Component: Activity Indicator
   -webkit-border-radius:50%;
   -moz-border-radius:50%;
   border-radius:50%;
-  -webkit-transition-property:opacity;
-  -webkit-transition-timing-function:linear;
-  -webkit-transition-duration:0s;
-  -webkit-transition-delay:0s;
-  -moz-transition-property:opacity;
-  -moz-transition-timing-function:linear;
-  -moz-transition-duration:0s;
-  -moz-transition-delay:0s;
-  transition-property:opacity;
-  transition-timing-function:linear;
-  transition-duration:0s;
-  transition-delay:0s;
 }
 
 #loader .circle .mask .mover {
@@ -3729,27 +3448,6 @@ Component: Activity Indicator
   -webkit-border-radius:50%;
   -moz-border-radius:50%;
   border-radius:50%;
-  -webkit-transition-property:background-color, left, top, right, bottom, width, height;
-  -webkit-transition-timing-function:ease-in;
-  -webkit-transition-duration:0.22s;
-  -webkit-transition-delay:0s;
-  -moz-transition-property:background-color, left, top, right, bottom, width, height;
-  -moz-transition-timing-function:ease-in;
-  -moz-transition-duration:0.22s;
-  -moz-transition-delay:0s;
-  transition-property:background-color, left, top, right, bottom, width, height;
-  transition-timing-function:ease-in;
-  transition-duration:0.22s;
-  transition-delay:0s;
-}
-#loader .circle .mask.second .mover,
-#loader .circle.initial .mask .mover {
-  -webkit-transition-timing-function:ease-out;
-  -webkit-transition-delay:0.22s;
-  -moz-transition-timing-function:ease-out;
-  -moz-transition-delay:0.22s;
-  transition-timing-function:ease-out;
-  transition-delay:0.22s;
 }
 
 #loader .circle.red .mask.first .base { top:0; height:200%; background-color:#888; }
@@ -3896,11 +3594,6 @@ Component: Activity Indicator
   opacity:0;
   width:8px;
   height:14px;
-
-  -webkit-transition: opacity .218s linear .44s;
-  -moz-transition: opacity .218s linear .44s;
-  -o-transition: opacity .218s linear .44s;
-  transition: opacity .218s linear .44s;
 }
 #loader.offline .bolt{
   opacity:1;
@@ -3934,11 +3627,6 @@ Component: Activity Indicator
 #loader.finishing.red .circle.red .mask.second .mover{
   height:0;
   bottom:100%;
-}
-#loader.finishing .mover{
-  -webkit-transition-delay:0s !important;
-  -moz-transition-delay:0s !important;
-  transition-delay:0s !important;
 }
 
 /*Grey*/
@@ -4033,15 +3721,9 @@ Component: Progress Bar
   /* @alternate */ background-image:-moz-linear-gradient(315deg, transparent, transparent 33%, rgba(0,0,0,0.12) 33%, rgba(0,0,0,0.12) 66%, transparent 66%, transparent);
   /* @alternate */ background-image:-o-linear-gradient(315deg, transparent, transparent 33%, rgba(0,0,0,0.12) 33%, rgba(0,0,0,0.12) 66%, transparent 66%, transparent);
   /* @alternate */ background-image:linear-gradient(315deg, transparent, transparent 33%, rgba(0,0,0,0.12) 33%, rgba(0,0,0,0.12) 66%, transparent 66%, transparent);
-
-  -webkit-animation-name: bg;
-  -webkit-animation-duration: 0.8s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-timing-function: linear;
 }
 .kd-progressbar-animated.kd-progressbar-tall .kd-progresstrack {
   background-size:20px 10px;
-  -webkit-animation-name: bg-tall;
 }
 
 @-webkit-keyframes bg {
@@ -4263,10 +3945,6 @@ Component: Tooltips
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  -webkit-transition: opacity 0.13s;
-  -moz-transition: opacity 0.13s;
-  -o-transition: opacity 0.13s;
-  transition: opacity 0.13s;
 }
 #kd-tooltip .pointer {
   outline: none;
@@ -4313,7 +3991,6 @@ Component: Star/Importance icons
   padding-left:200px;
 }
 .star {
-  -webkit-transition:all .5s linear;
   height:19px;
   width: 19px;
 }
@@ -4659,29 +4336,6 @@ Component: List
   right:7px;
 }
 
-/* Responsive resize transitions */
-.kd-list table tr {
-  -webkit-transition:height 0.18s;
-  -moz-transition:height 0.18s;
-  transition:height 0.18s;
-}
-.kd-list table tr td {
-  -webkit-transition-property:top, left, right;
-  -webkit-transition-duration:0.18s;
-  -moz-transition-property:top, left, right;
-  -moz-transition-duration:0.18s;
-  transition-property:top, left, right;
-  transition-duration:0.18s;
-}
-.kd-list table tr td a {
-  -webkit-transition-property:padding, line-height;
-  -webkit-transition-duration:0.18s;
-  -moz-transition-property:padding, line-height;
-  -moz-transition-duration:0.18s;
-  transition-property:padding, line-height;
-  transition-duration:0.18s;
-}
-
 /*------------------------------------------------------------------
 Component: Footers
 ------------------------------------------------------------------*/
@@ -4721,9 +4375,6 @@ Component: Footers
 }
 .pageFooter ul.linklist .kd-menubutton.selected a{
   color:#000;
-}
-.pageFooter ul.linklist .kd-menubutton.selected .kd-disclosureindicator{
-  -webkit-transform:rotate(-90deg);
 }
 .pageFooter ul.linklist .kd-menubutton:hover, .pageFooter ul.linklist .kd-menubutton.selected{
   border-color:#ebebeb;
