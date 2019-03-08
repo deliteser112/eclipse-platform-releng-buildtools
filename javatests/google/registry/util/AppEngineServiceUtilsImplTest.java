@@ -24,19 +24,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.modules.ModulesService;
-import google.registry.testing.MockitoJUnitRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /** Unit tests for {@link AppEngineServiceUtilsImpl}. */
 @RunWith(JUnit4.class)
 public class AppEngineServiceUtilsImplTest {
 
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   @Mock private ModulesService modulesService;
 

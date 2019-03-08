@@ -36,7 +36,6 @@ import com.google.api.services.cloudkms.v1.model.KeyRing;
 import com.google.api.services.cloudkms.v1.model.UpdateCryptoKeyPrimaryVersionRequest;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
-import google.registry.testing.MockitoJUnitRule;
 import google.registry.util.Retrier;
 import java.io.ByteArrayInputStream;
 import org.junit.Before;
@@ -47,11 +46,13 @@ import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public class KmsConnectionImplTest {
 
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   @Mock private CloudKMS kms;
   @Mock private CloudKMS.Projects kmsProjects;

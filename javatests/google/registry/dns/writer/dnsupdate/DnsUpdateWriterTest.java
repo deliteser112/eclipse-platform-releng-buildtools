@@ -45,7 +45,6 @@ import google.registry.model.ofy.Ofy;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-import google.registry.testing.MockitoJUnitRule;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -59,6 +58,8 @@ import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.xbill.DNS.Flags;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.Opcode;
@@ -77,7 +78,7 @@ public class DnsUpdateWriterTest {
   public final AppEngineRule appEngine =
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
   @Rule public final InjectRule inject = new InjectRule();
 
   @Mock private DnsMessageTransport mockResolver;

@@ -2498,10 +2498,10 @@ def org_khronos_opengl_api():
 def org_mockito_all():
     java_import_external(
         name = "org_mockito_all",
-        jar_sha256 = "b2a63307d1dce3aa1623fdaacb2327a4cd7795b0066f31bf542b1e8f2683239e",
+        jar_sha256 = "d1a7a7ef14b3db5c0fc3e0a63a81b374b510afe85add9f7984b97911f4c70605",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/org/mockito/mockito-all/1.9.5/mockito-all-1.9.5.jar",
-            "http://repo1.maven.org/maven2/org/mockito/mockito-all/1.9.5/mockito-all-1.9.5.jar",
+            "http://maven.ibiblio.org/maven2/org/mockito/mockito-all/1.10.19/mockito-all-1.10.19.jar",
+            "http://repo1.maven.org/maven2/org/mockito/mockito-all/1.10.19/mockito-all-1.10.19.jar",
         ],
         licenses = ["notice"],  # The MIT License
         testonly_ = True,

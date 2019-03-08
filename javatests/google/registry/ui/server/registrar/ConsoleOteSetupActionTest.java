@@ -39,7 +39,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.DeterministicStringGenerator;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
-import google.registry.testing.MockitoJUnitRule;
 import google.registry.ui.server.SendEmailUtils;
 import google.registry.util.SendEmailService;
 import java.util.Optional;
@@ -54,6 +53,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 @RunWith(JUnit4.class)
 public final class ConsoleOteSetupActionTest {
@@ -63,7 +64,7 @@ public final class ConsoleOteSetupActionTest {
       .withDatastore()
       .build();
 
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   private final FakeResponse response = new FakeResponse();
   private final ConsoleOteSetupAction action = new ConsoleOteSetupAction();

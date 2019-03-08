@@ -31,7 +31,6 @@ import com.google.common.reflect.TypeToken;
 import google.registry.model.poll.PollMessage;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.CertificateSamples;
-import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.SystemPropertyRule;
 import google.registry.tools.params.ParameterFactory;
 import java.io.ByteArrayOutputStream;
@@ -44,6 +43,8 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * Base class for all command tests.
@@ -64,7 +65,7 @@ public abstract class CommandTestCase<C extends Command> {
 
   @Rule public final SystemPropertyRule systemPropertyRule = new SystemPropertyRule();
 
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();

@@ -38,7 +38,6 @@ import google.registry.model.registrar.Registrar;
 import google.registry.request.auth.AuthenticatedRegistrarAccessor.RegistrarAccessDeniedException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
-import google.registry.testing.MockitoJUnitRule;
 import java.util.Optional;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
@@ -50,6 +49,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /** Unit tests for {@link AuthenticatedRegistrarAccessor}. */
 @RunWith(JUnit4.class)
@@ -57,7 +58,7 @@ public class AuthenticatedRegistrarAccessorTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
   @Rule public final InjectRule inject = new InjectRule();
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   @Mock private HttpServletRequest req;
   @Mock private HttpServletResponse rsp;

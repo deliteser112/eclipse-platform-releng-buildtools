@@ -36,7 +36,6 @@ import com.google.common.flogger.FluentLogger;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
-import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.ShardableTestCase;
 import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.AppEngineServiceUtilsImpl;
@@ -55,6 +54,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * Base test class for mapreduces.
@@ -84,7 +85,7 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
       .withTaskQueue()
       .build();
 
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   AppEngineServiceUtils appEngineServiceUtils;
 

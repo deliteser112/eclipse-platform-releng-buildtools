@@ -36,7 +36,6 @@ import google.registry.monitoring.whitebox.CheckApiMetric.Tier;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
-import google.registry.testing.MockitoJUnitRule;
 import java.util.Map;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
@@ -48,6 +47,8 @@ import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /** Tests for {@link CheckApiAction}. */
 @RunWith(JUnit4.class)
@@ -56,7 +57,7 @@ public class CheckApiActionTest {
   private static final DateTime START_TIME = DateTime.parse("2000-01-01T00:00:00.0Z");
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   @Mock private CheckApiMetrics checkApiMetrics;
   @Captor private ArgumentCaptor<CheckApiMetric> metricCaptor;

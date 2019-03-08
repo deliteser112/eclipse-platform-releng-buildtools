@@ -38,7 +38,6 @@ import google.registry.request.HttpException.NotModifiedException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
-import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.TestDataHelper;
 import org.joda.time.DateTime;
@@ -49,6 +48,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /** Unit tests for {@link CheckBackupAction}. */
 @RunWith(JUnit4.class)
@@ -60,7 +61,7 @@ public class CheckBackupActionTest {
   static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withTaskQueue().build();
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   @Mock private DatastoreAdmin datastoreAdmin;
   @Mock private Get getNotFoundBackupProgressRequest;

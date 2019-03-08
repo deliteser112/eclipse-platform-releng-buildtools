@@ -24,7 +24,6 @@ import com.google.appengine.api.urlfetch.URLFetchService;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeClock;
-import google.registry.testing.MockitoJUnitRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -32,6 +31,8 @@ import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /** Common code for unit tests of classes that extend {@link Marksdb}. */
 @RunWith(JUnit4.class)
@@ -41,7 +42,7 @@ public class TmchActionTestCase {
   static final String MARKSDB_URL = "http://127.0.0.1/love";
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
   @Rule public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
 
   @Mock URLFetchService fetchService;

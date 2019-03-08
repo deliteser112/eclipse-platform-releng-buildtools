@@ -24,7 +24,6 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.ImmutableList;
-import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TestDataHelper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,6 +34,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /** Unit tests for {@link DatastoreAdmin}. */
 @RunWith(JUnit4.class)
@@ -45,7 +46,7 @@ public class DatastoreAdminTest {
   private static final ImmutableList<String> KINDS =
       ImmutableList.of("Registry", "Registrar", "DomainBase");
 
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   private HttpTransport httpTransport;
   private GoogleCredential googleCredential;

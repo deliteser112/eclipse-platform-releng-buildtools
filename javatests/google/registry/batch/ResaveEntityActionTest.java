@@ -49,7 +49,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.InjectRule;
-import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.ShardableTestCase;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.AppEngineServiceUtils;
@@ -62,6 +61,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /** Unit tests for {@link ResaveEntityAction}. */
 @RunWith(JUnit4.class)
@@ -72,7 +73,7 @@ public class ResaveEntityActionTest extends ShardableTestCase {
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
   @Rule public final InjectRule inject = new InjectRule();
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   @Mock private AppEngineServiceUtils appEngineServiceUtils;
   @Mock private Response response;

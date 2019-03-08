@@ -136,7 +136,7 @@ ext {
       'org.joda:joda-money:0.10.0',
       'org.json:json:20160810',
       'org.khronos:opengl-api:gl1.1-android-2.1_r1',
-      'org.mockito:mockito-all:1.9.5',
+      'org.mockito:mockito-all:1.10.19',
       'org.mortbay.jetty:jetty:6.1.26',
       'org.mortbay.jetty:jetty-util:6.1.26',
       'org.mortbay.jetty:servlet-api:2.5-20081211',

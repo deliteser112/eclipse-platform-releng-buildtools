@@ -40,7 +40,6 @@ import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
-import google.registry.testing.MockitoJUnitRule;
 import google.registry.ui.server.SendEmailUtils;
 import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.SendEmailService;
@@ -59,6 +58,8 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /** Base class for tests using {@link RegistrarSettingsAction}. */
 @RunWith(JUnit4.class)
@@ -71,7 +72,7 @@ public class RegistrarSettingsActionTestCase {
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
   @Rule public final InjectRule inject = new InjectRule();
-  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final MockitoRule mocks = MockitoJUnit.rule();
 
   @Mock AppEngineServiceUtils appEngineServiceUtils;
   @Mock HttpServletRequest req;
