@@ -6,14 +6,14 @@ com.fasterxml.jackson.core:jackson-core:2.9.6
 com.google.api-client:google-api-client:1.28.0
 com.google.apis:google-api-services-cloudkms:v1-rev12-1.22.0
 com.google.apis:google-api-services-monitoring:v3-rev426-1.23.0
-com.google.apis:google-api-services-storage:v1-rev86-1.22.0
+com.google.apis:google-api-services-storage:v1-rev150-1.22.0
 com.google.appengine:appengine-api-1.0-sdk:1.9.48
 com.google.appengine:appengine-testing:1.9.58
 com.google.auto.value:auto-value-annotations:1.6.2
 com.google.auto.value:auto-value:1.6.2
 com.google.code.findbugs:jsr305:3.0.2
 com.google.code.gson:gson:2.8.5
-com.google.dagger:dagger:2.15
+com.google.dagger:dagger:2.21
 com.google.errorprone:error_prone_annotations:2.2.0
 com.google.flogger:flogger-system-backend:0.1
 com.google.flogger:flogger:0.1
@@ -38,7 +38,7 @@ io.netty:netty-codec:4.1.31.Final
 io.netty:netty-common:4.1.31.Final
 io.netty:netty-handler:4.1.31.Final
 io.netty:netty-resolver:4.1.31.Final
-io.netty:netty-tcnative-boringssl-static:2.0.20.Final
+io.netty:netty-tcnative-boringssl-static:2.0.22.Final
 io.netty:netty-transport:4.1.31.Final
 io.opencensus:opencensus-api:0.18.0
 io.opencensus:opencensus-contrib-http-util:0.18.0
@@ -49,8 +49,8 @@ javax.xml.bind:jaxb-api:2.3.0
 joda-time:joda-time:2.9.2
 org.apache.httpcomponents:httpclient:4.5.5
 org.apache.httpcomponents:httpcore:4.4.9
-org.bouncycastle:bcpkix-jdk15on:1.52
-org.bouncycastle:bcprov-jdk15on:1.52
+org.bouncycastle:bcpkix-jdk15on:1.61
+org.bouncycastle:bcprov-jdk15on:1.61
 org.checkerframework:checker-qual:2.5.2
 org.codehaus.mojo:animal-sniffer-annotations:1.17
 org.yaml:snakeyaml:1.17
