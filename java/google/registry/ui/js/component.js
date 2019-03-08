@@ -14,10 +14,9 @@
 
 goog.provide('registry.Component');
 
+goog.forwardDeclare('registry.Console');
 goog.require('goog.events.EventHandler');
 goog.require('registry.util');
-
-goog.forwardDeclare('registry.Console');
 
 
 

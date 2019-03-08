@@ -14,6 +14,7 @@
 
 goog.provide('registry.registrar.AdminSettings');
 
+goog.forwardDeclare('registry.registrar.Console');
 goog.require('goog.array');
 goog.require('goog.dom');
 goog.require('goog.dom.classlist');
@@ -25,8 +26,6 @@ goog.require('goog.soy');
 goog.require('registry.Resource');
 goog.require('registry.ResourceComponent');
 goog.require('registry.soy.registrar.admin');
-
-goog.forwardDeclare('registry.registrar.Console');
 
 
 
