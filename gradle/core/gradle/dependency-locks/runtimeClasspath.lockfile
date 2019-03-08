@@ -140,7 +140,6 @@ javax.annotation:jsr250-api:1.0
 javax.inject:javax.inject:1
 javax.jdo:jdo2-api:2.3-eb
 javax.mail:mail:1.4
-javax.servlet:javax.servlet-api:3.1.0
 javax.servlet:servlet-api:2.5
 javax.transaction:transaction-api:1.1
 javax.validation:validation-api:1.0.0.GA
@@ -158,7 +157,6 @@ org.apache.beam:beam-sdks-java-io-google-cloud-platform:2.2.0
 org.apache.commons:commons-compress:1.8.1
 org.apache.httpcomponents:httpclient:4.5.5
 org.apache.httpcomponents:httpcore:4.4.9
-org.apache.tomcat:servlet-api:6.0.45
 org.bouncycastle:bcpg-jdk15on:1.52
 org.bouncycastle:bcprov-jdk15on:1.52
 org.checkerframework:checker-qual:2.5.2
@@ -175,7 +173,6 @@ org.json:json:20160810
 org.jvnet.staxex:stax-ex:1.7.8
 org.mortbay.jetty:jetty-util:6.1.26
 org.mortbay.jetty:jetty:6.1.26
-org.mortbay.jetty:servlet-api:2.5-20081211
 org.objenesis:objenesis:1.2
 org.ow2.asm:asm-analysis:6.0
 org.ow2.asm:asm-commons:6.0

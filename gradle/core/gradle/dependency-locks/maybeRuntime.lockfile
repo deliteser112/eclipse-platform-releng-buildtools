@@ -87,7 +87,6 @@ org.codehaus.mojo:animal-sniffer-annotations:1.14
 org.khronos:opengl-api:gl1.1-android-2.1_r1
 org.mortbay.jetty:jetty-util:6.1.26
 org.mortbay.jetty:jetty:6.1.26
-org.mortbay.jetty:servlet-api:2.5-20081211
 org.slf4j:slf4j-api:1.7.25
 org.tukaani:xz:1.5
 org.xerial.snappy:snappy-java:1.1.4

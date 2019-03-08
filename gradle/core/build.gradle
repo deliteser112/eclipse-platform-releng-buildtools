@@ -61,6 +61,17 @@ configurations {
   // TODO(weiminyu): identify runtime dependencies and remove the rest.
   maybeRuntime
   closureCompiler
+
+  // Exclude non-canonical servlet-api jars. Our AppEngine deployment uses
+  // javax.servlet:servlet-api:2.5
+  // For reasons we do not understand, marking the following dependencies as
+  // compileOnly instead of compile does not exclude them from runtimeClasspath.
+  all {
+    // servlet-api:3.1 pulled in but not used by soy compiler
+    exclude group: 'javax.servlet', module: 'javax.servlet-api'
+    // Jetty's servlet-api:2.5 implementation, pulled in by other Jetty jars
+    exclude group: 'org.mortbay.jetty', module: 'servlet-api'
+  }
 }
 
 // Known issues:
@@ -202,7 +213,6 @@ dependencies {
   testCompile deps['org.apache.sshd:sshd-scp']
   maybeRuntime deps['org.apache.sshd:sshd-sftp']
   testCompile deps['org.apache.sshd:sshd-sftp']
-  compile deps['org.apache.tomcat:servlet-api']
   maybeRuntime deps['org.apache.tomcat:tomcat-annotations-api']
   testCompile deps['org.apache.tomcat:tomcat-annotations-api']
   compile deps['org.bouncycastle:bcpg-jdk15on']
@@ -215,7 +225,6 @@ dependencies {
   maybeRuntime deps['org.khronos:opengl-api']
   maybeRuntime deps['org.mortbay.jetty:jetty']
   testCompile deps['org.mortbay.jetty:jetty']
-  compile deps['org.mortbay.jetty:servlet-api']
   maybeRuntime deps['org.mortbay.jetty:jetty-util']
   testCompile deps['org.seleniumhq.selenium:selenium-api']
   testCompile deps['org.seleniumhq.selenium:selenium-chrome-driver']
@@ -255,7 +264,6 @@ dependencies {
   // Indirect dependency found by undeclared-dependency check. Such
   // dependencies should go after all other compile and testCompile
   // dependencies to avoid overriding them accidentally.
-  compile deps['javax.servlet:javax.servlet-api'] // google-api-client-appeng
   compile deps['com.google.oauth-client:google-oauth-client-java6']
 
   // Dependencies needed for jaxb compilation.
