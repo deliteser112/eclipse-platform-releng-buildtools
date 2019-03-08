@@ -5,11 +5,11 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # https://github.com/bazelbuild/rules_closure/releases/tag/0.8.0
 http_archive(
     name = "io_bazel_rules_closure",
-    sha256 = "b29a8bc2cb10513c864cb1084d6f38613ef14a143797cea0af0f91cd385f5e8c",
-    strip_prefix = "rules_closure-0.8.0",
+    sha256 = "0e6de40666f2ebb2b30dc0339745a274d9999334a249b05a3b1f46462e489adf",
+    strip_prefix = "rules_closure-87d24b1df8b62405de8dd059cb604fd9d4b1e395",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/0.8.0.tar.gz",
-        "https://github.com/bazelbuild/rules_closure/archive/0.8.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/87d24b1df8b62405de8dd059cb604fd9d4b1e395.tar.gz",
+        "https://github.com/bazelbuild/rules_closure/archive/87d24b1df8b62405de8dd059cb604fd9d4b1e395.tar.gz",
     ],
 )
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")
