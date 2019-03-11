@@ -41,9 +41,9 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
-# Get Chrome binary for WebDriver tests
-addons:
-  chrome: stable
+# WebDriver tests need Chrome and ChromeDriver provisioned by the docker image
+services:
+  - docker
 
 env:
   # Disable fancy status information (looks bad on travis and exceeds logfile

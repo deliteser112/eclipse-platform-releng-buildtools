@@ -26,7 +26,7 @@ import java.util.Arrays;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 
-/** An immutable class represents . */
+/** An immutable class represents a screenshot taken in a visual regression test. */
 public class ActualScreenshot {
   public static final String IMAGE_FORMAT = "png";
   private String imageKey;

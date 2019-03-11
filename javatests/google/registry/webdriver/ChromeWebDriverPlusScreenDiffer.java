@@ -15,11 +15,12 @@
 package google.registry.webdriver;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.webdriver.RepeatableRunner.currentAttemptIndex;
 import static java.lang.Math.abs;
 import static java.util.stream.Collectors.joining;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.flogger.FluentLogger;
 import java.awt.Color;
@@ -27,6 +28,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -38,7 +41,6 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
@@ -46,14 +48,18 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-  private static final String SCREENSHOT_DIR = "build/screenshots";
-  private static final ChromeDriverService chromeDriverService = createChromeDriverService();
+  // Url address to the remote Webdriver service. In this case, we use
+  // Docker to provision the service and it is configured in core/build.gradle
+  private static final String CHROME_DRIVER_SERVICE_URL =
+      checkNotNull(System.getProperty("webdriver.chromeDriverServiceUrl"));
 
   private final WebDriver webDriver;
   private final String goldensPath;
   private final int maxColorDiff;
   private final int maxPixelDiff;
   private final List<ActualScreenshot> actualScreenshots;
+
+  private String screenshotDir = System.getProperty("test.screenshot.dir", "build/screenshots");
 
   public ChromeWebDriverPlusScreenDiffer(String goldensPath, int maxColorDiff, int maxPixelDiff) {
     this.webDriver = createChromeDriver();
@@ -66,21 +72,11 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
   private WebDriver createChromeDriver() {
     ChromeOptions chromeOptions = new ChromeOptions();
     chromeOptions.setHeadless(true);
-    // For Windows OS, this is required to let headless mode work properly
-    chromeOptions.addArguments("disable-gpu");
-    return new RemoteWebDriver(chromeDriverService.getUrl(), chromeOptions);
-  }
-
-  private static ChromeDriverService createChromeDriverService() {
-    ChromeDriverService chromeDriverService =
-        new ChromeDriverService.Builder().usingAnyFreePort().build();
     try {
-      chromeDriverService.start();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
+      return new RemoteWebDriver(new URL(CHROME_DRIVER_SERVICE_URL), chromeOptions);
+    } catch (MalformedURLException e) {
+      throw new IllegalArgumentException(e);
     }
-    Runtime.getRuntime().addShutdownHook(new Thread(chromeDriverService::stop));
-    return chromeDriverService;
   }
 
   @AutoValue
@@ -128,10 +124,19 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
 
   @Override
   public void diffElement(String imageKey, WebElement element) {
+    ActualScreenshot elementImage =
+        takeScreenshot(imageKey)
+            .getSubimage(
+                element.getLocation().getX(),
+                element.getLocation().getY(),
+                element.getSize().getWidth(),
+                element.getSize().getHeight());
+    actualScreenshots.add(elementImage);
   }
 
   @Override
   public void diffPage(String imageKey) {
+    actualScreenshots.add(takeScreenshot(imageKey));
   }
 
   @Override
@@ -144,7 +149,7 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
                 result -> {
                   String imageName = result.actualScreenshot().getImageName();
                   String goldenImagePath = goldenImagePath(imageName);
-                  Path persistedScreenshot = persistScreenshot(result.actualScreenshot());
+                  Path persistedScreenshot = persistScreenshot(result);
 
                   if (result.isConsideredSimilar()) {
                     logger.atInfo().log(
@@ -237,14 +242,16 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
     return commonBuilder.build();
   }
 
-  private Path persistScreenshot(ActualScreenshot screenshot) {
-    File thisScreenshotDir = new File(SCREENSHOT_DIR, screenshot.getImageKey());
+  private Path persistScreenshot(ComparisonResult result) {
+    File thisScreenshotDir =
+        Paths.get(
+                screenshotDir,
+                "attempt_" + currentAttemptIndex,
+                result.isConsideredSimilar() ? "similar" : "different")
+            .toFile();
     thisScreenshotDir.mkdirs();
-    File thisScreenshotFile =
-        new File(
-            thisScreenshotDir,
-            Joiner.on(".").join(System.currentTimeMillis(), ActualScreenshot.IMAGE_FORMAT));
-    screenshot.writeTo(thisScreenshotFile);
+    File thisScreenshotFile = new File(thisScreenshotDir, result.actualScreenshot().getImageName());
+    result.actualScreenshot().writeTo(thisScreenshotFile);
     return thisScreenshotFile.toPath();
   }
 

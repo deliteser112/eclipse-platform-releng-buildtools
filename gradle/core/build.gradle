@@ -6,6 +6,15 @@ plugins {
 // used for easy inspection.
 def generatedDir = "${project.buildDir}/generated/source/custom/main"
 def resourcesDir = "${project.buildDir}/resources/main"
+def screenshotsDir = "${project.buildDir}/screenshots"
+def screenshotsForGoldensDir = "${project.buildDir}/screenshots_for_goldens"
+def newGoldensDir = "${project.buildDir}/new_golden_images"
+def goldensDir =
+  "${javatestsDir}/google/registry/webdriver/goldens/chrome-linux"
+def chromeWebdriverServicePort = 4444
+// Url to the Chrome Webdriver service used by class ChromeWebDriverPlusScreenDiffer
+def chromeWebdriverServiceUrl =
+  "http://localhost:${chromeWebdriverServicePort}/wd/hub"
 
 // Tests that conflict with (mostly unidentified) members of the main test
 // suite. It is unclear if they are offenders (i.e., those that pollute global
@@ -575,33 +584,63 @@ task outcastTest(type: Test) {
   maxParallelForks 5
 }
 
-import org.apache.tools.ant.taskdefs.condition.Os
-import java.nio.file.Files
-import java.nio.file.Paths
-ext.getChromedriver = {
-    def chromedriverZipFileName
-    if (Os.isFamily(Os.FAMILY_UNIX)) {
-        chromedriverZipFileName = 'chromedriver_linux64.zip'
-    } else if (Os.isFamily(Os.FAMILY_MAC)) {
-        chromedriverZipFileName = 'chromedriver_mac64.zip'
-    } else if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        chromedriverZipFileName = 'chromedriver_win32.zip'
-    } else {
-        throw new RuntimeException("Unsupported OS: ${OperatingSystem.getDisplayName()}")
-    }
-
-    def tempDir = Files.createTempDirectory("chromedriver-dir").toString()
-
-    ant.get(src: 'https://chromedriver.storage.googleapis.com/LATEST_RELEASE', dest: tempDir)
-    def latestReleaseVersion = Paths.get(tempDir, 'LATEST_RELEASE').readLines().get(0)
-    ant.get(src: "https://chromedriver.storage.googleapis.com/${latestReleaseVersion}/${chromedriverZipFileName}", dest: tempDir)
-    ant.unzip(src: "${tempDir}/${chromedriverZipFileName}", dest: tempDir)
-
-    def chromedriverFile = new File(tempDir, 'chromedriver')
-    chromedriverFile.setExecutable(true)
-
-    return chromedriverFile.getCanonicalPath()
+task dockerStopAtStart(type: Exec) {
+  ignoreExitValue true
+  commandLine 'docker', 'stop', 'chrome-plus-chromedriver'
 }
+task dockerStopAtEnd(type: Exec) {
+  ignoreExitValue true
+  commandLine 'docker', 'stop', 'chrome-plus-chromedriver'
+}
+
+task dockerRun(type: Exec) {
+  dependsOn dockerStopAtStart
+  def runCommand = []
+  runCommand << 'docker'
+  runCommand << 'run' << '--detach'
+  runCommand << '--name' << 'chrome-plus-chromedriver'
+  runCommand << '--publish'
+  runCommand << "${chromeWebdriverServicePort}:${chromeWebdriverServicePort}"
+  runCommand << '--volume' << '/dev/shm:/dev/shm'
+  runCommand << '--network' << 'host'
+  runCommand << '--rm'
+  runCommand << 'selenium/standalone-chrome:3.141.59-gold'
+  commandLine runCommand
+}
+
+task findGoldenImages(type: JavaExec) {
+  classpath = sourceSets.test.runtimeClasspath
+  main = 'google.registry.webdriver.GoldenImageFinder'
+
+  def arguments = []
+  arguments << "--screenshots_for_goldens_dir=${screenshotsForGoldensDir}"
+  arguments << "--new_goldens_dir=${newGoldensDir}"
+  arguments << "--existing_goldens_dir=${goldensDir}"
+  if (rootProject.findProperty("overrideExistingGoldens") == "true") {
+    arguments << "--override_existing_goldens=true"
+  }
+  args arguments
+}
+
+task generateGoldenImages(type: Test) {
+  dependsOn dockerRun
+  // Common exclude pattern. See README in parent directory for explanation.
+  exclude "**/*TestCase.*", "**/*TestSuite.*"
+  include "**/webdriver/*"
+
+  // Sets the maximum number of test executors that may exist at the same time.
+  maxParallelForks 5
+
+  systemProperty 'test.screenshot.dir', screenshotsForGoldensDir
+  systemProperty 'test.screenshot.runAllAttempts', 'true'
+  systemProperty 'test.screenshot.maxAttempts', '5'
+  systemProperty 'webdriver.chromeDriverServiceUrl', chromeWebdriverServiceUrl
+
+  doFirst {
+    new File(screenshotsForGoldensDir).deleteDir()
+  }
+}
+generateGoldenImages.finalizedBy(dockerStopAtEnd, findGoldenImages)
 
 test {
   // Common exclude pattern. See README in parent directory for explanation.
@@ -610,6 +649,8 @@ test {
   exclude outcastTestPatterns
   if (rootProject.hasProperty("excludeWebDriverTests")) {
       exclude "**/webdriver/*"
+  } else {
+      dependsOn dockerRun
   }
 
   // Run every test class in its own process.
@@ -620,10 +661,16 @@ test {
   // Sets the maximum number of test executors that may exist at the same time.
   maxParallelForks 5
 
-  // Set system property for Webdriver
-  systemProperty 'webdriver.chrome.driver', project.getChromedriver()
+  systemProperty 'webdriver.chromeDriverServiceUrl', chromeWebdriverServiceUrl
 
+  doFirst {
+    new File(screenshotsDir).deleteDir()
+  }
 }.dependsOn(fragileTest, outcastTest)
+
+if (!rootProject.hasProperty("excludeWebDriverTests")) {
+  test.finalizedBy(dockerStopAtEnd)
+}
 
 task nomulus(type: Jar) {
   manifest {

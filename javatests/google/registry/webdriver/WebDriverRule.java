@@ -66,7 +66,7 @@ public final class WebDriverRule extends ExternalResource
   private static final Dimension DEFAULT_WINDOW_SIZE = new Dimension(1200, 2000);
 
   private static final String GOLDENS_PATH =
-      getResource(WebDriverRule.class, "scuba_goldens/chrome-linux").getFile();
+      getResource(WebDriverRule.class, "goldens/chrome-linux").getFile();
 
   private WebDriver driver;
   private WebDriverPlusScreenDiffer webDriverPlusScreenDiffer;
@@ -99,10 +99,10 @@ public final class WebDriverRule extends ExternalResource
 
   @Override
   protected void after() {
-    webDriverPlusScreenDiffer.verifyAndQuit();
     try {
-      driver.quit();
+      webDriverPlusScreenDiffer.verifyAndQuit();
     } finally {
+      driver.quit();
       driver = null;
     }
   }
