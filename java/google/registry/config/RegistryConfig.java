@@ -15,6 +15,7 @@
 package google.registry.config;
 
 import static com.google.common.base.Suppliers.memoize;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.config.ConfigUtils.makeUrl;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -41,6 +42,8 @@ import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
 
@@ -510,8 +513,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("gSuiteOutgoingEmailAddress")
-    public static String provideGSuiteOutgoingEmailAddress(RegistryConfigSettings config) {
-      return config.gSuite.outgoingEmailAddress;
+    public static InternetAddress provideGSuiteOutgoingEmailAddress(RegistryConfigSettings config) {
+      return parseEmailAddress(config.gSuite.outgoingEmailAddress);
     }
 
     /**
@@ -697,9 +700,11 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("invoiceEmailRecipients")
-    public static ImmutableList<String> provideInvoiceEmailRecipients(
+    public static ImmutableList<InternetAddress> provideInvoiceEmailRecipients(
         RegistryConfigSettings config) {
-      return ImmutableList.copyOf(config.billing.invoiceEmailRecipients);
+      return config.billing.invoiceEmailRecipients.stream()
+          .map(RegistryConfig::parseEmailAddress)
+          .collect(toImmutableList());
     }
 
     /**
@@ -863,14 +868,13 @@ public final class RegistryConfig {
      * <p>This allows us to easily verify the success or failure of periodic tasks by passively
      * checking e-mail.
      *
-     * @see google.registry.reporting.icann.ReportingEmailUtils
      * @see google.registry.reporting.billing.BillingEmailUtils
      * @see google.registry.reporting.spec11.Spec11EmailUtils
      */
     @Provides
     @Config("alertRecipientEmailAddress")
-    public static String provideAlertRecipientEmailAddress(RegistryConfigSettings config) {
-      return config.misc.alertRecipientEmailAddress;
+    public static InternetAddress provideAlertRecipientEmailAddress(RegistryConfigSettings config) {
+      return parseEmailAddress(config.misc.alertRecipientEmailAddress);
     }
 
     /**
@@ -880,8 +884,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("spec11ReplyToEmailAddress")
-    public static String provideSpec11ReplyToEmailAddress(RegistryConfigSettings config) {
-      return config.misc.spec11ReplyToEmailAddress;
+    public static InternetAddress provideSpec11ReplyToEmailAddress(RegistryConfigSettings config) {
+      return parseEmailAddress(config.misc.spec11ReplyToEmailAddress);
     }
 
     /**
@@ -931,7 +935,7 @@ public final class RegistryConfig {
     /**
      * Number of times to retry a GAE operation when {@code TransientFailureException} is thrown.
      *
-     * <p>The number of milliseconds it'll sleep before giving up is {@code 2^n - 2}.
+     * <p>The number of milliseconds it'll sleep before giving up is {@code (2^n - 2) * 100}.
      *
      * <p>Note that this uses {@code @Named} instead of {@code @Config} so that it can be used from
      * the low-level util package, which cannot have a dependency on the config package.
@@ -940,8 +944,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Named("transientFailureRetries")
-    public static int provideTransientFailureRetries() {
-      return 12;  // Four seconds.
+    public static int provideTransientFailureRetries(RegistryConfigSettings config) {
+      return config.misc.transientFailureRetries;
     }
 
     /**
@@ -1489,8 +1493,8 @@ public final class RegistryConfig {
   }
 
   /** Returns the email address that outgoing emails from the app are sent from. */
-  public static String getGSuiteOutgoingEmailAddress() {
-    return CONFIG_SETTINGS.get().gSuite.outgoingEmailAddress;
+  public static InternetAddress getGSuiteOutgoingEmailAddress() {
+    return parseEmailAddress(CONFIG_SETTINGS.get().gSuite.outgoingEmailAddress);
   }
 
   /** Returns the display name that outgoing emails from the app are sent from. */
@@ -1546,6 +1550,14 @@ public final class RegistryConfig {
     return Splitter.on('\n').omitEmptyStrings().trimResults().splitToList(text).stream()
         .map(s -> "# " + s)
         .collect(Collectors.joining("\n"));
+  }
+
+  private static InternetAddress parseEmailAddress(String email) {
+    try {
+      return new InternetAddress(email);
+    } catch (AddressException e) {
+      throw new IllegalArgumentException(String.format("Could not parse email address %s.", email));
+    }
   }
 
   private RegistryConfig() {}

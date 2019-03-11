@@ -169,6 +169,7 @@ public class RegistryConfigSettings {
     public String alertRecipientEmailAddress;
     public String spec11ReplyToEmailAddress;
     public int asyncDeleteDelaySeconds;
+    public int transientFailureRetries;
   }
 
   /** Configuration for keyrings (used to store secrets outside of source). */

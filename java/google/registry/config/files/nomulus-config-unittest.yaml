@@ -27,3 +27,7 @@ caching:
 # tests
 gSuite:
   supportGroupEmailAddress:
+
+misc:
+  # We would rather have failures than timeouts, so reduce the number of retries
+  transientFailureRetries: 3

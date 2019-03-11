@@ -15,18 +15,16 @@
 package google.registry.ui.server;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.Iterables.toArray;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.util.EmailMessage;
 import google.registry.util.SendEmailService;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javax.inject.Inject;
-import javax.mail.Message;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
@@ -37,14 +35,14 @@ public class SendEmailUtils {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private final String gSuiteOutgoingEmailAddress;
+  private final InternetAddress gSuiteOutgoingEmailAddress;
   private final String gSuiteOutgoingEmailDisplayName;
   private final SendEmailService emailService;
   private final ImmutableList<String> registrarChangesNotificationEmailAddresses;
 
   @Inject
   public SendEmailUtils(
-      @Config("gSuiteOutgoingEmailAddress") String gSuiteOutgoingEmailAddress,
+      @Config("gSuiteOutgoingEmailAddress") InternetAddress gSuiteOutgoingEmailAddress,
       @Config("gSuiteOutgoingEmailDisplayName") String gSuiteOutgoingEmailDisplayName,
       @Config("registrarChangesNotificationEmailAddresses")
           ImmutableList<String> registrarChangesNotificationEmailAddresses,
@@ -68,10 +66,10 @@ public class SendEmailUtils {
   public boolean sendEmail(
       final String subject, String body, ImmutableList<String> additionalAddresses) {
     try {
-      Message msg = emailService.createMessage();
-      msg.setFrom(
-          new InternetAddress(gSuiteOutgoingEmailAddress, gSuiteOutgoingEmailDisplayName));
-      List<InternetAddress> emails =
+      InternetAddress from =
+          new InternetAddress(
+              gSuiteOutgoingEmailAddress.getAddress(), gSuiteOutgoingEmailDisplayName);
+      ImmutableList<InternetAddress> recipients =
           Stream.concat(
                   registrarChangesNotificationEmailAddresses.stream(), additionalAddresses.stream())
               .map(
@@ -88,20 +86,23 @@ public class SendEmailUtils {
                   })
               .filter(Objects::nonNull)
               .collect(toImmutableList());
-      if (emails.isEmpty()) {
+      if (recipients.isEmpty()) {
         return false;
       }
-      msg.addRecipients(Message.RecipientType.TO, toArray(emails, InternetAddress.class));
-      msg.setSubject(subject);
-      msg.setText(body);
-      emailService.sendMessage(msg);
+      emailService.sendEmail(
+          EmailMessage.newBuilder()
+              .setBody(body)
+              .setSubject(subject)
+              .setRecipients(recipients)
+              .setFrom(from)
+              .build());
+      return true;
     } catch (Throwable t) {
       logger.atSevere().withCause(t).log(
           "Could not email to addresses %s with subject '%s'.",
           Joiner.on(", ").join(registrarChangesNotificationEmailAddresses), subject);
       return false;
     }
-    return true;
   }
 
   /** Sends an email from Nomulus to the registrarChangesNotificationEmailAddresses.

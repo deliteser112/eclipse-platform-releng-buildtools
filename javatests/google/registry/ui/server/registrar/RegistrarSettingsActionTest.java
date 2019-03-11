@@ -37,6 +37,7 @@ import google.registry.request.auth.AuthenticatedRegistrarAccessor.Role;
 import google.registry.testing.CertificateSamples;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.CidrAddressBlock;
+import google.registry.util.EmailMessage;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -45,6 +46,7 @@ import org.json.simple.parser.ParseException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.ArgumentCaptor;
 
 /** Tests for {@link RegistrarSettingsAction}. */
 @RunWith(JUnit4.class)
@@ -56,7 +58,9 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     action.handleJsonRequest(readJsonFromFile("update_registrar.json", getLastUpdateTime()));
     verify(rsp, never()).setStatus(anyInt());
     verifyContactsNotified();
-    assertThat(message.getContent()).isEqualTo(expectedEmailBody);
+    ArgumentCaptor<EmailMessage> contentCaptor = ArgumentCaptor.forClass(EmailMessage.class);
+    verify(emailService).sendEmail(contentCaptor.capture());
+    assertThat(contentCaptor.getValue().body()).isEqualTo(expectedEmailBody);
     assertTasksEnqueued("sheet", new TaskMatcher()
         .url(SyncRegistrarsSheetAction.PATH)
         .method("GET")

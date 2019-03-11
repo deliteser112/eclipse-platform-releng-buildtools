@@ -21,6 +21,7 @@ import static google.registry.model.registrar.Registrar.loadByClientId;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
@@ -40,18 +41,17 @@ import google.registry.testing.DeterministicStringGenerator;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.ui.server.SendEmailUtils;
+import google.registry.util.EmailMessage;
 import google.registry.util.SendEmailService;
 import java.util.Optional;
-import java.util.Properties;
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
+import javax.mail.internet.InternetAddress;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -72,10 +72,9 @@ public final class ConsoleOteSetupActionTest {
 
   @Mock HttpServletRequest request;
   @Mock SendEmailService emailService;
-  Message message;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     persistPremiumList("default_sandbox_list", "sandbox,USD 1000");
 
     action.req = request;
@@ -90,7 +89,7 @@ public final class ConsoleOteSetupActionTest {
     action.registryEnvironment = RegistryEnvironment.UNITTEST;
     action.sendEmailUtils =
         new SendEmailUtils(
-            "outgoing@registry.example",
+            new InternetAddress("outgoing@registry.example"),
             "UnitTest Registry",
             ImmutableList.of("notification@test.example", "notification2@test.example"),
             emailService);
@@ -101,9 +100,6 @@ public final class ConsoleOteSetupActionTest {
 
     action.optionalPassword = Optional.empty();
     action.passwordGenerator = new DeterministicStringGenerator("abcdefghijklmnopqrstuvwxyz");
-
-    message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
-    when(emailService.createMessage()).thenReturn(message);
   }
 
   @Test
@@ -136,7 +132,7 @@ public final class ConsoleOteSetupActionTest {
   }
 
   @Test
-  public void testPost_authorized() throws Exception {
+  public void testPost_authorized() {
     action.clientId = Optional.of("myclientid");
     action.email = Optional.of("contact@registry.example");
     action.method = Method.POST;
@@ -150,8 +146,12 @@ public final class ConsoleOteSetupActionTest {
         .isEqualTo("contact@registry.example");
     assertThat(response.getPayload())
         .contains("<h1>OT&E successfully created for registrar myclientid!</h1>");
-    assertThat(message.getSubject()).isEqualTo("OT&E for registrar myclientid created in unittest");
-    assertThat(message.getContent())
+    ArgumentCaptor<EmailMessage> contentCaptor = ArgumentCaptor.forClass(EmailMessage.class);
+    verify(emailService).sendEmail(contentCaptor.capture());
+    EmailMessage emailMessage = contentCaptor.getValue();
+    assertThat(emailMessage.subject())
+        .isEqualTo("OT&E for registrar myclientid created in unittest");
+    assertThat(emailMessage.body())
         .isEqualTo(
             ""
                 + "The following entities were created in unittest by TestUserId:\n"
@@ -163,7 +163,7 @@ public final class ConsoleOteSetupActionTest {
   }
 
   @Test
-  public void testPost_authorized_setPassword() throws Exception {
+  public void testPost_authorized_setPassword() {
     action.clientId = Optional.of("myclientid");
     action.email = Optional.of("contact@registry.example");
     action.optionalPassword = Optional.of("SomePassword");

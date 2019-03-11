@@ -20,41 +20,28 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
+import google.registry.util.EmailMessage;
 import google.registry.util.SendEmailService;
-import java.util.Properties;
-import javax.mail.Message;
-import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
-import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.ArgumentCaptor;
 
 /** Unit tests for {@link SendEmailUtils}. */
 @RunWith(JUnit4.class)
 public class SendEmailUtilsTest {
 
   private final SendEmailService emailService = mock(SendEmailService.class);
-
-  private Message message;
   private SendEmailUtils sendEmailUtils;
 
-  @Before
-  public void init() {
-    message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
-    when(emailService.createMessage()).thenReturn(message);
-  }
-
-  private void setRecipients(ImmutableList<String> recipients) {
+  private void setRecipients(ImmutableList<String> recipients) throws Exception {
     sendEmailUtils =
         new SendEmailUtils(
-            "outgoing@registry.example",
+            new InternetAddress("outgoing@registry.example"),
             "outgoing display name",
             recipients,
             emailService);
@@ -69,11 +56,7 @@ public class SendEmailUtilsTest {
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isTrue();
-    verifyMessageSent();
-    assertThat(message.getRecipients(RecipientType.TO)).asList()
-        .containsExactly(new InternetAddress("johnny@fakesite.tld"));
-    assertThat(message.getAllRecipients()).asList()
-        .containsExactly(new InternetAddress("johnny@fakesite.tld"));
+    verifyMessageSent("johnny@fakesite.tld");
   }
 
   @Test
@@ -85,10 +68,7 @@ public class SendEmailUtilsTest {
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isTrue();
-    verifyMessageSent();
-    assertThat(message.getAllRecipients()).asList().containsExactly(
-        new InternetAddress("foo@example.com"),
-        new InternetAddress("bar@example.com"));
+    verifyMessageSent("foo@example.com", "bar@example.com");
   }
 
   @Test
@@ -100,9 +80,7 @@ public class SendEmailUtilsTest {
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isTrue();
-    verifyMessageSent();
-    assertThat(message.getAllRecipients()).asList()
-        .containsExactly(new InternetAddress("foo@example.com"));
+    verifyMessageSent("foo@example.com");
   }
 
   @Test
@@ -114,7 +92,7 @@ public class SendEmailUtilsTest {
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isFalse();
-    verify(emailService, never()).sendMessage(any(Message.class));
+    verify(emailService, never()).sendEmail(any());
   }
 
   @Test
@@ -126,23 +104,22 @@ public class SendEmailUtilsTest {
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isFalse();
-    verify(emailService, never()).sendMessage(any(Message.class));
+    verify(emailService, never()).sendEmail(any());
   }
 
   @Test
   public void testFailure_exceptionThrownDuringSend() throws Exception {
     setRecipients(ImmutableList.of("foo@example.com"));
     assertThat(sendEmailUtils.hasRecipients()).isTrue();
-    doThrow(new MessagingException()).when(emailService).sendMessage(any(Message.class));
+    doThrow(new RuntimeException(new MessagingException("expected")))
+        .when(emailService)
+        .sendEmail(any());
     assertThat(
             sendEmailUtils.sendEmail(
                 "Welcome to the Internet",
                 "It is a dark and scary place."))
         .isFalse();
-    verifyMessageSent();
-    assertThat(message.getAllRecipients())
-        .asList()
-        .containsExactly(new InternetAddress("foo@example.com"));
+    verifyMessageSent("foo@example.com");
   }
 
   @Test
@@ -155,13 +132,7 @@ public class SendEmailUtilsTest {
                 "It is a dark and scary place.",
                 ImmutableList.of("bar@example.com", "baz@example.com")))
         .isTrue();
-    verifyMessageSent();
-    assertThat(message.getAllRecipients())
-        .asList()
-        .containsExactly(
-            new InternetAddress("foo@example.com"),
-            new InternetAddress("bar@example.com"),
-            new InternetAddress("baz@example.com"));
+    verifyMessageSent("foo@example.com", "bar@example.com", "baz@example.com");
   }
 
   @Test
@@ -174,16 +145,24 @@ public class SendEmailUtilsTest {
                 "It is a dark and scary place.",
                 ImmutableList.of("bar@example.com", "baz@example.com")))
         .isTrue();
-    verifyMessageSent();
-    assertThat(message.getAllRecipients())
-        .asList()
-        .containsExactly(
-            new InternetAddress("bar@example.com"), new InternetAddress("baz@example.com"));
+    verifyMessageSent("bar@example.com", "baz@example.com");
   }
 
-  private void verifyMessageSent() throws Exception {
-    verify(emailService).sendMessage(message);
-    assertThat(message.getSubject()).isEqualTo("Welcome to the Internet");
-    assertThat(message.getContent()).isEqualTo("It is a dark and scary place.");
+  private void verifyMessageSent(String... expectedRecipients) throws Exception {
+    ArgumentCaptor<EmailMessage> contentCaptor = ArgumentCaptor.forClass(EmailMessage.class);
+    verify(emailService).sendEmail(contentCaptor.capture());
+    EmailMessage emailMessage = contentCaptor.getValue();
+    ImmutableList.Builder<InternetAddress> recipientBuilder = ImmutableList.builder();
+    for (String expectedRecipient : expectedRecipients) {
+      recipientBuilder.add(new InternetAddress(expectedRecipient));
+    }
+    EmailMessage expectedContent =
+        EmailMessage.newBuilder()
+            .setSubject("Welcome to the Internet")
+            .setBody("It is a dark and scary place.")
+            .setFrom(new InternetAddress("outgoing@registry.example"))
+            .setRecipients(recipientBuilder.build())
+            .build();
+    assertThat(emailMessage).isEqualTo(expectedContent);
   }
 }

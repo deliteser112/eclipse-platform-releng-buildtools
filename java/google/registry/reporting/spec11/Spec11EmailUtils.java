@@ -20,21 +20,19 @@ import static com.google.common.io.Resources.getResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.net.MediaType;
 import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.google.template.soy.tofu.SoyTofu;
 import com.google.template.soy.tofu.SoyTofu.Renderer;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.reporting.spec11.soy.Spec11EmailSoyInfo;
-import google.registry.util.Retrier;
+import google.registry.util.EmailMessage;
 import google.registry.util.SendEmailService;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.inject.Inject;
-import javax.mail.Message;
-import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import org.joda.time.LocalDate;
@@ -52,29 +50,26 @@ public class Spec11EmailUtils {
           .compileToTofu();
 
   private final SendEmailService emailService;
-  private final String outgoingEmailAddress;
-  private final String alertRecipientAddress;
-  private final String spec11ReplyToAddress;
+  private final InternetAddress outgoingEmailAddress;
+  private final InternetAddress alertRecipientAddress;
+  private final InternetAddress spec11ReplyToAddress;
   private final ImmutableList<String> spec11WebResources;
   private final String registryName;
-  private final Retrier retrier;
 
   @Inject
   Spec11EmailUtils(
       SendEmailService emailService,
-      @Config("gSuiteOutgoingEmailAddress") String outgoingEmailAddress,
-      @Config("alertRecipientEmailAddress") String alertRecipientAddress,
-      @Config("spec11ReplyToEmailAddress") String spec11ReplyToAddress,
+      @Config("gSuiteOutgoingEmailAddress") InternetAddress outgoingEmailAddress,
+      @Config("alertRecipientEmailAddress") InternetAddress alertRecipientAddress,
+      @Config("spec11ReplyToEmailAddress") InternetAddress spec11ReplyToAddress,
       @Config("spec11WebResources") ImmutableList<String> spec11WebResources,
-      @Config("registryName") String registryName,
-      Retrier retrier) {
+      @Config("registryName") String registryName) {
     this.emailService = emailService;
     this.outgoingEmailAddress = outgoingEmailAddress;
     this.alertRecipientAddress = alertRecipientAddress;
     this.spec11ReplyToAddress = spec11ReplyToAddress;
     this.spec11WebResources = spec11WebResources;
     this.registryName = registryName;
-    this.retrier = retrier;
   }
 
   /**
@@ -87,14 +82,9 @@ public class Spec11EmailUtils {
       String subject,
       Set<RegistrarThreatMatches> registrarThreatMatchesSet) {
     try {
-      retrier.callWithRetry(
-          () -> {
-            for (RegistrarThreatMatches registrarThreatMatches : registrarThreatMatchesSet) {
-              emailRegistrar(date, soyTemplateInfo, subject, registrarThreatMatches);
-            }
-          },
-          IOException.class,
-          MessagingException.class);
+      for (RegistrarThreatMatches registrarThreatMatches : registrarThreatMatchesSet) {
+        emailRegistrar(date, soyTemplateInfo, subject, registrarThreatMatches);
+      }
     } catch (Throwable e) {
       // Send an alert with the root cause, unwrapping the retrier's RuntimeException
       sendAlertEmail(
@@ -113,16 +103,15 @@ public class Spec11EmailUtils {
       String subject,
       RegistrarThreatMatches registrarThreatMatches)
       throws MessagingException {
-    Message msg = emailService.createMessage();
-    msg.setSubject(subject);
-    String content = getContent(date, soyTemplateInfo, registrarThreatMatches);
-    msg.setContent(content, "text/html");
-    msg.setHeader("Content-Type", "text/html");
-    msg.setFrom(new InternetAddress(outgoingEmailAddress));
-    msg.addRecipient(
-        RecipientType.TO, new InternetAddress(registrarThreatMatches.registrarEmailAddress()));
-    msg.addRecipient(RecipientType.BCC, new InternetAddress(spec11ReplyToAddress));
-    emailService.sendMessage(msg);
+    emailService.sendEmail(
+        EmailMessage.newBuilder()
+            .setSubject(subject)
+            .setBody(getContent(date, soyTemplateInfo, registrarThreatMatches))
+            .setContentType(MediaType.HTML_UTF_8)
+            .setFrom(outgoingEmailAddress)
+            .addRecipient(new InternetAddress(registrarThreatMatches.registrarEmailAddress()))
+            .setBcc(spec11ReplyToAddress)
+            .build());
   }
 
   private String getContent(
@@ -144,7 +133,7 @@ public class Spec11EmailUtils {
         ImmutableMap.of(
             "date", date.toString(),
             "registry", registryName,
-            "replyToEmail", spec11ReplyToAddress,
+            "replyToEmail", spec11ReplyToAddress.getAddress(),
             "threats", threatMatchMap,
             "resources", spec11WebResources);
     renderer.setData(data);
@@ -154,17 +143,13 @@ public class Spec11EmailUtils {
   /** Sends an e-mail indicating the state of the spec11 pipeline, with a given subject and body. */
   void sendAlertEmail(String subject, String body) {
     try {
-      retrier.callWithRetry(
-          () -> {
-            Message msg = emailService.createMessage();
-            msg.setFrom(new InternetAddress(outgoingEmailAddress));
-            msg.addRecipient(RecipientType.TO, new InternetAddress(alertRecipientAddress));
-            msg.setSubject(subject);
-            msg.setText(body);
-            emailService.sendMessage(msg);
-            return null;
-          },
-          MessagingException.class);
+      emailService.sendEmail(
+          EmailMessage.newBuilder()
+              .setFrom(outgoingEmailAddress)
+              .addRecipient(alertRecipientAddress)
+              .setBody(body)
+              .setSubject(subject)
+              .build());
     } catch (Throwable e) {
       throw new RuntimeException("The spec11 alert e-mail system failed.", e);
     }

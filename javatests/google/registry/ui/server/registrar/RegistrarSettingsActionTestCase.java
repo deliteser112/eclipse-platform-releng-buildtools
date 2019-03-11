@@ -44,14 +44,11 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.ui.server.SendEmailUtils;
 import google.registry.util.AppEngineServiceUtils;
+import google.registry.util.EmailMessage;
 import google.registry.util.SendEmailService;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Properties;
-import javax.mail.Message;
-import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.joda.time.DateTime;
@@ -60,6 +57,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -81,9 +79,6 @@ public class RegistrarSettingsActionTestCase {
   @Mock HttpServletRequest req;
   @Mock HttpServletResponse rsp;
   @Mock SendEmailService emailService;
-  final User user = new User("user", "gmail.com");
-
-  Message message;
 
   final RegistrarSettingsAction action = new RegistrarSettingsAction();
   final StringWriter writer = new StringWriter();
@@ -115,8 +110,6 @@ public class RegistrarSettingsActionTestCase {
             AuthLevel.USER,
             UserAuthInfo.create(new User("user@email.com", "email.com", "12345"), false));
     inject.setStaticField(Ofy.class, "clock", clock);
-    message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
-    when(emailService.createMessage()).thenReturn(message);
     when(req.getMethod()).thenReturn("POST");
     when(rsp.getWriter()).thenReturn(new PrintWriter(writer));
     when(req.getContentType()).thenReturn("application/json");
@@ -128,7 +121,7 @@ public class RegistrarSettingsActionTestCase {
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     assertThat(RegistrarConsoleMetrics.settingsRequestMetric).hasNoOtherValues();
   }
 
@@ -162,10 +155,9 @@ public class RegistrarSettingsActionTestCase {
 
   /** Verifies that the original contact of TheRegistrar is among those notified of a change. */
   protected void verifyContactsNotified() throws Exception {
-    verify(emailService).createMessage();
-    verify(emailService).sendMessage(message);
-    Truth.assertThat(message.getAllRecipients())
-        .asList()
+    ArgumentCaptor<EmailMessage> captor = ArgumentCaptor.forClass(EmailMessage.class);
+    verify(emailService).sendEmail(captor.capture());
+    Truth.assertThat(captor.getValue().recipients())
         .containsExactly(
             new InternetAddress("notification@test.example"),
             new InternetAddress("notification2@test.example"),

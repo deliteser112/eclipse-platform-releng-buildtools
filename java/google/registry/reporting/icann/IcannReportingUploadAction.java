@@ -34,11 +34,14 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
+import google.registry.util.EmailMessage;
 import google.registry.util.Retrier;
+import google.registry.util.SendEmailService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.mail.internet.InternetAddress;
 
 /**
  * Action that uploads the monthly activity/transactions reports from GCS to ICANN via an HTTP PUT.
@@ -74,8 +77,9 @@ public final class IcannReportingUploadAction implements Runnable {
   @Inject IcannHttpReporter icannReporter;
   @Inject Retrier retrier;
   @Inject Response response;
-  @Inject ReportingEmailUtils emailUtils;
-
+  @Inject @Config("gSuiteOutgoingEmailAddress") InternetAddress sender;
+  @Inject @Config("alertRecipientEmailAddress") InternetAddress recipient;
+  @Inject SendEmailService emailService;
   @Inject
   IcannReportingUploadAction() {}
 
@@ -112,19 +116,18 @@ public final class IcannReportingUploadAction implements Runnable {
   }
 
   private void emailUploadResults(ImmutableMap<String, Boolean> reportSummary) {
-    emailUtils.emailResults(
-        String.format(
-            "ICANN Monthly report upload summary: %d/%d succeeded",
-            reportSummary.values().stream().filter((b) -> b).count(), reportSummary.size()),
+    String subject = String.format(
+        "ICANN Monthly report upload summary: %d/%d succeeded",
+        reportSummary.values().stream().filter((b) -> b).count(), reportSummary.size());
+    String body =
         String.format(
             "Report Filename - Upload status:\n%s",
-            reportSummary
-                .entrySet()
-                .stream()
+            reportSummary.entrySet().stream()
                 .map(
                     (e) ->
                         String.format("%s - %s", e.getKey(), e.getValue() ? "SUCCESS" : "FAILURE"))
-                .collect(Collectors.joining("\n"))));
+                .collect(Collectors.joining("\n")));
+    emailService.sendEmail(EmailMessage.create(subject, body, recipient, sender));
   }
 
   private ImmutableList<String> getManifestedFiles(String reportBucketname) {

@@ -2,6 +2,7 @@ dependencies {
   def deps = rootProject.dependencyMap
   compile deps['com.google.appengine:appengine-api-1.0-sdk']
   compile deps['com.google.appengine:appengine-testing']
+  compile deps['com.google.auto.value:auto-value-annotations']
   compile deps['com.google.code.findbugs:jsr305']
   compile deps['com.google.dagger:dagger']
   compile deps['com.google.flogger:flogger']
@@ -13,6 +14,7 @@ dependencies {
   compile deps['javax.xml.bind:jaxb-api']
   compile deps['joda-time:joda-time']
   compile deps['org.yaml:snakeyaml']
+  runtime deps['com.google.auto.value:auto-value']
   testCompile deps['com.google.appengine:appengine-api-stubs']
   testCompile deps['com.google.guava:guava-testlib']
   testCompile deps['com.google.truth:truth']
@@ -23,7 +25,9 @@ dependencies {
   testCompile files("${rootDir}/../third_party/objectify/v4_1/objectify-4.1.3.jar")
   testCompile project(':third_party')
   testCompile project(path: ':core', configuration: 'testRuntime')
+  annotationProcessor deps['com.google.auto.value:auto-value']
   annotationProcessor deps['com.google.dagger:dagger-compiler']
+  testAnnotationProcessor deps['com.google.auto.value:auto-value']
   testAnnotationProcessor deps['com.google.dagger:dagger-compiler']
 }
 

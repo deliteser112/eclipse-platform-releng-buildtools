@@ -14,29 +14,78 @@
 
 package google.registry.util;
 
+import static com.google.common.collect.Iterables.toArray;
+
+import com.google.common.net.MediaType;
+import google.registry.util.EmailMessage.Attachment;
+import java.io.IOException;
 import java.util.Properties;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import javax.mail.BodyPart;
 import javax.mail.Message;
+import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
-import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
-/** Wrapper around javax.mail's Transport.send that can be mocked for testing purposes. */
+/**
+ * Wrapper around javax.mail's email creation and sending functionality. Encompasses a retry policy
+ * as well.
+ */
 @Singleton
 public class SendEmailService {
 
-  @Inject
-  SendEmailService() {};
+  private final Retrier retrier;
+  private final TransportEmailSender transportEmailSender;
 
-  /** Returns a new MimeMessage using default App Engine transport settings. */
-  public Message createMessage() {
-    return new MimeMessage(Session.getDefaultInstance(new Properties(), null));
+  @Inject
+  SendEmailService(Retrier retrier, TransportEmailSender transportEmailSender) {
+    this.retrier = retrier;
+    this.transportEmailSender = transportEmailSender;
   }
 
-  /** Sends a message using default App Engine transport. */
-  public void sendMessage(Message msg) throws MessagingException {
-    Transport.send(msg);
+  /**
+   * Converts the provided message content into a {@link javax.mail.Message} and sends it with
+   * retry on transient failures.
+   */
+  public void sendEmail(EmailMessage emailMessage) {
+    retrier.callWithRetry(
+        () -> {
+          Message msg =
+              new MimeMessage(
+                  Session.getDefaultInstance(new Properties(), /* authenticator= */ null));
+          msg.setFrom(emailMessage.from());
+          msg.addRecipients(
+              RecipientType.TO, toArray(emailMessage.recipients(), InternetAddress.class));
+          msg.setSubject(emailMessage.subject());
+
+          Multipart multipart = new MimeMultipart();
+          BodyPart bodyPart = new MimeBodyPart();
+          bodyPart.setContent(
+              emailMessage.body(),
+              emailMessage.contentType().orElse(MediaType.PLAIN_TEXT_UTF_8).toString());
+          multipart.addBodyPart(bodyPart);
+
+          if (emailMessage.attachment().isPresent()) {
+            Attachment attachment = emailMessage.attachment().get();
+            BodyPart attachmentPart = new MimeBodyPart();
+            attachmentPart.setContent(attachment.content(), attachment.contentType().toString());
+            attachmentPart.setFileName(attachment.filename());
+            multipart.addBodyPart(attachmentPart);
+          }
+          if (emailMessage.bcc().isPresent()) {
+            msg.addRecipient(RecipientType.BCC, emailMessage.bcc().get());
+          }
+          msg.setContent(multipart);
+          msg.saveChanges();
+          transportEmailSender.sendMessage(msg);
+        },
+        IOException.class,
+        MessagingException.class);
   }
 }

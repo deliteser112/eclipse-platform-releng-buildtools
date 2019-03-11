@@ -33,8 +33,11 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.EmailMessage;
 import google.registry.util.Retrier;
+import google.registry.util.SendEmailService;
 import java.util.Optional;
+import javax.mail.internet.InternetAddress;
 import org.joda.time.YearMonth;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,7 +51,6 @@ public class IcannReportingStagingActionTest {
 
   FakeResponse response = new FakeResponse();
   IcannReportingStager stager = mock(IcannReportingStager.class);
-  ReportingEmailUtils emailUtils = mock(ReportingEmailUtils.class);
   YearMonth yearMonth = new YearMonth(2017, 6);
   String subdir = "default/dir";
   IcannReportingStagingAction action;
@@ -69,7 +71,9 @@ public class IcannReportingStagingActionTest {
     action.response = response;
     action.stager = stager;
     action.retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
-    action.emailUtils = emailUtils;
+    action.sender = new InternetAddress("sender@example.com");
+    action.recipient = new InternetAddress("recipient@example.com");
+    action.emailService = mock(SendEmailService.class);
 
     when(stager.stageReports(yearMonth, subdir, ReportType.ACTIVITY))
         .thenReturn(ImmutableList.of("a", "b"));
@@ -92,10 +96,13 @@ public class IcannReportingStagingActionTest {
     action.run();
     verify(stager).stageReports(yearMonth, subdir, ReportType.ACTIVITY);
     verify(stager).createAndUploadManifest(subdir, ImmutableList.of("a", "b"));
-    verify(emailUtils)
-        .emailResults(
-            "ICANN Monthly report staging summary [SUCCESS]",
-            "Completed staging the following 2 ICANN reports:\na\nb");
+    verify(action.emailService)
+        .sendEmail(
+            EmailMessage.create(
+                "ICANN Monthly report staging summary [SUCCESS]",
+                "Completed staging the following 2 ICANN reports:\na\nb",
+                new InternetAddress("recipient@example.com"),
+                new InternetAddress("sender@example.com")));
     assertUploadTaskEnqueued("default/dir");
   }
 
@@ -105,10 +112,13 @@ public class IcannReportingStagingActionTest {
     verify(stager).stageReports(yearMonth, subdir, ReportType.ACTIVITY);
     verify(stager).stageReports(yearMonth, subdir, ReportType.TRANSACTIONS);
     verify(stager).createAndUploadManifest(subdir, ImmutableList.of("a", "b", "c", "d"));
-    verify(emailUtils)
-        .emailResults(
-            "ICANN Monthly report staging summary [SUCCESS]",
-            "Completed staging the following 4 ICANN reports:\na\nb\nc\nd");
+    verify(action.emailService)
+        .sendEmail(
+            EmailMessage.create(
+                "ICANN Monthly report staging summary [SUCCESS]",
+                "Completed staging the following 4 ICANN reports:\na\nb\nc\nd",
+                new InternetAddress("recipient@example.com"),
+                new InternetAddress("sender@example.com")));
     assertUploadTaskEnqueued("default/dir");
   }
 
@@ -121,10 +131,13 @@ public class IcannReportingStagingActionTest {
     verify(stager, times(2)).stageReports(yearMonth, subdir, ReportType.ACTIVITY);
     verify(stager, times(2)).stageReports(yearMonth, subdir, ReportType.TRANSACTIONS);
     verify(stager).createAndUploadManifest(subdir, ImmutableList.of("a", "b", "c", "d"));
-    verify(emailUtils)
-        .emailResults(
-            "ICANN Monthly report staging summary [SUCCESS]",
-            "Completed staging the following 4 ICANN reports:\na\nb\nc\nd");
+    verify(action.emailService)
+        .sendEmail(
+            EmailMessage.create(
+                "ICANN Monthly report staging summary [SUCCESS]",
+                "Completed staging the following 4 ICANN reports:\na\nb\nc\nd",
+                new InternetAddress("recipient@example.com"),
+                new InternetAddress("sender@example.com")));
     assertUploadTaskEnqueued("default/dir");
   }
 
@@ -138,11 +151,14 @@ public class IcannReportingStagingActionTest {
     assertThat(thrown).hasMessageThat().isEqualTo("Staging action failed.");
     assertThat(thrown).hasCauseThat().hasMessageThat().isEqualTo("Expected failure");
     verify(stager, times(3)).stageReports(yearMonth, subdir, ReportType.ACTIVITY);
-    verify(emailUtils)
-        .emailResults(
-            "ICANN Monthly report staging summary [FAILURE]",
-            "Staging failed due to BigqueryJobFailureException: Expected failure,"
-                + " check logs for more details.");
+    verify(action.emailService)
+        .sendEmail(
+            EmailMessage.create(
+                "ICANN Monthly report staging summary [FAILURE]",
+                "Staging failed due to BigqueryJobFailureException: Expected failure,"
+                    + " check logs for more details.",
+                new InternetAddress("recipient@example.com"),
+                new InternetAddress("sender@example.com")));
     // Assert no upload task enqueued
     assertNoTasksEnqueued("retryable-cron-tasks");
   }

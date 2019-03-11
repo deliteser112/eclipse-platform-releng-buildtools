@@ -32,8 +32,11 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
+import google.registry.util.EmailMessage;
 import google.registry.util.Retrier;
+import google.registry.util.SendEmailService;
 import java.io.IOException;
+import javax.mail.internet.InternetAddress;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,18 +54,20 @@ public class IcannReportingUploadActionTest {
   private static final byte[] MANIFEST_PAYLOAD =
       "test-transactions-201706.csv\na-activity-201706.csv\n".getBytes(UTF_8);
   private final IcannHttpReporter mockReporter = mock(IcannHttpReporter.class);
-  private final ReportingEmailUtils emailUtils = mock(ReportingEmailUtils.class);
+  private final SendEmailService emailService = mock(SendEmailService.class);
   private final FakeResponse response = new FakeResponse();
   private final GcsService gcsService = GcsServiceFactory.createGcsService();
 
-  private IcannReportingUploadAction createAction() {
+  private IcannReportingUploadAction createAction() throws Exception {
     IcannReportingUploadAction action = new IcannReportingUploadAction();
     action.icannReporter = mockReporter;
     action.gcsUtils = new GcsUtils(gcsService, 1024);
     action.retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
     action.subdir = "icann/monthly/2017-06";
     action.reportingBucket = "basin";
-    action.emailUtils = emailUtils;
+    action.emailService = emailService;
+    action.sender = new InternetAddress("sender@example.com");
+    action.recipient = new InternetAddress("recipient@example.com");
     action.response = response;
     return action;
   }
@@ -94,12 +99,15 @@ public class IcannReportingUploadActionTest {
     verifyNoMoreInteractions(mockReporter);
     assertThat(((FakeResponse) action.response).getPayload())
         .isEqualTo("OK, attempted uploading 2 reports");
-    verify(emailUtils)
-        .emailResults(
-            "ICANN Monthly report upload summary: 1/2 succeeded",
-            "Report Filename - Upload status:\n"
-                + "test-transactions-201706.csv - SUCCESS\n"
-                + "a-activity-201706.csv - FAILURE");
+    verify(emailService)
+        .sendEmail(
+            EmailMessage.create(
+                "ICANN Monthly report upload summary: 1/2 succeeded",
+                "Report Filename - Upload status:\n"
+                    + "test-transactions-201706.csv - SUCCESS\n"
+                    + "a-activity-201706.csv - FAILURE",
+                new InternetAddress("recipient@example.com"),
+                new InternetAddress("sender@example.com")));
   }
 
   @Test
@@ -114,12 +122,15 @@ public class IcannReportingUploadActionTest {
     verifyNoMoreInteractions(mockReporter);
     assertThat(((FakeResponse) action.response).getPayload())
         .isEqualTo("OK, attempted uploading 2 reports");
-    verify(emailUtils)
-        .emailResults(
-            "ICANN Monthly report upload summary: 1/2 succeeded",
-            "Report Filename - Upload status:\n"
-                + "test-transactions-201706.csv - SUCCESS\n"
-                + "a-activity-201706.csv - FAILURE");
+    verify(emailService)
+        .sendEmail(
+            EmailMessage.create(
+                "ICANN Monthly report upload summary: 1/2 succeeded",
+                "Report Filename - Upload status:\n"
+                    + "test-transactions-201706.csv - SUCCESS\n"
+                    + "a-activity-201706.csv - FAILURE",
+                new InternetAddress("recipient@example.com"),
+                new InternetAddress("sender@example.com")));
   }
 
   @Test
@@ -133,15 +144,18 @@ public class IcannReportingUploadActionTest {
     verifyNoMoreInteractions(mockReporter);
     assertThat(((FakeResponse) action.response).getPayload())
         .isEqualTo("OK, attempted uploading 2 reports");
-    verify(emailUtils)
-        .emailResults(
-            "ICANN Monthly report upload summary: 0/2 succeeded",
-            "Report Filename - Upload status:\n"
-                + "test-transactions-201706.csv - FAILURE\n"
-                + "a-activity-201706.csv - FAILURE");
+    verify(emailService)
+        .sendEmail(
+            EmailMessage.create(
+                "ICANN Monthly report upload summary: 0/2 succeeded",
+                "Report Filename - Upload status:\n"
+                    + "test-transactions-201706.csv - FAILURE\n"
+                    + "a-activity-201706.csv - FAILURE",
+                new InternetAddress("recipient@example.com"),
+                new InternetAddress("sender@example.com")));
   }
   @Test
-  public void testFail_FileNotFound() {
+  public void testFail_FileNotFound() throws Exception {
     IcannReportingUploadAction action = createAction();
     action.subdir = "somewhere/else";
     IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, action::run);

@@ -30,14 +30,18 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.bigquery.BigqueryJobFailureException;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.reporting.icann.IcannReportingModule.ReportType;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
+import google.registry.util.EmailMessage;
 import google.registry.util.Retrier;
+import google.registry.util.SendEmailService;
 import java.util.Optional;
 import javax.inject.Inject;
+import javax.mail.internet.InternetAddress;
 import org.joda.time.Duration;
 import org.joda.time.YearMonth;
 import org.joda.time.format.DateTimeFormat;
@@ -79,7 +83,10 @@ public final class IcannReportingStagingAction implements Runnable {
   @Inject IcannReportingStager stager;
   @Inject Retrier retrier;
   @Inject Response response;
-  @Inject ReportingEmailUtils emailUtils;
+  @Inject @Config("gSuiteOutgoingEmailAddress") InternetAddress sender;
+  @Inject @Config("alertRecipientEmailAddress") InternetAddress recipient;
+  @Inject SendEmailService emailService;
+
   @Inject IcannReportingStagingAction() {}
 
   @Override
@@ -96,11 +103,16 @@ public final class IcannReportingStagingAction implements Runnable {
             stager.createAndUploadManifest(subdir, manifestedFiles);
 
             logger.atInfo().log("Completed staging %d report files.", manifestedFiles.size());
-            emailUtils.emailResults(
-                "ICANN Monthly report staging summary [SUCCESS]",
-                String.format(
-                    "Completed staging the following %d ICANN reports:\n%s",
-                    manifestedFiles.size(), Joiner.on('\n').join(manifestedFiles)));
+            emailService.sendEmail(
+                EmailMessage.newBuilder()
+                    .setSubject("ICANN Monthly report staging summary [SUCCESS]")
+                    .setBody(
+                        String.format(
+                            "Completed staging the following %d ICANN reports:\n%s",
+                            manifestedFiles.size(), Joiner.on('\n').join(manifestedFiles)))
+                    .addRecipient(recipient)
+                    .setFrom(sender)
+                    .build());
 
             response.setStatus(SC_OK);
             response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
@@ -117,11 +129,13 @@ public final class IcannReportingStagingAction implements Runnable {
           },
           BigqueryJobFailureException.class);
     } catch (Throwable e) {
-      emailUtils.emailResults(
-          "ICANN Monthly report staging summary [FAILURE]",
-          String.format(
-              "Staging failed due to %s, check logs for more details.",
-              getRootCause(e).toString()));
+      emailService.sendEmail(
+          EmailMessage.create(
+              "ICANN Monthly report staging summary [FAILURE]",
+              String.format(
+                  "Staging failed due to %s, check logs for more details.", getRootCause(e)),
+              recipient,
+              sender));
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
       response.setPayload(
