@@ -28,7 +28,7 @@ public abstract class CheckApiMetric {
   /** Price tier of a domain name. */
   public enum Tier {
     STANDARD("standard"),
-    PREMINUM("premium");
+    PREMIUM("premium");
 
     private final String displayLabel;
 

@@ -20,7 +20,7 @@ import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.AVAILABLE;
 import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.REGISTERED;
 import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.RESERVED;
-import static google.registry.monitoring.whitebox.CheckApiMetric.Tier.PREMINUM;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Tier.PREMIUM;
 import static google.registry.monitoring.whitebox.CheckApiMetric.Tier.STANDARD;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -70,7 +70,9 @@ public class CheckApiActionTest {
     persistResource(
         Registry.get("example")
             .asBuilder()
-            .setReservedLists(persistReservedList("example-reserved", "foo,FULLY_BLOCKED"))
+            .setReservedLists(
+                persistReservedList(
+                    "example-reserved", "foo,FULLY_BLOCKED", "gold,RESERVED_FOR_SPECIFIC_USE"))
             .build());
   }
 
@@ -213,14 +215,15 @@ public class CheckApiActionTest {
             "available", true,
             "tier", "premium");
 
-    verifySuccessMetric(PREMINUM, AVAILABLE);
+    verifySuccessMetric(PREMIUM, AVAILABLE);
   }
 
   @Test
-  public void testSuccess_alreadyRegistered() {
+  public void testSuccess_registered_standard() {
     persistActiveDomain("somedomain.example");
     assertThat(getCheckResponse("somedomain.example"))
         .containsExactly(
+            "tier", "standard",
             "status", "success",
             "available", false,
             "reason", "In use");
@@ -229,14 +232,40 @@ public class CheckApiActionTest {
   }
 
   @Test
-  public void testSuccess_reserved() {
+  public void testSuccess_reserved_standard() {
     assertThat(getCheckResponse("foo.example"))
         .containsExactly(
+            "tier", "standard",
             "status", "success",
             "available", false,
             "reason", "Reserved");
 
     verifySuccessMetric(STANDARD, RESERVED);
+  }
+
+  @Test
+  public void testSuccess_registered_premium() {
+    persistActiveDomain("rich.example");
+    assertThat(getCheckResponse("rich.example"))
+        .containsExactly(
+            "tier", "premium",
+            "status", "success",
+            "available", false,
+            "reason", "In use");
+
+    verifySuccessMetric(PREMIUM, REGISTERED);
+  }
+
+  @Test
+  public void testSuccess_reserved_premium() {
+    assertThat(getCheckResponse("gold.example"))
+        .containsExactly(
+            "tier", "premium",
+            "status", "success",
+            "available", false,
+            "reason", "Reserved");
+
+    verifySuccessMetric(PREMIUM, RESERVED);
   }
 
   private void verifySuccessMetric(Tier tier, Availability availability) {

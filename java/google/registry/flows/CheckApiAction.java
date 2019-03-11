@@ -28,7 +28,7 @@ import static google.registry.monitoring.whitebox.CheckApiMetric.Status.INVALID_
 import static google.registry.monitoring.whitebox.CheckApiMetric.Status.INVALID_REGISTRY_PHASE;
 import static google.registry.monitoring.whitebox.CheckApiMetric.Status.SUCCESS;
 import static google.registry.monitoring.whitebox.CheckApiMetric.Status.UNKNOWN_ERROR;
-import static google.registry.monitoring.whitebox.CheckApiMetric.Tier.PREMINUM;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Tier.PREMIUM;
 import static google.registry.monitoring.whitebox.CheckApiMetric.Tier.STANDARD;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
@@ -139,10 +139,9 @@ public class CheckApiAction implements Runnable {
       responseBuilder.put("status", "success").put("available", availability.equals(AVAILABLE));
 
       boolean isPremium = isDomainPremium(domainString, now);
-      metricBuilder.tier(isPremium ? PREMINUM : STANDARD);
-      if (availability.equals(AVAILABLE)) {
-        responseBuilder.put("tier", isPremium ? "premium" : "standard");
-      } else {
+      metricBuilder.tier(isPremium ? PREMIUM : STANDARD);
+      responseBuilder.put("tier", isPremium ? "premium" : "standard");
+      if (!AVAILABLE.equals(availability)) {
         responseBuilder.put("reason", errorMsg);
       }
       return responseBuilder.build();
