@@ -647,11 +647,8 @@ test {
   exclude "**/*TestCase.*", "**/*TestSuite.*"
   exclude fragileTestPatterns
   exclude outcastTestPatterns
-  if (rootProject.hasProperty("excludeWebDriverTests")) {
-      exclude "**/webdriver/*"
-  } else {
-      dependsOn dockerRun
-  }
+
+  dependsOn dockerRun
 
   // Run every test class in its own process.
   // Uncomment to unblock build while troubleshooting inexplicable test errors.
@@ -667,10 +664,8 @@ test {
     new File(screenshotsDir).deleteDir()
   }
 }.dependsOn(fragileTest, outcastTest)
+test.finalizedBy(dockerStopAtEnd)
 
-if (!rootProject.hasProperty("excludeWebDriverTests")) {
-  test.finalizedBy(dockerStopAtEnd)
-}
 
 task nomulus(type: Jar) {
   manifest {
