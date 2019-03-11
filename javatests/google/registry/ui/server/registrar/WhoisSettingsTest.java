@@ -36,7 +36,7 @@ import org.junit.runners.JUnit4;
 public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
 
   @Test
-  public void testPost_update_success() {
+  public void testPost_update_success() throws Exception {
     Registrar modified =
         loadRegistrar(CLIENT_ID)
             .asBuilder()
@@ -61,6 +61,7 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response.get("results")).isEqualTo(ImmutableList.of(modified.toJsonMap()));
     assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
+    verifyContactsNotified();
   }
 
   @Test

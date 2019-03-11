@@ -15,6 +15,7 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.export.sheet.SyncRegistrarsSheetAction.enqueueRegistrarSheetSync;
@@ -463,15 +464,15 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   /**
    * Determines if any changes were made to the registrar besides the lastUpdateTime, and if so,
-   * sends an email with a diff of the changes to the configured notification email address and
-   * enqueues a task to re-sync the registrar sheet.
+   * sends an email with a diff of the changes to the configured notification email address and all
+   * contact addresses and enqueues a task to re-sync the registrar sheet.
    */
   private void sendExternalUpdatesIfNecessary(
       Registrar existingRegistrar,
       ImmutableSet<RegistrarContact> existingContacts,
       Registrar updatedRegistrar,
       ImmutableSet<RegistrarContact> updatedContacts) {
-    if (!sendEmailUtils.hasRecepients()) {
+    if (!sendEmailUtils.hasRecipients() && existingContacts.isEmpty()) {
       return;
     }
 
@@ -498,7 +499,13 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
             environment,
             existingRegistrar.getClientId(),
             authResult.userIdForLogging(),
-            DiffUtils.prettyPrintDiffedMap(diffs, null)));
+            DiffUtils.prettyPrintDiffedMap(diffs, null)),
+        existingContacts.stream()
+            .map(
+                contact -> {
+                  return contact.getEmailAddress();
+                })
+            .collect(toImmutableList()));
   }
 
   /** Thrown when a set of contacts doesn't meet certain constraints. */

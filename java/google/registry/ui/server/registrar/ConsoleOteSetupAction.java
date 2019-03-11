@@ -221,7 +221,7 @@ public final class ConsoleOteSetupAction implements Runnable {
 
 
   private void sendExternalUpdates(ImmutableMap<String, String> clientIdToTld) {
-    if (!sendEmailUtils.hasRecepients()) {
+    if (!sendEmailUtils.hasRecipients()) {
       return;
     }
     String environment = Ascii.toLowerCase(String.valueOf(registryEnvironment));

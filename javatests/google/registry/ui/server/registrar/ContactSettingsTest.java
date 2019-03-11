@@ -65,7 +65,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_updateContacts_success() {
+  public void testPost_updateContacts_success() throws Exception {
     // Remove all the contacts but the first by updating with list of
     // just it.
     Map<String, /* @Nullable */ Object> adminContact1 = new HashMap<>();
@@ -91,6 +91,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
         .build();
     assertThat(loadRegistrar(CLIENT_ID).getContacts()).containsExactly(newContact);
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
+    verifyContactsNotified();
   }
 
   @Test

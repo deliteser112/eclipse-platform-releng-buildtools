@@ -40,7 +40,6 @@ import google.registry.util.CidrAddressBlock;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import javax.mail.internet.InternetAddress;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
@@ -56,11 +55,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     String expectedEmailBody = loadFile(getClass(), "update_registrar_email.txt");
     action.handleJsonRequest(readJsonFromFile("update_registrar.json", getLastUpdateTime()));
     verify(rsp, never()).setStatus(anyInt());
-    verify(emailService).createMessage();
-    verify(emailService).sendMessage(message);
-    assertThat(message.getAllRecipients()).asList().containsExactly(
-        new InternetAddress("notification@test.example"),
-        new InternetAddress("notification2@test.example"));
+    verifyContactsNotified();
     assertThat(message.getContent()).isEqualTo(expectedEmailBody);
     assertTasksEnqueued("sheet", new TaskMatcher()
         .url(SyncRegistrarsSheetAction.PATH)

@@ -24,6 +24,7 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.util.SendEmailService;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.mail.internet.AddressException;
@@ -55,22 +56,24 @@ public class SendEmailUtils {
   }
 
   /**
-   * Sends an email from Nomulus to the registrarChangesNotificationEmailAddresses. Returns true iff
-   * sending to at least 1 address was successful.
+   * Sends an email from Nomulus to the registrarChangesNotificationEmailAddresses and the specified
+   * additionalAddresses. Returns true iff sending to at least 1 address was successful.
    *
-   * <p>This means that if there are no recepients ({@link #hasRecepients} returns false), this will
+   * <p>This means that if there are no recipients ({@link #hasRecipients} returns false), this will
    * return false even thought no error happened.
    *
-   * <p>This also means that if there are multiple recepients, it will return true even if some (but
-   * not all) of the recepients had an error.
+   * <p>This also means that if there are multiple recipients, it will return true even if some (but
+   * not all) of the recipients had an error.
    */
-  public boolean sendEmail(final String subject, String body) {
+  public boolean sendEmail(
+      final String subject, String body, ImmutableList<String> additionalAddresses) {
     try {
       Message msg = emailService.createMessage();
       msg.setFrom(
           new InternetAddress(gSuiteOutgoingEmailAddress, gSuiteOutgoingEmailDisplayName));
       List<InternetAddress> emails =
-          registrarChangesNotificationEmailAddresses.stream()
+          Stream.concat(
+                  registrarChangesNotificationEmailAddresses.stream(), additionalAddresses.stream())
               .map(
                   emailAddress -> {
                     try {
@@ -101,11 +104,19 @@ public class SendEmailUtils {
     return true;
   }
 
-  /**
-   * Returns whether there are any recepients set up. {@link #sendEmail} will always return false if
-   * there are no recepients.
+  /** Sends an email from Nomulus to the registrarChangesNotificationEmailAddresses.
+   *
+   * <p>See {@link #sendEmail(String, String, ImmutableList<String>)}.
    */
-  public boolean hasRecepients() {
+  public boolean sendEmail(final String subject, String body) {
+    return sendEmail(subject, body, ImmutableList.of());
+  }
+
+  /**
+   * Returns whether there are any recipients set up. {@link #sendEmail} will always return false if
+   * there are no recipients.
+   */
+  public boolean hasRecipients() {
     return !registrarChangesNotificationEmailAddresses.isEmpty();
   }
 }

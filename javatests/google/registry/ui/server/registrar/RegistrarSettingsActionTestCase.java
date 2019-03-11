@@ -22,12 +22,14 @@ import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.O
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.disallowRegistrarAccess;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.truth.Truth;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.ofy.Ofy;
 import google.registry.request.JsonActionRunner;
@@ -48,6 +50,7 @@ import java.io.StringWriter;
 import java.util.Properties;
 import javax.mail.Message;
 import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -155,5 +158,17 @@ public class RegistrarSettingsActionTestCase {
     action.registrarAccessor =
         AuthenticatedRegistrarAccessor.createForTesting(
             ImmutableSetMultimap.of(CLIENT_ID, ADMIN));
+  }
+
+  /** Verifies that the original contact of TheRegistrar is among those notified of a change. */
+  protected void verifyContactsNotified() throws Exception {
+    verify(emailService).createMessage();
+    verify(emailService).sendMessage(message);
+    Truth.assertThat(message.getAllRecipients())
+        .asList()
+        .containsExactly(
+            new InternetAddress("notification@test.example"),
+            new InternetAddress("notification2@test.example"),
+            new InternetAddress("johndoe@theregistrar.com"));
   }
 }

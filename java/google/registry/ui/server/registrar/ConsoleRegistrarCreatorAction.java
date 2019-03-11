@@ -347,7 +347,7 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
     return String.format("    %s: %s\n", name, value.orElse(null));
   }
   private void sendExternalUpdates() {
-    if (!sendEmailUtils.hasRecepients()) {
+    if (!sendEmailUtils.hasRecipients()) {
       return;
     }
     String environment = Ascii.toLowerCase(String.valueOf(registryEnvironment));

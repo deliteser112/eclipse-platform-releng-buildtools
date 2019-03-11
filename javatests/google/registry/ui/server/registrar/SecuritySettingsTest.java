@@ -41,7 +41,7 @@ import org.junit.runners.JUnit4;
 public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
 
   @Test
-  public void testPost_updateCert_success() {
+  public void testPost_updateCert_success() throws Exception {
     Registrar modified =
         loadRegistrar(CLIENT_ID)
             .asBuilder()
@@ -55,6 +55,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response).containsEntry("results", ImmutableList.of(modified.toJsonMap()));
     assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
+    verifyContactsNotified();
   }
 
   @Test
@@ -71,7 +72,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testChangeCertificates() {
+  public void testChangeCertificates() throws Exception {
     Map<String, Object> jsonMap = loadRegistrar(CLIENT_ID).toJsonMap();
     jsonMap.put("clientCertificate", SAMPLE_CERT);
     jsonMap.put("failoverClientCertificate", null);
@@ -84,10 +85,11 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(registrar.getFailoverClientCertificate()).isNull();
     assertThat(registrar.getFailoverClientCertificateHash()).isNull();
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
+    verifyContactsNotified();
   }
 
   @Test
-  public void testChangeFailoverCertificate() {
+  public void testChangeFailoverCertificate() throws Exception {
     Map<String, Object> jsonMap = loadRegistrar(CLIENT_ID).toJsonMap();
     jsonMap.put("failoverClientCertificate", SAMPLE_CERT2);
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
@@ -97,10 +99,11 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(registrar.getFailoverClientCertificate()).isEqualTo(SAMPLE_CERT2);
     assertThat(registrar.getFailoverClientCertificateHash()).isEqualTo(SAMPLE_CERT2_HASH);
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
+    verifyContactsNotified();
   }
 
   @Test
-  public void testEmptyOrNullCertificate_doesNotClearOutCurrentOne() {
+  public void testEmptyOrNullCertificate_doesNotClearOutCurrentOne() throws Exception {
     Registrar initialRegistrar =
         persistResource(
             loadRegistrar(CLIENT_ID)

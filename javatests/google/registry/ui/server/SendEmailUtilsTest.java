@@ -51,19 +51,19 @@ public class SendEmailUtilsTest {
     when(emailService.createMessage()).thenReturn(message);
   }
 
-  private void setRecepients(ImmutableList<String> recepients) {
+  private void setRecipients(ImmutableList<String> recipients) {
     sendEmailUtils =
         new SendEmailUtils(
             "outgoing@registry.example",
             "outgoing display name",
-            recepients,
+            recipients,
             emailService);
   }
 
   @Test
   public void testSuccess_sendToOneAddress() throws Exception {
-    setRecepients(ImmutableList.of("johnny@fakesite.tld"));
-    assertThat(sendEmailUtils.hasRecepients()).isTrue();
+    setRecipients(ImmutableList.of("johnny@fakesite.tld"));
+    assertThat(sendEmailUtils.hasRecipients()).isTrue();
     assertThat(
             sendEmailUtils.sendEmail(
                 "Welcome to the Internet",
@@ -78,8 +78,8 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testSuccess_sendToMultipleAddresses() throws Exception {
-    setRecepients(ImmutableList.of("foo@example.com", "bar@example.com"));
-    assertThat(sendEmailUtils.hasRecepients()).isTrue();
+    setRecipients(ImmutableList.of("foo@example.com", "bar@example.com"));
+    assertThat(sendEmailUtils.hasRecipients()).isTrue();
     assertThat(
             sendEmailUtils.sendEmail(
                 "Welcome to the Internet",
@@ -93,8 +93,8 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testSuccess_ignoresMalformedEmailAddress() throws Exception {
-    setRecepients(ImmutableList.of("foo@example.com", "1iñvalidemail"));
-    assertThat(sendEmailUtils.hasRecepients()).isTrue();
+    setRecipients(ImmutableList.of("foo@example.com", "1iñvalidemail"));
+    assertThat(sendEmailUtils.hasRecipients()).isTrue();
     assertThat(
             sendEmailUtils.sendEmail(
                 "Welcome to the Internet",
@@ -107,8 +107,8 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testFailure_noAddresses() throws Exception {
-    setRecepients(ImmutableList.of());
-    assertThat(sendEmailUtils.hasRecepients()).isFalse();
+    setRecipients(ImmutableList.of());
+    assertThat(sendEmailUtils.hasRecipients()).isFalse();
     assertThat(
             sendEmailUtils.sendEmail(
                 "Welcome to the Internet",
@@ -119,8 +119,8 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testFailure_onlyGivenMalformedAddress() throws Exception {
-    setRecepients(ImmutableList.of("1iñvalidemail"));
-    assertThat(sendEmailUtils.hasRecepients()).isTrue();
+    setRecipients(ImmutableList.of("1iñvalidemail"));
+    assertThat(sendEmailUtils.hasRecipients()).isTrue();
     assertThat(
             sendEmailUtils.sendEmail(
                 "Welcome to the Internet",
@@ -131,8 +131,8 @@ public class SendEmailUtilsTest {
 
   @Test
   public void testFailure_exceptionThrownDuringSend() throws Exception {
-    setRecepients(ImmutableList.of("foo@example.com"));
-    assertThat(sendEmailUtils.hasRecepients()).isTrue();
+    setRecipients(ImmutableList.of("foo@example.com"));
+    assertThat(sendEmailUtils.hasRecipients()).isTrue();
     doThrow(new MessagingException()).when(emailService).sendMessage(any(Message.class));
     assertThat(
             sendEmailUtils.sendEmail(
@@ -143,6 +143,42 @@ public class SendEmailUtilsTest {
     assertThat(message.getAllRecipients())
         .asList()
         .containsExactly(new InternetAddress("foo@example.com"));
+  }
+
+  @Test
+  public void testAdditionalRecipients() throws Exception {
+    setRecipients(ImmutableList.of("foo@example.com"));
+    assertThat(sendEmailUtils.hasRecipients()).isTrue();
+    assertThat(
+            sendEmailUtils.sendEmail(
+                "Welcome to the Internet",
+                "It is a dark and scary place.",
+                ImmutableList.of("bar@example.com", "baz@example.com")))
+        .isTrue();
+    verifyMessageSent();
+    assertThat(message.getAllRecipients())
+        .asList()
+        .containsExactly(
+            new InternetAddress("foo@example.com"),
+            new InternetAddress("bar@example.com"),
+            new InternetAddress("baz@example.com"));
+  }
+
+  @Test
+  public void testOnlyAdditionalRecipients() throws Exception {
+    setRecipients(ImmutableList.of());
+    assertThat(sendEmailUtils.hasRecipients()).isFalse();
+    assertThat(
+            sendEmailUtils.sendEmail(
+                "Welcome to the Internet",
+                "It is a dark and scary place.",
+                ImmutableList.of("bar@example.com", "baz@example.com")))
+        .isTrue();
+    verifyMessageSent();
+    assertThat(message.getAllRecipients())
+        .asList()
+        .containsExactly(
+            new InternetAddress("bar@example.com"), new InternetAddress("baz@example.com"));
   }
 
   private void verifyMessageSent() throws Exception {
