@@ -16,10 +16,9 @@
 # "CREDZ" and "REPORT_GCS_BUCKET" environment variables in your travis
 # repository.
 #
-# The report bucket id should just be the bucket id without any scheme or path
-# (e.g. "my-bucket-name", not "gcs://my-bucket-name").  You'll want to select
-# "Display value in build log", otherwise travis will hide the bucket name in
-# the URL that is displayed.
+# The report destination can be any GCS path (e.g. "gcs://bucket-name/path").
+# You'll want to select "Display value in build log", otherwise travis will
+# hide the bucket name in the URL that is displayed.
 #
 # The CREDZ variable should be the contents of a json credentials file for
 # a service account with write access to the bucket, escaped for bash shell
@@ -56,4 +55,4 @@ env:
 # output, instead of the default 10.
 # See notes on the CREDZ and REPORT_GCS_BUCKET environment variable in the
 # comments at the top of the file.
-script: cd gradle && echo "$CREDZ" >credz.json && chmod 755 ./gradlew && travis_wait 45 ./gradlew build --continue -P gcsBucket="$REPORT_GCS_BUCKET" -P gcsCredentialsFile=credz.json -P gcsMultithreadedUpload=yes
+script: cd gradle && echo "$CREDZ" >credz.json && chmod 755 ./gradlew && travis_wait 45 ./gradlew build --continue -P uploaderDestination="$REPORT_GCS_DESTINATION" -P uploaderCredentialsFile=credz.json -P uploaderMultithreadedUpload=yes

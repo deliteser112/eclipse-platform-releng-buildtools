@@ -16,8 +16,8 @@ package google.registry.gradle.plugin;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.gradle.plugin.GcsPluginUtils.createReportFiles;
 import static google.registry.gradle.plugin.GcsPluginUtils.getContentType;
+import static google.registry.gradle.plugin.GcsPluginUtils.readFilesWithEntryPoint;
 import static google.registry.gradle.plugin.GcsPluginUtils.toByteArraySupplier;
 import static google.registry.gradle.plugin.GcsPluginUtils.toNormalizedPath;
 import static google.registry.gradle.plugin.GcsPluginUtils.uploadFileToGcs;
@@ -30,7 +30,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.common.collect.ImmutableMap;
-import google.registry.gradle.plugin.ProjectData.TaskData.ReportFiles;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -136,7 +135,7 @@ public final class GcsPluginUtilsTest {
     assertThat(toByteArraySupplier(file).get()).isEqualTo("some data".getBytes(UTF_8));
   }
 
-  private ImmutableMap<String, String> readAllFiles(ReportFiles reportFiles) {
+  private ImmutableMap<String, String> readAllFiles(FilesWithEntryPoint reportFiles) {
     return reportFiles.files().entrySet().stream()
         .collect(
             toImmutableMap(
@@ -153,7 +152,8 @@ public final class GcsPluginUtilsTest {
     // Since the entry point is obvious here - any hint given is just ignored.
     File ignoredHint = folder.newFile("my/root/ignored.txt");
 
-    ReportFiles files = createReportFiles(destination, Optional.of(ignoredHint), root);
+    FilesWithEntryPoint files =
+        readFilesWithEntryPoint(destination, Optional.of(ignoredHint), root);
 
     assertThat(files.entryPoint().toString()).isEqualTo("some/path/file.txt");
     assertThat(readAllFiles(files)).containsExactly("some/path/file.txt", "some data");
@@ -168,7 +168,8 @@ public final class GcsPluginUtilsTest {
     // Since there are not files, any hint given is obvioulsy wrong and will be ignored.
     File ignoredHint = folder.newFile("my/root/ignored.txt");
 
-    ReportFiles files = createReportFiles(destination, Optional.of(ignoredHint), root);
+    FilesWithEntryPoint files =
+        readFilesWithEntryPoint(destination, Optional.of(ignoredHint), root);
 
     assertThat(files.entryPoint().toString()).isEqualTo("non/existing.txt");
     assertThat(files.files()).isEmpty();
@@ -183,7 +184,8 @@ public final class GcsPluginUtilsTest {
     // Since there are not files, any hint given is obvioulsy wrong and will be ignored.
     File ignoredHint = folder.newFile("my/root/ignored.txt");
 
-    ReportFiles files = createReportFiles(destination, Optional.of(ignoredHint), root);
+    FilesWithEntryPoint files =
+        readFilesWithEntryPoint(destination, Optional.of(ignoredHint), root);
 
     assertThat(files.entryPoint().toString()).isEqualTo("some/path");
     assertThat(files.files()).isEmpty();
@@ -200,7 +202,8 @@ public final class GcsPluginUtilsTest {
     // Since the entry point is obvious here - any hint given is just ignored.
     File ignoredHint = folder.newFile("my/root/ignored.txt");
 
-    ReportFiles files = createReportFiles(destination, Optional.of(ignoredHint), root);
+    FilesWithEntryPoint files =
+        readFilesWithEntryPoint(destination, Optional.of(ignoredHint), root);
 
     assertThat(files.entryPoint().toString()).isEqualTo("some/path/a/file.txt");
     assertThat(readAllFiles(files)).containsExactly("some/path/a/file.txt", "some data");
@@ -227,7 +230,7 @@ public final class GcsPluginUtilsTest {
     Files.write(
         folder.newFile("my/root/some/path/my_image.png").toPath(), "images".getBytes(UTF_8));
 
-    ReportFiles files = createReportFiles(destination, Optional.empty(), root);
+    FilesWithEntryPoint files = readFilesWithEntryPoint(destination, Optional.empty(), root);
 
     assertThat(files.entryPoint().toString()).isEqualTo("some/path/path.zip");
     assertThat(readAllFiles(files).keySet()).containsExactly("some/path/path.zip");
@@ -255,7 +258,8 @@ public final class GcsPluginUtilsTest {
     Files.write(
         folder.newFile("my/root/some/path/my_image.png").toPath(), "images".getBytes(UTF_8));
 
-    ReportFiles files = createReportFiles(destination, Optional.of(badEntryPoint), root);
+    FilesWithEntryPoint files =
+        readFilesWithEntryPoint(destination, Optional.of(badEntryPoint), root);
 
     assertThat(files.entryPoint().toString()).isEqualTo("some/path/path.zip");
     assertThat(readAllFiles(files).keySet()).containsExactly("some/path/path.zip");
@@ -278,7 +282,8 @@ public final class GcsPluginUtilsTest {
     Files.write(
         folder.newFile("my/root/some/path/my_image.png").toPath(), "images".getBytes(UTF_8));
 
-    ReportFiles files = createReportFiles(destination, Optional.of(goodEntryPoint), root);
+    FilesWithEntryPoint files =
+        readFilesWithEntryPoint(destination, Optional.of(goodEntryPoint), root);
 
     assertThat(files.entryPoint().toString()).isEqualTo("some/path/index.html");
     assertThat(readAllFiles(files))

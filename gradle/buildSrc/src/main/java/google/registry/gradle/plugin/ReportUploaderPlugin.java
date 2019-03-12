@@ -18,20 +18,20 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
 /**
- * Plugin setting up the GcsReportUploader task.
+ * Plugin setting up the ReportUploader task.
  *
- * <p>It goes over all the tasks in a project and pass them on to the GcsReportUploader task for set
+ * <p>It goes over all the tasks in a project and pass them on to the ReportUploader task for set
  * up.
  *
- * <p>Note that since we're passing in all the projects' tasks - this includes the GcsReportUploader
- * itself! It's up to the GcsReportuploader to take care of not having "infinite loops" caused by
+ * <p>Note that since we're passing in all the projects' tasks - this includes the ReportUploader
+ * itself! It's up to the ReportUploader to take care of not having "infinite loops" caused by
  * waiting for itself to end before finishing.
  */
-public class GcsReportUploaderPlugin implements Plugin<Project> {
+public class ReportUploaderPlugin implements Plugin<Project> {
 
   public void apply(Project project) {
-    GcsReportUploader reportUploader =
-        project.getTasks().create("gcsReportUploader", GcsReportUploader.class, task -> {
+    ReportUploader reportUploader =
+        project.getTasks().create("reportUploader", ReportUploader.class, task -> {
           task.setDescription("Uploads the reports to GCS bucket");
           task.setGroup("uploads");
         });

@@ -23,14 +23,14 @@ plugins {
   id "com.moowork.node" version "1.2.0"
 }
 
-apply plugin: google.registry.gradle.plugin.GcsReportUploaderPlugin
+apply plugin: google.registry.gradle.plugin.ReportUploaderPlugin
 
-gcsReportUploader {
-  // Set the bucket here to upload build results to a GCS bucket.
-  // e.g. -P gcsBucket=domain-registry-alpha-build-result-test
+reportUploader {
+  // Set the location where we want to upload the build results.
+  // e.g. -P uploaderDestination=gcs://domain-registry-alpha-build-result-test
   //
-  // If no bucket it set - the uploading will be skipped.
-  bucket = gcsBucket
+  // If not set - the upload will be skipped
+  destination = uploaderDestination
 
   // The location of the file containing the OAuth2 Google Cloud credentials.
   //
@@ -39,11 +39,11 @@ gcsReportUploader {
   // supported by the Cloud SDK.
   //
   // If no file is given - the default credentials are used.
-  credentialsFile = gcsCredentialsFile
+  credentialsFile = uploaderCredentialsFile
 
   // If set to 'yes', each file will be uploaded to GCS in a separate thread.
   // This is MUCH faster.
-  multithreadedUpload = gcsMultithreadedUpload
+  multithreadedUpload = uploaderMultithreadedUpload
 }
 
 apply from: 'dependencies.gradle'

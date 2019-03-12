@@ -23,10 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.gradle.plugin.ProjectData.TaskData;
-import google.registry.gradle.plugin.ProjectData.TaskData.ReportFiles;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Supplier;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -68,8 +65,8 @@ public final class CoverPageGeneratorTest {
 
   private ImmutableMap<String, String> getGeneratedFiles(ProjectData project) {
     CoverPageGenerator coverPageGenerator = new CoverPageGenerator(project);
-    ImmutableMap<Path, Supplier<byte[]>> files = coverPageGenerator.getFilesToUpload();
-    return files.entrySet().stream()
+    FilesWithEntryPoint files = coverPageGenerator.getFilesToUpload();
+    return files.files().entrySet().stream()
         .collect(
             toImmutableMap(
                 entry -> entry.getKey().toString(),
@@ -87,9 +84,10 @@ public final class CoverPageGeneratorTest {
   }
 
   @Test
-  public void testGetFilesToUpload_getEntryPoint_isIndexHtml() {
+  public void testGetFilesToUpload_entryPoint_isIndexHtml() {
     CoverPageGenerator coverPageGenerator = new CoverPageGenerator(EMPTY_PROJECT);
-    assertThat(coverPageGenerator.getEntryPoint()).isEqualTo(Paths.get("index.html"));
+    assertThat(coverPageGenerator.getFilesToUpload().entryPoint())
+        .isEqualTo(Paths.get("index.html"));
   }
 
   @Test
@@ -220,7 +218,7 @@ public final class CoverPageGeneratorTest {
                         .toBuilder()
                         .putReport(
                             "someReport",
-                            ReportFiles.create(
+                            FilesWithEntryPoint.create(
                                 ImmutableMap.of(
                                     Paths.get("path", "report.txt"),
                                     toByteArraySupplier("report content")),
@@ -242,7 +240,8 @@ public final class CoverPageGeneratorTest {
                         .toBuilder()
                         .putReport(
                             "someReport",
-                            ReportFiles.create(ImmutableMap.of(), Paths.get("path", "report.txt")))
+                            FilesWithEntryPoint.create(
+                                ImmutableMap.of(), Paths.get("path", "report.txt")))
                         .build())
                 .build());
     assertThat(files).doesNotContainKey("path/report.txt");
@@ -263,7 +262,7 @@ public final class CoverPageGeneratorTest {
                         .setLog(toByteArraySupplier("log data"))
                         .putReport(
                             "filledReport",
-                            ReportFiles.create(
+                            FilesWithEntryPoint.create(
                                 ImmutableMap.of(
                                     Paths.get("path-filled", "report.txt"),
                                     toByteArraySupplier("report content"),
@@ -272,7 +271,7 @@ public final class CoverPageGeneratorTest {
                                 Paths.get("path-filled", "report.txt")))
                         .putReport(
                             "emptyReport",
-                            ReportFiles.create(
+                            FilesWithEntryPoint.create(
                                 ImmutableMap.of(), Paths.get("path-empty", "report.txt")))
                         .build())
                 .build());
