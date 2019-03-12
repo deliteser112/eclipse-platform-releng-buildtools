@@ -15,6 +15,7 @@
 package google.registry.reporting.spec11;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import google.registry.beam.spec11.ThreatMatch;
 import java.util.List;
 
@@ -24,10 +25,11 @@ public abstract class RegistrarThreatMatches {
 
   public abstract String registrarEmailAddress();
 
-  public abstract List<ThreatMatch> threatMatches();
+  public abstract ImmutableList<ThreatMatch> threatMatches();
 
   static RegistrarThreatMatches create(
       String registrarEmailAddress, List<ThreatMatch> threatMatches) {
-    return new AutoValue_RegistrarThreatMatches(registrarEmailAddress, threatMatches);
+    return new AutoValue_RegistrarThreatMatches(
+        registrarEmailAddress, ImmutableList.copyOf(threatMatches));
   }
 }

@@ -30,6 +30,7 @@ import google.registry.model.annotations.VirtualEntity;
 @VirtualEntity
 public class EppResourceIndexBucket extends ImmutableObject {
 
+  @SuppressWarnings("unused")
   @Id
   private long bucketId;
 

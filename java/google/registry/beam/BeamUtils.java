@@ -16,7 +16,6 @@ package google.registry.beam;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.flogger.FluentLogger;
 import com.google.common.io.Resources;
 import google.registry.util.ResourceUtils;
 import org.apache.avro.generic.GenericRecord;
@@ -24,8 +23,6 @@ import org.apache.beam.sdk.io.gcp.bigquery.SchemaAndRecord;
 
 /** Static utilities for {@code Beam} pipelines. */
 public class BeamUtils {
-
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Extracts a string representation of a field in a {@link GenericRecord}. */
   public static String extractField(GenericRecord record, String fieldName) {

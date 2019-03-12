@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.flogger.FluentLogger;
 import com.google.common.io.Files;
 import com.googlecode.objectify.ObjectifyFilter;
 import google.registry.model.ofy.ObjectifyService;
@@ -70,8 +69,6 @@ import org.junit.runners.model.Statement;
  * @see org.junit.rules.ExternalResource
  */
 public final class AppEngineRule extends ExternalResource {
-
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static final String NEW_REGISTRAR_GAE_USER_ID = "666";
   public static final String THE_REGISTRAR_GAE_USER_ID = "31337";

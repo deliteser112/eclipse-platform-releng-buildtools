@@ -36,6 +36,7 @@ import google.registry.model.BackupGroupRoot;
 @Entity
 public class EntityGroupRoot extends BackupGroupRoot {
 
+  @SuppressWarnings("unused")
   @Id
   private String id;
 

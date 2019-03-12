@@ -14,7 +14,6 @@
 
 package google.registry.flows;
 
-import com.google.common.flogger.FluentLogger;
 import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Payload;
@@ -32,8 +31,6 @@ import javax.servlet.http.HttpSession;
     method = Method.POST,
     auth = Auth.AUTH_PUBLIC_OR_INTERNAL)
 public class EppTlsAction implements Runnable {
-
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject @Payload byte[] inputXmlBytes;
   @Inject TlsCredentials tlsCredentials;

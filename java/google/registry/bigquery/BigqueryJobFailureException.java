@@ -94,9 +94,9 @@ public final class BigqueryJobFailureException extends RuntimeException {
   }
 
   @Override
-  public String toString() {
+  public String getMessage() {
     StringBuilder result = new StringBuilder();
-    result.append(String.format("%s: %s", getClass().getSimpleName(), getMessage()));
+    result.append(String.format("%s: %s", getClass().getSimpleName(), super.getMessage()));
     try {
       if (jobStatus != null) {
         for (ErrorProto error : jobStatus.getErrors()) {

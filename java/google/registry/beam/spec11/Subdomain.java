@@ -20,7 +20,6 @@ import static google.registry.beam.BeamUtils.extractField;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.flogger.FluentLogger;
 import java.io.Serializable;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.beam.sdk.io.gcp.bigquery.SchemaAndRecord;
@@ -35,8 +34,6 @@ import org.apache.beam.sdk.io.gcp.bigquery.SchemaAndRecord;
  */
 @AutoValue
 public abstract class Subdomain implements Serializable {
-
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final ImmutableList<String> FIELD_NAMES =
       ImmutableList.of("fullyQualifiedDomainName", "registrarName", "registrarEmailAddress");

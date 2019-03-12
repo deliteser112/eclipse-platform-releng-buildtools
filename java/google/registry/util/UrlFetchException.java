@@ -38,14 +38,17 @@ public class UrlFetchException extends RuntimeException {
   }
 
   @Override
-  public String toString() {
-    StringBuilder res = new StringBuilder(2048 + rsp.getContent().length).append(String.format(
-        "%s: %s (HTTP Status %d)\nX-Fetch-URL: %s\nX-Final-URL: %s\n",
-        getClass().getSimpleName(),
-        getMessage(),
-        rsp.getResponseCode(),
-        req.getURL().toString(),
-        rsp.getFinalUrl()));
+  public String getMessage() {
+    StringBuilder res =
+        new StringBuilder(2048 + rsp.getContent().length)
+            .append(
+                String.format(
+                    "%s: %s (HTTP Status %d)\nX-Fetch-URL: %s\nX-Final-URL: %s\n",
+                    getClass().getSimpleName(),
+                    super.getMessage(),
+                    rsp.getResponseCode(),
+                    req.getURL().toString(),
+                    rsp.getFinalUrl()));
     for (HTTPHeader header : rsp.getHeadersUncombined()) {
       res.append(header.getName());
       res.append(": ");

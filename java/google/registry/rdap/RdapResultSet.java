@@ -15,6 +15,7 @@
 package google.registry.rdap;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 import google.registry.model.EppResource;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import java.util.List;
@@ -31,11 +32,11 @@ abstract class RdapResultSet<T extends EppResource> {
       IncompletenessWarningType incompletenessWarningType,
       int numResourcesRetrieved) {
     return new AutoValue_RdapResultSet<>(
-        resources, incompletenessWarningType, numResourcesRetrieved);
+        ImmutableList.copyOf(resources), incompletenessWarningType, numResourcesRetrieved);
   }
 
   /** List of EPP resources. */
-  abstract List<T> resources();
+  abstract ImmutableList<T> resources();
 
   /** Type of warning to display regarding possible incomplete data. */
   abstract IncompletenessWarningType incompletenessWarningType();

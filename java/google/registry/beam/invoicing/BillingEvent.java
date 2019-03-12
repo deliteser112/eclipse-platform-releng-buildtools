@@ -21,7 +21,6 @@ import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.flogger.FluentLogger;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.reporting.billing.BillingModule;
 import java.io.IOException;
@@ -50,8 +49,6 @@ import org.apache.beam.sdk.io.gcp.bigquery.SchemaAndRecord;
  */
 @AutoValue
 public abstract class BillingEvent implements Serializable {
-
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final DateTimeFormatter DATE_TIME_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss zzz");

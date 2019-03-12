@@ -149,14 +149,17 @@ public class IcannReportingStagingActionTest {
     RuntimeException thrown = assertThrows(RuntimeException.class, action::run);
     assertThat(thrown).hasCauseThat().isInstanceOf(BigqueryJobFailureException.class);
     assertThat(thrown).hasMessageThat().isEqualTo("Staging action failed.");
-    assertThat(thrown).hasCauseThat().hasMessageThat().isEqualTo("Expected failure");
+    assertThat(thrown)
+        .hasCauseThat()
+        .hasMessageThat()
+        .isEqualTo("BigqueryJobFailureException: Expected failure");
     verify(stager, times(3)).stageReports(yearMonth, subdir, ReportType.ACTIVITY);
     verify(action.emailService)
         .sendEmail(
             EmailMessage.create(
                 "ICANN Monthly report staging summary [FAILURE]",
-                "Staging failed due to BigqueryJobFailureException: Expected failure,"
-                    + " check logs for more details.",
+                "Staging failed due to google.registry.bigquery.BigqueryJobFailureException: "
+                    + "BigqueryJobFailureException: Expected failure, check logs for more details.",
                 new InternetAddress("recipient@example.com"),
                 new InternetAddress("sender@example.com")));
     // Assert no upload task enqueued
