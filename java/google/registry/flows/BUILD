@@ -4,8 +4,6 @@ package(
 
 licenses(["notice"])  # Apache 2.0
 
-load("@io_bazel_rules_closure//closure:defs.bzl", "closure_java_template_library")
-
 filegroup(
     name = "flows_files",
     srcs = glob([
@@ -22,7 +20,6 @@ java_library(
     ]),
     visibility = ["//visibility:public"],
     deps = [
-        ":soy_java_wrappers",
         "//java/google/registry/batch",
         "//java/google/registry/config",
         "//java/google/registry/dns",
@@ -51,10 +48,4 @@ java_library(
         "@joda_time",
         "@org_joda_money",
     ],
-)
-
-closure_java_template_library(
-    name = "soy_java_wrappers",
-    srcs = glob(["soy/*.soy"]),
-    java_package = "google.registry.flows.soy",
 )
