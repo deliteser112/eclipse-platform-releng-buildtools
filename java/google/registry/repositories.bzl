@@ -163,6 +163,7 @@ def domain_registry_repositories(
         omit_org_mortbay_jetty = False,
         omit_org_mortbay_jetty_servlet_api = False,
         omit_org_mortbay_jetty_util = False,
+        omit_org_objenesis_objenesis = False,
         omit_org_osgi_core = False,
         omit_org_slf4j_api = False,
         omit_org_tukaani_xz = False,
@@ -450,6 +451,8 @@ def domain_registry_repositories(
         org_mortbay_jetty_servlet_api()
     if not omit_org_mortbay_jetty_util:
         org_mortbay_jetty_util()
+    if not omit_org_objenesis_objenesis:
+        org_objenesis_objenesis()
     if not omit_org_osgi_core:
         org_osgi_core()
     if not omit_org_slf4j_api:
@@ -2522,7 +2525,7 @@ def org_mockito_core():
         deps = [
             "@net_bytebuddy",
         ],
-        exports = ["@org_hamcrest_all", "@org_hamcrest_library"],
+        exports = ["@org_hamcrest_all", "@org_hamcrest_library", "@org_objenesis_objenesis"],
     )
 
 def org_mortbay_jetty():
@@ -2569,6 +2572,18 @@ def org_mortbay_jetty_util():
         # http://www.eclipse.org/org/documents/epl-v10.php
         licenses = ["notice"],
         deps = ["@org_mortbay_jetty_servlet_api"],
+    )
+
+def org_objenesis_objenesis():
+    java_import_external(
+        name = "org_objenesis_objenesis",
+        licenses = ["notice"],  # Apache 2
+        testonly_ = True,
+        jar_sha256 = "5e168368fbc250af3c79aa5fef0c3467a2d64e5a7bd74005f25d8399aeb0708d",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/org/objenesis/objenesis/2.6/objenesis-2.6.jar",
+            "http://maven.ibiblio.org/maven2/org/objenesis/objenesis/2.6/objenesis-2.6.jar",
+        ],
     )
 
 def org_osgi_core():
