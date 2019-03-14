@@ -13,7 +13,6 @@ java_library(
     deps = [
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
-        "//third_party/java/mockito",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_code_findbugs_jsr305",
         "@com_google_flogger",
@@ -24,6 +23,7 @@ java_library(
         "@com_google_truth_extensions_truth_java8_extension",
         "@joda_time",
         "@junit",
+        "@org_mockito_core",
     ],
 )
 

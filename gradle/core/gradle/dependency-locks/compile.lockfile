@@ -3,7 +3,6 @@
 # This file is expected to be part of source control.
 aopalliance:aopalliance:1.0
 args4j:args4j:2.0.23
-cglib:cglib-nodep:2.2
 com.beust:jcommander:1.48
 com.fasterxml.jackson.core:jackson-annotations:2.9.8
 com.fasterxml.jackson.core:jackson-core:2.9.8
@@ -160,6 +159,8 @@ javax.xml.bind:jaxb-api:2.3.0
 jline:jline:1.0
 joda-time:joda-time:2.9.2
 junit:junit:4.12
+net.bytebuddy:byte-buddy:1.9.7
+net.bytebuddy:byte-buddy-agent:1.9.7
 org.apache.avro:avro:1.8.2
 org.apache.beam:beam-model-job-management:2.11.0
 org.apache.beam:beam-model-pipeline:2.11.0
@@ -181,14 +182,14 @@ org.checkerframework:checker-qual:2.5.2
 org.codehaus.jackson:jackson-core-asl:1.9.13
 org.codehaus.jackson:jackson-mapper-asl:1.9.13
 org.codehaus.mojo:animal-sniffer-annotations:1.17
-org.easymock:easymock:3.0
+org.easymock:easymock:3.5
 org.hamcrest:hamcrest-core:1.3
 org.joda:joda-money:0.10.0
 org.json:json:20160810
-org.mockito:mockito-core:1.9.5
+org.mockito:mockito-core:2.25.0
 org.mortbay.jetty:jetty-util:6.1.26
 org.mortbay.jetty:jetty:6.1.26
-org.objenesis:objenesis:1.2
+org.objenesis:objenesis:2.6
 org.ow2.asm:asm-analysis:6.0
 org.ow2.asm:asm-commons:6.0
 org.ow2.asm:asm-tree:6.0

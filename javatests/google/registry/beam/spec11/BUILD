@@ -14,7 +14,6 @@ java_library(
         "//java/google/registry/beam/spec11",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
-        "//third_party/java/mockito",
         "@com_google_dagger",
         "@com_google_guava",
         "@com_google_truth",
@@ -28,6 +27,7 @@ java_library(
         "@org_apache_httpcomponents_httpclient",
         "@org_apache_httpcomponents_httpcore",
         "@org_json",
+        "@org_mockito_core",
     ],
 )
 

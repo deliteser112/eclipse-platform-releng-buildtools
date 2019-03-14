@@ -16,7 +16,6 @@ java_library(
         "//java/google/registry/request",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
-        "//third_party/java/mockito",
         "@com_google_apis_google_api_services_bigquery",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_tools_appengine_gcs_client",
@@ -27,6 +26,7 @@ java_library(
         "@javax_servlet_api",
         "@joda_time",
         "@junit",
+        "@org_mockito_core",
     ],
 )
 

@@ -25,7 +25,7 @@ dependencies {
   annotationProcessor deps['com.google.auto.value:auto-value']
   testCompile deps['com.google.truth:truth']
   testCompile deps['com.google.truth.extensions:truth-java8-extension']
-  testCompile deps['org.mockito:mockito-all']
+  testCompile deps['org.mockito:mockito-core']
 }
 
 gradle.projectsEvaluated {

@@ -16,7 +16,7 @@ package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +35,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.ArgumentMatcher;
 
 /** Unit tests for {@link RequestStatusCheckerImpl}. */
 @RunWith(JUnit4.class)
@@ -53,16 +52,12 @@ public final class RequestStatusCheckerImplTest {
    */
   private static LogQuery expectedLogQuery(final String requestLogId) {
     return argThat(
-        new ArgumentMatcher<LogQuery>() {
-          @Override
-          public boolean matches(Object object) {
-            assertThat(object).isInstanceOf(LogQuery.class);
-            LogQuery logQuery = (LogQuery) object;
-            assertThat(logQuery.getRequestIds()).containsExactly(requestLogId);
-            assertThat(logQuery.getIncludeAppLogs()).isFalse();
-            assertThat(logQuery.getIncludeIncomplete()).isTrue();
-            return true;
-          }
+        object -> {
+          assertThat(object).isInstanceOf(LogQuery.class);
+          assertThat(object.getRequestIds()).containsExactly(requestLogId);
+          assertThat(object.getIncludeAppLogs()).isFalse();
+          assertThat(object.getIncludeIncomplete()).isTrue();
+          return true;
         });
   }
 

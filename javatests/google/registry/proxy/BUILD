@@ -21,7 +21,6 @@ java_library(
         "//java/google/registry/proxy",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
-        "//third_party/java/mockito",
         "@com_beust_jcommander",
         "@com_google_dagger",
         "@com_google_guava",
@@ -39,6 +38,7 @@ java_library(
         "@joda_time",
         "@junit",
         "@org_bouncycastle_bcpkix_jdk15on",
+        "@org_mockito_core",
         "@org_yaml_snakeyaml",
     ],
 )

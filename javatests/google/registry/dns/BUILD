@@ -22,7 +22,6 @@ java_library(
         "//java/google/registry/request/lock",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
-        "//third_party/java/mockito",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_api_stubs",
@@ -33,6 +32,7 @@ java_library(
         "@javax_servlet_api",
         "@joda_time",
         "@junit",
+        "@org_mockito_core",
     ],
 )
 

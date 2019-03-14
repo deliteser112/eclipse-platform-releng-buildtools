@@ -268,7 +268,7 @@ dependencies {
   testCompile deps['org.hamcrest:hamcrest-core']
   testCompile deps['org.hamcrest:hamcrest-library']
   testCompile deps['junit:junit']
-  testCompile deps['org.mockito:mockito-all']
+  testCompile deps['org.mockito:mockito-core']
 
   // Indirect dependency found by undeclared-dependency check. Such
   // dependencies should go after all other compile and testCompile

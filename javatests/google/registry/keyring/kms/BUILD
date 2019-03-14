@@ -20,7 +20,6 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
-        "//third_party/java/mockito",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_cloudkms",
@@ -32,6 +31,7 @@ java_library(
         "@junit",
         "@org_bouncycastle_bcpg_jdk15on",
         "@org_bouncycastle_bcpkix_jdk15on",
+        "@org_mockito_core",
     ],
 )
 

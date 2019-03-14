@@ -130,6 +130,7 @@ def domain_registry_repositories(
         omit_jline = False,
         omit_joda_time = False,
         omit_junit = False,
+        omit_net_bytebuddy = False,
         omit_org_apache_avro = False,
         omit_org_apache_beam_runners_direct_java = False,
         omit_org_apache_beam_runners_google_cloud_dataflow_java = False,
@@ -158,7 +159,7 @@ def domain_registry_repositories(
         omit_org_joda_money = False,
         omit_org_json = False,
         omit_org_khronos_opengl_api = False,
-        omit_org_mockito_all = False,
+        omit_org_mockito_core = False,
         omit_org_mortbay_jetty = False,
         omit_org_mortbay_jetty_servlet_api = False,
         omit_org_mortbay_jetty_util = False,
@@ -383,6 +384,8 @@ def domain_registry_repositories(
         joda_time()
     if not omit_junit:
         junit()
+    if not omit_net_bytebuddy:
+        net_bytebuddy()
     if not omit_org_apache_avro:
         org_apache_avro()
     if not omit_org_apache_beam_runners_direct_java:
@@ -439,8 +442,8 @@ def domain_registry_repositories(
         org_json()
     if not omit_org_khronos_opengl_api:
         org_khronos_opengl_api()
-    if not omit_org_mockito_all:
-        org_mockito_all()
+    if not omit_org_mockito_core:
+        org_mockito_core()
     if not omit_org_mortbay_jetty:
         org_mortbay_jetty()
     if not omit_org_mortbay_jetty_servlet_api:
@@ -2065,6 +2068,17 @@ def junit():
         exports = ["@org_hamcrest_core"],
     )
 
+def net_bytebuddy():
+    java_import_external(
+        name = "net_bytebuddy",
+        jar_sha256 = "69a9140c11de463789a1badfe6c3dcdc17608c4304cb443c5c3a179585b78b39",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/net/bytebuddy/byte-buddy/1.9.7/byte-buddy-1.9.7.jar",
+        ],
+        licenses = ["notice"],  # Apache 2
+        testonly_ = True,
+    )
+
 def org_apache_avro():
     java_import_external(
         name = "org_apache_avro",
@@ -2495,16 +2509,19 @@ def org_khronos_opengl_api():
         ],
     )
 
-def org_mockito_all():
+def org_mockito_core():
     java_import_external(
-        name = "org_mockito_all",
-        jar_sha256 = "d1a7a7ef14b3db5c0fc3e0a63a81b374b510afe85add9f7984b97911f4c70605",
+        name = "org_mockito_core",
+        jar_sha256 = "28028d70cc27d61442948fcb3d249d9df5b37c47aa0b82490a3d049094ff411f",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/org/mockito/mockito-all/1.10.19/mockito-all-1.10.19.jar",
-            "http://repo1.maven.org/maven2/org/mockito/mockito-all/1.10.19/mockito-all-1.10.19.jar",
+            "http://maven.ibiblio.org/maven2/org/mockito/mockito-core/2.25.0/mockito-core-2.25.0.jar",
+            "http://repo1.maven.org/maven2/org/mockito/mockito-core/2.25.0/mockito-core-2.25.0.jar",
         ],
         licenses = ["notice"],  # The MIT License
         testonly_ = True,
+        deps = [
+            "@net_bytebuddy",
+        ],
         exports = ["@org_hamcrest_all", "@org_hamcrest_library"],
     )
 

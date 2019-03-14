@@ -17,8 +17,9 @@ package google.registry.storage.drive;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -59,14 +60,11 @@ public class DriveConnectionTest {
   List<String> allChildren;
 
   private ArgumentMatcher<ByteArrayContent> hasByteArrayContent(final byte[] data) {
-    return new ArgumentMatcher<ByteArrayContent>() {
-      @Override
-      public boolean matches(Object arg) {
-        try {
-          return Arrays.equals(data, toByteArray(((ByteArrayContent) arg).getInputStream()));
-        } catch (Exception e) {
-          return false;
-        }
+    return arg -> {
+      try {
+        return Arrays.equals(data, toByteArray(arg.getInputStream()));
+      } catch (Exception e) {
+        return false;
       }
     };
   }
@@ -97,28 +95,29 @@ public class DriveConnectionTest {
     when(childrenList.execute()).thenReturn(childList1, childList2);
     when(childrenList.setQ(anyString())).thenReturn(childrenList);
     when(childrenList.getPageToken()).thenCallRealMethod();
-    when(childrenList.setPageToken(anyString())).thenCallRealMethod();
+    when(childrenList.setPageToken(any())).thenCallRealMethod();
     when(children.list("driveFolderId")).thenReturn(childrenList);
   }
 
   @Test
   public void testCreateFileAtRoot() throws Exception {
     when(files.insert(
-        eq(new File().setTitle("title").setMimeType("image/gif")),
-        argThat(hasByteArrayContent(DATA))))
-            .thenReturn(insert);
+            eq(new File().setTitle("title").setMimeType("image/gif")),
+            argThat(hasByteArrayContent(DATA))))
+        .thenReturn(insert);
     assertThat(driveConnection.createFile("title", MediaType.GIF, null, DATA)).isEqualTo("id");
   }
 
   @Test
   public void testCreateFileInFolder() throws Exception {
     when(files.insert(
-        eq(new File()
-            .setTitle("title")
-            .setMimeType("image/gif")
-            .setParents(ImmutableList.of(new ParentReference().setId("parent")))),
-        argThat(hasByteArrayContent(DATA))))
-            .thenReturn(insert);
+            eq(
+                new File()
+                    .setTitle("title")
+                    .setMimeType("image/gif")
+                    .setParents(ImmutableList.of(new ParentReference().setId("parent")))),
+            argThat(hasByteArrayContent(DATA))))
+        .thenReturn(insert);
     assertThat(driveConnection.createFile("title", MediaType.GIF, "parent", DATA)).isEqualTo("id");
   }
 
@@ -164,12 +163,13 @@ public class DriveConnectionTest {
   @Test
   public void testCreateOrUpdateFile_succeedsForNewFile() throws Exception {
     when(files.insert(
-        eq(new File()
-            .setTitle("title")
-            .setMimeType("video/webm")
-            .setParents(ImmutableList.of(new ParentReference().setId("driveFolderId")))),
-        argThat(hasByteArrayContent(DATA))))
-            .thenReturn(insert);
+            eq(
+                new File()
+                    .setTitle("title")
+                    .setMimeType("video/webm")
+                    .setParents(ImmutableList.of(new ParentReference().setId("driveFolderId")))),
+            argThat(hasByteArrayContent(DATA))))
+        .thenReturn(insert);
     ChildList emptyChildList = new ChildList().setItems(ImmutableList.of()).setNextPageToken(null);
     when(childrenList.execute()).thenReturn(emptyChildList);
     assertThat(driveConnection.createOrUpdateFile(
@@ -183,10 +183,8 @@ public class DriveConnectionTest {
   @Test
   public void testCreateOrUpdateFile_succeedsForUpdatingFile() throws Exception {
     when(files.update(
-        eq("id"),
-        eq(new File().setTitle("title")),
-        argThat(hasByteArrayContent(DATA))))
-            .thenReturn(update);
+            eq("id"), eq(new File().setTitle("title")), argThat(hasByteArrayContent(DATA))))
+        .thenReturn(update);
     ChildList childList = new ChildList()
         .setItems(ImmutableList.of(new ChildReference().setId("id")))
         .setNextPageToken(null);
@@ -224,10 +222,8 @@ public class DriveConnectionTest {
   @Test
   public void testUpdateFile_succeeds() throws Exception {
     when(files.update(
-        eq("id"),
-        eq(new File().setTitle("title")),
-        argThat(hasByteArrayContent(DATA))))
-            .thenReturn(update);
+            eq("id"), eq(new File().setTitle("title")), argThat(hasByteArrayContent(DATA))))
+        .thenReturn(update);
     assertThat(driveConnection.updateFile("id", "title", MediaType.WEBM_VIDEO, DATA))
         .isEqualTo("id");
   }

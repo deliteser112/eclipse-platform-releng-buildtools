@@ -25,7 +25,6 @@ java_library(
         "//javatests/google/registry/model",
         "//javatests/google/registry/security",
         "//javatests/google/registry/testing",
-        "//third_party/java/mockito",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_flogger",
@@ -40,6 +39,7 @@ java_library(
         "@joda_time",
         "@junit",
         "@org_joda_money",
+        "@org_mockito_core",
     ],
 )
 
