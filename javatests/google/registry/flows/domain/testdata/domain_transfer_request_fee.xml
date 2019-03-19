@@ -12,7 +12,7 @@
     </transfer>
     <extension>
       <fee:transfer xmlns:fee="urn:ietf:params:xml:ns:fee-%FEE_VERSION%">
-        <fee:currency>USD</fee:currency>
+        <fee:currency>%CURRENCY%</fee:currency>
         <fee:fee>%AMOUNT%</fee:fee>
       </fee:transfer>
     </extension>

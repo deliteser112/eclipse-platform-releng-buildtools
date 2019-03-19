@@ -92,6 +92,7 @@ import org.joda.time.DateTime;
  * original expiration time was.
  *
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
+ * @error {@link google.registry.flows.FlowUtils.UnknownCurrencyEppException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}

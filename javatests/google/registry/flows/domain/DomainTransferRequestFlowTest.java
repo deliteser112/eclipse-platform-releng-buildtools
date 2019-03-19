@@ -43,7 +43,6 @@ import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
-import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.Duration.standardSeconds;
 
@@ -53,11 +52,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppRequestSource;
+import google.registry.flows.FlowUtils.UnknownCurrencyEppException;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
@@ -117,6 +118,7 @@ public class DomainTransferRequestFlowTest
           .put("DOMAIN", "example.tld")
           .put("YEARS", "1")
           .put("AMOUNT", "11.00")
+          .put("CURRENCY", "USD")
           .build();
   private static final ImmutableMap<String, String> FEE_06_MAP =
       new ImmutableMap.Builder<String, String>()
@@ -133,6 +135,15 @@ public class DomainTransferRequestFlowTest
   private static final ImmutableMap<String, String> FEE_12_MAP =
       new ImmutableMap.Builder<String, String>()
           .putAll(BASE_FEE_MAP)
+          .put("FEE_VERSION", "0.12")
+          .put("FEE_NS", "fee12")
+          .build();
+  private static final ImmutableMap<String, String> RICH_DOMAIN_MAP =
+      ImmutableMap.<String, String>builder()
+          .put("DOMAIN", "rich.example")
+          .put("YEARS", "1")
+          .put("AMOUNT", "100.00")
+          .put("CURRENCY", "USD")
           .put("FEE_VERSION", "0.12")
           .put("FEE_NS", "fee12")
           .build();
@@ -1152,15 +1163,7 @@ public class DomainTransferRequestFlowTest
     setupDomain("rich", "example");
     clock.advanceOneMilli();
     // We don't verify the results; just check that the flow doesn't fail.
-    runTest(
-        "domain_transfer_request_fee.xml",
-        UserPrivileges.NORMAL,
-        ImmutableMap.of(
-            "DOMAIN", "rich.example",
-            "YEARS", "1",
-            "AMOUNT", "100.00",
-            "FEE_VERSION", "0.12",
-            "FEE_NS", "fee12"));
+    runTest("domain_transfer_request_fee.xml", UserPrivileges.NORMAL, RICH_DOMAIN_MAP);
   }
 
   @Test
@@ -1170,33 +1173,18 @@ public class DomainTransferRequestFlowTest
     // Modify the Registrar to block premium names.
     persistResource(loadRegistrar("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
     // We don't verify the results; just check that the flow doesn't fail.
-    runTest(
-        "domain_transfer_request_fee.xml",
-        UserPrivileges.SUPERUSER,
-        ImmutableMap.of(
-            "DOMAIN", "rich.example",
-            "YEARS", "1",
-            "AMOUNT", "100.00",
-            "FEE_VERSION", "0.12",
-            "FEE_NS", "fee12"));
+    runTest("domain_transfer_request_fee.xml", UserPrivileges.SUPERUSER, RICH_DOMAIN_MAP);
   }
 
   private void runWrongCurrencyTest(Map<String, String> substitutions) {
+    Map<String, String> fullSubstitutions = Maps.newHashMap();
+    fullSubstitutions.putAll(substitutions);
+    fullSubstitutions.put("CURRENCY", "EUR");
     setupDomain("example", "tld");
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setCurrency(EUR)
-            .setCreateBillingCost(Money.of(EUR, 13))
-            .setRestoreBillingCost(Money.of(EUR, 11))
-            .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(EUR, 7)))
-            .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
-            .setServerStatusChangeBillingCost(Money.of(EUR, 19))
-            .build());
     EppException thrown =
         assertThrows(
             CurrencyUnitMismatchException.class,
-            () -> doFailingTest("domain_transfer_request_fee.xml", substitutions));
+            () -> doFailingTest("domain_transfer_request_fee.xml", fullSubstitutions));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1213,6 +1201,17 @@ public class DomainTransferRequestFlowTest
   @Test
   public void testFailure_wrongCurrency_v12() {
     runWrongCurrencyTest(FEE_12_MAP);
+  }
+
+  @Test
+  public void testFailure_unknownCurrency() {
+    Map<String, String> substitutions = Maps.newHashMap();
+    substitutions.putAll(FEE_06_MAP);
+    substitutions.put("CURRENCY", "BAD");
+    setupDomain("example", "tld");
+    setEppInput("domain_transfer_request_fee.xml", substitutions);
+    EppException thrown = assertThrows(UnknownCurrencyEppException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowUtils.UnknownCurrencyEppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
@@ -556,7 +557,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
    */
   @Test
   public void testFeeExtension_createCommand() throws Exception {
-    setEppInput("domain_info_fee_create.xml");
+    setEppInput("domain_info_fee_create.xml", ImmutableMap.of("CURRENCY", "USD"));
     persistTestEntities(false);
     doSuccessfulTest("domain_info_fee_create_response.xml", false);
   }
@@ -624,9 +625,16 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   /** Test setting the currency explicitly to a wrong value. */
   @Test
   public void testFeeExtension_wrongCurrency() {
-    setEppInput("domain_info_fee_create_euro.xml");
+    setEppInput("domain_info_fee_create.xml", ImmutableMap.of("CURRENCY", "EUR"));
     persistTestEntities(false);
     EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFeeExtension_unknownCurrency() {
+    setEppInput("domain_info_fee_create.xml", ImmutableMap.of("CURRENCY", "BAD"));
+    EppException thrown = assertThrows(UnknownCurrencyEppException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

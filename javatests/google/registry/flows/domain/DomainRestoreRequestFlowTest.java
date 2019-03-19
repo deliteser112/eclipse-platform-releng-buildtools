@@ -41,6 +41,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
+import google.registry.flows.FlowUtils.UnknownCurrencyEppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -79,11 +80,11 @@ public class DomainRestoreRequestFlowTest
     extends ResourceFlowTestCase<DomainRestoreRequestFlow, DomainBase> {
 
   private static final ImmutableMap<String, String> FEE_06_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee");
+      ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee", "CURRENCY", "USD");
   private static final ImmutableMap<String, String> FEE_11_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.11", "FEE_NS", "fee11");
+      ImmutableMap.of("FEE_VERSION", "0.11", "FEE_NS", "fee11", "CURRENCY", "USD");
   private static final ImmutableMap<String, String> FEE_12_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.12", "FEE_NS", "fee12");
+      ImmutableMap.of("FEE_VERSION", "0.12", "FEE_NS", "fee12", "CURRENCY", "USD");
 
   @Before
   public void initDomainTest() {
@@ -243,6 +244,16 @@ public class DomainRestoreRequestFlowTest
     setEppInput("domain_update_restore_request_fee_defaults.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
     runFlowAssertResponse(loadFile("domain_update_restore_request_response_fee.xml", FEE_12_MAP));
+  }
+
+  @Test
+  public void testFailure_fee_unknownCurrency() {
+    ImmutableMap<String, String> substitutions =
+        ImmutableMap.of("FEE_VERSION", "0.12", "FEE_NS", "fee12", "CURRENCY", "BAD");
+    setEppInput("domain_update_restore_request_fee.xml", substitutions);
+    EppException thrown =
+        assertThrows(UnknownCurrencyEppException.class, this::persistPendingDeleteDomain);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

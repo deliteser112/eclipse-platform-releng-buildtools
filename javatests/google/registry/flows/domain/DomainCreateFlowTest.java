@@ -57,7 +57,6 @@ import static google.registry.tmch.LordnTaskUtils.QUEUE_CLAIMS;
 import static google.registry.tmch.LordnTaskUtils.QUEUE_SUNRISE;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
-import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.base.Strings;
@@ -71,6 +70,7 @@ import google.registry.flows.EppException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException;
+import google.registry.flows.FlowUtils.UnknownCurrencyEppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainCreateFlow.AnchorTenantCreatePeriodException;
 import google.registry.flows.domain.DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException;
@@ -154,7 +154,6 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.util.Map;
-import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -516,7 +515,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_fee_v06() throws Exception {
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6", "CURRENCY", "USD"));
     persistContactsAndHosts();
     doSuccessfulTest(
         "tld", "domain_create_response_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
@@ -524,7 +523,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_fee_v11() throws Exception {
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11", "CURRENCY", "USD"));
     persistContactsAndHosts();
     doSuccessfulTest(
         "tld", "domain_create_response_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
@@ -532,7 +531,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_fee_v12() throws Exception {
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12", "CURRENCY", "USD"));
     persistContactsAndHosts();
     doSuccessfulTest(
         "tld", "domain_create_response_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
@@ -863,7 +862,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_wrongFeeAmount_v06() {
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6", "CURRENCY", "USD"));
     persistResource(
         Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, 20)).build());
     persistContactsAndHosts();
@@ -873,7 +872,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_wrongFeeAmount_v11() {
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11", "CURRENCY", "USD"));
     persistResource(
         Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, 20)).build());
     persistContactsAndHosts();
@@ -883,7 +882,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_wrongFeeAmount_v12() {
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12", "CURRENCY", "USD"));
     persistResource(
         Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, 20)).build());
     persistContactsAndHosts();
@@ -893,17 +892,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_wrongCurrency_v06() {
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setCurrency(CurrencyUnit.EUR)
-            .setCreateBillingCost(Money.of(EUR, 13))
-            .setRestoreBillingCost(Money.of(EUR, 11))
-            .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(EUR, 7)))
-            .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
-            .setServerStatusChangeBillingCost(Money.of(EUR, 19))
-            .build());
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6", "CURRENCY", "EUR"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -911,17 +900,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_wrongCurrency_v11() {
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setCurrency(CurrencyUnit.EUR)
-            .setCreateBillingCost(Money.of(EUR, 13))
-            .setRestoreBillingCost(Money.of(EUR, 11))
-            .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(EUR, 7)))
-            .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
-            .setServerStatusChangeBillingCost(Money.of(EUR, 19))
-            .build());
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11", "CURRENCY", "EUR"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -929,19 +908,17 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_wrongCurrency_v12() {
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setCurrency(CurrencyUnit.EUR)
-            .setCreateBillingCost(Money.of(EUR, 13))
-            .setRestoreBillingCost(Money.of(EUR, 11))
-            .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(EUR, 7)))
-            .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
-            .setServerStatusChangeBillingCost(Money.of(EUR, 19))
-            .build());
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12", "CURRENCY", "EUR"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_unknownCurrency() {
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12", "CURRENCY", "BAD"));
+    persistContactsAndHosts();
+    EppException thrown = assertThrows(UnknownCurrencyEppException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1434,7 +1411,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
       removeServiceExtensionUri(uri);
     }
     createTld("net");
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6", "CURRENCY", "USD"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(UndeclaredServiceExtensionException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1446,7 +1423,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
       removeServiceExtensionUri(uri);
     }
     createTld("net");
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11", "CURRENCY", "USD"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(UndeclaredServiceExtensionException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1458,7 +1435,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
       removeServiceExtensionUri(uri);
     }
     createTld("net");
-    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
+    setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12", "CURRENCY", "USD"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(UndeclaredServiceExtensionException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();

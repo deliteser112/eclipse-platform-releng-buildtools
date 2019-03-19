@@ -92,6 +92,7 @@ import org.joda.time.DateTime;
  * rejection or cancellation of the request, they will be deleted (and in the approval case,
  * replaced with new ones with the correct approval time).
  *
+ * @error {@link google.registry.flows.FlowUtils.UnknownCurrencyEppException}
  * @error {@link google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.exceptions.AlreadyPendingTransferException}

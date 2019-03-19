@@ -114,7 +114,7 @@ public final class FlowUtils {
   }
 
   /** Unknown currency. */
-  static class UnknownCurrencyEppException extends ParameterValueRangeErrorException {
+  public static class UnknownCurrencyEppException extends ParameterValueRangeErrorException {
     public UnknownCurrencyEppException() {
       super("Unknown currency.");
     }

@@ -123,6 +123,7 @@ import org.joda.time.Duration;
  * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException}
+ * @error {@link google.registry.flows.FlowUtils.UnknownCurrencyEppException}
  * @error {@link DomainCreateFlow.AnchorTenantCreatePeriodException}
  * @error {@link DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException}
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}

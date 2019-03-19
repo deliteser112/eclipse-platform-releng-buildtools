@@ -8,7 +8,7 @@
     </info>
     <extension>
       <fee:info xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
-        <fee:currency>USD</fee:currency>
+        <fee:currency>%CURRENCY%</fee:currency>
         <fee:command>create</fee:command>
         <fee:period unit="y">2</fee:period>
       </fee:info>

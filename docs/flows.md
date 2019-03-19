@@ -240,6 +240,7 @@ information.
 *   2002
     *   Command is not allowed in the current registry phase.
 *   2004
+    *   Unknown currency.
     *   Domain label is not allowed by IDN table.
     *   Domain name is under tld which doesn't exist.
 *   2005
@@ -311,6 +312,7 @@ An EPP flow that creates a new domain resource.
     *   Registrant is required.
     *   Technical contact is required.
 *   2004
+    *   Unknown currency.
     *   The acceptance time specified in the claim notice is more than 48 hours
         in the past.
     *   New registration period exceeds maximum number of years.
@@ -421,6 +423,8 @@ information about the domain.
 
 ### Errors
 
+*   2004
+    *   Unknown currency.
 *   2202
     *   Authorization information for accessing resource is invalid.
 *   2303
@@ -455,6 +459,7 @@ comes in at the exact millisecond that the domain would have expired.
     *   Fees must be explicitly acknowledged when performing any operations on a
         premium name.
 *   2004
+    *   Unknown currency.
     *   New registration period exceeds maximum number of years.
     *   The fees passed in the transform command do not match the fees that will
         be charged.
@@ -512,6 +517,7 @@ regardless of what the original expiration time was.
     *   Fees must be explicitly acknowledged when performing any operations on a
         premium name.
 *   2004
+    *   Unknown currency.
     *   The fees passed in the transform command do not match the fees that will
         be charged.
 *   2005
@@ -677,6 +683,7 @@ new ones with the correct approval time).
     *   Fees must be explicitly acknowledged when performing any operations on a
         premium name.
 *   2004
+    *   Unknown currency.
     *   The fees passed in the transform command do not match the fees that will
         be charged.
 *   2005

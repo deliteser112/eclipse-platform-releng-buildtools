@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowUtils.UnknownCurrencyEppException;
 import google.registry.flows.ResourceCheckFlowTestCase;
 import google.registry.flows.domain.DomainCheckFlow.OnlyCheckedNamesCanBeFeeCheckedException;
 import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
@@ -417,7 +418,7 @@ public class DomainCheckFlowTest
   @Test
   public void testFeeExtension_v06() throws Exception {
     persistActiveDomain("example1.tld");
-    setEppInput("domain_check_fee_v06.xml");
+    setEppInput("domain_check_fee_v06.xml", ImmutableMap.of("CURRENCY", "USD"));
     runFlowAssertResponse(loadFile("domain_check_fee_response_v06.xml"));
   }
 
@@ -430,7 +431,7 @@ public class DomainCheckFlowTest
                 persistReservedList("example-sunrise", "allowedinsunrise,ALLOWED_IN_SUNRISE"))
             .build());
     persistActiveDomain("example1.tld");
-    setEppInput("domain_check_fee_v06.xml");
+    setEppInput("domain_check_fee_v06.xml", ImmutableMap.of("CURRENCY", "USD"));
     runFlowAssertResponse(loadFile("domain_check_fee_response_v06.xml"));
   }
 
@@ -727,6 +728,13 @@ public class DomainCheckFlowTest
   }
 
   @Test
+  public void testFeeExtension_badCurrencyType() {
+    setEppInput("domain_check_fee_v06.xml", ImmutableMap.of("CURRENCY", "BAD"));
+    EppException thrown = assertThrows(UnknownCurrencyEppException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
   public void testFeeExtension_periodNotInYears_v06() {
     setEppInput("domain_check_fee_bad_period_v06.xml");
     EppException thrown = assertThrows(BadPeriodUnitException.class, this::runFlow);
@@ -896,7 +904,7 @@ public class DomainCheckFlowTest
                     .put(clock.nowUtc().plusDays(2), Money.of(USD, 0))
                     .build())
             .build());
-    setEppInput(inputFile);
+    setEppInput(inputFile, ImmutableMap.of("CURRENCY", "USD"));
     runFlowAssertResponse(loadFile(outputFile));
   }
 

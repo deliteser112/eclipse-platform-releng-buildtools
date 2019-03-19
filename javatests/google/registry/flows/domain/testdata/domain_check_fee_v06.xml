@@ -14,13 +14,13 @@
       <fee:check xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
         <fee:domain>
           <fee:name>example2.tld</fee:name>
-          <fee:currency>USD</fee:currency>
+          <fee:currency>%CURRENCY%</fee:currency>
           <fee:command>create</fee:command>
           <fee:period unit="y">1</fee:period>
         </fee:domain>
         <fee:domain>
           <fee:name>example3.tld</fee:name>
-          <fee:currency>USD</fee:currency>
+          <fee:currency>%CURRENCY%</fee:currency>
           <fee:command>create</fee:command>
           <fee:period unit="y">2</fee:period>
         </fee:domain>

@@ -39,6 +39,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.FlowUtils.UnknownCurrencyEppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -78,11 +79,11 @@ import org.junit.Test;
 public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, DomainBase> {
 
   private static final ImmutableMap<String, String> FEE_06_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee");
+      ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee", "CURRENCY", "USD");
   private static final ImmutableMap<String, String> FEE_11_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.11", "FEE_NS", "fee11");
+      ImmutableMap.of("FEE_VERSION", "0.11", "FEE_NS", "fee11", "CURRENCY", "USD");
   private static final ImmutableMap<String, String> FEE_12_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.12", "FEE_NS", "fee12");
+      ImmutableMap.of("FEE_VERSION", "0.12", "FEE_NS", "fee12", "CURRENCY", "USD");
 
   final DateTime expirationTime = DateTime.parse("2000-04-03T22:00:00.0Z");
 
@@ -307,6 +308,15 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     setEppInput("domain_renew_fee_defaults.xml", FEE_12_MAP);
     persistDomain();
     doSuccessfulTest("domain_renew_response_fee.xml", 5, FEE_12_MAP);
+  }
+
+  @Test
+  public void testFailure_fee_unknownCurrency() {
+    ImmutableMap<String, String> parameters =
+        ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee", "CURRENCY", "BAD");
+    setEppInput("domain_renew_fee.xml", parameters);
+    EppException thrown = assertThrows(UnknownCurrencyEppException.class, this::persistDomain);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
