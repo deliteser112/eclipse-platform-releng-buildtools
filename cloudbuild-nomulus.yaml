@@ -22,41 +22,40 @@ steps:
   args: ['source', 'repos', 'clone', 'nomulus-internal']
 - name: 'alpine'
   args: ['sh', '-c', 'cp -r nomulus-internal/* .']
-# Build the deployment files.
+# Create a directory to store the artifacts
+- name: 'alpine'
+  args: ['mkdir', 'nomulus']
+# Build the deployment files for sandbox.
 - name: 'gcr.io/${PROJECT_ID}/builder'
   args:
     - './gradlew'
     - 'stage'
     - '-x'
     - 'autoLintGradle'
-    - '-PrepositoryUrl=gcs://domain-registry-maven-repository'
-    - '-Penvironment=${_ENVIRONMENT}'
+    - '-Penvironment=sandbox'
   dir: 'gradle'
-# Tar the deployment files as we cannot upload directories to GCS.
 - name: 'alpine'
-  args: ['tar', 'cvf', '../../../default.tar', '.']
-  dir: 'gradle/services/default/build/staged-app'
+  args: ['sh', './move_artifacts.sh', 'sandbox', 'nomulus']
+# Build the deployment files for alpha.
+- name: 'gcr.io/${PROJECT_ID}/builder'
+  args:
+    - './gradlew'
+    - 'stage'
+    - '-x'
+    - 'autoLintGradle'
+    - '-Penvironment=alpha'
+  dir: 'gradle'
 - name: 'alpine'
-  args: ['tar', 'cvf', '../../../pubapi.tar', '.']
-  dir: 'gradle/services/pubapi/build/staged-app'
+  args: ['sh', './move_artifacts.sh', 'alpha', 'nomulus']
+# Create the uber tarball including all environments.
 - name: 'alpine'
-  args: ['tar', 'cvf', '../../../backend.tar', '.']
-  dir: 'gradle/services/backend/build/staged-app'
-- name: 'alpine'
-  args: ['tar', 'cvf', '../../../tools.tar', '.']
-  dir: 'gradle/services/tools/build/staged-app'
-# Tar files to upload to GCS.
+  args: ['tar', 'cvf', '../nomulus.tar', '.']
+  dir: 'nomulus'
+# The tarball to upload to GCS.
 artifacts:
   objects:
-    location: 'gs://${PROJECT_ID}-deploy/${TAG_NAME}/${_ENVIRONMENT}'
-    paths:
-      - 'gradle/services/default.tar'
-      - 'gradle/services/pubapi.tar'
-      - 'gradle/services/backend.tar'
-      - 'gradle/services/tools.tar'
+    location: 'gs://${PROJECT_ID}-deploy/${TAG_NAME}'
+    paths: ['nomulus.tar']
 timeout: 3600s
-# Default values
-substitutions:
-  _ENVIRONMENT: alpha
 options:
   machineType: 'N1_HIGHCPU_8'
