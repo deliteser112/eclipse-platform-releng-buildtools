@@ -286,7 +286,7 @@ public class RegistrarConsoleScreenshotTest {
 
   @Test
   public void indexPage_smallScrolledDown() throws Throwable {
-    driver.manage().window().setSize(new Dimension(400, 300));
+    driver.manage().window().setSize(new Dimension(600, 300));
     driver.get(server.getUrl("/registrar"));
     driver.waitForElement(By.tagName("h1"));
     driver.executeScript("document.getElementById('reg-content-and-footer').scrollTop = 200");
