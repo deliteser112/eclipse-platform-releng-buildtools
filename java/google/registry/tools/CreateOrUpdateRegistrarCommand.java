@@ -92,12 +92,8 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
   String registrarName;
 
   @Nullable
-  @Parameter(
-      names = "--email",
-      description = "Email address of registrar",
-      converter = OptionalStringParameter.class,
-      validateWith = OptionalStringParameter.class)
-  Optional<String> email;
+  @Parameter(names = "--email", description = "Email address of registrar")
+  String email;
 
   @Nullable
   @Parameter(
@@ -280,8 +276,11 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       if (!isNullOrEmpty(registrarName)) {
         builder.setRegistrarName(registrarName);
       }
-      if (email != null) {
-        builder.setEmailAddress(email.orElse(null));
+      if (!isNullOrEmpty(email)) {
+        builder.setEmailAddress(email);
+      } else if (!isNullOrEmpty(
+          icannReferralEmail)) { // fall back to ICANN referral email if present
+        builder.setEmailAddress(icannReferralEmail);
       }
       if (url != null) {
         builder.setUrl(url.orElse(null));

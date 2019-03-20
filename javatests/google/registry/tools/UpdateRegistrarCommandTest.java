@@ -346,7 +346,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         .setBillingIdentifier(1L)
         .setPhoneNumber("+1.2125555555")
         .setFaxNumber("+1.2125555556")
-        .setEmailAddress("registrar@example.tld")
         .setUrl("http://www.example.tld")
         .setDriveFolderId("id")
         .build());
@@ -355,7 +354,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     assertThat(registrar.getBillingIdentifier()).isNotNull();
     assertThat(registrar.getPhoneNumber()).isNotNull();
     assertThat(registrar.getFaxNumber()).isNotNull();
-    assertThat(registrar.getEmailAddress()).isNotNull();
     assertThat(registrar.getUrl()).isNotNull();
     assertThat(registrar.getDriveFolderId()).isNotNull();
 
@@ -365,7 +363,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         "--billing_id=null",
         "--phone=null",
         "--fax=null",
-        "--email=null",
         "--url=null",
         "--drive_folder_id=null",
         "--force",
@@ -376,7 +373,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     assertThat(registrar.getBillingIdentifier()).isNull();
     assertThat(registrar.getPhoneNumber()).isNull();
     assertThat(registrar.getFaxNumber()).isNull();
-    assertThat(registrar.getEmailAddress()).isNull();
     assertThat(registrar.getUrl()).isNull();
     assertThat(registrar.getDriveFolderId()).isNull();
   }
@@ -390,7 +386,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         .setBillingIdentifier(1L)
         .setPhoneNumber("+1.2125555555")
         .setFaxNumber("+1.2125555556")
-        .setEmailAddress("registrar@example.tld")
         .setUrl("http://www.example.tld")
         .setDriveFolderId("id")
         .build());
@@ -399,7 +394,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     assertThat(registrar.getBillingIdentifier()).isNotNull();
     assertThat(registrar.getPhoneNumber()).isNotNull();
     assertThat(registrar.getFaxNumber()).isNotNull();
-    assertThat(registrar.getEmailAddress()).isNotNull();
     assertThat(registrar.getUrl()).isNotNull();
     assertThat(registrar.getDriveFolderId()).isNotNull();
 
@@ -409,7 +403,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         "--billing_id=",
         "--phone=",
         "--fax=",
-        "--email=",
         "--url=",
         "--drive_folder_id=",
         "--force",
@@ -420,9 +413,23 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     assertThat(registrar.getBillingIdentifier()).isNull();
     assertThat(registrar.getPhoneNumber()).isNull();
     assertThat(registrar.getFaxNumber()).isNull();
-    assertThat(registrar.getEmailAddress()).isNull();
     assertThat(registrar.getUrl()).isNull();
     assertThat(registrar.getDriveFolderId()).isNull();
+  }
+
+  @Test
+  public void testSuccess_setIcannEmail() throws Exception {
+    runCommand("--icann_referral_email=foo@bar.test", "--force", "TheRegistrar");
+    Registrar registrar = loadRegistrar("TheRegistrar");
+    assertThat(registrar.getIcannReferralEmail()).isEqualTo("foo@bar.test");
+    assertThat(registrar.getEmailAddress()).isEqualTo("foo@bar.test");
+  }
+
+  @Test
+  public void testSuccess_setEmail() throws Exception {
+    runCommand("--email=foo@bar.baz", "--force", "TheRegistrar");
+    Registrar registrar = loadRegistrar("TheRegistrar");
+    assertThat(registrar.getEmailAddress()).isEqualTo("foo@bar.baz");
   }
 
   @Test

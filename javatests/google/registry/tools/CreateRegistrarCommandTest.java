@@ -89,6 +89,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     assertThat(registrar.getLastUpdateTime()).isEqualTo(registrar.getCreationTime());
     assertThat(registrar.getBlockPremiumNames()).isFalse();
     assertThat(registrar.getPoNumber()).isEmpty();
+    assertThat(registrar.getIcannReferralEmail()).isEqualTo("foo@bar.test");
 
     verify(connection)
         .sendPostRequest(
@@ -564,6 +565,27 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
+  public void testSuccess_fallBackToIcannReferralEmail() throws Exception {
+    runCommandForced(
+        "--name=blobio",
+        "--password=some_password",
+        "--registrar_type=REAL",
+        "--iana_id=8",
+        "--passcode=01234",
+        "--icann_referral_email=foo@bar.test",
+        "--street=\"123 Fake St\"",
+        "--city Fakington",
+        "--state MA",
+        "--zip 00351",
+        "--cc US",
+        "clientz");
+
+    Optional<Registrar> registrar = Registrar.loadByClientId("clientz");
+    assertThat(registrar).isPresent();
+    assertThat(registrar.get().getEmailAddress()).isEqualTo("foo@bar.test");
+  }
+
+  @Test
   public void testSuccess_url() throws Exception {
     runCommandForced(
         "--name=blobio",
@@ -618,7 +640,6 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
         "--billing_id=null",
         "--phone=null",
         "--fax=null",
-        "--email=null",
         "--url=null",
         "--drive_folder_id=null",
         "--street=\"123 Fake St\"",
@@ -635,7 +656,6 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     assertThat(registrar.getBillingIdentifier()).isNull();
     assertThat(registrar.getPhoneNumber()).isNull();
     assertThat(registrar.getFaxNumber()).isNull();
-    assertThat(registrar.getEmailAddress()).isNull();
     assertThat(registrar.getUrl()).isNull();
     assertThat(registrar.getDriveFolderId()).isNull();
 
@@ -651,7 +671,6 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
         "--billing_id=",
         "--phone=",
         "--fax=",
-        "--email=",
         "--url=",
         "--drive_folder_id=",
         "--icann_referral_email=foo@bar.test",
@@ -669,7 +688,6 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     assertThat(registrar.getBillingIdentifier()).isNull();
     assertThat(registrar.getPhoneNumber()).isNull();
     assertThat(registrar.getFaxNumber()).isNull();
-    assertThat(registrar.getEmailAddress()).isNull();
     assertThat(registrar.getUrl()).isNull();
     assertThat(registrar.getDriveFolderId()).isNull();
   }
