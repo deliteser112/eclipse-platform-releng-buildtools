@@ -40,6 +40,7 @@ public final class GtechTool {
       "create_sandbox_tld",
       "delete_domain",
       "generate_dns_report",
+      "get_allocation_token",
       "get_claims_list",
       "get_contact",
       "get_domain",
