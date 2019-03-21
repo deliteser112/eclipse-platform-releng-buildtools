@@ -258,6 +258,8 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
   @Nullable
   abstract Registrar getOldRegistrar(String clientId);
 
+  abstract void checkModifyAllowedTlds(@Nullable Registrar oldRegistrar);
+
   protected void initRegistrarCommand() {}
 
   @Override
@@ -300,9 +302,12 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       if (driveFolderId != null) {
         builder.setDriveFolderId(driveFolderId.orElse(null));
       }
+      if (!allowedTlds.isEmpty() || !addAllowedTlds.isEmpty()) {
+        checkModifyAllowedTlds(oldRegistrar);
+      }
       if (!allowedTlds.isEmpty()) {
-        checkArgument(addAllowedTlds.isEmpty(),
-            "Can't specify both --allowedTlds and --addAllowedTlds");
+        checkArgument(
+            addAllowedTlds.isEmpty(), "Can't specify both --allowedTlds and --addAllowedTlds");
         ImmutableSet.Builder<String> allowedTldsBuilder = new ImmutableSet.Builder<>();
         for (String allowedTld : allowedTlds) {
           allowedTldsBuilder.add(canonicalizeDomainName(allowedTld));

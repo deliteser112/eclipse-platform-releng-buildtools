@@ -163,10 +163,11 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testSuccess_allowedTlds() throws Exception {
+  public void testSuccess_allowedTldsInNonProductionEnvironment() throws Exception {
     createTlds("xn--q9jyb4c", "foobar");
 
-    runCommandForced(
+    runCommandInEnvironment(
+        RegistryToolEnvironment.SANDBOX,
         "--name=blobio",
         "--password=some_password",
         "--registrar_type=REAL",
@@ -180,6 +181,34 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
         "--state MA",
         "--zip 00351",
         "--cc US",
+        "--force",
+        "clientz");
+
+    Optional<Registrar> registrar = Registrar.loadByClientId("clientz");
+    assertThat(registrar).isPresent();
+    assertThat(registrar.get().getAllowedTlds()).containsExactly("xn--q9jyb4c", "foobar");
+  }
+
+  @Test
+  public void testSuccess_allowedTldsInPDT() throws Exception {
+    createTlds("xn--q9jyb4c", "foobar");
+
+    runCommandInEnvironment(
+        RegistryToolEnvironment.PRODUCTION,
+        "--name=blobio",
+        "--password=some_password",
+        "--registrar_type=PDT",
+        "--iana_id=9995",
+        "--allowed_tlds=xn--q9jyb4c,foobar",
+        "--billing_account_map=USD=123abc",
+        "--passcode=01234",
+        "--icann_referral_email=foo@bar.test",
+        "--street=\"123 Fake St\"",
+        "--city Fakington",
+        "--state MA",
+        "--zip 00351",
+        "--cc US",
+        "--force",
         "clientz");
 
     Optional<Registrar> registrar = Registrar.loadByClientId("clientz");
@@ -468,7 +497,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
         assertThrows(
             IllegalArgumentException.class,
             () ->
-                runCommandForced(
+                runCommandInEnvironment(
+                    RegistryToolEnvironment.SANDBOX,
                     "--name=blobio",
                     "--password=some_password",
                     "--registrar_type=REAL",
@@ -482,6 +512,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
                     "--state MA",
                     "--zip 00351",
                     "--cc US",
+                    "--force",
                     "clientz"));
     assertThat(thrown).hasMessageThat().contains("USD");
   }
@@ -882,6 +913,32 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
                 "--zip 00351",
                 "--cc US",
                 "clientz"));
+  }
+
+  @Test
+  public void testFailure_allowedTldsInRealWithoutAbuseContact() {
+    createTlds("xn--q9jyb4c", "foobar");
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandInEnvironment(
+                    RegistryToolEnvironment.PRODUCTION,
+                    "--name=blobio",
+                    "--password=some_password",
+                    "--registrar_type=REAL",
+                    "--iana_id=8",
+                    "--allowed_tlds=foobar",
+                    "--passcode=01234",
+                    "--icann_referral_email=foo@bar.test",
+                    "--street=\"123 Fake St\"",
+                    "--city Fakington",
+                    "--state MA",
+                    "--zip 00351",
+                    "--cc US",
+                    "--force",
+                    "clientz"));
+    assertThat(thrown).hasMessageThat().startsWith("Cannot add allowed TLDs");
   }
 
   @Test

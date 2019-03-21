@@ -30,6 +30,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
+import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,12 +87,26 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
             .filter(registrar -> normalizeClientId(registrar.getClientId()).equals(clientId))
             .collect(toCollection(ArrayList::new));
     if (!collisions.isEmpty()) {
-      throw new IllegalArgumentException(String.format(
-          "The registrar client identifier %s normalizes identically to existing registrar %s",
-          clientId,
-          collisions.get(0).getClientId()));
+      throw new IllegalArgumentException(
+          String.format(
+              "The registrar client identifier %s normalizes identically to existing registrar %s",
+              clientId, collisions.get(0).getClientId()));
     }
     return null;
+  }
+
+  @Override
+  void checkModifyAllowedTlds(@Nullable Registrar oldRegistrar) {
+    // When creating a registrar, only allow allowed-TLD modification if we're in a non-PRODUCTION
+    // environment and/or the registrar is not REAL
+    checkArgument(
+        !RegistryEnvironment.PRODUCTION.equals(RegistryEnvironment.get())
+            || !Registrar.Type.REAL.equals(registrarType),
+        "Cannot add allowed TLDs when creating a REAL registrar in a production environment."
+            + " Please create the registrar without allowed TLDs, then use `nomulus"
+            + " registrar_contact` to create a registrar contact for it that is visible as the"
+            + " abuse contact in WHOIS. Then use `nomulus update_registrar` to add the allowed"
+            + " TLDs.");
   }
 
   @Override

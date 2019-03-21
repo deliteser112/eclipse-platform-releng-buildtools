@@ -561,6 +561,16 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
         .collect(toImmutableSortedSet(CONTACT_EMAIL_COMPARATOR));
   }
 
+  /**
+   * Returns the {@link RegistrarContact} that is the WHOIS abuse contact for this registrar, or
+   * empty if one does not exist.
+   */
+  public Optional<RegistrarContact> getWhoisAbuseContact() {
+    return getContacts().stream()
+        .filter(RegistrarContact::getVisibleInDomainWhoisAsAbuse)
+        .findFirst();
+  }
+
   private Iterable<RegistrarContact> getContactsIterable() {
     return ofy().load().type(RegistrarContact.class).ancestor(Registrar.this);
   }

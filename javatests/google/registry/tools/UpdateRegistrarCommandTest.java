@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
+import google.registry.testing.AppEngineRule;
 import google.registry.util.CidrAddressBlock;
 import java.util.Optional;
 import org.joda.money.CurrencyUnit;
@@ -86,41 +87,92 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
 
   @Test
   public void testSuccess_allowedTlds() throws Exception {
+    persistWhoisAbuseContact();
     createTlds("xn--q9jyb4c", "foobar");
     persistResource(
         loadRegistrar("NewRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
             .build());
-    runCommand("--allowed_tlds=xn--q9jyb4c,foobar", "--force", "NewRegistrar");
+    runCommandInEnvironment(
+        RegistryToolEnvironment.PRODUCTION,
+        "--allowed_tlds=xn--q9jyb4c,foobar",
+        "--force",
+        "NewRegistrar");
     assertThat(loadRegistrar("NewRegistrar").getAllowedTlds())
         .containsExactly("xn--q9jyb4c", "foobar");
   }
 
   @Test
   public void testSuccess_addAllowedTlds() throws Exception {
+    persistWhoisAbuseContact();
     createTlds("xn--q9jyb4c", "foo", "bar");
     persistResource(
         loadRegistrar("NewRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
             .build());
-    runCommand("--add_allowed_tlds=foo,bar", "--force", "NewRegistrar");
+    runCommandInEnvironment(
+        RegistryToolEnvironment.PRODUCTION,
+        "--add_allowed_tlds=foo,bar",
+        "--force",
+        "NewRegistrar");
     assertThat(loadRegistrar("NewRegistrar").getAllowedTlds())
         .containsExactly("xn--q9jyb4c", "foo", "bar");
   }
 
   @Test
   public void testSuccess_addAllowedTldsWithDupes() throws Exception {
+    persistWhoisAbuseContact();
     createTlds("xn--q9jyb4c", "foo", "bar");
     persistResource(
         loadRegistrar("NewRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
             .build());
-    runCommand("--add_allowed_tlds=xn--q9jyb4c,foo,bar", "--force", "NewRegistrar");
+    runCommandInEnvironment(
+        RegistryToolEnvironment.PRODUCTION,
+        "--add_allowed_tlds=xn--q9jyb4c,foo,bar",
+        "--force",
+        "NewRegistrar");
     assertThat(loadRegistrar("NewRegistrar").getAllowedTlds())
         .isEqualTo(ImmutableSet.of("xn--q9jyb4c", "foo", "bar"));
+  }
+
+  @Test
+  public void testSuccess_allowedTldsInNonProductionEnvironment() throws Exception {
+    createTlds("xn--q9jyb4c", "foobar");
+    persistResource(
+        loadRegistrar("NewRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
+            .build());
+    runCommandInEnvironment(
+        RegistryToolEnvironment.SANDBOX,
+        "--allowed_tlds=xn--q9jyb4c,foobar",
+        "--force",
+        "NewRegistrar");
+    assertThat(loadRegistrar("NewRegistrar").getAllowedTlds())
+        .containsExactly("xn--q9jyb4c", "foobar");
+  }
+
+  @Test
+  public void testSuccess_allowedTldsInPdtRegistrar() throws Exception {
+    createTlds("xn--q9jyb4c", "foobar");
+    persistResource(
+        loadRegistrar("NewRegistrar")
+            .asBuilder()
+            .setType(Type.PDT)
+            .setIanaIdentifier(9995L)
+            .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
+            .build());
+    runCommandInEnvironment(
+        RegistryToolEnvironment.PRODUCTION,
+        "--allowed_tlds=xn--q9jyb4c,foobar",
+        "--force",
+        "NewRegistrar");
+    assertThat(loadRegistrar("NewRegistrar").getAllowedTlds())
+        .containsExactly("xn--q9jyb4c", "foobar");
   }
 
   @Test
@@ -532,6 +584,36 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
+  public void testFailure_setAllowedTldsWithoutAbuseContact() {
+    createTlds("bar");
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandInEnvironment(
+                    RegistryToolEnvironment.PRODUCTION,
+                    "--allowed_tlds=bar",
+                    "--force",
+                    "TheRegistrar"));
+    assertThat(thrown).hasMessageThat().startsWith("Cannot modify allowed TLDs");
+  }
+
+  @Test
+  public void testFailure_addAllowedTldsWithoutAbuseContact() {
+    createTlds("bar");
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandInEnvironment(
+                    RegistryToolEnvironment.PRODUCTION,
+                    "--add_allowed_tlds=bar",
+                    "--force",
+                    "TheRegistrar"));
+    assertThat(thrown).hasMessageThat().startsWith("Cannot modify allowed TLDs");
+  }
+
+  @Test
   public void testFailure_invalidIpWhitelist() {
     assertThrows(
         IllegalArgumentException.class,
@@ -731,5 +813,13 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         loadRegistrar("NewRegistrar").asBuilder().setPoNumber(Optional.of("1664")).build());
     runCommand("--po_number=null", "--force", "NewRegistrar");
     assertThat(loadRegistrar("NewRegistrar").getPoNumber()).isEmpty();
+  }
+
+  private void persistWhoisAbuseContact() {
+    persistResource(
+        AppEngineRule.makeRegistrarContact1()
+            .asBuilder()
+            .setVisibleInDomainWhoisAsAbuse(true)
+            .build());
   }
 }
