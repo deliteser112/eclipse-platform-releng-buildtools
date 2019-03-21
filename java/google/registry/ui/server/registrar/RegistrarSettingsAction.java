@@ -502,9 +502,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     sendEmailUtils.sendEmail(
         String.format(
             "Registrar %s (%s) updated in %s",
-            existingRegistrar.getRegistrarName(),
-            existingRegistrar.getClientId(),
-            environment),
+            existingRegistrar.getRegistrarName(), existingRegistrar.getClientId(), environment),
         String.format(
             "The following changes were made on %s to the registrar %s by %s:\n\n%s",
             environment,
@@ -512,10 +510,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
             authResult.userIdForLogging(),
             DiffUtils.prettyPrintDiffedMap(diffs, null)),
         existingContacts.stream()
-            .map(
-                contact -> {
-                  return contact.getEmailAddress();
-                })
+            .map(RegistrarContact::getEmailAddress)
             .collect(toImmutableList()));
   }
 
