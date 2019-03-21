@@ -467,7 +467,7 @@ public class RegistrarTest extends EntityTestCase {
       // Make sure the TLD we want to create doesn't exist yet.
       // This is also important because getTlds fills out the cache when used.
       assertThat(Registries.getTlds()).doesNotContain("newtld");
-      // We can't use createTld here because it failes when the cache is used.
+      // We can't use createTld here because it fails when the cache is used.
       persistResource(newRegistry("newtld", "NEWTLD"));
       // Make sure we set up the cache correctly, so the newly created TLD isn't in the cache
       assertThat(Registries.getTlds()).doesNotContain("newtld");

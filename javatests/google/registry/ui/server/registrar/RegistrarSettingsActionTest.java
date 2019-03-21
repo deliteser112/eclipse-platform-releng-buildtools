@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import google.registry.config.RegistryEnvironment;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.auth.AuthenticatedRegistrarAccessor;
@@ -245,7 +246,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
    * Makes sure a field update succeeds IF AND ONLY IF we have the "correct" role.
    *
    * Each of the Registrar fields can be changed only by a single {@link Role}. We make sure that
-   * trying to update the field works if the user has the "correct" role, but failes if it doesn't.
+   * trying to update the field works if the user has the "correct" role, but fails if it doesn't.
    */
   private <T> void doTestUpdate(
       Role correctRole,
@@ -253,7 +254,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
       T newValue,
       BiFunction<Registrar.Builder, T, Registrar.Builder> setter) {
     doTestUpdateWithCorrectRole_succeeds(correctRole, getter, newValue, setter);
-    doTestUpdateWithoutCorrectRole_failes(correctRole, getter, newValue, setter);
+    doTestUpdateWithoutCorrectRole_fails(correctRole, getter, newValue, setter);
   }
 
   private <T> void doTestUpdateWithCorrectRole_succeeds(
@@ -293,7 +294,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     assertMetric(CLIENT_ID, "update", String.format("[%s]", role), "SUCCESS");
   }
 
-  private <T> void doTestUpdateWithoutCorrectRole_failes(
+  private <T> void doTestUpdateWithoutCorrectRole_fails(
       Role correctRole,
       Function<Registrar, T> getter,
       T newValue,
@@ -403,6 +404,29 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         Registrar::getAllowedTlds,
         ImmutableSet.of("newtld", "currenttld"),
         (builder, s) -> builder.setAllowedTlds(s));
+  }
+
+  @Test
+  public void testUpdate_allowedTlds_failedWhenNoWhoisAbuseContactExists() {
+    setUserAdmin();
+    action.registryEnvironment = RegistryEnvironment.PRODUCTION;
+    Map<String, Object> args = Maps.newHashMap(loadRegistrar(CLIENT_ID).toJsonMap());
+    args.put("allowedTlds", ImmutableList.of("newtld", "currenttld"));
+
+    Map<String, Object> response =
+        action.handleJsonRequest(
+            ImmutableMap.of(
+                "op", "update",
+                "id", CLIENT_ID,
+                "args", args));
+
+    assertThat(response)
+        .containsExactly(
+            "status", "ERROR",
+            "results", ImmutableList.of(),
+            "message", "Cannot add allowed TLDs if there is no WHOIS abuse contact set.");
+    assertMetric(CLIENT_ID, "update", "[ADMIN]", "ERROR: IllegalArgumentException");
+    assertNoTasksEnqueued("sheet");
   }
 
   @Test

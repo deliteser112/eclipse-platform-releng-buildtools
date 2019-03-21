@@ -22,6 +22,7 @@ import static google.registry.export.sheet.SyncRegistrarsSheetAction.enqueueRegi
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Ascii;
@@ -329,6 +330,16 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     // TODO(b/119549884): remove this code once configurable access control is implemented.
     if (!Sets.difference(initialRegistrar.getAllowedTlds(), updatedAllowedTlds).isEmpty()) {
       throw new ForbiddenException("Can't remove allowed TLDs using the console.");
+    }
+    if (!Sets.difference(updatedAllowedTlds, initialRegistrar.getAllowedTlds()).isEmpty()) {
+      // If a REAL registrar isn't in compliance with regards to having an abuse contact set,
+      // prevent addition of allowed TLDs until that's fixed.
+      if (Registrar.Type.REAL.equals(initialRegistrar.getType())
+          && RegistryEnvironment.PRODUCTION.equals(registryEnvironment)) {
+        checkArgumentPresent(
+            initialRegistrar.getWhoisAbuseContact(),
+            "Cannot add allowed TLDs if there is no WHOIS abuse contact set.");
+      }
     }
     builder.setAllowedTlds(updatedAllowedTlds);
     return checkNotChangedUnlessAllowed(builder, initialRegistrar, Role.ADMIN);
