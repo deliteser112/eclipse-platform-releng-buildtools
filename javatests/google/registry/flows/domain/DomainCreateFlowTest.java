@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.flows.FlowTestCase.UserPrivileges.SUPERUSER;
 import static google.registry.model.billing.BillingEvent.Flag.ANCHOR_TENANT;
+import static google.registry.model.billing.BillingEvent.Flag.SUNRISE;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.eppcommon.StatusValue.OK;
 import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
@@ -474,17 +475,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     EppException thrown = assertThrows(BadDomainNameCharacterException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testSuccess_anchorTenantViaExtension() throws Exception {
-    eppRequestSource = EppRequestSource.TOOL;
-    setEppInput("domain_create_anchor_tenant.xml");
-    persistContactsAndHosts();
-    runFlowAssertResponse(
-        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
-    assertNoLordn();
   }
 
   @Test
@@ -945,42 +935,21 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_anchorTenant_viaAuthCode_wrongAuthCode() {
-    setEppInput("domain_create_anchor_wrong_authcode.xml");
-    persistContactsAndHosts();
-    EppException thrown = assertThrows(DomainReservedException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testFailure_anchorTenant_notTwoYearPeriod() {
-    setEppInput("domain_create_anchor_authcode_invalid_years.xml");
-    persistContactsAndHosts();
-    EppException thrown = assertThrows(AnchorTenantCreatePeriodException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testSuccess_anchorTenant_viaAuthCode() throws Exception {
-    setEppInput("domain_create_anchor_authcode.xml");
-    persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
-    assertNoLordn();
-  }
-
-  @Test
-  public void testSuccess_anchorTenant_viaAllocationTokenExtension() throws Exception {
+  public void testSuccess_anchorTenant() throws Exception {
     setEppInput("domain_create_anchor_allocationtoken.xml");
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
     assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertNoLordn();
-    AllocationToken reloadedToken =
-        ofy().load().key(Key.create(AllocationToken.class, "abcDEF23456")).now();
-    assertThat(reloadedToken.isRedeemed()).isTrue();
-    assertThat(reloadedToken.getRedemptionHistoryEntry())
-        .isEqualTo(Key.create(getHistoryEntries(reloadResourceByForeignKey()).get(0)));
+    assertAllocationTokenWasRedeemed("abcDEF23456");
+  }
+
+  @Test
+  public void testFailure_anchorTenant_notTwoYearPeriod() {
+    setEppInput("domain_create_anchor_tenant_invalid_years.xml");
+    persistContactsAndHosts();
+    EppException thrown = assertThrows(AnchorTenantCreatePeriodException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -992,38 +961,86 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
     assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertNoLordn();
-    AllocationToken reloadedToken =
-        ofy().load().key(Key.create(AllocationToken.class, "abcDEF23456")).now();
-    assertThat(reloadedToken.isRedeemed()).isTrue();
-    assertThat(reloadedToken.getRedemptionHistoryEntry())
-        .isEqualTo(Key.create(getHistoryEntries(reloadResourceByForeignKey()).get(0)));
+    assertAllocationTokenWasRedeemed("abcDEF23456");
   }
 
   @Test
-  public void testSuccess_anchorTenant_viaAuthCode_withClaims() throws Exception {
+  public void testSuccess_anchorTenant_withClaims() throws Exception {
     persistResource(
-        new AllocationToken.Builder().setDomainName("example-one.tld").setToken("2fooBAR").build());
+        new AllocationToken.Builder()
+            .setDomainName("example-one.tld")
+            .setToken("abcDEF23456")
+            .build());
     persistResource(
         Registry.get("tld")
             .asBuilder()
             .setReservedLists(
-                persistReservedList(
-                    "anchor-with-claims", "example-one,RESERVED_FOR_ANCHOR_TENANT"))
+                persistReservedList("anchor-with-claims", "example-one,RESERVED_FOR_ANCHOR_TENANT"))
             .build());
-    setEppInput("domain_create_claim_notice.xml");
+    setEppInput("domain_create_anchor_tenant_claims.xml");
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
     assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertDnsTasksEnqueued("example-one.tld");
     assertClaimsLordn();
+    assertAllocationTokenWasRedeemed("abcDEF23456");
+  }
+
+  @Test
+  public void testSuccess_anchorTenant_withMetadataExtension() throws Exception {
+    eppRequestSource = EppRequestSource.TOOL;
+    setEppInput("domain_create_anchor_tenant_metadata_extension.xml");
+    persistContactsAndHosts();
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
+    assertNoLordn();
+  }
+
+  @Test
+  public void testSuccess_anchorTenantInSunrise_withMetadataExtension() throws Exception {
+    createTld("tld", START_DATE_SUNRISE);
+    setEppInput("domain_create_anchor_tenant_sunrise_metadata_extension.xml");
+    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
+    persistContactsAndHosts();
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
+    assertNoLordn();
+  }
+
+  @Test
+  public void testSuccess_anchorTenantInSunrise_withSignedMark() throws Exception {
+    persistResource(
+        new AllocationToken.Builder()
+            .setDomainName("test-validate.tld")
+            .setToken("abcDEF23456")
+            .build());
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(
+                persistReservedList("anchor_tenants", "test-validate,RESERVED_FOR_ANCHOR_TENANT"))
+            .setTldStateTransitions(ImmutableSortedMap.of(START_OF_TIME, START_DATE_SUNRISE))
+            .build());
+    setEppInput("domain_create_anchor_tenant_signed_mark.xml");
+    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
+    persistContactsAndHosts();
+    runFlowAssertResponse(
+        loadFile(
+            "domain_create_response_encoded_signed_mark_name.xml",
+            ImmutableMap.of("DOMAIN", "test-validate.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT, SUNRISE));
+    assertDnsTasksEnqueued("test-validate.tld");
+    assertSunriseLordn("test-validate.tld");
+    assertAllocationTokenWasRedeemed("abcDEF23456");
   }
 
   @Test
   public void testSuccess_reservedDomain_viaAllocationTokenExtension() throws Exception {
-    AllocationToken token =
-        persistResource(
-            new AllocationToken.Builder().setToken("abc123").setDomainName("resdom.tld").build());
+    persistResource(
+        new AllocationToken.Builder().setToken("abc123").setDomainName("resdom.tld").build());
     // Despite the domain being FULLY_BLOCKED, the non-superuser create succeeds the domain is also
     // RESERVED_FOR_SPECIFIC_USE and the correct allocation token is passed.
     setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "resdom.tld"));
@@ -1032,7 +1049,12 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "resdom.tld")));
     assertSuccessfulCreate("tld", ImmutableSet.of(Flag.RESERVED));
     assertNoLordn();
-    AllocationToken reloadedToken = ofy().load().entity(token).now();
+    assertAllocationTokenWasRedeemed("abc123");
+  }
+
+  private void assertAllocationTokenWasRedeemed(String token) throws Exception {
+    AllocationToken reloadedToken =
+        ofy().load().key(Key.create(AllocationToken.class, token)).now();
     assertThat(reloadedToken.isRedeemed()).isTrue();
     assertThat(reloadedToken.getRedemptionHistoryEntry())
         .isEqualTo(Key.create(getHistoryEntries(reloadResourceByForeignKey()).get(0)));
@@ -1585,18 +1607,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     doSuccessfulTest(
         "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
-  }
-
-  @Test
-  public void testSuccess_qlpRegistrationSunriseRegistration() throws Exception {
-    createTld("tld", START_DATE_SUNRISE);
-    setEppInput("domain_create_registration_qlp_start_date_sunrise.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
-    persistContactsAndHosts();
-    runFlowAssertResponse(
-        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
-    assertNoLordn();
   }
 
   @Test

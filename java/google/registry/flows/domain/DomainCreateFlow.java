@@ -89,7 +89,6 @@ import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.domain.token.AllocationTokenExtension;
-import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
@@ -190,7 +189,6 @@ public class DomainCreateFlow implements TransactionalFlow {
 
   @Inject ExtensionManager extensionManager;
   @Inject EppInput eppInput;
-  @Inject AuthInfo authInfo;
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -241,15 +239,12 @@ public class DomainCreateFlow implements TransactionalFlow {
       verifyNoCodeMarks(launchCreate.get());
       validateLaunchCreateNotice(launchCreate.get().getNotice(), domainLabel, isSuperuser, now);
     }
-    boolean isSunriseCreate = hasSignedMarks && tldState == START_DATE_SUNRISE;
+    boolean isSunriseCreate = hasSignedMarks && (tldState == START_DATE_SUNRISE);
     Optional<AllocationToken> allocationToken =
         verifyAllocationTokenIfPresent(command, registry, clientId, now);
     boolean isAnchorTenant =
         isAnchorTenant(
-            domainName,
-            allocationToken,
-            authInfo.getPw().getValue(),
-            eppInput.getSingleExtension(MetadataExtension.class));
+            domainName, allocationToken, eppInput.getSingleExtension(MetadataExtension.class));
     verifyAnchorTenantValidPeriod(isAnchorTenant, years);
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, ignore the registry phase, and override blocks on

@@ -254,25 +254,14 @@ public class DomainFlowUtils {
   public static boolean isAnchorTenant(
       InternetDomainName domainName,
       Optional<AllocationToken> token,
-      String authInfoPw,
       Optional<MetadataExtension> metadataExtension) {
     // If the domain is reserved for anchor tenants, then check if the allocation token exists and
     // is for this domain.
-    if (getReservationTypes(domainName).contains(RESERVED_FOR_ANCHOR_TENANT)) {
-      // If there wasn't an allocation token specified, then use the fallback of attempting to load
-      // the token with the specified EPP authcode.
-      // TODO(b/111827374): Remove the authInfoPw fallback and only accept an allocation token.
-      if (!token.isPresent()) {
-        token =
-            Optional.ofNullable(
-                ofy().load().key(Key.create(AllocationToken.class, authInfoPw)).now());
-      }
-      // If the token exists, check if it's valid for this domain.
-      if (token.isPresent()
-          && token.get().getDomainName().isPresent()
-          && token.get().getDomainName().get().equals(domainName.toString())) {
-        return true;
-      }
+    if (getReservationTypes(domainName).contains(RESERVED_FOR_ANCHOR_TENANT)
+        && token.isPresent()
+        && token.get().getDomainName().isPresent()
+        && token.get().getDomainName().get().equals(domainName.toString())) {
+      return true;
     }
     // Otherwise check whether the metadata extension is being used by a superuser to specify that
     // it's an anchor tenant creation.

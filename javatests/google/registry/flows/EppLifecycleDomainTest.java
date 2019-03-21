@@ -896,7 +896,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     createContactsAndHosts();
 
     // During pre-delegation, any create should fail both with and without mark
-    assertThatCommand("domain_create_start_date_sunrise_encoded_mark.xml")
+    assertThatCommand("domain_create_sunrise_encoded_mark.xml")
         .atTime(sunriseDate.minusDays(2))
         .hasResponse(
             "response_error.xml",
@@ -925,7 +925,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     // During sunrise, create with mark will succeed but without will fail.
     // We also test we can delete without a mark.
-    assertThatCommand("domain_create_start_date_sunrise_encoded_mark.xml")
+    assertThatCommand("domain_create_sunrise_encoded_mark.xml")
         .atTime(sunriseDate.plusDays(1))
         .hasResponse(
             "domain_create_response.xml",
@@ -949,7 +949,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
                 "MSG", "The current registry phase requires a signed mark for registrations"));
 
     // During general availability, sunrise creates will fail but regular creates succeed
-    assertThatCommand("domain_create_start_date_sunrise_encoded_mark.xml")
+    assertThatCommand("domain_create_sunrise_encoded_mark.xml")
         .atTime(gaDate.plusDays(1))
         .hasResponse(
             "response_error.xml",
