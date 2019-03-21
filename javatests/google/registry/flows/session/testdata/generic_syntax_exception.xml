@@ -1,0 +1,5 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    this is some bad XML
+  </command>
+</epp>

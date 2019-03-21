@@ -226,13 +226,6 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     assertPollMessagesHelper(getPollMessages(clientId), expected);
   }
 
-  public void assertPollMessages(
-      String clientId,
-      DateTime now,
-      PollMessage... expected) {
-    assertPollMessagesHelper(getPollMessages(clientId, now), expected);
-  }
-
   public void assertPollMessages(PollMessage... expected) {
     assertPollMessagesHelper(getPollMessages(), expected);
   }
@@ -325,10 +318,6 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   }
 
   private TmchCaMode tmchCaMode = TmchCaMode.PILOT;
-
-  protected void useTmchProdCert() {
-    tmchCaMode = TmchCaMode.PRODUCTION;
-  }
 
   public EppOutput dryRunFlowAssertResponse(String xml, String... ignoredPaths) throws Exception {
     List<Object> beforeEntities = ofy().load().list();

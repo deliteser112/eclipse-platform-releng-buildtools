@@ -785,6 +785,8 @@ A flow for an Epp "hello".
 
 ### Errors
 
+*   2001
+    *   Generic XML syntax error that can be thrown by any flow.
 
 ## HostCheckFlow
 

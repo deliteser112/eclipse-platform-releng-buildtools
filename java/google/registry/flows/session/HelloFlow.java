@@ -22,7 +22,11 @@ import google.registry.model.eppoutput.Greeting;
 import google.registry.util.Clock;
 import javax.inject.Inject;
 
-/** A flow for an Epp "hello". */
+/**
+ * A flow for an Epp "hello".
+ *
+ * @error {@link google.registry.flows.FlowUtils.GenericXmlSyntaxErrorException}
+ */
 public class HelloFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;
@@ -32,7 +36,7 @@ public class HelloFlow implements Flow {
 
   @Override
   public Greeting run() throws EppException {
-    extensionManager.validate();  // There are no legal extensions for this flow.
+    extensionManager.validate(); // There are no legal extensions for this flow.
     return Greeting.create(clock.nowUtc(), greetingServerId);
   }
 }

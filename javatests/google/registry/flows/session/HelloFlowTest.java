@@ -14,10 +14,14 @@
 
 package google.registry.flows.session;
 
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.format.ISODateTimeFormat.dateTimeNoMillis;
 
 import com.google.common.collect.ImmutableMap;
+import google.registry.flows.EppException;
 import google.registry.flows.FlowTestCase;
+import google.registry.flows.FlowUtils.GenericXmlSyntaxErrorException;
 import org.junit.Test;
 
 /** Unit tests for {@link HelloFlow}. */
@@ -30,5 +34,14 @@ public class HelloFlowTest extends FlowTestCase<HelloFlow> {
     runFlowAssertResponse(
         loadFile(
             "greeting.xml", ImmutableMap.of("DATE", clock.nowUtc().toString(dateTimeNoMillis()))));
+  }
+
+  @Test
+  public void testGenericSyntaxException() {
+    // This is a generic syntax test--we don't have a generic flow test case so this simple
+    // test class will do. Note: the logic this tests is common to all flows.
+    setEppInput("generic_syntax_exception.xml");
+    EppException thrown = assertThrows(GenericXmlSyntaxErrorException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 }
