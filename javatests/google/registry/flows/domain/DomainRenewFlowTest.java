@@ -393,24 +393,25 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
 
   @Test
   public void testFailure_suspendedRegistrarCantRenewDomain() {
-    persistResource(
-        Registrar.loadByClientId("TheRegistrar")
-            .get()
-            .asBuilder()
-            .setState(State.SUSPENDED)
-            .build());
-    EppException thrown =
-        assertThrows(RegistrarMustBeActiveForThisOperationException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
+    doFailingTest_invalidRegistrarState(State.SUSPENDED);
   }
 
   @Test
   public void testFailure_pendingRegistrarCantRenewDomain() {
+    doFailingTest_invalidRegistrarState(State.PENDING);
+  }
+
+  @Test
+  public void testFailure_disabledRegistrarCantRenewDomain() {
+    doFailingTest_invalidRegistrarState(State.DISABLED);
+  }
+
+  private void doFailingTest_invalidRegistrarState(State registrarState) {
     persistResource(
         Registrar.loadByClientId("TheRegistrar")
             .get()
             .asBuilder()
-            .setState(State.PENDING)
+            .setState(registrarState)
             .build());
     EppException thrown =
         assertThrows(RegistrarMustBeActiveForThisOperationException.class, this::runFlow);

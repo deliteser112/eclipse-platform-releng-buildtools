@@ -424,6 +424,7 @@ class google.registry.model.registrar.Registrar$BillingAccountEntry {
 }
 enum google.registry.model.registrar.Registrar$State {
   ACTIVE;
+  DISABLED;
   PENDING;
   SUSPENDED;
 }

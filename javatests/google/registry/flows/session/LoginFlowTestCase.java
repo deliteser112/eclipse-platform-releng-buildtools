@@ -124,6 +124,12 @@ public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
   }
 
   @Test
+  public void testFailure_disabledRegistrar() {
+    persistResource(getRegistrarBuilder().setState(State.DISABLED).build());
+    doFailingTest("login_valid.xml", RegistrarAccountNotActiveException.class);
+  }
+
+  @Test
   public void testFailure_incorrectPassword() {
     persistResource(getRegistrarBuilder().setPassword("diff password").build());
     doFailingTest("login_valid.xml", BadRegistrarPasswordException.class);

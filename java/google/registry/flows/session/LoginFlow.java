@@ -130,7 +130,7 @@ public class LoginFlow implements Flow {
         throw e;
       }
     }
-    if (registrar.get().getState().equals(Registrar.State.PENDING)) {
+    if (!registrar.get().isLive()) {
       throw new RegistrarAccountNotActiveException();
     }
     if (login.getNewPassword() != null) {  // We don't support in-band password changes.

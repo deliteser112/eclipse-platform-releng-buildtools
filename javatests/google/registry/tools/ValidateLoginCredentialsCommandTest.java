@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.registrar.Registrar.State.ACTIVE;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
@@ -26,6 +27,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException;
 import google.registry.flows.TransportCredentials.BadRegistrarPasswordException;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.testing.CertificateSamples;
 import google.registry.util.CidrAddressBlock;
 import org.junit.Before;
@@ -60,6 +63,28 @@ public class ValidateLoginCredentialsCommandTest
         "--password=" + PASSWORD,
         "--cert_hash=" + CERT_HASH,
         "--ip_address=" + CLIENT_IP);
+  }
+
+  @Test
+  public void testFailure_registrarIsDisabled() {
+    persistResource(
+        Registrar.loadByClientId("NewRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.DISABLED)
+            .build());
+    IllegalStateException thrown =
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                runCommand(
+                    "--client=NewRegistrar",
+                    "--password=" + PASSWORD,
+                    "--cert_hash=" + CERT_HASH,
+                    "--ip_address=" + CLIENT_IP));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Registrar NewRegistrar has non-live state: DISABLED");
   }
 
   @Test

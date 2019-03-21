@@ -92,7 +92,7 @@ public class ConsoleUiActionTest {
   }
 
   @After
-  public void tearDown() throws Exception {
+  public void tearDown() {
     assertThat(RegistrarConsoleMetrics.consoleRequestMetric).hasNoOtherValues();
   }
 

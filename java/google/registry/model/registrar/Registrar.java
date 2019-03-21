@@ -159,7 +159,13 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
      * This is a suspended account which is disallowed from provisioning new domains, but can
      * otherwise still perform other operations to continue operations.
      */
-    SUSPENDED;
+    SUSPENDED,
+
+    /**
+     * This registrar is completely disabled and cannot perform any EPP actions whatsoever, nor log
+     * in to the registrar console.
+     */
+    DISABLED;
   }
 
   /** Regex for E.164 phone number format specified by {@code contact.xsd}. */

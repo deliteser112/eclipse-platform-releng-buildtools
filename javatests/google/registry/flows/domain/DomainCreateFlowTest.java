@@ -1467,26 +1467,26 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_suspendedRegistrarCantCreateDomain() {
-    persistContactsAndHosts();
-    persistResource(
-        Registrar.loadByClientId("TheRegistrar")
-            .get()
-            .asBuilder()
-            .setState(State.SUSPENDED)
-            .build());
-    EppException thrown =
-        assertThrows(RegistrarMustBeActiveForThisOperationException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
+    doFailingTest_invalidRegistrarState(State.SUSPENDED);
   }
 
   @Test
   public void testFailure_pendingRegistrarCantCreateDomain() {
+    doFailingTest_invalidRegistrarState(State.PENDING);
+  }
+
+  @Test
+  public void testFailure_disabledRegistrarCantCreateDomain() {
+    doFailingTest_invalidRegistrarState(State.DISABLED);
+  }
+
+  private void doFailingTest_invalidRegistrarState(State registrarState) {
     persistContactsAndHosts();
     persistResource(
         Registrar.loadByClientId("TheRegistrar")
             .get()
             .asBuilder()
-            .setState(State.PENDING)
+            .setState(registrarState)
             .build());
     EppException thrown =
         assertThrows(RegistrarMustBeActiveForThisOperationException.class, this::runFlow);

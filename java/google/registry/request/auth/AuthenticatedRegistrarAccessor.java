@@ -16,18 +16,22 @@ package google.registry.request.auth;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.Streams.stream;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.users.User;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.flogger.FluentLogger;
+import com.googlecode.objectify.Key;
 import dagger.Lazy;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.RegistrarContact;
 import java.util.Optional;
 import javax.annotation.concurrent.Immutable;
@@ -297,6 +301,9 @@ public class AuthenticatedRegistrarAccessor {
                 lazyGroupsConnection, user.getEmail(), gSuiteSupportGroupEmailAddress);
   }
 
+  /**
+   * Returns a map of registrar client IDs to roles for all registrars that the user has access to.
+   */
   private static ImmutableSetMultimap<String, Role> createRoleMap(
       AuthResult authResult,
       boolean isAdmin,
@@ -305,36 +312,36 @@ public class AuthenticatedRegistrarAccessor {
     if (!authResult.userAuthInfo().isPresent()) {
       return ImmutableSetMultimap.of();
     }
-
     UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
-
     User user = userAuthInfo.user();
-
     ImmutableSetMultimap.Builder<String, Role> builder = new ImmutableSetMultimap.Builder<>();
-
     logger.atInfo().log("Checking registrar contacts for user ID %s", user.getUserId());
 
-    ofy()
-        .load()
-        .type(RegistrarContact.class)
-        .filter("gaeUserId", user.getUserId())
-        .forEach(contact -> builder.put(contact.getParent().getName(), Role.OWNER));
-    if (isAdmin && !Strings.isNullOrEmpty(registryAdminClientId)) {
-      builder.put(registryAdminClientId, Role.OWNER);
-    }
+    // Find all registrars that have a registrar contact with this user's ID.
+    ImmutableList<Key<Registrar>> accessibleClientIds =
+        stream(ofy().load().type(RegistrarContact.class).filter("gaeUserId", user.getUserId()))
+            .map(RegistrarContact::getParent)
+            .collect(toImmutableList());
+    // Filter out disabled registrars (note that pending registrars still allow console login).
+    ofy().load().keys(accessibleClientIds).values().stream()
+        .filter(registrar -> registrar.getState() != State.DISABLED)
+        .forEach(registrar -> builder.put(registrar.getClientId(), Role.OWNER));
 
+    // Admins have ADMIN access to all registrars, and also OWNER access to the registry registrar
+    // and all non-REAL or non-live registrars.
     if (isAdmin) {
-      // Admins have ADMIN access to all registrars, and OWNER access to all non-REAL registrars
       ofy()
           .load()
           .type(Registrar.class)
-          .forEach(registrar -> {
-            if (registrar.getType() != Registrar.Type.REAL
-                || registrar.getState() == Registrar.State.PENDING) {
-              builder.put(registrar.getClientId(), Role.OWNER);
-            }
-            builder.put(registrar.getClientId(), Role.ADMIN);
-          });
+          .forEach(
+              registrar -> {
+                if (registrar.getType() != Registrar.Type.REAL
+                    || !registrar.isLive()
+                    || registrar.getClientId().equals(registryAdminClientId)) {
+                  builder.put(registrar.getClientId(), Role.OWNER);
+                }
+                builder.put(registrar.getClientId(), Role.ADMIN);
+              });
     }
 
     return builder.build();

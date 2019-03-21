@@ -35,6 +35,7 @@ import com.google.common.testing.TestLogHandler;
 import dagger.Lazy;
 import google.registry.groups.GroupsConnection;
 import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.request.auth.AuthenticatedRegistrarAccessor.RegistrarAccessDeniedException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.InjectRule;
@@ -252,6 +253,21 @@ public class AuthenticatedRegistrarAccessorTest {
     verify(lazyGroupsConnection).get();
   }
 
+  @Test
+  public void testGetRegistrarForUser_registrarIsDisabled_isNotAdmin() {
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.DISABLED)
+            .build());
+    expectGetRegistrarFailure(
+        CLIENT_ID_WITH_CONTACT,
+        USER,
+        "user user@gmail.com doesn't have access to registrar TheRegistrar");
+    verify(lazyGroupsConnection).get();
+  }
+
   /** Fail loading registrar if user doesn't have access to it, even if it's not REAL. */
   @Test
   public void testGetRegistrarForUser_noAccess_isNotAdmin_notReal() {
@@ -299,6 +315,21 @@ public class AuthenticatedRegistrarAccessorTest {
         REAL_CLIENT_ID_WITHOUT_CONTACT,
         GAE_ADMIN,
         "admin admin@gmail.com has [ADMIN] access to registrar NewRegistrar.");
+    verifyZeroInteractions(lazyGroupsConnection);
+  }
+
+  @Test
+  public void testGetRegistrarForUser_registrarIsDisabled_isAdmin() throws Exception {
+    persistResource(
+        Registrar.loadByClientId("NewRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.DISABLED)
+            .build());
+    expectGetRegistrarSuccess(
+        REAL_CLIENT_ID_WITHOUT_CONTACT,
+        GAE_ADMIN,
+        "admin admin@gmail.com has [OWNER, ADMIN] access to registrar NewRegistrar.");
     verifyZeroInteractions(lazyGroupsConnection);
   }
 

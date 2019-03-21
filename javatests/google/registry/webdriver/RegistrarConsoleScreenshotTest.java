@@ -23,6 +23,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.ObjectifyFilter;
 import google.registry.model.ofy.OfyFilter;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.module.frontend.FrontendServlet;
 import google.registry.server.RegistryTestServer;
 import google.registry.testing.CertificateSamples;
@@ -255,6 +256,17 @@ public class RegistrarConsoleScreenshotTest {
     driver.waitForElement(By.id("reg-app-btn-edit")).click();
     driver.waitForElement(By.tagName("h1"));
     driver.diffPage("edit");
+  }
+
+  @Test
+  public void index_registrarDisabled() throws Throwable {
+    server.runInAppEngineEnvironment(
+        () ->
+            persistResource(
+                loadRegistrar("TheRegistrar").asBuilder().setState(State.DISABLED).build()));
+    driver.get(server.getUrl("/registrar"));
+    driver.waitForElement(By.tagName("h1"));
+    driver.diffPage("view");
   }
 
   @Test
