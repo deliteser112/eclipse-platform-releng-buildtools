@@ -78,5 +78,4 @@ container_push(
     image = ":proxy_image",
     registry = "gcr.io",
     repository = "GCP_PROJECT/IMAGE_NAME",
-    tag = "bazel",
 )
