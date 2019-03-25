@@ -23,8 +23,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
+import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.token.AllocationToken;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /** Command to show allocation tokens. */
 @Parameters(separators = " =", commandDescription = "Show allocation token(s)")
@@ -41,17 +44,49 @@ final class GetAllocationTokenCommand implements CommandWithRemoteApi {
   public void run() {
     ImmutableMap.Builder<String, AllocationToken> builder = new ImmutableMap.Builder<>();
     for (List<String> tokens : Lists.partition(mainParameters, BATCH_SIZE)) {
-      ImmutableList<Key<AllocationToken>> keys =
+      ImmutableList<Key<AllocationToken>> tokenKeys =
           tokens.stream().map(t -> Key.create(AllocationToken.class, t)).collect(toImmutableList());
-      ofy().load().keys(keys).forEach((k, v) -> builder.put(k.getName(), v));
+      ofy().load().keys(tokenKeys).forEach((k, v) -> builder.put(k.getName(), v));
     }
     ImmutableMap<String, AllocationToken> loadedTokens = builder.build();
+    ImmutableMap<Key<DomainBase>, DomainBase> domains = loadRedeemedDomains(loadedTokens.values());
 
     for (String token : mainParameters) {
-      System.out.println(
-          loadedTokens.containsKey(token)
-              ? loadedTokens.get(token)
-              : String.format("Token %s does not exist.", token));
+      if (loadedTokens.containsKey(token)) {
+        AllocationToken loadedToken = loadedTokens.get(token);
+        System.out.println(loadedToken.toString());
+        if (loadedToken.getRedemptionHistoryEntry() == null) {
+          System.out.printf("Token %s was not redeemed.\n", token);
+        } else {
+          DomainBase domain =
+              domains.get(loadedToken.getRedemptionHistoryEntry().<DomainBase>getParent());
+          if (domain == null) {
+            System.out.printf("ERROR: Token %s was redeemed but domain can't be loaded.\n", token);
+          } else {
+            System.out.printf(
+                "Token %s was redeemed to create domain %s at %s.\n",
+                token, domain.getFullyQualifiedDomainName(), domain.getCreationTime());
+          }
+        }
+      } else {
+        System.out.printf("ERROR: Token %s does not exist.\n", token);
+      }
+      System.out.println();
     }
+  }
+
+  private static ImmutableMap<Key<DomainBase>, DomainBase> loadRedeemedDomains(
+      Collection<AllocationToken> tokens) {
+    ImmutableList<Key<DomainBase>> domainKeys =
+        tokens.stream()
+            .map(AllocationToken::getRedemptionHistoryEntry)
+            .filter(Objects::nonNull)
+            .map(Key::<DomainBase>getParent)
+            .collect(toImmutableList());
+    ImmutableMap.Builder<Key<DomainBase>, DomainBase> domainsBuilder = new ImmutableMap.Builder<>();
+    for (List<Key<DomainBase>> keys : Lists.partition(domainKeys, BATCH_SIZE)) {
+      domainsBuilder.putAll(ofy().load().keys(keys));
+    }
+    return domainsBuilder.build();
   }
 }
