@@ -28,8 +28,9 @@ public class ProxyConfig {
     PRODUCTION_CANARY,
     SANDBOX,
     SANDBOX_CANARY,
-    ALPHA,
     CRASH,
+    CRASH_CANARY,
+    ALPHA,
     LOCAL,
   }
 
