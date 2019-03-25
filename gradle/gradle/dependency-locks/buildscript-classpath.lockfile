@@ -14,7 +14,7 @@ com.moowork.gradle:gradle-node-plugin:1.2.0
 com.moowork.node:com.moowork.node.gradle.plugin:1.2.0
 com.netflix.nebula:gradle-lint-plugin:10.4.2
 com.netflix.nebula:nebula-gradle-interop:1.0.3
-com.netflix.nebula:nebula-test:7.1.8
+com.netflix.nebula:nebula-test:7.2.1
 commons-codec:commons-codec:1.9
 commons-io:commons-io:2.5
 commons-lang:commons-lang:2.6
