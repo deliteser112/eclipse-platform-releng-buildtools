@@ -30,6 +30,7 @@ import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainBase;
@@ -42,6 +43,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.ParseException;
@@ -72,22 +74,34 @@ public class GenerateDnsReportCommandTest extends CommandTestCase<GenerateDnsRep
   private HostResource nameserver4;
   private DomainBase domain1;
 
+  private static final ImmutableList<?> DS_DATA_OUTPUT = ImmutableList.of(
+      ImmutableMap.of(
+          "keyTag", 12345L,
+          "algorithm", 3L,
+          "digestType", 1L,
+          "digest", "49FD46E6C4B45C55D4AC"),
+      ImmutableMap.of(
+          "keyTag", 56789L,
+          "algorithm", 2L,
+          "digestType", 4L,
+          "digest", "69FD46E6C4A45C55D4AC"));
+
+  private static final List<?> DS_DATA_OUTPUT_REVERSED = Lists.reverse(DS_DATA_OUTPUT);
+
   private static final ImmutableMap<String, ?> DOMAIN1_OUTPUT = ImmutableMap.of(
       "domain", "example.xn--q9jyb4c",
       "nameservers", ImmutableList.of(
           "ns1.example.xn--q9jyb4c",
           "ns2.example.xn--q9jyb4c"),
-      "dsData", ImmutableList.of(
-          ImmutableMap.of(
-              "keyTag", 12345L,
-              "algorithm", 3L,
-              "digestType", 1L,
-              "digest", "49FD46E6C4B45C55D4AC"),
-          ImmutableMap.of(
-              "keyTag", 56789L,
-              "algorithm", 2L,
-              "digestType", 4L,
-              "digest", "69FD46E6C4A45C55D4AC")));
+      "dsData", DS_DATA_OUTPUT);
+
+  // We can't guarantee inner ordering
+  private static final ImmutableMap<String, ?> DOMAIN1_OUTPUT_ALT = ImmutableMap.of(
+      "domain", "example.xn--q9jyb4c",
+      "nameservers", ImmutableList.of(
+          "ns1.example.xn--q9jyb4c",
+          "ns2.example.xn--q9jyb4c"),
+      "dsData", DS_DATA_OUTPUT_REVERSED);
 
   private static final ImmutableMap<String, ?> DOMAIN2_OUTPUT = ImmutableMap.of(
       "domain", "foobar.xn--q9jyb4c",
@@ -146,60 +160,63 @@ public class GenerateDnsReportCommandTest extends CommandTestCase<GenerateDnsRep
   @Test
   public void testSuccess() throws Exception {
     runCommand("--output=" + output, "--tld=xn--q9jyb4c");
-    assertThat(getOutputAsJson()).isEqualTo(
-        ImmutableList.of(DOMAIN1_OUTPUT, DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT));
+    Iterable<?> output = (Iterable<?>) getOutputAsJson();
+    assertThat(output).containsAnyOf(DOMAIN1_OUTPUT, DOMAIN1_OUTPUT_ALT);
+    assertThat(output).containsAllOf(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT);
   }
 
   @Test
   public void testSuccess_skipDeletedDomain() throws Exception {
     persistResource(domain1.asBuilder().setDeletionTime(now).build());
     runCommand("--output=" + output, "--tld=xn--q9jyb4c");
-    assertThat(getOutputAsJson())
-        .isEqualTo(ImmutableList.of(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT));
+    assertThat((Iterable<?>) getOutputAsJson())
+        .containsExactly(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT);
   }
 
   @Test
   public void testSuccess_skipDeletedNameserver() throws Exception {
-    persistResource(
-        nameserver1.asBuilder().setDeletionTime(now).build());
+    persistResource(nameserver1.asBuilder().setDeletionTime(now).build());
     runCommand("--output=" + output, "--tld=xn--q9jyb4c");
-    assertThat(getOutputAsJson())
-        .isEqualTo(ImmutableList.of(DOMAIN1_OUTPUT, DOMAIN2_OUTPUT, NAMESERVER2_OUTPUT));
+    Iterable<?> output = (Iterable<?>) getOutputAsJson();
+    assertThat(output).containsAnyOf(DOMAIN1_OUTPUT, DOMAIN1_OUTPUT_ALT);
+    assertThat(output).containsAllOf(DOMAIN2_OUTPUT, NAMESERVER2_OUTPUT);
   }
 
   @Test
   public void testSuccess_skipClientHoldDomain() throws Exception {
     persistResource(domain1.asBuilder().addStatusValue(StatusValue.CLIENT_HOLD).build());
     runCommand("--output=" + output, "--tld=xn--q9jyb4c");
-    assertThat(getOutputAsJson())
-        .isEqualTo(ImmutableList.of(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT));
+    assertThat((Iterable<?>) getOutputAsJson())
+        .containsExactly(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT);
   }
 
   @Test
   public void testSuccess_skipServerHoldDomain() throws Exception {
     persistResource(domain1.asBuilder().addStatusValue(StatusValue.SERVER_HOLD).build());
     runCommand("--output=" + output, "--tld=xn--q9jyb4c");
-    assertThat(getOutputAsJson())
-        .isEqualTo(ImmutableList.of(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT));
+    assertThat((Iterable<?>) getOutputAsJson())
+        .containsExactly(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT);
   }
 
   @Test
   public void testSuccess_skipPendingDeleteDomain() throws Exception {
-    persistResource(domain1.asBuilder()
-        .addStatusValue(StatusValue.PENDING_DELETE)
-        .setDeletionTime(now.plusDays(30))
-        .build());
+    persistResource(
+        domain1
+            .asBuilder()
+            .addStatusValue(StatusValue.PENDING_DELETE)
+            .setDeletionTime(now.plusDays(30))
+            .build());
     runCommand("--output=" + output, "--tld=xn--q9jyb4c");
-    assertThat(getOutputAsJson())
-        .isEqualTo(ImmutableList.of(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT));
+    assertThat((Iterable<?>) getOutputAsJson())
+        .containsExactly(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT);
   }
 
   @Test
   public void testSuccess_skipDomainsWithoutNameservers() throws Exception {
     persistResource(domain1.asBuilder().setNameservers(ImmutableSet.of()).build());
     runCommand("--output=" + output, "--tld=xn--q9jyb4c");
-    assertThat(getOutputAsJson())
-        .isEqualTo(ImmutableList.of(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT));
+    assertThat((Iterable<?>) getOutputAsJson())
+        .containsExactly(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT);
   }
 
   @Test

@@ -30,8 +30,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  */
 @Embed
 @XmlType(name = "dsData")
-public class DelegationSignerData
-    extends ImmutableObject implements Comparable<DelegationSignerData> {
+public class DelegationSignerData extends ImmutableObject {
 
   /** The identifier for this particular key in the domain. */
   int keyTag;
@@ -83,11 +82,6 @@ public class DelegationSignerData
     instance.digestType = digestType;
     instance.digest = digest;
     return instance;
-  }
-
-  @Override
-  public int compareTo(DelegationSignerData other) {
-    return Integer.compare(getKeyTag(), other.getKeyTag());
   }
 
   /**

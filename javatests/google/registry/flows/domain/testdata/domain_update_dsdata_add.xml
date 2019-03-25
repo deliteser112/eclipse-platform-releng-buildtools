@@ -13,10 +13,10 @@
        xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
         <secDNS:add>
           <secDNS:dsData>
-            <secDNS:keyTag>12346</secDNS:keyTag>
-            <secDNS:alg>3</secDNS:alg>
-            <secDNS:digestType>1</secDNS:digestType>
-            <secDNS:digest>38EC35D5B3A34B44C39B</secDNS:digest>
+            <secDNS:keyTag>%KEY_TAG%</secDNS:keyTag>
+            <secDNS:alg>%ALG%</secDNS:alg>
+            <secDNS:digestType>%DIGEST_TYPE%</secDNS:digestType>
+            <secDNS:digest>%DIGEST%</secDNS:digest>
           </secDNS:dsData>
         </secDNS:add>
       </secDNS:update>

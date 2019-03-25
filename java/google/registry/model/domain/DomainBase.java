@@ -27,7 +27,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
-import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DateTimeUtils.earliestOf;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
@@ -254,8 +253,8 @@ public class DomainBase extends EppResource
     return fullyQualifiedDomainName;
   }
 
-  public ImmutableSortedSet<DelegationSignerData> getDsData() {
-    return nullToEmptyImmutableSortedCopy(dsData);
+  public ImmutableSet<DelegationSignerData> getDsData() {
+    return nullToEmptyImmutableCopy(dsData);
   }
 
   public LaunchNotice getLaunchNotice() {
