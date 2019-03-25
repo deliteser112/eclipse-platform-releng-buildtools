@@ -29,6 +29,7 @@ import static google.registry.testing.DomainBaseSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.TestDataHelper.updateSubstitutions;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
@@ -78,12 +79,20 @@ import org.junit.Test;
 /** Unit tests for {@link DomainRenewFlow}. */
 public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, DomainBase> {
 
+  private static final ImmutableMap<String, String> FEE_BASE_MAP =
+      ImmutableMap.of(
+          "NAME", "example.tld",
+          "PERIOD", "5",
+          "EX_DATE", "2005-04-03T22:00:00.0Z",
+          "FEE", "55.00",
+          "CURRENCY", "USD");
+
   private static final ImmutableMap<String, String> FEE_06_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee", "CURRENCY", "USD");
+      updateSubstitutions(FEE_BASE_MAP, "FEE_VERSION", "0.6", "FEE_NS", "fee");
   private static final ImmutableMap<String, String> FEE_11_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.11", "FEE_NS", "fee11", "CURRENCY", "USD");
+      updateSubstitutions(FEE_BASE_MAP, "FEE_VERSION", "0.11", "FEE_NS", "fee11");
   private static final ImmutableMap<String, String> FEE_12_MAP =
-      ImmutableMap.of("FEE_VERSION", "0.12", "FEE_NS", "fee12", "CURRENCY", "USD");
+      updateSubstitutions(FEE_BASE_MAP, "FEE_VERSION", "0.12", "FEE_NS", "fee12");
 
   final DateTime expirationTime = DateTime.parse("2000-04-03T22:00:00.0Z");
 
@@ -251,21 +260,16 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testSuccess_customLogicFee() throws Exception {
     // The "costly-renew" domain has an additional RENEW fee of 100 from custom logic on top of the
     // normal $11 standard renew price for this TLD.
-    setEppInput(
-        "domain_renew_fee_wildcard.xml",
-        ImmutableMap.of("DOMAIN", "costly-renew.tld", "FEE_VERSION", "0.6", "AMOUNT", "111.00"));
+    ImmutableMap customFeeMap =
+        updateSubstitutions(
+            FEE_06_MAP,
+            "NAME", "costly-renew.tld",
+            "PERIOD", "1",
+            "EX_DATE", "2001-04-03T22:00:00.0Z",
+            "FEE", "111.00");
+    setEppInput("domain_renew_fee.xml", customFeeMap);
     persistDomain();
-    doSuccessfulTest(
-        "domain_renew_response_fee_wildcard.xml",
-        1,
-        new ImmutableMap.Builder<String, String>()
-            .put("DOMAIN", "costly-renew.tld")
-            .put("FEE_VERSION", "0.6")
-            .put("FEE_NS", "fee")
-            .put("AMOUNT", "111.00")
-            .put("EX_DATE", "2001-04-03T22:00:00.000Z")
-            .build(),
-        Money.of(USD, 111));
+    doSuccessfulTest("domain_renew_response_fee.xml", 1, customFeeMap, Money.of(USD, 111));
   }
 
   @Test
@@ -312,9 +316,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
 
   @Test
   public void testFailure_fee_unknownCurrency() {
-    ImmutableMap<String, String> parameters =
-        ImmutableMap.of("FEE_VERSION", "0.6", "FEE_NS", "fee", "CURRENCY", "BAD");
-    setEppInput("domain_renew_fee.xml", parameters);
+    setEppInput("domain_renew_fee.xml", updateSubstitutions(FEE_06_MAP, "CURRENCY", "BAD"));
     EppException thrown = assertThrows(UnknownCurrencyEppException.class, this::persistDomain);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }

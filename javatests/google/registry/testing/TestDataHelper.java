@@ -14,6 +14,9 @@
 
 package google.registry.testing;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Maps.newHashMap;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
@@ -50,6 +53,24 @@ public final class TestDataHelper {
 
   private static final Map<FileKey, String> fileCache = new ConcurrentHashMap<>();
   private static final Map<FileKey, ByteSource> byteCache = new ConcurrentHashMap<>();
+
+  /**
+   * Returns a copy of the given substitution map, updated with the new keys and values.
+   *
+   * <p>If an existing key is given, its value will be overridden with the new value.
+   */
+  public static ImmutableMap<String, String> updateSubstitutions(
+      @Nullable Map<String, String> baseSubstitutions, String... keysAndValues) {
+    checkArgument(
+        keysAndValues.length % 2 == 0,
+        "keysAndValues must have even number of parameters, but has %s",
+        keysAndValues.length);
+    Map<String, String> newSubstitutions = newHashMap(nullToEmpty(baseSubstitutions));
+    for (int i = 0; i < keysAndValues.length; i += 2) {
+      newSubstitutions.put(checkNotNull(keysAndValues[i]), checkNotNull(keysAndValues[i + 1]));
+    }
+    return ImmutableMap.copyOf(newSubstitutions);
+  }
 
   /**
    * Loads a text file from the "testdata" directory relative to the location of the specified

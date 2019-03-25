@@ -3,15 +3,15 @@
     <renew>
       <domain:renew
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>example.tld</domain:name>
+        <domain:name>%NAME%</domain:name>
         <domain:curExpDate>2000-04-03</domain:curExpDate>
-        <domain:period unit="y">5</domain:period>
+        <domain:period unit="y">%PERIOD%</domain:period>
       </domain:renew>
     </renew>
     <extension>
       <fee:renew xmlns:fee="urn:ietf:params:xml:ns:fee-%FEE_VERSION%">
         <fee:currency>%CURRENCY%</fee:currency>
-        <fee:fee>55.00</fee:fee>
+        <fee:fee>%FEE%</fee:fee>
       </fee:renew>
     </extension>
     <clTRID>ABC-12345</clTRID>
