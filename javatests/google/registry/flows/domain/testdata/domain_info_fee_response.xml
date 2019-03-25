@@ -33,9 +33,9 @@
     <extension>
       <fee:infData xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
         <fee:currency>USD</fee:currency>
-        <fee:command>create</fee:command>
-        <fee:period unit="y">2</fee:period>
-        <fee:fee description="create">26.00</fee:fee>
+        <fee:command>%COMMAND%</fee:command>
+        <fee:period unit="y">%PERIOD%</fee:period>
+        <fee:fee description="%DESCRIPTION%">%FEE%</fee:fee>
       </fee:infData>
     </extension>
     <trID>

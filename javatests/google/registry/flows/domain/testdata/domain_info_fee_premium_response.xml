@@ -33,9 +33,9 @@
     <extension>
       <fee:infData xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
         <fee:currency>USD</fee:currency>
-        <fee:command>renew</fee:command>
+        <fee:command>%COMMAND%</fee:command>
         <fee:period unit="y">1</fee:period>
-        <fee:fee description="renew">100.00</fee:fee>
+        <fee:fee description="%DESCRIPTION%">100.00</fee:fee>
         <fee:class>premium</fee:class>
       </fee:infData>
     </extension>
