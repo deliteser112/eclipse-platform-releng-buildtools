@@ -21,7 +21,7 @@
 SELECT
   domain.fullyQualifiedDomainName AS fullyQualifiedDomainName,
   registrar.name AS registrarName,
-  registrar.emailAddress AS registrarEmailAddress
+  COALESCE(registrar.emailAddress, '') AS registrarEmailAddress
 FROM ( (
     SELECT
       fullyQualifiedDomainName,
