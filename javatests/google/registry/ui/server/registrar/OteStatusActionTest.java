@@ -113,14 +113,15 @@ public final class OteStatusActionTest {
   }
 
   @Test
-  public void testFailure_noRegistrar() {
+  public void testFailure_registrarDoesntExist() {
     assertThat(action.handleJsonRequest(ImmutableMap.of("clientId", "nonexistent-3")))
         .containsExactlyEntriesIn(
-            errorResultWithMessage("TestUserId doesn't have access to registrar nonexistent-3"));
+            errorResultWithMessage("Registrar nonexistent-3 does not exist"));
   }
 
   @Test
   public void testFailure_notAuthorized() {
+    persistNewRegistrar(CLIENT_ID, "blobio-1", Type.REAL, 1L);
     action.registrarAccessor =
         AuthenticatedRegistrarAccessor.createForTesting(ImmutableSetMultimap.of());
     assertThat(action.handleJsonRequest(ImmutableMap.of("clientId", CLIENT_ID)))

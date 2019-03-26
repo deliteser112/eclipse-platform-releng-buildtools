@@ -349,7 +349,7 @@ public class AuthenticatedRegistrarAccessorTest {
     expectGetRegistrarFailure(
         "BadClientId",
         GAE_ADMIN,
-        "admin admin@gmail.com doesn't have access to registrar BadClientId");
+        "Registrar BadClientId does not exist");
     verifyZeroInteractions(lazyGroupsConnection);
   }
 

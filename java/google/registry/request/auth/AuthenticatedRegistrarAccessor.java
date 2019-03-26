@@ -220,16 +220,13 @@ public class AuthenticatedRegistrarAccessor {
    * @param clientId ID of the registrar we request
    */
   public Registrar getRegistrar(String clientId) throws RegistrarAccessDeniedException {
-    // Verify access before checking if the registrar exists, in order to not leak information
-    // about objects in the system the user doesn't have permissions on.
-    verifyAccess(clientId);
-
     Registrar registrar =
         Registrar.loadByClientId(clientId)
             .orElseThrow(
                 () ->
                     new RegistrarAccessDeniedException(
-                        String.format("Registrar %s not found", clientId)));
+                        String.format("Registrar %s does not exist", clientId)));
+    verifyAccess(clientId);
 
     if (!clientId.equals(registrar.getClientId())) {
       logger.atSevere().log(
