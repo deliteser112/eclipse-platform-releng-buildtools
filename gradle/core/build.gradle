@@ -125,9 +125,7 @@ dependencies {
   compile deps['com.google.apis:google-api-services-monitoring']
   compile deps['com.google.apis:google-api-services-sheets']
   maybeRuntime deps['com.google.apis:google-api-services-storage']
-  // TODO(b/71631624): change appengine:appengine-api-1.0-sdk to
-  // testCompileOnly after BillingEmailUtilsTest.java is fixed.
-  compile deps['com.google.appengine:appengine-api-1.0-sdk']
+  testCompileOnly deps['com.google.appengine:appengine-api-1.0-sdk']
   maybeRuntime deps['com.google.appengine:appengine-api-labs']
   maybeRuntime deps['com.google.appengine:appengine-api-stubs']
   testCompile deps['com.google.appengine:appengine-api-stubs']
