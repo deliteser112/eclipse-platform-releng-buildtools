@@ -31,14 +31,16 @@ public class ActualScreenshot {
   public static final String IMAGE_FORMAT = "png";
   private String imageKey;
   private BufferedImage bufferedImage;
+  private int attempt;
 
-  private ActualScreenshot(String imageKey, BufferedImage bufferedImage) {
+  private ActualScreenshot(String imageKey, BufferedImage bufferedImage, int attempt) {
     this.imageKey = imageKey;
     this.bufferedImage = bufferedImage;
+    this.attempt = attempt;
   }
 
   /** Creates an ActualScreenshot from the given image format and byte array. */
-  public static ActualScreenshot create(String imageKey, byte[] imageBytes) {
+  public static ActualScreenshot create(String imageKey, int attempt, byte[] imageBytes) {
     checkNotNull(imageKey);
     checkNotNull(imageBytes);
     byte[] imageBytesClone = Arrays.copyOf(imageBytes, imageBytes.length);
@@ -47,7 +49,7 @@ public class ActualScreenshot {
     try {
       imageReader.setInput(checkNotNull(ImageIO.createImageInputStream(imageInputStream)));
       BufferedImage bufferedImage = checkNotNull(imageReader.read(0));
-      return new ActualScreenshot(imageKey, bufferedImage);
+      return new ActualScreenshot(imageKey, bufferedImage, attempt);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -55,7 +57,7 @@ public class ActualScreenshot {
 
   /** {@link BufferedImage#getSubimage(int, int, int, int)} */
   public ActualScreenshot getSubimage(int x, int y, int w, int h) {
-    return new ActualScreenshot(imageKey, bufferedImage.getSubimage(x, y, w, h));
+    return new ActualScreenshot(imageKey, bufferedImage.getSubimage(x, y, w, h), attempt);
   }
 
   /** {@link BufferedImage#getWidth()} */
@@ -82,9 +84,9 @@ public class ActualScreenshot {
     }
   }
 
-  /** Returns the imageKey of the screenshot. */
-  public String getImageKey() {
-    return imageKey;
+  /** Returns the attempt number of the test. */
+  public int getAttempt() {
+    return attempt;
   }
 
   /** Returns the concat of imageKey and imageFormat. */

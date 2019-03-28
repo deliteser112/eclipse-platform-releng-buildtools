@@ -29,15 +29,15 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.module.frontend.FrontendServlet;
 import google.registry.server.RegistryTestServer;
 import google.registry.testing.AppEngineRule;
+import google.registry.webdriver.RepeatableRunner.AttemptNumber;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.openqa.selenium.By;
 
 /** WebDriver tests for Registrar Console UI. */
-@RunWith(JUnit4.class)
+@RunWith(RepeatableRunner.class)
 public class RegistrarConsoleWebTest {
 
   @Rule
@@ -59,7 +59,8 @@ public class RegistrarConsoleWebTest {
           .setEmail("Marla.Singer@google.com")
           .build();
 
-  @Rule public final WebDriverRule driver = new WebDriverRule();
+  private final AttemptNumber attemptNumber = new AttemptNumber();
+  @Rule public final WebDriverRule driver = new WebDriverRule(attemptNumber);
 
 
   @Rule public final Timeout deathClock = new Timeout(60000);

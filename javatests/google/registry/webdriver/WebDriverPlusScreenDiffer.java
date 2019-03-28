@@ -34,11 +34,12 @@ interface WebDriverPlusScreenDiffer {
    * other screenshot matches can be executed in the same function - allowing you to approve /
    * reject all at once.
    *
+   * @param element the element on the page to be compared
    * @param imageKey a unique name such that by prepending the calling class name and method name in
    *     the format of ClassName_MethodName_<imageKey> will uniquely identify golden image.
-   * @param element the element on the page to be compared
+   * @param attempt the attempt number of the test
    */
-  void diffElement(String imageKey, WebElement element);
+  void diffElement(WebElement element, String imageKey, int attempt);
 
   /**
    * Checks that the screenshot matches the golden image by pixel comparison. {@link
@@ -50,8 +51,9 @@ interface WebDriverPlusScreenDiffer {
    *
    * @param imageKey a unique name such that by prepending the calling class name and method name in
    *     the format of ClassName_MethodName_<imageKey> will uniquely identify golden image.
+   * @param attempt the attempt number of the test
    */
-  void diffPage(String imageKey);
+  void diffPage(String imageKey, int attempt);
 
   /** Asserts that all diffs up to this point have PASSED. */
   void verifyAndQuit();

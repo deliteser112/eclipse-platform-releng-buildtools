@@ -15,10 +15,11 @@
 package google.registry.webdriver;
 
 import static com.google.common.io.Resources.getResource;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.text.StringEscapeUtils.escapeEcmaScript;
 
-import com.google.common.base.Preconditions;
+import google.registry.webdriver.RepeatableRunner.AttemptNumber;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -68,12 +69,18 @@ public final class WebDriverRule extends ExternalResource
   private static final String GOLDENS_PATH =
       getResource(WebDriverRule.class, "goldens/chrome-linux").getFile();
 
+  private AttemptNumber attemptNumber;
   private WebDriver driver;
   private WebDriverPlusScreenDiffer webDriverPlusScreenDiffer;
 
   // Prefix to use for golden image files, will be set to ClassName_MethodName once the test
   // starts. Will be added a user-given imageKey as a suffix, and of course a '.png' at the end.
   private String imageNamePrefix = null;
+
+  /** Constructs a {@link WebDriverRule} instance. */
+  public WebDriverRule(AttemptNumber attemptNumber) {
+    this.attemptNumber = attemptNumber;
+  }
 
   @Override
   public Statement apply(Statement base, Description description) {
@@ -163,7 +170,7 @@ public final class WebDriverRule extends ExternalResource
    * @param element the element on the page to be compared
    */
   public void diffElement(String imageKey, WebElement element) {
-    webDriverPlusScreenDiffer.diffElement(getUniqueName(imageKey), element);
+    webDriverPlusScreenDiffer.diffElement(element, getUniqueName(imageKey), attemptNumber.get());
   }
 
   /**
@@ -192,7 +199,7 @@ public final class WebDriverRule extends ExternalResource
    *     the format of ClassName_MethodName_<imageKey> will uniquely identify golden image.
    */
   public void diffPage(String imageKey) {
-    webDriverPlusScreenDiffer.diffPage(getUniqueName(imageKey));
+    webDriverPlusScreenDiffer.diffPage(getUniqueName(imageKey), attemptNumber.get());
   }
 
   @Override
@@ -291,7 +298,7 @@ public final class WebDriverRule extends ExternalResource
   }
 
   private String getUniqueName(String imageKey) {
-    Preconditions.checkNotNull(imageNamePrefix);
+    checkNotNull(imageNamePrefix);
     return imageNamePrefix + "_" + imageKey;
   }
 }

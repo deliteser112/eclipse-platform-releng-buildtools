@@ -21,6 +21,7 @@ import com.googlecode.objectify.ObjectifyFilter;
 import google.registry.model.ofy.OfyFilter;
 import google.registry.module.frontend.FrontendServlet;
 import google.registry.server.RegistryTestServer;
+import google.registry.webdriver.RepeatableRunner.AttemptNumber;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +41,8 @@ public class RegistrarCreateConsoleScreenshotTest {
           .setEmail("Marla.Singer@google.com")
           .build();
 
-  @Rule public final WebDriverRule driver = new WebDriverRule();
+  private final AttemptNumber attemptNumber = new AttemptNumber();
+  @Rule public final WebDriverRule driver = new WebDriverRule(attemptNumber);
 
   @Test
   public void get_owner_fails() throws Throwable {

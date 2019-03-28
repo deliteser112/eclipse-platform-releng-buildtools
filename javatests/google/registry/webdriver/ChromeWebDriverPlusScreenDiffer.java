@@ -16,7 +16,6 @@ package google.registry.webdriver;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static google.registry.webdriver.RepeatableRunner.currentAttemptIndex;
 import static java.lang.Math.abs;
 import static java.util.stream.Collectors.joining;
 
@@ -123,9 +122,9 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
   }
 
   @Override
-  public void diffElement(String imageKey, WebElement element) {
+  public void diffElement(WebElement element, String imageKey, int attempt) {
     ActualScreenshot elementImage =
-        takeScreenshot(imageKey)
+        ActualScreenshot.create(imageKey, attempt, takeScreenshot())
             .getSubimage(
                 element.getLocation().getX(),
                 element.getLocation().getY(),
@@ -135,8 +134,8 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
   }
 
   @Override
-  public void diffPage(String imageKey) {
-    actualScreenshots.add(takeScreenshot(imageKey));
+  public void diffPage(String imageKey, int attempt) {
+    actualScreenshots.add(ActualScreenshot.create(imageKey, attempt, takeScreenshot()));
   }
 
   @Override
@@ -190,10 +189,10 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
     }
   }
 
-  private ActualScreenshot takeScreenshot(String imageKey) {
+  private byte[] takeScreenshot() {
     checkArgument(webDriver instanceof TakesScreenshot);
     TakesScreenshot takesScreenshot = (TakesScreenshot) webDriver;
-    return ActualScreenshot.create(imageKey, takesScreenshot.getScreenshotAs(OutputType.BYTES));
+    return takesScreenshot.getScreenshotAs(OutputType.BYTES);
   }
 
   private ComparisonResult compareScreenshots(ActualScreenshot screenshot) {
@@ -246,7 +245,7 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
     File thisScreenshotDir =
         Paths.get(
                 screenshotDir,
-                "attempt_" + currentAttemptIndex,
+                "attempt_" + result.actualScreenshot().getAttempt(),
                 result.isConsideredSimilar() ? "similar" : "different")
             .toFile();
     thisScreenshotDir.mkdirs();
