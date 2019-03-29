@@ -14,12 +14,17 @@
 
 package google.registry.reporting.spec11;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Throwables.getRootCause;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.io.Resources.getResource;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
@@ -40,6 +45,7 @@ import org.joda.time.LocalDate;
 /** Provides e-mail functionality for Spec11 tasks, such as sending Spec11 reports to registrars. */
 public class Spec11EmailUtils {
 
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final SoyTofu SOY_SAUCE =
       SoyFileSet.builder()
           .add(
@@ -81,8 +87,14 @@ public class Spec11EmailUtils {
       SoyTemplateInfo soyTemplateInfo,
       String subject,
       Set<RegistrarThreatMatches> registrarThreatMatchesSet) {
+    // Null/empty email address shouldn't throw an exception, but we should warn if they occur.
+    ImmutableSet<RegistrarThreatMatches> matchesWithoutEmails =
+        registrarThreatMatchesSet.stream()
+            .filter(matches -> isNullOrEmpty(matches.registrarEmailAddress()))
+            .collect(toImmutableSet());
     try {
-      for (RegistrarThreatMatches registrarThreatMatches : registrarThreatMatchesSet) {
+      for (RegistrarThreatMatches registrarThreatMatches :
+          Sets.difference(registrarThreatMatchesSet, matchesWithoutEmails)) {
         emailRegistrar(date, soyTemplateInfo, subject, registrarThreatMatches);
       }
     } catch (Throwable e) {
@@ -92,9 +104,23 @@ public class Spec11EmailUtils {
           String.format("Emailing spec11 reports failed due to %s", getRootCause(e).getMessage()));
       throw new RuntimeException("Emailing spec11 report failed", e);
     }
-    sendAlertEmail(
-        String.format("Spec11 Pipeline Success %s", date),
-        "Spec11 reporting completed successfully.");
+    if (matchesWithoutEmails.isEmpty()) {
+      sendAlertEmail(
+          String.format("Spec11 Pipeline Success %s", date),
+          "Spec11 reporting completed successfully.");
+    } else {
+      logger.atSevere().log(
+          "Some Spec11 threat matches had no associated email addresses: %s", matchesWithoutEmails);
+      // TODO(b/129401965): Use only client IDs in this message
+      sendAlertEmail(
+          String.format("Spec11 Pipeline Warning %s", date),
+          String.format(
+              "No errors occurred but the following matches had no associated email: \n"
+                  + "%s\n\n"
+                  + "This should not occur; please make sure we have email addresses for these"
+                  + " registrar(s).",
+              matchesWithoutEmails));
+    }
   }
 
   private void emailRegistrar(

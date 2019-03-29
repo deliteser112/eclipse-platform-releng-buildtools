@@ -14,6 +14,7 @@
 
 package google.registry.reporting.spec11;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.reporting.spec11.Spec11RegistrarThreatMatchesParserTest.sampleThreatMatches;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
 import google.registry.reporting.spec11.soy.Spec11EmailSoyInfo;
 import google.registry.util.EmailMessage;
@@ -218,6 +220,36 @@ public class Spec11EmailUtilsTest {
         Optional.empty(),
         "Spec11 Pipeline Alert: 2018-07",
         "Alert!",
+        Optional.empty());
+  }
+
+  @Test
+  public void testWarning_emptyEmailAddressForRegistrars() throws Exception {
+    ImmutableSet<RegistrarThreatMatches> matchesWithoutEmails =
+        sampleThreatMatches().stream()
+            .map(matches -> RegistrarThreatMatches.create("", matches.threatMatches()))
+            .collect(toImmutableSet());
+    emailUtils.emailSpec11Reports(
+        date,
+        Spec11EmailSoyInfo.DAILY_SPEC_11_EMAIL,
+        "Super Cool Registry Daily Threat Detector [2018-07-15]",
+        matchesWithoutEmails);
+    verify(emailService).sendEmail(contentCaptor.capture());
+    validateMessage(
+        contentCaptor.getValue(),
+        "my-sender@test.com",
+        "my-receiver@test.com",
+        Optional.empty(),
+        "Spec11 Pipeline Warning 2018-07-15",
+        "No errors occurred but the following matches had no associated email: \n"
+            + "[RegistrarThreatMatches{registrarEmailAddress=, threatMatches=[ThreatMatch"
+            + "{threatType=MALWARE, platformType=ANY_PLATFORM, metadata=NONE,"
+            + " fullyQualifiedDomainName=a.com}]}, RegistrarThreatMatches{registrarEmailAddress=,"
+            + " threatMatches=[ThreatMatch{threatType=MALWARE, platformType=ANY_PLATFORM,"
+            + " metadata=NONE, fullyQualifiedDomainName=b.com}, ThreatMatch{threatType=MALWARE,"
+            + " platformType=ANY_PLATFORM, metadata=NONE, fullyQualifiedDomainName=c.com}]}]\n\n"
+            + "This should not occur; please make sure we have email addresses for these"
+            + " registrar(s).",
         Optional.empty());
   }
 
