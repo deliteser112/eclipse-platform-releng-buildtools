@@ -35,6 +35,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.function.Supplier;
 import org.apache.beam.runners.direct.DirectRunner;
 import org.apache.beam.sdk.options.PipelineOptions;
@@ -142,11 +143,34 @@ public class Spec11PipelineTest {
         .isEqualTo("Map from registrar email to detected subdomain threats:");
 
     // The output file can put the registrar emails and bad URLs in any order.
-    // Sort lexicographically to have a stable ordering
-    ImmutableList<String> sortedLines = ImmutableList.sortedCopyOf(generatedReport.subList(1, 4));
+    // We cannot rely on the JSON toString to sort because the keys are not always in the same
+    // order, so we must rely on length even though that's not ideal.
+    ImmutableList<String> sortedLines =
+        ImmutableList.sortedCopyOf(
+            Comparator.comparingInt(String::length), generatedReport.subList(1, 4));
+
+    JSONObject noEmailRegistrarJSON = new JSONObject(sortedLines.get(0));
+    assertThat(noEmailRegistrarJSON.get("registrarEmailAddress")).isEqualTo("");
+    assertThat(noEmailRegistrarJSON.has("threatMatches")).isTrue();
+    JSONArray noEmailThreatMatch = noEmailRegistrarJSON.getJSONArray("threatMatches");
+    assertThat(noEmailThreatMatch.length()).isEqualTo(1);
+    assertThat(noEmailThreatMatch.getJSONObject(0).get("fullyQualifiedDomainName"))
+        .isEqualTo("no-email.com");
+    assertThat(noEmailThreatMatch.getJSONObject(0).get("threatType"))
+        .isEqualTo("MALWARE");
+
+    JSONObject someRegistrarJSON = new JSONObject(sortedLines.get(1));
+    assertThat(someRegistrarJSON.get("registrarEmailAddress")).isEqualTo("fake@someRegistrar.com");
+    assertThat(someRegistrarJSON.has("threatMatches")).isTrue();
+    JSONArray someThreatMatch = someRegistrarJSON.getJSONArray("threatMatches");
+    assertThat(someThreatMatch.length()).isEqualTo(1);
+    assertThat(someThreatMatch.getJSONObject(0).get("fullyQualifiedDomainName"))
+        .isEqualTo("444.com");
+    assertThat(someThreatMatch.getJSONObject(0).get("threatType"))
+        .isEqualTo("MALWARE");
 
     // theRegistrar has two ThreatMatches, we have to parse it explicitly
-    JSONObject theRegistrarJSON = new JSONObject(sortedLines.get(0));
+    JSONObject theRegistrarJSON = new JSONObject(sortedLines.get(2));
     assertThat(theRegistrarJSON.get("registrarEmailAddress")).isEqualTo("fake@theRegistrar.com");
     assertThat(theRegistrarJSON.has("threatMatches")).isTrue();
     JSONArray theThreatMatches = theRegistrarJSON.getJSONArray("threatMatches");
@@ -169,26 +193,6 @@ public class Spec11PipelineTest {
                 .put("threatEntryMetadata", "NONE")
                 .put("platformType", "WINDOWS")
                 .toString());
-
-    JSONObject someRegistrarJSON = new JSONObject(sortedLines.get(1));
-    assertThat(someRegistrarJSON.get("registrarEmailAddress")).isEqualTo("fake@someRegistrar.com");
-    assertThat(someRegistrarJSON.has("threatMatches")).isTrue();
-    JSONArray someThreatMatch = someRegistrarJSON.getJSONArray("threatMatches");
-    assertThat(someThreatMatch.length()).isEqualTo(1);
-    assertThat(someThreatMatch.getJSONObject(0).get("fullyQualifiedDomainName"))
-        .isEqualTo("444.com");
-    assertThat(someThreatMatch.getJSONObject(0).get("threatType"))
-        .isEqualTo("MALWARE");
-
-    JSONObject noEmailRegistrarJSON = new JSONObject(sortedLines.get(2));
-    assertThat(noEmailRegistrarJSON.get("registrarEmailAddress")).isEqualTo("");
-    assertThat(noEmailRegistrarJSON.has("threatMatches")).isTrue();
-    JSONArray noEmailThreatMatch = noEmailRegistrarJSON.getJSONArray("threatMatches");
-    assertThat(noEmailThreatMatch.length()).isEqualTo(1);
-    assertThat(noEmailThreatMatch.getJSONObject(0).get("fullyQualifiedDomainName"))
-        .isEqualTo("no-email.com");
-    assertThat(noEmailThreatMatch.getJSONObject(0).get("threatType"))
-        .isEqualTo("MALWARE");
   }
 
   /**
