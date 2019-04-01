@@ -140,7 +140,7 @@ public class Spec11PipelineTest {
     ImmutableList<String> generatedReport = resultFileContents();
     assertThat(generatedReport).hasSize(4);
     assertThat(generatedReport.get(0))
-        .isEqualTo("Map from registrar email to detected subdomain threats:");
+        .isEqualTo("Map from registrar email / name to detected subdomain threats:");
 
     // The output file can put the registrar emails and bad URLs in any order.
     // We cannot rely on the JSON toString to sort because the keys are not always in the same
@@ -151,6 +151,7 @@ public class Spec11PipelineTest {
 
     JSONObject noEmailRegistrarJSON = new JSONObject(sortedLines.get(0));
     assertThat(noEmailRegistrarJSON.get("registrarEmailAddress")).isEqualTo("");
+    assertThat(noEmailRegistrarJSON.get("registrarName")).isEqualTo("noEmailRegistrar");
     assertThat(noEmailRegistrarJSON.has("threatMatches")).isTrue();
     JSONArray noEmailThreatMatch = noEmailRegistrarJSON.getJSONArray("threatMatches");
     assertThat(noEmailThreatMatch.length()).isEqualTo(1);
@@ -161,6 +162,7 @@ public class Spec11PipelineTest {
 
     JSONObject someRegistrarJSON = new JSONObject(sortedLines.get(1));
     assertThat(someRegistrarJSON.get("registrarEmailAddress")).isEqualTo("fake@someRegistrar.com");
+    assertThat(someRegistrarJSON.get("registrarName")).isEqualTo("someRegistrar");
     assertThat(someRegistrarJSON.has("threatMatches")).isTrue();
     JSONArray someThreatMatch = someRegistrarJSON.getJSONArray("threatMatches");
     assertThat(someThreatMatch.length()).isEqualTo(1);
@@ -172,6 +174,7 @@ public class Spec11PipelineTest {
     // theRegistrar has two ThreatMatches, we have to parse it explicitly
     JSONObject theRegistrarJSON = new JSONObject(sortedLines.get(2));
     assertThat(theRegistrarJSON.get("registrarEmailAddress")).isEqualTo("fake@theRegistrar.com");
+    assertThat(theRegistrarJSON.get("registrarName")).isEqualTo("theRegistrar");
     assertThat(theRegistrarJSON.has("threatMatches")).isTrue();
     JSONArray theThreatMatches = theRegistrarJSON.getJSONArray("threatMatches");
     assertThat(theThreatMatches.length()).isEqualTo(2);
