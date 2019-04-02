@@ -687,5 +687,3 @@ task nomulus(type: Jar) {
   with jar
   dependsOn project(':third_party').jar
 }
-
-generateDependencyPublications()

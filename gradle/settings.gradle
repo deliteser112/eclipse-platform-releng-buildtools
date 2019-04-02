@@ -1,9 +1,9 @@
-if (repositoryUrl) {
-  println "Using repository $repositoryUrl for plugins"
+if (pluginsUrl) {
+  println "Using repository $pluginsUrl for plugins"
   pluginManagement {
     repositories {
       maven {
-        url repositoryUrl
+        url pluginsUrl
       }
     }
   }

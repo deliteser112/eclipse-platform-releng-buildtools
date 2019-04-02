@@ -13,7 +13,6 @@ buildscript {
 }
 
 plugins {
-  id 'maven-publish'
   id 'nebula.lint' version '10.4.2'
   // Config helper for annotation processors such as AutoValue and Dagger.
   // Ensures that source code is generated at an appropriate location.
@@ -73,60 +72,6 @@ task stage {
   description = 'Generates application directories for all services.'
 }
 
-
-if (publishUrl) {
-  publishing {
-    repositories {
-      maven {
-        url publishUrl
-      }
-    }
-  }
-}
-
-ext.processedDependencies = [] as Set<String>
-ext.processDependencies = { Set<ResolvedDependency> deps ->
-
-  if (deps.isEmpty()) {
-    return
-  }
-  deps.each { ResolvedDependency dep ->
-    if (dep.moduleGroup == "nomulus" ||
-        rootProject.processedDependencies.contains(dep.module.toString())) {
-      return
-    }
-    def name = "${dep.moduleGroup}_${dep.moduleName}_${dep.moduleVersion}"
-    rootProject.publishing {
-      publications {
-        "${name}"(MavenPublication) {
-          groupId = dep.moduleGroup
-          artifactId = dep.moduleName
-          version = dep.moduleVersion
-          dep.moduleArtifacts.each { moduleArtifact ->
-            artifact(moduleArtifact.file) {
-              classifier = moduleArtifact.classifier
-            }
-          }
-          if (!dep.children.isEmpty()) {
-            pom.withXml {
-              def dependenciesNode = asNode().appendNode("dependencies")
-              dep.children.each {
-                def dependencyNode =
-                    dependenciesNode.appendNode("dependency")
-                dependencyNode.appendNode("groupId", it.moduleGroup)
-                dependencyNode.appendNode("artifactId", it.moduleName)
-                dependencyNode.appendNode("version", it.moduleVersion)
-              }
-            }
-          }
-        }
-      }
-    }
-    rootProject.processedDependencies.add(dep.module.toString())
-    rootProject.processDependencies(dep.children)
-  }
-}
-
 ext.constructMavenCoordinate = { deps, distinctMetadata ->
   if (deps.isEmpty()) {
     return
@@ -146,28 +91,12 @@ allprojects {
   if (project.name == 'services') return
 
   repositories {
-    if (rootProject.repositoryUrl) {
+    if (rootProject.mavenUrl) {
       maven {
-        url rootProject.repositoryUrl
+        url rootProject.mavenUrl
       }
     } else {
       mavenCentral()
-    }
-  }
-
-  ext.generateDependencyPublications = {
-    def allconfigs = []
-
-    allconfigs.addAll(configurations)
-    // This only adds buildscript dependencies declare in this project.
-    allconfigs.addAll(buildscript.configurations)
-
-    allconfigs.each {
-      if (!it.isCanBeResolved()) {
-        return
-      }
-      rootProject.processDependencies(
-          it.resolvedConfiguration.firstLevelModuleDependencies)
     }
   }
 
@@ -217,8 +146,6 @@ subprojects {
   dependencyLocking {
     lockAllConfigurations()
   }
-
-  apply plugin: 'maven-publish'
 
   def services = [':services:default',
                   ':services:backend',
@@ -290,7 +217,6 @@ subprojects {
 
     appengine {
       deploy {
-        // TODO: change this to a variable.
         project = gcpProject
       }
     }
@@ -413,5 +339,3 @@ subprojects {
     }
   }
 }
-
-generateDependencyPublications()

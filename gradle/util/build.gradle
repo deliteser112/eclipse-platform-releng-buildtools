@@ -30,5 +30,3 @@ dependencies {
   testAnnotationProcessor deps['com.google.auto.value:auto-value']
   testAnnotationProcessor deps['com.google.dagger:dagger-compiler']
 }
-
-generateDependencyPublications()
