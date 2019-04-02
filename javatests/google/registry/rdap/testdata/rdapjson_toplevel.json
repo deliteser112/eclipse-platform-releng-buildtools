@@ -2,7 +2,7 @@
   "key" : "value",
   "rdapConformance" :
   [
-    "rdap_level_0"
+    "icann_rdap_response_profile_0"
   ],
   "notices" :
   [

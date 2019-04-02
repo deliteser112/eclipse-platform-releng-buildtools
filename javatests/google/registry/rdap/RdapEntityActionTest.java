@@ -193,7 +193,7 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
       ImmutableMap.Builder<String, Object> builder =
           RdapTestHelper.getBuilderExcluding(
               map, ImmutableSet.of("rdapConformance", "notices", "remarks"));
-      builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
+      builder.put("rdapConformance", ImmutableList.of("icann_rdap_response_profile_0"));
       RdapTestHelper.addNonDomainBoilerplateNotices(
           builder,
           RdapTestHelper.createNotices(

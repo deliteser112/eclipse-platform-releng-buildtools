@@ -97,7 +97,7 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
   public void testIllegalValue_showsReadableTypeName() {
     assertThat(generateActualJson("IllegalArgumentException")).isEqualTo(JSONValue.parse(
         "{\"lang\":\"en\", \"errorCode\":400, \"title\":\"Bad Request\","
-        + "\"rdapConformance\":[\"rdap_level_0\"],"
+        + "\"rdapConformance\":[\"icann_rdap_response_profile_0\"],"
         + "\"description\":[\"Not a valid human-readable string\"]}"));
     assertThat(response.getStatus()).isEqualTo(400);
   }
@@ -106,7 +106,7 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
   public void testRuntimeException_returns500Error() {
     assertThat(generateActualJson("RuntimeException")).isEqualTo(JSONValue.parse(
         "{\"lang\":\"en\", \"errorCode\":500, \"title\":\"Internal Server Error\","
-        + "\"rdapConformance\":[\"rdap_level_0\"],"
+        + "\"rdapConformance\":[\"icann_rdap_response_profile_0\"],"
         + "\"description\":[\"An error was encountered\"]}"));
     assertThat(response.getStatus()).isEqualTo(500);
   }

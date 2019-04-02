@@ -205,7 +205,7 @@ public class RdapNameserverSearchActionTest
             name, punycodeName, handle, ipAddressType, ipAddress, expectedOutputFile);
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("nameserverSearchResults", ImmutableList.of(obj));
-    builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
+    builder.put("rdapConformance", ImmutableList.of("icann_rdap_response_profile_0"));
     RdapTestHelper.addNonDomainBoilerplateNotices(
         builder, RdapTestHelper.createNotices("https://example.tld/rdap/"));
     return builder.build();

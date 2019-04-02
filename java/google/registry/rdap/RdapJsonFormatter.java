@@ -109,7 +109,7 @@ public class RdapJsonFormatter {
     OTHER
   }
 
-  private static final String RDAP_CONFORMANCE_LEVEL = "rdap_level_0";
+  private static final String RDAP_CONFORMANCE_LEVEL = "icann_rdap_response_profile_0";
   private static final String VCARD_VERSION_NUMBER = "4.0";
   static final String NOTICES = "notices";
   private static final String REMARKS = "remarks";

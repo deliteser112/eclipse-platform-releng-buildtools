@@ -37,7 +37,7 @@ public class RdapIcannStandardInformation {
   private static final ImmutableMap<String, Object> DOMAIN_STATUS_CODES_NOTICE =
       ImmutableMap.of(
           "title",
-          "EPP Status Codes",
+          "Status Codes",
           "description",
           ImmutableList.of(
               "For more information on domain status codes, please visit https://icann.org/epp"),

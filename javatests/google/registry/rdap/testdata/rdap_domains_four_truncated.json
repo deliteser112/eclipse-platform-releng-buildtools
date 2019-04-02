@@ -114,7 +114,7 @@
     }
   ],
   "rdapConformance": [
-    "rdap_level_0"
+    "icann_rdap_response_profile_0"
   ],
   "notices" :
   [
@@ -170,7 +170,7 @@
       ]
     },
     {
-      "title" : "EPP Status Codes",
+      "title" : "Status Codes",
       "description" :
       [
         "For more information on domain status codes, please visit https://icann.org/epp"

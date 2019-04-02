@@ -153,7 +153,7 @@
           "type":"text/html"
         }
       ],
-      "title":"EPP Status Codes"
+      "title":"Status Codes"
     },
     {
       "description":
@@ -173,6 +173,6 @@
   ],
   "rdapConformance":
   [
-    "rdap_level_0"
+    "icann_rdap_response_profile_0"
   ]
 }

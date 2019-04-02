@@ -173,7 +173,7 @@ public class RdapTestHelper {
     noticesBuilder.add(
         ImmutableMap.of(
             "title",
-            "EPP Status Codes",
+            "Status Codes",
             "description",
             ImmutableList.of(
                 "For more information on domain status codes, please visit"
