@@ -17,6 +17,7 @@ package google.registry.webdriver;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.testing.AppEngineRule.THE_REGISTRAR_GAE_USER_ID;
+import static google.registry.util.NetworkUtils.getExternalAddressOfLocalSystem;
 import static google.registry.util.NetworkUtils.pickUnusedPort;
 
 import com.google.common.collect.ImmutableList;
@@ -29,6 +30,7 @@ import google.registry.server.TestServer;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.UserInfo;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -72,11 +74,19 @@ public final class TestServerRule extends ExternalResource {
         .withTaskQueue()
         .withUserService(UserInfo.createAdmin(email, THE_REGISTRAR_GAE_USER_ID))
         .build();
-    this.testServer = new TestServer(
-        HostAndPort.fromParts("localhost", pickUnusedPort()),
-        runfiles,
-        routes,
-        filters);
+    try {
+      this.testServer =
+          new TestServer(
+              HostAndPort.fromParts(
+                  // Use external IP address here so the browser running inside Docker container
+                  // can access this server.
+                  getExternalAddressOfLocalSystem().getHostAddress(), pickUnusedPort()),
+              runfiles,
+              routes,
+              filters);
+    } catch (UnknownHostException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   @Override

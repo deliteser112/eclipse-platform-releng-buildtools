@@ -11,10 +11,6 @@ def screenshotsForGoldensDir = "${project.buildDir}/screenshots_for_goldens"
 def newGoldensDir = "${project.buildDir}/new_golden_images"
 def goldensDir =
   "${javatestsDir}/google/registry/webdriver/goldens/chrome-linux"
-def chromeWebdriverServicePort = 4444
-// Url to the Chrome Webdriver service used by class ChromeWebDriverPlusScreenDiffer
-def chromeWebdriverServiceUrl =
-  "http://localhost:${chromeWebdriverServicePort}/wd/hub"
 
 // Tests that conflict with (mostly unidentified) members of the main test
 // suite. It is unclear if they are offenders (i.e., those that pollute global
@@ -240,6 +236,7 @@ dependencies {
   testCompile deps['org.seleniumhq.selenium:selenium-java']
   testCompile deps['org.seleniumhq.selenium:selenium-remote-driver']
   maybeRuntime deps['org.slf4j:slf4j-api']
+  testCompile deps['org.testcontainers:selenium']
   maybeRuntime deps['org.tukaani:xz']
   maybeRuntime deps['org.xerial.snappy:snappy-java']
   compile deps['xerces:xmlParserAPIs']
@@ -584,30 +581,6 @@ task outcastTest(type: Test) {
   maxParallelForks 5
 }
 
-task dockerStopAtStart(type: Exec) {
-  ignoreExitValue true
-  commandLine 'docker', 'stop', 'chrome-plus-chromedriver'
-}
-task dockerStopAtEnd(type: Exec) {
-  ignoreExitValue true
-  commandLine 'docker', 'stop', 'chrome-plus-chromedriver'
-}
-
-task dockerRun(type: Exec) {
-  dependsOn dockerStopAtStart
-  def runCommand = []
-  runCommand << 'docker'
-  runCommand << 'run' << '--detach'
-  runCommand << '--name' << 'chrome-plus-chromedriver'
-  runCommand << '--publish'
-  runCommand << "${chromeWebdriverServicePort}:${chromeWebdriverServicePort}"
-  runCommand << '--volume' << '/dev/shm:/dev/shm'
-  runCommand << '--network' << 'host'
-  runCommand << '--rm'
-  runCommand << 'selenium/standalone-chrome:3.141.59-gold'
-  commandLine runCommand
-}
-
 task findGoldenImages(type: JavaExec) {
   classpath = sourceSets.test.runtimeClasspath
   main = 'google.registry.webdriver.GoldenImageFinder'
@@ -623,7 +596,6 @@ task findGoldenImages(type: JavaExec) {
 }
 
 task generateGoldenImages(type: Test) {
-  dependsOn dockerRun
   // Common exclude pattern. See README in parent directory for explanation.
   exclude "**/*TestCase.*", "**/*TestSuite.*"
   include "**/webdriver/*"
@@ -634,21 +606,18 @@ task generateGoldenImages(type: Test) {
   systemProperty 'test.screenshot.dir', screenshotsForGoldensDir
   systemProperty 'test.screenshot.runAllAttempts', 'true'
   systemProperty 'test.screenshot.maxAttempts', '5'
-  systemProperty 'webdriver.chromeDriverServiceUrl', chromeWebdriverServiceUrl
 
   doFirst {
     new File(screenshotsForGoldensDir).deleteDir()
   }
 }
-generateGoldenImages.finalizedBy(dockerStopAtEnd, findGoldenImages)
+generateGoldenImages.finalizedBy(findGoldenImages)
 
 test {
   // Common exclude pattern. See README in parent directory for explanation.
   exclude "**/*TestCase.*", "**/*TestSuite.*"
   exclude fragileTestPatterns
   exclude outcastTestPatterns
-
-  dependsOn dockerRun
 
   // Run every test class in its own process.
   // Uncomment to unblock build while troubleshooting inexplicable test errors.
@@ -658,14 +627,10 @@ test {
   // Sets the maximum number of test executors that may exist at the same time.
   maxParallelForks 5
 
-  systemProperty 'webdriver.chromeDriverServiceUrl', chromeWebdriverServiceUrl
-
   doFirst {
     new File(screenshotsDir).deleteDir()
   }
 }.dependsOn(fragileTest, outcastTest)
-test.finalizedBy(dockerStopAtEnd)
-
 
 task nomulus(type: Jar) {
   manifest {

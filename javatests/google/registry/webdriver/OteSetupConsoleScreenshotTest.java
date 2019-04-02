@@ -21,7 +21,6 @@ import com.googlecode.objectify.ObjectifyFilter;
 import google.registry.model.ofy.OfyFilter;
 import google.registry.module.frontend.FrontendServlet;
 import google.registry.server.RegistryTestServer;
-import google.registry.webdriver.RepeatableRunner.AttemptNumber;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +28,7 @@ import org.openqa.selenium.By;
 
 /** Registrar Console Screenshot Differ tests. */
 @RunWith(RepeatableRunner.class)
-public class OteSetupConsoleScreenshotTest {
+public class OteSetupConsoleScreenshotTest extends WebDriverTestCase {
 
   @Rule
   public final TestServerRule server =
@@ -40,9 +39,6 @@ public class OteSetupConsoleScreenshotTest {
           .setFixtures(BASIC)
           .setEmail("Marla.Singer@google.com")
           .build();
-
-  private final AttemptNumber attemptNumber = new AttemptNumber();
-  @Rule public final WebDriverRule driver = new WebDriverRule(attemptNumber);
 
   @Test
   public void get_owner_fails() throws Throwable {

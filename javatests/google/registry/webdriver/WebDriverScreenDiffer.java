@@ -15,7 +15,6 @@
 package google.registry.webdriver;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Math.abs;
 import static java.util.stream.Collectors.joining;
 
@@ -27,8 +26,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -39,18 +36,11 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.RemoteWebDriver;
 
-/** Implementation of {@link WebDriverPlusScreenDiffer} that uses {@link ChromeDriver}. */
-class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
+/** Implementation of {@link ScreenDiffer} that uses {@link WebDriver}. */
+class WebDriverScreenDiffer implements ScreenDiffer {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-  // Url address to the remote Webdriver service. In this case, we use
-  // Docker to provision the service and it is configured in core/build.gradle
-  private static final String CHROME_DRIVER_SERVICE_URL =
-      checkNotNull(System.getProperty("webdriver.chromeDriverServiceUrl"));
 
   private final WebDriver webDriver;
   private final String goldensPath;
@@ -60,22 +50,13 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
 
   private String screenshotDir = System.getProperty("test.screenshot.dir", "build/screenshots");
 
-  public ChromeWebDriverPlusScreenDiffer(String goldensPath, int maxColorDiff, int maxPixelDiff) {
-    this.webDriver = createChromeDriver();
+  public WebDriverScreenDiffer(
+      WebDriver webDriver, String goldensPath, int maxColorDiff, int maxPixelDiff) {
+    this.webDriver = webDriver;
     this.goldensPath = goldensPath;
     this.maxColorDiff = maxColorDiff;
     this.maxPixelDiff = maxPixelDiff;
     this.actualScreenshots = Lists.newArrayList();
-  }
-
-  private WebDriver createChromeDriver() {
-    ChromeOptions chromeOptions = new ChromeOptions();
-    chromeOptions.setHeadless(true);
-    try {
-      return new RemoteWebDriver(new URL(CHROME_DRIVER_SERVICE_URL), chromeOptions);
-    } catch (MalformedURLException e) {
-      throw new IllegalArgumentException(e);
-    }
   }
 
   @AutoValue
@@ -91,7 +72,7 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
     abstract int numDiffPixels();
 
     static Builder builder() {
-      return new AutoValue_ChromeWebDriverPlusScreenDiffer_ComparisonResult.Builder();
+      return new AutoValue_WebDriverScreenDiffer_ComparisonResult.Builder();
     }
 
     @AutoValue.Builder
@@ -114,11 +95,6 @@ class ChromeWebDriverPlusScreenDiffer implements WebDriverPlusScreenDiffer {
     public ScreenshotNotSimilarException(String message) {
       super(message);
     }
-  }
-
-  @Override
-  public WebDriver getWebDriver() {
-    return webDriver;
   }
 
   @Override

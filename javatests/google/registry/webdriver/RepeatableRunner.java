@@ -20,7 +20,7 @@ import com.google.common.flogger.FluentLogger;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
@@ -68,7 +68,7 @@ public class RepeatableRunner extends BlockJUnit4ClassRunner {
 
   private Field getAttemptNumberField() {
     List<Field> attemptNumberFields =
-        Stream.of(getTestClass().getJavaClass().getDeclaredFields())
+        FieldUtils.getAllFieldsList(getTestClass().getJavaClass()).stream()
             .filter(declaredField -> declaredField.getType().equals(AttemptNumber.class))
             .collect(Collectors.toList());
 
@@ -163,7 +163,11 @@ public class RepeatableRunner extends BlockJUnit4ClassRunner {
       if (numSuccess == 0) {
         logger.atSevere().log(
             "[%s] didn't pass after all %d attempts failed!\n", method.getName(), MAX_ATTEMPTS);
-        throw lastException;
+        // In most cases, setting RUN_ALL_ATTEMPTS to true is to find the golden image, so we should
+        // not throw an exception to reduce confusion
+        if (!RUN_ALL_ATTEMPTS) {
+          throw lastException;
+        }
       }
     }
   }

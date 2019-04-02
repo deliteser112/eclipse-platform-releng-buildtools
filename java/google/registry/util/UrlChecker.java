@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.server;
+package google.registry.util;
 
 import static com.google.common.base.Throwables.throwIfUnchecked;
 import static java.util.concurrent.Executors.newCachedThreadPool;
@@ -23,13 +23,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-final class UrlChecker {
+/** An utility to probe a given url until it becomes available. */
+public final class UrlChecker {
 
   private static final int READ_TIMEOUT_MS = 1000;
   private static final int CONNECT_TIMEOUT_MS = 500;
 
   /** Probes {@code url} until it becomes available. */
-  static void waitUntilAvailable(final URL url, int timeoutMs) {
+  public static void waitUntilAvailable(final URL url, int timeoutMs) {
     try {
       Void unusedReturnValue = SimpleTimeLimiter.create(newCachedThreadPool())
           .callWithTimeout(

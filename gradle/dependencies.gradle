@@ -142,6 +142,7 @@ ext {
       'org.seleniumhq.selenium:selenium-java:3.141.59',
       'org.seleniumhq.selenium:selenium-remote-driver:3.141.59',
       'org.slf4j:slf4j-api:1.7.16',
+      'org.testcontainers:selenium:1.10.7',
       'org.tukaani:xz:1.8',
       'org.xerial.snappy:snappy-java:1.1.4-M3',
       'org.yaml:snakeyaml:1.17',

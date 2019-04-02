@@ -82,16 +82,16 @@ public final class NetworkUtils {
   /**
    * Returns the externally-facing IPv4 network address of the local host.
    *
-   * <p>This function implements a workaround for an
-   * <a href="http://bugs.java.com/bugdatabase/view_bug.do?bug_id=4665037">issue</a> in
-   * {@link InetAddress#getLocalHost}.
+   * <p>This function implements a workaround for an <a
+   * href="http://bugs.java.com/bugdatabase/view_bug.do?bug_id=4665037">issue</a> in {@link
+   * InetAddress#getLocalHost}.
    *
    * <p><b>Note:</b> This code was pilfered from {@link "com.google.net.base.LocalHost"} which was
    * never made open source.
    *
    * @throws UnknownHostException if the local host could not be resolved into an address
    */
-  private static InetAddress getExternalAddressOfLocalSystem() throws UnknownHostException {
+  public static InetAddress getExternalAddressOfLocalSystem() throws UnknownHostException {
     InetAddress localhost = InetAddress.getLocalHost();
     // If we have a loopback address, look for an address using the network cards.
     if (localhost.isLoopbackAddress()) {

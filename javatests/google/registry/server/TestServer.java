@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
+import google.registry.util.UrlChecker;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;

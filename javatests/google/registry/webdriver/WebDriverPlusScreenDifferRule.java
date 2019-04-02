@@ -15,10 +15,10 @@
 package google.registry.webdriver;
 
 import static com.google.common.io.Resources.getResource;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.text.StringEscapeUtils.escapeEcmaScript;
 
+import com.google.common.base.Preconditions;
 import google.registry.webdriver.RepeatableRunner.AttemptNumber;
 import java.net.URL;
 import java.util.List;
@@ -44,8 +44,11 @@ import org.openqa.selenium.interactions.Keyboard;
 import org.openqa.selenium.interactions.Mouse;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
-/** WebDriver delegate JUnit Rule that sends Sponge a screenshot on failure. */
-public final class WebDriverRule extends ExternalResource
+/**
+ * WebDriver delegate JUnit Rule that exposes most {@link WebDriver} API plus {@link ScreenDiffer}
+ * API.
+ */
+public final class WebDriverPlusScreenDifferRule extends ExternalResource
     implements WebDriver, HasInputDevices, TakesScreenshot, JavascriptExecutor, HasCapabilities {
 
   private static final int WAIT_FOR_ELEMENTS_POLLING_INTERVAL_MS = 10;
@@ -67,19 +70,20 @@ public final class WebDriverRule extends ExternalResource
   private static final Dimension DEFAULT_WINDOW_SIZE = new Dimension(1200, 2000);
 
   private static final String GOLDENS_PATH =
-      getResource(WebDriverRule.class, "goldens/chrome-linux").getFile();
+      getResource(WebDriverPlusScreenDifferRule.class, "goldens/chrome-linux").getFile();
 
-  private AttemptNumber attemptNumber;
+  private WebDriverProvider webDriverProvider;
   private WebDriver driver;
-  private WebDriverPlusScreenDiffer webDriverPlusScreenDiffer;
+  private ScreenDiffer webDriverPlusScreenDiffer;
+  private AttemptNumber attemptNumber;
 
   // Prefix to use for golden image files, will be set to ClassName_MethodName once the test
   // starts. Will be added a user-given imageKey as a suffix, and of course a '.png' at the end.
   private String imageNamePrefix = null;
 
-  /** Constructs a {@link WebDriverRule} instance. */
-  public WebDriverRule(AttemptNumber attemptNumber) {
-    this.attemptNumber = attemptNumber;
+  @FunctionalInterface
+  public interface WebDriverProvider {
+    WebDriver getWebDriver();
   }
 
   @Override
@@ -94,11 +98,18 @@ public final class WebDriverRule extends ExternalResource
     return super.apply(base, description);
   }
 
+  /** Constructs a {@link WebDriverPlusScreenDifferRule} instance. */
+  public WebDriverPlusScreenDifferRule(
+      WebDriverProvider webDriverProvider, AttemptNumber attemptNumber) {
+    this.webDriverProvider = webDriverProvider;
+    this.attemptNumber = attemptNumber;
+  }
+
   @Override
   protected void before() {
+    driver = webDriverProvider.getWebDriver();
     webDriverPlusScreenDiffer =
-        new ChromeWebDriverPlusScreenDiffer(GOLDENS_PATH, MAX_COLOR_DIFF, MAX_PIXEL_DIFF);
-    driver = webDriverPlusScreenDiffer.getWebDriver();
+        new WebDriverScreenDiffer(driver, GOLDENS_PATH, MAX_COLOR_DIFF, MAX_PIXEL_DIFF);
     // non-zero timeout so findByElement will wait for the element to appear
     driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
     driver.manage().window().setSize(DEFAULT_WINDOW_SIZE);
@@ -106,12 +117,7 @@ public final class WebDriverRule extends ExternalResource
 
   @Override
   protected void after() {
-    try {
-      webDriverPlusScreenDiffer.verifyAndQuit();
-    } finally {
-      driver.quit();
-      driver = null;
-    }
+    webDriverPlusScreenDiffer.verifyAndQuit();
   }
 
   /** @see #get(String) */
@@ -298,7 +304,7 @@ public final class WebDriverRule extends ExternalResource
   }
 
   private String getUniqueName(String imageKey) {
-    checkNotNull(imageNamePrefix);
+    Preconditions.checkNotNull(imageNamePrefix);
     return imageNamePrefix + "_" + imageKey;
   }
 }

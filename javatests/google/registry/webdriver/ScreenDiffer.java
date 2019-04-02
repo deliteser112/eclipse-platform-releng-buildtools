@@ -14,17 +14,10 @@
 
 package google.registry.webdriver;
 
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-/**
- * Interface to provide the implementation of {@link org.openqa.selenium.WebDriver} and APIs to
- * compare screenshots for visual regression tests.
- */
-interface WebDriverPlusScreenDiffer {
-
-  /** Gets the implementation of {@link org.openqa.selenium.WebDriver}. */
-  WebDriver getWebDriver();
+/** Interface to provide APIs to compare screenshots for visual regression tests. */
+interface ScreenDiffer {
 
   /**
    * Checks that the screenshot of the element matches the golden image by pixel comparison. {@link

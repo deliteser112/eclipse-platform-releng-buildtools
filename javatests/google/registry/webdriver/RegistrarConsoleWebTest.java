@@ -29,7 +29,6 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.module.frontend.FrontendServlet;
 import google.registry.server.RegistryTestServer;
 import google.registry.testing.AppEngineRule;
-import google.registry.webdriver.RepeatableRunner.AttemptNumber;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -38,7 +37,7 @@ import org.openqa.selenium.By;
 
 /** WebDriver tests for Registrar Console UI. */
 @RunWith(RepeatableRunner.class)
-public class RegistrarConsoleWebTest {
+public class RegistrarConsoleWebTest extends WebDriverTestCase {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -59,8 +58,6 @@ public class RegistrarConsoleWebTest {
           .setEmail("Marla.Singer@google.com")
           .build();
 
-  private final AttemptNumber attemptNumber = new AttemptNumber();
-  @Rule public final WebDriverRule driver = new WebDriverRule(attemptNumber);
 
 
   @Rule public final Timeout deathClock = new Timeout(60000);

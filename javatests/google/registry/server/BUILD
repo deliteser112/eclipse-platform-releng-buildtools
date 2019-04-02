@@ -13,7 +13,6 @@ java_library(
         "ServletWrapperDelegatorServlet.java",
         "StaticResourceServlet.java",
         "TestServer.java",
-        "UrlChecker.java",
     ],
     visibility = ["//visibility:public"],
     deps = [
