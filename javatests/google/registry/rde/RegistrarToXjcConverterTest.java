@@ -15,6 +15,7 @@
 package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.rde.RegistrarToXjcConverter.convertRegistrar;
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.xjc.XjcXmlTransformer.marshalStrict;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -22,6 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.collect.ImmutableList;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -95,8 +97,8 @@ public class RegistrarToXjcConverterTest extends ShardableTestCase {
   }
 
   @Test
-  public void testConvert() {
-    XjcRdeRegistrar bean = RegistrarToXjcConverter.convertRegistrar(registrar);
+  public void test_convertRegistrar() {
+    XjcRdeRegistrar bean = convertRegistrar(registrar);
 
     assertThat(bean.getId()).isEqualTo("GoblinMarket");
     assertThat(bean.getName()).isEqualTo("Maids heard the goblins cry: Come buy, come buy:");
@@ -131,7 +133,6 @@ public class RegistrarToXjcConverterTest extends ShardableTestCase {
 
     assertThat(bean.getUrl()).isEqualTo("http://www.goblinmen.example");
 
-    // This is just hard-coded for now I guess.
     assertThat(bean.getStatus()).isEqualTo(XjcRdeRegistrarStatusType.OK);
 
     assertThat(bean.getCrDate()).isEqualTo(DateTime.parse("2013-01-01T00:00:00Z"));
@@ -139,6 +140,20 @@ public class RegistrarToXjcConverterTest extends ShardableTestCase {
     assertThat(bean.getUpDate()).isEqualTo(DateTime.parse("2014-01-01T00:00:00Z"));
 
     assertThat(bean.getWhoisInfo().getName()).isEqualTo("whois.goblinmen.example");
+  }
+
+  @Test
+  public void test_convertRegistrar_disabledStateMeansTerminated() {
+    XjcRdeRegistrar bean = convertRegistrar(registrar.asBuilder().setState(State.DISABLED).build());
+    assertThat(bean.getStatus()).isEqualTo(XjcRdeRegistrarStatusType.TERMINATED);
+  }
+
+  @Test
+  public void test_convertRegistrar_handlesAllRegistrarStates() {
+    for (State state : Registrar.State.values()) {
+      // This will throw an exception if it can't handle the chosen state.
+      convertRegistrar(registrar.asBuilder().setState(state).build());
+    }
   }
 
   @Test

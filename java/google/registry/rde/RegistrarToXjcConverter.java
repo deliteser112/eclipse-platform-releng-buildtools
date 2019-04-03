@@ -15,8 +15,11 @@
 package google.registry.rde;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.collect.ImmutableMap;
 import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.xjc.contact.XjcContactE164Type;
 import google.registry.xjc.rderegistrar.XjcRdeRegistrar;
@@ -35,6 +38,15 @@ final class RegistrarToXjcConverter {
   private static final String UNKNOWN_CITY = "Unknown";
   private static final String UNKNOWN_ZIP = "00000";
   private static final String UNKNOWN_CC = "US";
+
+  /** A conversion map between internal Registrar states and external RDE states. */
+  private static final ImmutableMap<Registrar.State, XjcRdeRegistrarStatusType>
+      REGISTRAR_STATUS_CONVERSIONS =
+          ImmutableMap.of(
+              State.ACTIVE, XjcRdeRegistrarStatusType.OK,
+              State.PENDING, XjcRdeRegistrarStatusType.READONLY,
+              State.SUSPENDED, XjcRdeRegistrarStatusType.READONLY,
+              State.DISABLED, XjcRdeRegistrarStatusType.TERMINATED);
 
   /** Converts {@link Registrar} to {@link XjcRdeRegistrarElement}. */
   static XjcRdeRegistrarElement convert(Registrar registrar) {
@@ -63,17 +75,11 @@ final class RegistrarToXjcConverter {
 
     // o  A <status> element that contains the operational status of the
     //    registrar.  Possible values are: ok, readonly and terminated.
-    switch (model.getState()) {
-      case ACTIVE:
-        bean.setStatus(XjcRdeRegistrarStatusType.OK);
-        break;
-      case PENDING:
-      case SUSPENDED:
-        bean.setStatus(XjcRdeRegistrarStatusType.READONLY);
-        break;
-      default:
-        throw new IllegalStateException(String.format("Bad state: %s", model.getState()));
-    }
+    checkState(
+        REGISTRAR_STATUS_CONVERSIONS.containsKey(model.getState()),
+        "Unknown registrar state: %s",
+        model.getState());
+    bean.setStatus(REGISTRAR_STATUS_CONVERSIONS.get(model.getState()));
 
     // o  One or two <postalInfo> elements that contain postal- address
     //    information.  Two elements are provided so that address
