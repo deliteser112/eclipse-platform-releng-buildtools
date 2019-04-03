@@ -78,28 +78,11 @@ public class Spec11RegistrarThreatMatchesParserTest {
   }
 
   /** The expected contents of the sample spec11 report file */
-  public static ImmutableSet<RegistrarThreatMatches> sampleThreatMatches() throws Exception {
+  static ImmutableSet<RegistrarThreatMatches> sampleThreatMatches() throws Exception {
     return ImmutableSet.of(getMatchA(), getMatchB());
   }
 
-  private void setupFile(String fileWithContent, String fileDate) {
-    GcsFilename gcsFilename =
-        new GcsFilename(
-            "test-bucket",
-            String.format("icann/spec11/2018-07/SPEC11_MONTHLY_REPORT_%s", fileDate));
-    when(gcsUtils.existsAndNotEmpty(gcsFilename)).thenReturn(true);
-    when(gcsUtils.openInputStream(gcsFilename))
-        .thenAnswer(
-            (args) ->
-                new ByteArrayInputStream(
-                    loadFile(fileWithContent).getBytes(StandardCharsets.UTF_8)));
-  }
-
-  private static String loadFile(String filename) {
-    return TestDataHelper.loadFile(Spec11EmailUtils.class, filename);
-  }
-
-  private static RegistrarThreatMatches getMatchA() throws Exception {
+  static RegistrarThreatMatches getMatchA() throws Exception {
     return RegistrarThreatMatches.create(
         "a@fake.com",
         ImmutableList.of(
@@ -112,7 +95,7 @@ public class Spec11RegistrarThreatMatchesParserTest {
                         "fullyQualifiedDomainName", "a.com")))));
   }
 
-  private static RegistrarThreatMatches getMatchB() throws Exception {
+  static RegistrarThreatMatches getMatchB() throws Exception {
     return RegistrarThreatMatches.create(
         "b@fake.com",
         ImmutableList.of(
@@ -130,5 +113,22 @@ public class Spec11RegistrarThreatMatchesParserTest {
                         "platformType", "ANY_PLATFORM",
                         "threatEntryMetadata", "NONE",
                         "fullyQualifiedDomainName", "c.com")))));
+  }
+
+  private void setupFile(String fileWithContent, String fileDate) {
+    GcsFilename gcsFilename =
+        new GcsFilename(
+            "test-bucket",
+            String.format("icann/spec11/2018-07/SPEC11_MONTHLY_REPORT_%s", fileDate));
+    when(gcsUtils.existsAndNotEmpty(gcsFilename)).thenReturn(true);
+    when(gcsUtils.openInputStream(gcsFilename))
+        .thenAnswer(
+            (args) ->
+                new ByteArrayInputStream(
+                    loadFile(fileWithContent).getBytes(StandardCharsets.UTF_8)));
+  }
+
+  private static String loadFile(String filename) {
+    return TestDataHelper.loadFile(Spec11EmailUtils.class, filename);
   }
 }
