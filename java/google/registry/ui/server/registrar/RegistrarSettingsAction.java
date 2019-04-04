@@ -501,10 +501,11 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     String environment = Ascii.toLowerCase(String.valueOf(registryEnvironment));
     sendEmailUtils.sendEmail(
         String.format(
-            "Registrar %s (%s) updated in %s",
+            "Registrar %s (%s) updated in registry %s environment",
             existingRegistrar.getRegistrarName(), existingRegistrar.getClientId(), environment),
         String.format(
-            "The following changes were made on %s to the registrar %s by %s:\n\n%s",
+            "The following changes were made in registry %s environment to "
+                + "the registrar %s by %s:\n\n%s",
             environment,
             existingRegistrar.getClientId(),
             authResult.userIdForLogging(),
