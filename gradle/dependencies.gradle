@@ -84,6 +84,7 @@ ext {
       'com.sun.xml.bind:jaxb-osgi:2.2.11',
       'com.sun.xml.bind:jaxb-xjc:2.2.11',
       'com.thoughtworks.paranamer:paranamer:2.7',
+      'com.thoughtworks.qdox:qdox:1.12.1',
       'dnsjava:dnsjava:2.1.7',
       'io.netty:netty-buffer:4.1.31.Final',
       'io.netty:netty-codec:4.1.31.Final',

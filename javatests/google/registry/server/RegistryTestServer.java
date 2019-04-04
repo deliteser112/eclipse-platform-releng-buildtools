@@ -15,6 +15,8 @@
 package google.registry.server;
 
 import static google.registry.server.Route.route;
+import static google.registry.util.BuildPathUtils.getProjectRoot;
+import static google.registry.util.BuildPathUtils.getResourcesDir;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -25,27 +27,22 @@ import google.registry.module.backend.BackendServlet;
 import google.registry.module.frontend.FrontendServlet;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
 import javax.servlet.Filter;
 
 /** Lightweight HTTP server for testing the Nomulus Admin and Registrar consoles. */
 public final class RegistryTestServer {
 
-  // In most cases, the current working dir is ${projectRoot}/gradle/${subproject}
-  private static final String PROJECT_ROOT =
-      Optional.ofNullable(System.getProperty("test.projectRoot")).orElse("../../");
-  private static final String RESOURCES_DIR =
-      Optional.ofNullable(System.getProperty("test.resourcesDir")).orElse("build/resources/main");
+  private static final Path PROJECT_ROOT = getProjectRoot();
+  private static final Path RESOURCES_DIR = getResourcesDir();
 
   public static final ImmutableMap<String, Path> RUNFILES =
       new ImmutableMap.Builder<String, Path>()
-          .put("/index.html", Paths.get(PROJECT_ROOT, "/java/google/registry/ui/html/index.html"))
-          .put("/error.html", Paths.get(PROJECT_ROOT, "/java/google/registry/ui/html/error.html"))
-          .put("/assets/js/*", Paths.get(RESOURCES_DIR, "/google/registry/ui"))
-          .put("/assets/css/*", Paths.get(RESOURCES_DIR, "/google/registry/ui/css"))
-          .put("/assets/sources/*", Paths.get(PROJECT_ROOT))
-          .put("/assets/*", Paths.get(PROJECT_ROOT, "/java/google/registry/ui/assets"))
+          .put("/index.html", PROJECT_ROOT.resolve("java/google/registry/ui/html/index.html"))
+          .put("/error.html", PROJECT_ROOT.resolve("java/google/registry/ui/html/error.html"))
+          .put("/assets/js/*", RESOURCES_DIR.resolve("google/registry/ui"))
+          .put("/assets/css/*", RESOURCES_DIR.resolve("google/registry/ui/css"))
+          .put("/assets/sources/*", PROJECT_ROOT)
+          .put("/assets/*", PROJECT_ROOT.resolve("java/google/registry/ui/assets"))
           .build();
 
   private static final ImmutableList<Route> ROUTES =

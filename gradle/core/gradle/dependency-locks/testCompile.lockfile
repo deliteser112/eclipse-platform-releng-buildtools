@@ -122,6 +122,7 @@ com.squareup.okhttp3:okhttp:3.11.0
 com.squareup.okhttp:okhttp:2.5.0
 com.squareup.okio:okio:1.14.0
 com.thoughtworks.paranamer:paranamer:2.7
+com.thoughtworks.qdox:qdox:1.12.1
 commons-codec:commons-codec:1.10
 commons-logging:commons-logging:1.2
 dnsjava:dnsjava:2.1.7

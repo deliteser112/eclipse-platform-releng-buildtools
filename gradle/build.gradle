@@ -58,6 +58,7 @@ if (!project.hasProperty('showAllOutput')) {
 gradleLint.autoLintAfterFailure = false
 
 // Paths to main and test sources.
+ext.projectRootDir = "${rootDir}/.."
 ext.javaDir = "${rootDir}/../java"
 ext.javatestsDir = "${rootDir}/../javatests"
 

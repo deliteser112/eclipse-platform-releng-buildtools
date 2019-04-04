@@ -172,6 +172,7 @@ dependencies {
   maybeRuntime deps['com.squareup:javawriter']
   maybeRuntime deps['com.sun.activation:javax.activation']
   maybeRuntime deps['com.thoughtworks.paranamer:paranamer']
+  testCompile deps['com.thoughtworks.qdox:qdox']
   maybeRuntime deps['commons-codec:commons-codec']
   maybeRuntime deps['commons-logging:commons-logging']
   compile deps['dnsjava:dnsjava']
@@ -613,6 +614,22 @@ task generateGoldenImages(type: Test) {
 }
 generateGoldenImages.finalizedBy(findGoldenImages)
 
+task flowDocsTool(type: JavaExec) {
+  systemProperty 'test.projectRoot', rootProject.projectRootDir
+  systemProperty 'test.resourcesDir', resourcesDir
+
+  classpath = sourceSets.main.runtimeClasspath
+  main = 'google.registry.documentation.FlowDocumentationTool'
+
+  def arguments = []
+  if (rootProject.flowDocsFile) {
+    arguments << "--output_file=${rootProject.flowDocsFile}"
+  } else {
+    arguments << "--output_file=${rootProject.projectRootDir}/docs/flows.md"
+  }
+  args arguments
+}
+
 test {
   // Common exclude pattern. See README in parent directory for explanation.
   exclude "**/*TestCase.*", "**/*TestSuite.*"
@@ -626,6 +643,9 @@ test {
 
   // Sets the maximum number of test executors that may exist at the same time.
   maxParallelForks 5
+
+  systemProperty 'test.projectRoot', rootProject.projectRootDir
+  systemProperty 'test.resourcesDir', resourcesDir
 
   doFirst {
     new File(screenshotsDir).deleteDir()
