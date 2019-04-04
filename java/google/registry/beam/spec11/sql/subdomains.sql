@@ -20,7 +20,7 @@
 
 SELECT
   domain.fullyQualifiedDomainName AS fullyQualifiedDomainName,
-  registrar.name AS registrarName,
+  registrar.clientId AS registrarClientId,
   COALESCE(registrar.emailAddress, '') AS registrarEmailAddress
 FROM ( (
     SELECT
@@ -37,13 +37,13 @@ FROM ( (
         OR deletionTime > CURRENT_TIMESTAMP)) AS domain
   JOIN (
     SELECT
-      __key__.name AS name,
+      __key__.name AS clientId,
       emailAddress
     FROM
       `%PROJECT_ID%.%DATASTORE_EXPORT_DATASET%.%REGISTRAR_TABLE%`
     WHERE
       type = 'REAL') AS registrar
   ON
-    domain.currentSponsorClientId = registrar.name)
+    domain.currentSponsorClientId = registrar.clientId)
 ORDER BY
   creationTime DESC

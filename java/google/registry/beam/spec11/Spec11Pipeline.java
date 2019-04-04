@@ -73,7 +73,7 @@ public class Spec11Pipeline implements Serializable {
   /** The JSON object field into which we put the registrar's e-mail address for Spec11 reports. */
   public static final String REGISTRAR_EMAIL_FIELD = "registrarEmailAddress";
   /** The JSON object field into which we put the registrar's name for Spec11 reports. */
-  public static final String REGISTRAR_NAME_FIELD = "registrarName";
+  public static final String REGISTRAR_CLIENT_ID_FIELD = "registrarClientId";
   /** The JSON object field we put the threat match array for Spec11 reports. */
   public static final String THREAT_MATCHES_FIELD = "threatMatches";
 
@@ -172,31 +172,31 @@ public class Spec11Pipeline implements Serializable {
         domains.apply("Run through SafeBrowsingAPI", ParDo.of(evaluateSafeBrowsingFn));
     subdomains
         .apply(
-            "Map registrar name to email/ThreatMatch pair",
+            "Map registrar client ID to email/ThreatMatch pair",
             MapElements.into(
                     TypeDescriptors.kvs(
                         TypeDescriptors.strings(), TypeDescriptor.of(EmailAndThreatMatch.class)))
                 .via(
                     (KV<Subdomain, ThreatMatch> kv) ->
                         KV.of(
-                            kv.getKey().registrarName(),
+                            kv.getKey().registrarClientId(),
                             EmailAndThreatMatch.create(
                                 kv.getKey().registrarEmailAddress(), kv.getValue()))))
-        .apply("Group by registrar name", GroupByKey.create())
+        .apply("Group by registrar client ID", GroupByKey.create())
         .apply(
             "Convert results to JSON format",
             MapElements.into(TypeDescriptors.strings())
                 .via(
                     (KV<String, Iterable<EmailAndThreatMatch>> kv) -> {
-                      String registrarName = kv.getKey();
+                      String clientId = kv.getKey();
                       checkArgument(
                           kv.getValue().iterator().hasNext(),
                           String.format(
-                              "Registrar named %s had no corresponding threats", registrarName));
+                              "Registrar with ID %s had no corresponding threats", clientId));
                       String email = kv.getValue().iterator().next().email();
                       JSONObject output = new JSONObject();
                       try {
-                        output.put(REGISTRAR_NAME_FIELD, registrarName);
+                        output.put(REGISTRAR_CLIENT_ID_FIELD, clientId);
                         output.put(REGISTRAR_EMAIL_FIELD, email);
                         JSONArray threatMatchArray = new JSONArray();
                         for (EmailAndThreatMatch emailAndThreatMatch : kv.getValue()) {
