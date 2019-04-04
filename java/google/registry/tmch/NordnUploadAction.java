@@ -191,7 +191,13 @@ public final class NordnUploadAction implements Runnable {
     HTTPRequest req = new HTTPRequest(new URL(url), POST, validateCertificate().setDeadline(60d));
     lordnRequestInitializer.initialize(req, tld);
     setPayloadMultipart(req, "file", "claims.csv", CSV_UTF_8, csvData, random);
-    HTTPResponse rsp = fetchService.fetch(req);
+    HTTPResponse rsp;
+    try {
+      rsp = fetchService.fetch(req);
+    } catch (IOException e) {
+      throw new IOException(
+          String.format("Error connecting to MarksDB at URL %s", url), e);
+    }
     if (logger.atInfo().isEnabled()) {
       String response =
           (rsp.getContent() == null) ? "(null)" : new String(rsp.getContent(), US_ASCII);

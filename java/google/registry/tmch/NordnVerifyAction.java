@@ -98,7 +98,13 @@ public final class NordnVerifyAction implements Runnable {
     logger.atInfo().log("LORDN verify task %s: Sending request to URL %s.", actionLogId, url);
     HTTPRequest req = new HTTPRequest(url, GET, validateCertificate().setDeadline(60d));
     lordnRequestInitializer.initialize(req, tld);
-    HTTPResponse rsp = fetchService.fetch(req);
+    HTTPResponse rsp;
+    try {
+      rsp = fetchService.fetch(req);
+    } catch (IOException e) {
+      throw new IOException(
+          String.format("Error connecting to MarksDB at URL %s", url), e);
+    }
     logger.atInfo().log(
         "LORDN verify task %s response: HTTP response code %d, response data: %s",
         actionLogId, rsp.getResponseCode(), rsp.getContent());

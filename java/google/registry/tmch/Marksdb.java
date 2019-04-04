@@ -115,7 +115,13 @@ public final class Marksdb {
   byte[] fetch(URL url, Optional<String> loginAndPassword) throws IOException {
     HTTPRequest req = new HTTPRequest(url, GET, validateCertificate().setDeadline(60d));
     setAuthorizationHeader(req, loginAndPassword);
-    HTTPResponse rsp = fetchService.fetch(req);
+    HTTPResponse rsp;
+    try {
+      rsp = fetchService.fetch(req);
+    } catch (IOException e) {
+      throw new IOException(
+          String.format("Error connecting to MarksDB at URL %s", url), e);
+    }
     if (rsp.getResponseCode() != SC_OK) {
       throw new UrlFetchException("Failed to fetch from MarksDB", req, rsp);
     }
