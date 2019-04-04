@@ -54,6 +54,7 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/module/backend",
         "//java/google/registry/module/frontend",
+        "//java/google/registry/util",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_guava",
         "@javax_servlet_api",
