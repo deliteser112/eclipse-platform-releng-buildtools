@@ -61,8 +61,10 @@ artifacts:
     location: 'gs://${PROJECT_ID}-deploy/${TAG_NAME}'
     # This cannot be regexs because of how Spinnaker constructs artifact paths.
     paths:
+      - 'proxy-deployment-crash.yaml'
       - 'proxy-deployment-sandbox.yaml'
       - 'proxy-deployment-production.yaml'
+      - 'proxy-deployment-crash-canary.yaml'
       - 'proxy-deployment-sandbox-canary.yaml'
       - 'proxy-deployment-production-canary.yaml'
       - 'proxy-service.yaml'

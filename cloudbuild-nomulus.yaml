@@ -41,19 +41,19 @@ steps:
   dir: 'gradle'
 - name: 'alpine'
   args: ['sh', './move_artifacts.sh', 'sandbox', 'nomulus']
-# Build the deployment files for alpha.
+# Build the deployment files for crash.
 - name: 'gcr.io/${PROJECT_ID}/builder'
   args:
     - './gradlew'
     - 'stage'
     - '-x'
     - 'autoLintGradle'
-    - '-Penvironment=alpha'
+    - '-Penvironment=crash'
     - '-PmavenUrl=gcs://domain-registry-maven-repository/maven'
     - '-PpluginsUrl=gcs://domain-registry-maven-repository/plugins'
   dir: 'gradle'
 - name: 'alpine'
-  args: ['sh', './move_artifacts.sh', 'alpha', 'nomulus']
+  args: ['sh', './move_artifacts.sh', 'crash', 'nomulus']
 # Create the uber tarball including all environments.
 - name: 'alpine'
   args: ['tar', 'cvf', '../nomulus.tar', '.']
