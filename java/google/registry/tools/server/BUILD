@@ -8,7 +8,6 @@ java_library(
     name = "server",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/appengine/public:appengine-remote-api-servlet",
         "//java/google/registry/config",
         "//java/google/registry/dns",
         "//java/google/registry/export",
