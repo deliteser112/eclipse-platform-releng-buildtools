@@ -54,6 +54,7 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -63,6 +64,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeComparator;
 
 /**
  * Helper class to create RDAP JSON objects for various registry entities and objects.
@@ -1008,32 +1010,85 @@ public class RdapJsonFormatter {
    * Creates an event list for a domain, host or contact resource.
    */
   private static ImmutableList<Object> makeEvents(EppResource resource, DateTime now) {
-    ImmutableList.Builder<Object> eventsBuilder = new ImmutableList.Builder<>();
-    for (HistoryEntry historyEntry : ofy().load()
-        .type(HistoryEntry.class)
-        .ancestor(resource)
-        .order("modificationTime")) {
-      // Only create an event if this is a type we care about.
-      if (!historyEntryTypeToRdapEventActionMap.containsKey(historyEntry.getType())) {
+    HashMap<RdapEventAction, HistoryEntry> lastEntryOfType = Maps.newHashMap();
+    // Events (such as transfer, but also create) can appear multiple times. We only want the last
+    // time they appeared.
+    //
+    // We can have multiple create historyEntries if a domain was deleted, and then someone new
+    // bought it.
+    //
+    // From RDAP response profile
+    // 2.3.2 The domain object in the RDAP response MAY contain the following events:
+    // 2.3.2.3 An event of *eventAction* type *transfer*, with the last date and time that the
+    // domain was transferred. The event of *eventAction* type *transfer* MUST be omitted if the
+    // domain name has not been transferred since it was created.
+    for (HistoryEntry historyEntry :
+        ofy().load().type(HistoryEntry.class).ancestor(resource).order("modificationTime")) {
+      RdapEventAction rdapEventAction =
+          historyEntryTypeToRdapEventActionMap.get(historyEntry.getType());
+      // Only save the historyEntries if this is a type we care about.
+      if (rdapEventAction == null) {
         continue;
       }
-      RdapEventAction eventAction =
-          historyEntryTypeToRdapEventActionMap.get(historyEntry.getType());
-      eventsBuilder.add(makeEvent(
-          eventAction, historyEntry.getClientId(), historyEntry.getModificationTime()));
+      lastEntryOfType.put(rdapEventAction, historyEntry);
+    }
+    ImmutableList.Builder<Object> eventsBuilder = new ImmutableList.Builder<>();
+    // There are 2 possibly conflicting values for the creation time - either the
+    // resource.getCreationTime, or the REGISTRATION event created from a HistoryEntry
+    //
+    // We favor the HistoryEntry if it exists, since we show that value as REGISTRATION time in the
+    // reply, so the reply will be self-consistent.
+    //
+    // This is mostly an issue in the tests as in "reality" these two values should be the same.
+    //
+    DateTime creationTime =
+        Optional.ofNullable(lastEntryOfType.get(RdapEventAction.REGISTRATION))
+            .map(historyEntry -> historyEntry.getModificationTime())
+            .orElse(resource.getCreationTime());
+    // TODO(b/129849684) remove this and use the events List defined above once we have Event
+    // objects
+    ImmutableList.Builder<DateTime> changeTimesBuilder = new ImmutableList.Builder<>();
+    // The order of the elements is stable - it's the order in which the enum elements are defined
+    // in RdapEventAction
+    for (RdapEventAction rdapEventAction : RdapEventAction.values()) {
+      HistoryEntry historyEntry = lastEntryOfType.get(rdapEventAction);
+      // Check if there was any entry of this type
+      if (historyEntry == null) {
+        continue;
+      }
+      DateTime modificationTime = historyEntry.getModificationTime();
+      // We will ignore all events that happened before the "creation time", since these events are
+      // from a "previous incarnation of the domain" (for a domain that was owned by someone,
+      // deleted, and then bought by someone else)
+      if (modificationTime.isBefore(creationTime)) {
+        continue;
+      }
+      eventsBuilder.add(makeEvent(rdapEventAction, historyEntry.getClientId(), modificationTime));
+      changeTimesBuilder.add(modificationTime);
     }
     if (resource instanceof DomainBase) {
       DateTime expirationTime = ((DomainBase) resource).getRegistrationExpirationTime();
       if (expirationTime != null) {
         eventsBuilder.add(makeEvent(RdapEventAction.EXPIRATION, null, expirationTime));
+        changeTimesBuilder.add(expirationTime);
       }
     }
-    if ((resource.getLastEppUpdateTime() != null)
-        && resource.getLastEppUpdateTime().isAfter(resource.getCreationTime())) {
-      eventsBuilder.add(makeEvent(
-          RdapEventAction.LAST_CHANGED, null, resource.getLastEppUpdateTime()));
+    if (resource.getLastEppUpdateTime() != null) {
+      changeTimesBuilder.add(resource.getLastEppUpdateTime());
+    }
+    // The last change time might not be the lastEppUpdateTime, since some changes happen without
+    // any EPP update (for example, by the passage of time).
+    DateTime lastChangeTime =
+        changeTimesBuilder.build().stream()
+        .filter(changeTime -> changeTime.isBefore(now))
+        .max(DateTimeComparator.getInstance())
+        .orElse(null);
+    if (lastChangeTime != null && lastChangeTime.isAfter(creationTime)) {
+      eventsBuilder.add(makeEvent(RdapEventAction.LAST_CHANGED, null, lastChangeTime));
     }
     eventsBuilder.add(makeEvent(RdapEventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, now));
+    // TODO(b/129849684): sort events by their time once we return a list of Events instead of JSON
+    // objects.
     return eventsBuilder.build();
   }
 

@@ -24,6 +24,10 @@
       "eventDate": "1999-07-01T00:00:00.000Z"
     },
     {
+      "eventAction": "last changed",
+      "eventDate": "1999-07-01T00:00:00.000Z"
+    },
+    {
       "eventAction": "last update of RDAP database",
       "eventDate": "2000-01-01T00:00:00.000Z"
     }

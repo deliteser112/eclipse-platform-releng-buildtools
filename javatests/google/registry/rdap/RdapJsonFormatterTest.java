@@ -72,7 +72,7 @@ public class RdapJsonFormatterTest {
 
   private Registrar registrar;
   private DomainBase domainBaseFull;
-  private DomainBase domainBaseNoNameservers;
+  private DomainBase domainBaseNoNameserversNoTransfers;
   private HostResource hostResourceIpv4;
   private HostResource hostResourceIpv6;
   private HostResource hostResourceBoth;
@@ -195,7 +195,7 @@ public class RdapJsonFormatterTest {
             hostResourceIpv4,
             hostResourceIpv6,
             registrar));
-    domainBaseNoNameservers = persistResource(
+    domainBaseNoNameserversNoTransfers = persistResource(
         makeDomainBase(
             "fish.みんな",
             contactResourceRegistrant,
@@ -224,14 +224,45 @@ public class RdapJsonFormatterTest {
             HistoryEntry.Type.DOMAIN_CREATE,
             Period.create(1, Period.Unit.YEARS),
             "created",
-            clock.nowUtc()));
+            clock.nowUtc().minusMonths(4)));
     persistResource(
         makeHistoryEntry(
-            domainBaseNoNameservers,
+            domainBaseNoNameserversNoTransfers,
             HistoryEntry.Type.DOMAIN_CREATE,
             Period.create(1, Period.Unit.YEARS),
             "created",
             clock.nowUtc()));
+    // We create 3 "transfer approved" entries, to make sure we only save the last one
+    persistResource(
+        makeHistoryEntry(
+            domainBaseFull,
+            HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE,
+            null,
+            null,
+            clock.nowUtc().minusMonths(3)));
+    persistResource(
+        makeHistoryEntry(
+            domainBaseFull,
+            HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE,
+            null,
+            null,
+            clock.nowUtc().minusMonths(1)));
+    persistResource(
+        makeHistoryEntry(
+            domainBaseFull,
+            HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE,
+            null,
+            null,
+            clock.nowUtc().minusMonths(2)));
+    // We create a "transfer approved" entry for domainBaseNoNameserversNoTransfers that happened
+    // before the domain was created, to make sure we don't show it
+    persistResource(
+        makeHistoryEntry(
+            domainBaseNoNameserversNoTransfers,
+            HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE,
+            null,
+            null,
+            clock.nowUtc().minusMonths(3)));
   }
 
   public static ImmutableList<RegistrarContact> makeMoreRegistrarContacts(Registrar registrar) {
@@ -553,9 +584,9 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testDomain_noNameservers() {
+  public void testDomain_noNameserversNoTransfers() {
     assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
-            domainBaseNoNameservers,
+            domainBaseNoNameserversNoTransfers,
             false,
             LINK_BASE,
             WHOIS_SERVER,
