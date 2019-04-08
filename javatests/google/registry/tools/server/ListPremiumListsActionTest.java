@@ -52,11 +52,11 @@ public class ListPremiumListsActionTest extends ListActionTestCase {
   public void testRun_withParameters() {
     testRunSuccess(
         action,
-        Optional.of("revisionKey,description"),
+        Optional.of("revisionKey"),
         Optional.empty(),
         Optional.empty(),
-        "^name\\s+revisionKey\\s+description\\s*$",
-        "^-+\\s+-+\\s+-+\\s*$",
+        "^name\\s+revisionKey\\s*$",
+        "^-+\\s+-+\\s*$",
         "^how\\s+.*PremiumList.*$",
         "^xn--q9jyb4c\\s+.*PremiumList.*$");
   }

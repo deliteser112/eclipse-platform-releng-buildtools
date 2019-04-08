@@ -332,7 +332,6 @@ public class ReservedListTest {
     ReservedList clone = original.asBuilder().build();
     assertThat(clone.getName()).isEqualTo("tld-reserved-cloning");
     assertThat(clone.creationTime).isEqualTo(original.creationTime);
-    assertThat(clone.description).isEqualTo(original.description);
     assertThat(clone.lastUpdateTime).isEqualTo(original.lastUpdateTime);
     assertThat(clone.parent).isEqualTo(original.parent);
     assertThat(original.getReservedListEntries()).isEqualTo(clone.getReservedListEntries());

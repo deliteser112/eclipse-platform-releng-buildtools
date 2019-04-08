@@ -525,7 +525,6 @@ class google.registry.model.registry.label.PremiumList {
   @Id java.lang.String name;
   @Parent com.googlecode.objectify.Key<google.registry.model.common.EntityGroupRoot> parent;
   com.googlecode.objectify.Key<google.registry.model.registry.label.PremiumList$PremiumListRevision> revisionKey;
-  java.lang.String description;
   org.joda.time.DateTime creationTime;
   org.joda.time.DateTime lastUpdateTime;
 }
@@ -552,7 +551,6 @@ class google.registry.model.registry.label.ReservedList {
   @Id java.lang.String name;
   @Parent com.googlecode.objectify.Key<google.registry.model.common.EntityGroupRoot> parent;
   boolean shouldPublish;
-  java.lang.String description;
   java.util.Map<java.lang.String, google.registry.model.registry.label.ReservedList$ReservedListEntry> reservedListMap;
   org.joda.time.DateTime creationTime;
   org.joda.time.DateTime lastUpdateTime;

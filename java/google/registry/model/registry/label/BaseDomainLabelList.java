@@ -64,8 +64,6 @@ public abstract class BaseDomainLabelList<T extends Comparable<?>, R extends Dom
 
   DateTime lastUpdateTime;
 
-  String description;
-
   public String getName() {
     return name;
   }
@@ -179,11 +177,6 @@ public abstract class BaseDomainLabelList<T extends Comparable<?>, R extends Dom
 
     public B setLastUpdateTime(DateTime lastUpdateTime) {
       getInstance().lastUpdateTime = lastUpdateTime;
-      return thisCastToDerived();
-    }
-
-    public B setDescription(String description) {
-      getInstance().description = description;
       return thisCastToDerived();
     }
 
