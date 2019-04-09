@@ -7,7 +7,7 @@
 # one layer is produced, but separating them makes it easier to experiment, as
 # previous layers are cached. When we settle on the content, consider merging
 # the RUNs.
-FROM gcr.io/gcp-runtimes/ubuntu_16_0_4
+FROM marketplace.gcr.io/google/ubuntu1804
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install apt-utils -y && apt-get upgrade -y
 RUN apt-get install -y locales lsb-release
