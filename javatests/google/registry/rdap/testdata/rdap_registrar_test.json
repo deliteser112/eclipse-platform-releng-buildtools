@@ -41,6 +41,22 @@
     {
       "objectClassName" : "entity",
       "status" : ["active"],
+      "roles" : ["abuse"],
+      "vcardArray" :
+      [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Jake Doe"],
+          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551216"],
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551216"],
+          ["email", {}, "text", "jakedoe@example.com"]
+        ]
+      ],
+    },
+    {
+      "objectClassName" : "entity",
+      "status" : ["active"],
       "roles" : ["administrative"],
       "vcardArray" :
       [

@@ -85,12 +85,15 @@ public class RdapJsonFormatter {
   @Inject RdapJsonFormatter() {}
 
   /**
-   * What type of data to generate. Summary data includes only information about the object itself,
-   * while full data includes associated items (e.g. for domains, full data includes the hosts,
-   * contacts and history entries connected with the domain). Summary data is appropriate for search
-   * queries which return many results, to avoid load on the system. According to the ICANN
-   * operational profile, a remark must be attached to the returned object indicating that it
-   * includes only summary data.
+   * What type of data to generate.
+   *
+   * <p>Summary data includes only information about the object itself, while full data includes
+   * associated items (e.g. for domains, full data includes the hosts, contacts and history entries
+   * connected with the domain).
+   *
+   * <p>Summary data is appropriate for search queries which return many results, to avoid load on
+   * the system. According to the ICANN operational profile, a remark must be attached to the
+   * returned object indicating that it includes only summary data.
    */
   public enum OutputDataType {
     FULL,
@@ -170,34 +173,33 @@ public class RdapJsonFormatter {
   }
 
   /** Map of EPP status values to the RDAP equivalents. */
-  private static final ImmutableMap<StatusValue, RdapStatus> statusToRdapStatusMap =
-      Maps.immutableEnumMap(
-          new ImmutableMap.Builder<StatusValue, RdapStatus>()
-              // RdapStatus.ADD_PERIOD not defined in our system
-              // RdapStatus.AUTO_RENEW_PERIOD not defined in our system
-              .put(StatusValue.CLIENT_DELETE_PROHIBITED, RdapStatus.CLIENT_DELETE_PROHIBITED)
-              .put(StatusValue.CLIENT_HOLD, RdapStatus.CLIENT_HOLD)
-              .put(StatusValue.CLIENT_RENEW_PROHIBITED, RdapStatus.CLIENT_RENEW_PROHIBITED)
-              .put(StatusValue.CLIENT_TRANSFER_PROHIBITED, RdapStatus.CLIENT_TRANSFER_PROHIBITED)
-              .put(StatusValue.CLIENT_UPDATE_PROHIBITED, RdapStatus.CLIENT_UPDATE_PROHIBITED)
-              .put(StatusValue.INACTIVE, RdapStatus.INACTIVE)
-              .put(StatusValue.LINKED, RdapStatus.ASSOCIATED)
-              .put(StatusValue.OK, RdapStatus.ACTIVE)
-              .put(StatusValue.PENDING_CREATE, RdapStatus.PENDING_CREATE)
-              .put(StatusValue.PENDING_DELETE, RdapStatus.PENDING_DELETE)
-              // RdapStatus.PENDING_RENEW not defined in our system
-              // RdapStatus.PENDING_RESTORE not defined in our system
-              .put(StatusValue.PENDING_TRANSFER, RdapStatus.PENDING_TRANSFER)
-              .put(StatusValue.PENDING_UPDATE, RdapStatus.PENDING_UPDATE)
-              // RdapStatus.REDEMPTION_PERIOD not defined in our system
-              // RdapStatus.RENEW_PERIOD not defined in our system
-              .put(StatusValue.SERVER_DELETE_PROHIBITED, RdapStatus.SERVER_DELETE_PROHIBITED)
-              .put(StatusValue.SERVER_HOLD, RdapStatus.SERVER_HOLD)
-              .put(StatusValue.SERVER_RENEW_PROHIBITED, RdapStatus.SERVER_RENEW_PROHIBITED)
-              .put(StatusValue.SERVER_TRANSFER_PROHIBITED, RdapStatus.SERVER_TRANSFER_PROHIBITED)
-              .put(StatusValue.SERVER_UPDATE_PROHIBITED, RdapStatus.SERVER_UPDATE_PROHIBITED)
-              // RdapStatus.TRANSFER_PERIOD not defined in our system
-              .build());
+  private static final ImmutableMap<StatusValue, RdapStatus> STATUS_TO_RDAP_STATUS_MAP =
+      new ImmutableMap.Builder<StatusValue, RdapStatus>()
+          // RdapStatus.ADD_PERIOD not defined in our system
+          // RdapStatus.AUTO_RENEW_PERIOD not defined in our system
+          .put(StatusValue.CLIENT_DELETE_PROHIBITED, RdapStatus.CLIENT_DELETE_PROHIBITED)
+          .put(StatusValue.CLIENT_HOLD, RdapStatus.CLIENT_HOLD)
+          .put(StatusValue.CLIENT_RENEW_PROHIBITED, RdapStatus.CLIENT_RENEW_PROHIBITED)
+          .put(StatusValue.CLIENT_TRANSFER_PROHIBITED, RdapStatus.CLIENT_TRANSFER_PROHIBITED)
+          .put(StatusValue.CLIENT_UPDATE_PROHIBITED, RdapStatus.CLIENT_UPDATE_PROHIBITED)
+          .put(StatusValue.INACTIVE, RdapStatus.INACTIVE)
+          .put(StatusValue.LINKED, RdapStatus.ASSOCIATED)
+          .put(StatusValue.OK, RdapStatus.ACTIVE)
+          .put(StatusValue.PENDING_CREATE, RdapStatus.PENDING_CREATE)
+          .put(StatusValue.PENDING_DELETE, RdapStatus.PENDING_DELETE)
+          // RdapStatus.PENDING_RENEW not defined in our system
+          // RdapStatus.PENDING_RESTORE not defined in our system
+          .put(StatusValue.PENDING_TRANSFER, RdapStatus.PENDING_TRANSFER)
+          .put(StatusValue.PENDING_UPDATE, RdapStatus.PENDING_UPDATE)
+          // RdapStatus.REDEMPTION_PERIOD not defined in our system
+          // RdapStatus.RENEW_PERIOD not defined in our system
+          .put(StatusValue.SERVER_DELETE_PROHIBITED, RdapStatus.SERVER_DELETE_PROHIBITED)
+          .put(StatusValue.SERVER_HOLD, RdapStatus.SERVER_HOLD)
+          .put(StatusValue.SERVER_RENEW_PROHIBITED, RdapStatus.SERVER_RENEW_PROHIBITED)
+          .put(StatusValue.SERVER_TRANSFER_PROHIBITED, RdapStatus.SERVER_TRANSFER_PROHIBITED)
+          .put(StatusValue.SERVER_UPDATE_PROHIBITED, RdapStatus.SERVER_UPDATE_PROHIBITED)
+          // RdapStatus.TRANSFER_PERIOD not defined in our system
+          .build();
 
   /** Role values specified in RFC 7483 § 10.2.4. */
   private enum RdapEntityRole {
@@ -248,21 +250,20 @@ public class RdapJsonFormatter {
 
   /** Map of EPP event values to the RDAP equivalents. */
   private static final ImmutableMap<HistoryEntry.Type, RdapEventAction>
-      historyEntryTypeToRdapEventActionMap =
-          Maps.immutableEnumMap(
-              new ImmutableMap.Builder<HistoryEntry.Type, RdapEventAction>()
-                  .put(HistoryEntry.Type.CONTACT_CREATE, RdapEventAction.REGISTRATION)
-                  .put(HistoryEntry.Type.CONTACT_DELETE, RdapEventAction.DELETION)
-                  .put(HistoryEntry.Type.CONTACT_TRANSFER_APPROVE, RdapEventAction.TRANSFER)
-                  .put(HistoryEntry.Type.DOMAIN_AUTORENEW, RdapEventAction.REREGISTRATION)
-                  .put(HistoryEntry.Type.DOMAIN_CREATE, RdapEventAction.REGISTRATION)
-                  .put(HistoryEntry.Type.DOMAIN_DELETE, RdapEventAction.DELETION)
-                  .put(HistoryEntry.Type.DOMAIN_RENEW, RdapEventAction.REREGISTRATION)
-                  .put(HistoryEntry.Type.DOMAIN_RESTORE, RdapEventAction.REINSTANTIATION)
-                  .put(HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE, RdapEventAction.TRANSFER)
-                  .put(HistoryEntry.Type.HOST_CREATE, RdapEventAction.REGISTRATION)
-                  .put(HistoryEntry.Type.HOST_DELETE, RdapEventAction.DELETION)
-                  .build());
+      HISTORY_ENTRY_TYPE_TO_RDAP_EVENT_ACTION_MAP =
+          new ImmutableMap.Builder<HistoryEntry.Type, RdapEventAction>()
+              .put(HistoryEntry.Type.CONTACT_CREATE, RdapEventAction.REGISTRATION)
+              .put(HistoryEntry.Type.CONTACT_DELETE, RdapEventAction.DELETION)
+              .put(HistoryEntry.Type.CONTACT_TRANSFER_APPROVE, RdapEventAction.TRANSFER)
+              .put(HistoryEntry.Type.DOMAIN_AUTORENEW, RdapEventAction.REREGISTRATION)
+              .put(HistoryEntry.Type.DOMAIN_CREATE, RdapEventAction.REGISTRATION)
+              .put(HistoryEntry.Type.DOMAIN_DELETE, RdapEventAction.DELETION)
+              .put(HistoryEntry.Type.DOMAIN_RENEW, RdapEventAction.REREGISTRATION)
+              .put(HistoryEntry.Type.DOMAIN_RESTORE, RdapEventAction.REINSTANTIATION)
+              .put(HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE, RdapEventAction.TRANSFER)
+              .put(HistoryEntry.Type.HOST_CREATE, RdapEventAction.REGISTRATION)
+              .put(HistoryEntry.Type.HOST_DELETE, RdapEventAction.DELETION)
+              .build();
 
   private static final ImmutableList<String> CONFORMANCE_LIST =
       ImmutableList.of(RDAP_CONFORMANCE_LEVEL);
@@ -598,6 +599,8 @@ public class RdapJsonFormatter {
     }
     ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
     builder.addAll(entities);
+    // TODO(b/130150723): we need to display the ABUSE contact for registrar object inside of Domain
+    // responses. Currently, we use summary for any "internal" registrar. 
     builder.add(
         makeRdapJsonForRegistrar(
             registrar.get(),
@@ -901,12 +904,12 @@ public class RdapJsonFormatter {
       }
       // include the registrar contacts as subentities
       ImmutableList<ImmutableMap<String, Object>> registrarContacts =
-          registrar
-              .getContacts()
-              .stream()
-              .filter(RdapJsonFormatter::isVisible)
+          registrar.getContacts().stream()
               .map(registrarContact -> makeRdapJsonForRegistrarContact(registrarContact, null))
+              .filter(entity -> !entity.isEmpty())
               .collect(toImmutableList());
+      // TODO(b/117242274): add a warning (severe?) log if registrar has no ABUSE contact, as having
+      // one is required by the RDAP response profile
       if (!registrarContacts.isEmpty()) {
         jsonBuilder.put("entities", registrarContacts);
       }
@@ -930,12 +933,18 @@ public class RdapJsonFormatter {
   /**
    * Creates a JSON object for a {@link RegistrarContact}.
    *
+   * <p>Returns an empty object if this contact shouldn't be visible (doesn't have a role).
+   *
    * @param registrarContact the registrar contact for which the JSON object should be created
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
-   *        port43 field; if null, port43 is not added to the object
+   *     port43 field; if null, port43 is not added to the object
    */
   static ImmutableMap<String, Object> makeRdapJsonForRegistrarContact(
       RegistrarContact registrarContact, @Nullable String whoisServer) {
+    ImmutableList<String> roles = makeRdapRoleList(registrarContact);
+    if (roles.isEmpty()) {
+      return ImmutableMap.of();
+    }
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("objectClassName", "entity");
     String gaeUserId = registrarContact.getGaeUserId();
@@ -943,7 +952,7 @@ public class RdapJsonFormatter {
       jsonBuilder.put("handle", registrarContact.getGaeUserId());
     }
     jsonBuilder.put("status", STATUS_LIST_ACTIVE);
-    jsonBuilder.put("roles", makeRdapRoleList(registrarContact));
+    jsonBuilder.put("roles", roles);
     // Create the vCard.
     ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
     vcardBuilder.add(VCARD_ENTRY_VERSION);
@@ -988,6 +997,14 @@ public class RdapJsonFormatter {
 
   /**
    * Creates the list of RDAP roles for a registrar contact, using the visibleInWhoisAs* flags.
+   *
+   * <p>Only contacts with a non-empty role list should be visible.
+   *
+   * <p>The RDAP response profile only mandates the "abuse" entity:
+   *
+   * <p>2.4.5. Abuse Contact (email, phone) - an RDAP server MUST include an *entity* with the
+   * *abuse* role within the registrar *entity* which MUST include *tel* and *email*, and MAY
+   * include other members
    */
   private static ImmutableList<String> makeRdapRoleList(RegistrarContact registrarContact) {
     ImmutableList.Builder<String> rolesBuilder = new ImmutableList.Builder<>();
@@ -997,13 +1014,10 @@ public class RdapJsonFormatter {
     if (registrarContact.getVisibleInWhoisAsTech()) {
       rolesBuilder.add(RdapEntityRole.TECH.rfc7483String);
     }
+    if (registrarContact.getVisibleInDomainWhoisAsAbuse()) {
+      rolesBuilder.add(RdapEntityRole.ABUSE.rfc7483String);
+    }
     return rolesBuilder.build();
-  }
-
-  /** Checks whether the registrar contact should be visible (because it has visible roles). */
-  private static boolean isVisible(RegistrarContact registrarContact) {
-    return registrarContact.getVisibleInWhoisAsAdmin()
-        || registrarContact.getVisibleInWhoisAsTech();
   }
 
   /**
@@ -1025,7 +1039,7 @@ public class RdapJsonFormatter {
     for (HistoryEntry historyEntry :
         ofy().load().type(HistoryEntry.class).ancestor(resource).order("modificationTime")) {
       RdapEventAction rdapEventAction =
-          historyEntryTypeToRdapEventActionMap.get(historyEntry.getType());
+          HISTORY_ENTRY_TYPE_TO_RDAP_EVENT_ACTION_MAP.get(historyEntry.getType());
       // Only save the historyEntries if this is a type we care about.
       if (rdapEventAction == null) {
         continue;
@@ -1211,7 +1225,7 @@ public class RdapJsonFormatter {
     Stream<RdapStatus> stream =
         statusValues
             .stream()
-            .map(status -> statusToRdapStatusMap.getOrDefault(status, RdapStatus.OBSCURED));
+            .map(status -> STATUS_TO_RDAP_STATUS_MAP.getOrDefault(status, RdapStatus.OBSCURED));
     if (isRedacted) {
       stream = Streams.concat(stream, Stream.of(RdapStatus.REMOVED));
     }
