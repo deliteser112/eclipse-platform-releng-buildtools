@@ -7,7 +7,7 @@ localizedAddress.street.1: null -> Ste 156
 localizedAddress.city: Williamsburg -> New York
 localizedAddress.zip: 11211 -> 10011
 phoneNumber: +1.2223334444 -> +1.2223335555
-emailAddress: new.registrar@example.com -> thase@the.registrar
+emailAddress: the.registrar@example.com -> thase@the.registrar
 url: http://my.fake.url -> http://my.new.url
 contacts:
     ADDED:

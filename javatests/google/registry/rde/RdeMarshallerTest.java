@@ -69,7 +69,7 @@ public class RdeMarshallerTest extends ShardableTestCase {
         + "        </rdeRegistrar:addr>\n"
         + "    </rdeRegistrar:postalInfo>\n"
         + "    <rdeRegistrar:voice>+1.2223334444</rdeRegistrar:voice>\n"
-        + "    <rdeRegistrar:email>new.registrar@example.com</rdeRegistrar:email>\n"
+        + "    <rdeRegistrar:email>the.registrar@example.com</rdeRegistrar:email>\n"
         + "    <rdeRegistrar:url>http://my.fake.url</rdeRegistrar:url>\n"
         + "    <rdeRegistrar:whoisInfo>\n"
         + "        <rdeRegistrar:name>whois.nic.fakewhois.example</rdeRegistrar:name>\n"

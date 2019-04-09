@@ -106,7 +106,7 @@
                 ]
               ],
               ["tel", {"type":["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "new.registrar@example.com"]
+              ["email", {}, "text", "the.registrar@example.com"]
             ]
           ],
           "publicIds" : [
@@ -192,7 +192,7 @@
                 ]
               ],
               ["tel", {"type":["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "new.registrar@example.com"]
+              ["email", {}, "text", "the.registrar@example.com"]
             ]
           ],
           "publicIds" : [
