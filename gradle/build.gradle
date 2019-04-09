@@ -263,6 +263,8 @@ subprojects {
   targetCompatibility = '1.8'
 
   compileJava { options.encoding = "UTF-8" }
+  compileTestJava { options.encoding = "UTF-8" }
+
 
   gradleLint.rules = [
       // Checks if Gradle wrapper is up-to-date
