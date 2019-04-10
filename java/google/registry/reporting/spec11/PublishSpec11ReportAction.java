@@ -14,6 +14,7 @@
 
 package google.registry.reporting.spec11;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.reporting.ReportingModule.PARAM_DATE;
 import static google.registry.request.Action.Method.POST;
@@ -24,7 +25,10 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.services.dataflow.Dataflow;
 import com.google.api.services.dataflow.model.Job;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimaps;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
@@ -168,12 +172,16 @@ public class PublishSpec11ReportAction implements Runnable {
   private ImmutableSet<RegistrarThreatMatches> getNewMatches(
       Set<RegistrarThreatMatches> previousMatchesSet,
       Set<RegistrarThreatMatches> currentMatchesSet) {
+    // Group by email address then flat-map all of the ThreatMatch objects together
+    ImmutableListMultimap<String, RegistrarThreatMatches> currentMatchesByEmail =
+        Multimaps.index(currentMatchesSet, RegistrarThreatMatches::registrarEmailAddress);
     Map<String, List<ThreatMatch>> currentMatchMap =
-        currentMatchesSet.stream()
-            .collect(
-                Collectors.toMap(
-                    RegistrarThreatMatches::registrarEmailAddress,
-                    RegistrarThreatMatches::threatMatches));
+        Maps.transformValues(
+            currentMatchesByEmail.asMap(),
+            registrarThreatMatchesCollection ->
+                registrarThreatMatchesCollection.stream()
+                    .flatMap(matches -> matches.threatMatches().stream())
+                    .collect(toImmutableList()));
     previousMatchesSet.forEach(
         previousMatches ->
             currentMatchMap.computeIfPresent(

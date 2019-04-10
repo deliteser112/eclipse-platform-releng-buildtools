@@ -15,6 +15,8 @@
 package google.registry.reporting.spec11;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.reporting.spec11.Spec11RegistrarThreatMatchesParserTest.getMatchA;
+import static google.registry.reporting.spec11.Spec11RegistrarThreatMatchesParserTest.getMatchB;
 import static google.registry.reporting.spec11.Spec11RegistrarThreatMatchesParserTest.sampleThreatMatches;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
@@ -30,8 +32,10 @@ import com.google.api.services.dataflow.Dataflow.Projects;
 import com.google.api.services.dataflow.Dataflow.Projects.Jobs;
 import com.google.api.services.dataflow.Dataflow.Projects.Jobs.Get;
 import com.google.api.services.dataflow.model.Job;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
+import google.registry.beam.spec11.ThreatMatch;
 import google.registry.reporting.spec11.soy.Spec11EmailSoyInfo;
 import google.registry.testing.FakeResponse;
 import java.io.IOException;
@@ -159,6 +163,39 @@ public class PublishSpec11ReportActionTest {
             Spec11EmailSoyInfo.DAILY_SPEC_11_EMAIL,
             "Super Cool Registry Daily Threat Detector [2018-06-05]",
             sampleThreatMatches());
+    verifyNoMoreInteractions(emailUtils);
+  }
+
+  @Test
+  public void testJobDone_multipleEntriesWithSameEmail() throws Exception {
+    LocalDate yesterday = date.minusDays(1);
+    when(parser.getPreviousDateWithMatches(date)).thenReturn(Optional.of(yesterday));
+    when(parser.getRegistrarThreatMatches(yesterday)).thenReturn(ImmutableSet.of());
+
+    // if the input is [{email: a, matches: list1}, {email: a, matches: list2}] then we should
+    // concatenate list1 and list2 in the resulting grouping
+    RegistrarThreatMatches firstMatches = getMatchA();
+    ImmutableList<ThreatMatch> secondMatchList = getMatchB().threatMatches();
+    RegistrarThreatMatches secondMatches =
+        RegistrarThreatMatches.create("a@fake.com", secondMatchList);
+    when(parser.getRegistrarThreatMatches(date))
+        .thenReturn(ImmutableSet.of(firstMatches, secondMatches));
+    expectedJob.setCurrentState("JOB_STATE_DONE");
+    publishAction.run();
+    ImmutableSet<RegistrarThreatMatches> expectedMatchSet =
+        ImmutableSet.of(
+            RegistrarThreatMatches.create(
+                "a@fake.com",
+                ImmutableList.<ThreatMatch>builder()
+                    .addAll(firstMatches.threatMatches())
+                    .addAll(secondMatchList)
+                    .build()));
+    verify(emailUtils)
+        .emailSpec11Reports(
+            date,
+            Spec11EmailSoyInfo.DAILY_SPEC_11_EMAIL,
+            "Super Cool Registry Daily Threat Detector [2018-06-05]",
+            expectedMatchSet);
     verifyNoMoreInteractions(emailUtils);
   }
 
