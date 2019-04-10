@@ -6,7 +6,6 @@
 # cloud-build-local --config=cloudbuild-proxy.yaml --dryrun=false --substitutions TAG_NAME=[TAG] .
 # This will create a docker image named gcr.io/[PROJECT_ID]/proxy:[TAG] locally.
 # The PROJECT_ID is the current project name that gcloud uses.
-# You can add "--push true" to have the image pushed to GCR.
 #
 # To manually trigger a build on GCB, run:
 # gcloud builds submit --config cloudbuild-proxy.yaml --substitutions TAG_NAME=[TAG] .
@@ -53,8 +52,26 @@ steps:
 # Replace project name.
 - name: 'alpine'
   args: ['sh', '-c', 'sed -i s/GCP_PROJECT/${PROJECT_ID}/ proxy-*.yaml']
-# Images to upload to GCR.
-images: ['gcr.io/${PROJECT_ID}/proxy:${TAG_NAME}']
+# Push the image. We can't let Cloud Build's default processing do that for us
+# because we need to push the image before we can sign it in the following
+# step.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/${PROJECT_ID}/proxy:${TAG_NAME}']
+# Get the image hash and sign it.
+- name: 'gcr.io/domain-registry-dev/builder'
+  entrypoint: /bin/bash
+  args:
+    - -c
+    - >
+      hash=$(gcloud container images list-tags \
+        gcr.io/${PROJECT_ID}/proxy \
+        --format="get(digest)" --filter="tags = ${TAG_NAME}") && \
+      gcloud --project=${PROJECT_ID} alpha container binauthz attestations \
+        sign-and-create --artifact-url=gcr.io/${PROJECT_ID}/proxy@$hash \
+        --attestor=build-attestor --attestor-project=${PROJECT_ID} \
+        --keyversion-project=${PROJECT_ID} --keyversion-location=global \
+        --keyversion-keyring=attestor-keys --keyversion-key=signing \
+        --keyversion=1
 # Config files to upload to GCS.
 artifacts:
   objects:
