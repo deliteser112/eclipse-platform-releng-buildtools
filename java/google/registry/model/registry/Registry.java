@@ -43,7 +43,6 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Mapify;
-import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
 import google.registry.model.Buildable;
@@ -277,12 +276,7 @@ public class Registry extends ImmutableObject implements Buildable {
    */
   int numDnsPublishLocks;
 
-  /**
-   * Updates an unset numDnsPublishLocks (0) to the standard default of 1.
-   *
-   * <p>TODO(b/74010245): Remove OnLoad once all Registry objects have this value set to 1.
-   */
-  @OnLoad
+  /** Updates an unset numDnsPublishLocks (0) to the standard default of 1. */
   void setDefaultNumDnsPublishLocks() {
     if (numDnsPublishLocks == 0) {
       numDnsPublishLocks = 1;
