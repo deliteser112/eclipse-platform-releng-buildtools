@@ -22,6 +22,7 @@ import static google.registry.model.billing.BillingEvent.Flag.ANCHOR_TENANT;
 import static google.registry.model.billing.BillingEvent.Flag.SUNRISE;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
+import static google.registry.model.domain.token.AllocationToken.TokenType.UNLIMITED_USE;
 import static google.registry.model.eppcommon.StatusValue.OK;
 import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
 import static google.registry.model.eppcommon.StatusValue.SERVER_HOLD;
@@ -450,6 +451,20 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         ofy().load().type(HistoryEntry.class).ancestor(reloadResourceByForeignKey()).first().now();
     assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry())
         .isEqualTo(Key.create(historyEntry));
+  }
+
+  @Test
+  public void testSuccess_validAllocationToken_multiUse() throws Exception {
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "example.tld"));
+    persistContactsAndHosts();
+    persistResource(
+        new AllocationToken.Builder().setTokenType(UNLIMITED_USE).setToken("abc123").build());
+    clock.advanceOneMilli();
+    doSuccessfulTest();
+    clock.advanceOneMilli();
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "otherexample.tld"));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "otherexample.tld")));
   }
 
   @Test

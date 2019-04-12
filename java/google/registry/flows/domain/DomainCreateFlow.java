@@ -88,6 +88,7 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.domain.token.AllocationToken.TokenType;
 import google.registry.model.domain.token.AllocationTokenExtension;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.EppInput;
@@ -354,8 +355,11 @@ public class DomainCreateFlow implements TransactionalFlow {
         newDomain,
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
         EppResourceIndex.create(Key.create(newDomain)));
-    allocationToken.ifPresent(
-        t -> entitiesToSave.add(allocationTokenFlowUtils.redeemToken(t, Key.create(historyEntry))));
+    if (allocationToken.isPresent()
+        && TokenType.SINGLE_USE.equals(allocationToken.get().getTokenType())) {
+      entitiesToSave.add(
+          allocationTokenFlowUtils.redeemToken(allocationToken.get(), Key.create(historyEntry)));
+    }
     enqueueTasks(newDomain, hasSignedMarks, hasClaimsNotice);
 
     EntityChanges entityChanges =

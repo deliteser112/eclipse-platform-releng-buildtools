@@ -23,6 +23,7 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import com.beust.jcommander.ParameterException;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.domain.token.AllocationToken.TokenType;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Collection;
 import javax.annotation.Nullable;
@@ -107,6 +108,18 @@ public class DeleteAllocationTokensCommandTest
     assertThat(reloadTokens(preNot1, preNot2, preDom1)).isEmpty();
     assertThat(reloadTokens(preRed1, preRed2, preDom2, othrRed, othrNot))
         .containsExactly(preRed1, preRed2, preDom2, othrRed, othrNot);
+  }
+
+  @Test
+  public void testSkipUnlimitedUseTokens() throws Exception {
+    AllocationToken unlimitedUseToken =
+        persistResource(
+            new AllocationToken.Builder()
+                .setToken("prefixasdfg897as")
+                .setTokenType(TokenType.UNLIMITED_USE)
+                .build());
+    runCommandForced("--prefix", "prefix");
+    assertThat(reloadTokens(unlimitedUseToken)).containsExactly(unlimitedUseToken);
   }
 
   @Test

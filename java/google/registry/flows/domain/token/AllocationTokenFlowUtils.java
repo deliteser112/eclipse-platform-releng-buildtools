@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain.token;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.collect.ImmutableMap;
@@ -24,6 +25,7 @@ import google.registry.flows.EppException.AssociationProhibitsOperationException
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.model.domain.DomainCommand;
 import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.domain.token.AllocationToken.TokenType;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.List;
@@ -89,9 +91,14 @@ public class AllocationTokenFlowUtils {
         : checkResults;
   }
 
-  /** Redeems an {@link AllocationToken}, returning the redeemed copy. */
+  /**
+   * Redeems a SINGLE_USE {@link AllocationToken}, returning the redeemed copy.
+   */
   public AllocationToken redeemToken(
       AllocationToken token, Key<HistoryEntry> redemptionHistoryEntry) {
+    checkArgument(
+        TokenType.SINGLE_USE.equals(token.getTokenType()),
+        "Only SINGLE_USE tokens can be marked as redeemed");
     return token.asBuilder().setRedemptionHistoryEntry(redemptionHistoryEntry).build();
   }
 

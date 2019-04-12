@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.partition;
 import static com.google.common.collect.Streams.stream;
+import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameter;
@@ -93,6 +94,7 @@ final class DeleteAllocationTokensCommand extends ConfirmingCommand
     ImmutableSet<AllocationToken> tokensToDelete =
         ofy().load().keys(batch).values().stream()
             .filter(t -> withDomains || !t.getDomainName().isPresent())
+            .filter(t -> SINGLE_USE.equals(t.getTokenType()))
             .filter(t -> !t.isRedeemed())
             .collect(toImmutableSet());
     if (!dryRun) {
