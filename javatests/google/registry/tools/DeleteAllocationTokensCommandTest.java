@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -129,7 +130,10 @@ public class DeleteAllocationTokensCommandTest
   private static AllocationToken persistToken(
       String token, @Nullable String domainName, boolean redeemed) {
     AllocationToken.Builder builder =
-        new AllocationToken.Builder().setToken(token).setDomainName(domainName);
+        new AllocationToken.Builder()
+            .setToken(token)
+            .setTokenType(SINGLE_USE)
+            .setDomainName(domainName);
     if (redeemed) {
       builder.setRedemptionHistoryEntry(Key.create(HistoryEntry.class, 1051L));
     }

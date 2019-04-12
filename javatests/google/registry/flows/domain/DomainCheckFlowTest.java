@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
 import static google.registry.model.eppoutput.CheckData.DomainCheck.create;
 import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
@@ -83,7 +84,11 @@ public class DomainCheckFlowTest
 
   private ReservedList createReservedList() {
     persistResource(
-        new AllocationToken.Builder().setDomainName("anchor.tld").setToken("2fooBAR").build());
+        new AllocationToken.Builder()
+            .setDomainName("anchor.tld")
+            .setToken("2fooBAR")
+            .setTokenType(SINGLE_USE)
+            .build());
     return persistReservedList(
         "tld-reserved",
         "reserved,FULLY_BLOCKED",
@@ -140,7 +145,8 @@ public class DomainCheckFlowTest
   public void testSuccess_oneExists_allocationTokenIsValid() throws Exception {
     setEppInput("domain_check_allocationtoken.xml");
     persistActiveDomain("example1.tld");
-    persistResource(new AllocationToken.Builder().setToken("abc123").build());
+    persistResource(
+        new AllocationToken.Builder().setToken("abc123").setTokenType(SINGLE_USE).build());
     doCheckTest(
         create(false, "example1.tld", "In use"),
         create(true, "example2.tld", null),
@@ -154,6 +160,7 @@ public class DomainCheckFlowTest
     persistResource(
         new AllocationToken.Builder()
             .setToken("abc123")
+            .setTokenType(SINGLE_USE)
             .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, 1L))
             .build());
     doCheckTest(

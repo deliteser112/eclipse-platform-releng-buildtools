@@ -231,9 +231,28 @@ class google.registry.model.domain.secdns.DelegationSignerData {
 class google.registry.model.domain.token.AllocationToken {
   @Id java.lang.String token;
   com.googlecode.objectify.Key<google.registry.model.reporting.HistoryEntry> redemptionHistoryEntry;
+  double discountFraction;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
+  google.registry.model.common.TimedTransitionProperty<google.registry.model.domain.token.AllocationToken$TokenStatus, google.registry.model.domain.token.AllocationToken$TokenStatusTransition> tokenStatusTransitions;
+  google.registry.model.domain.token.AllocationToken$TokenType tokenType;
   java.lang.String domainName;
+  java.util.Set<java.lang.String> allowedClientIds;
+  java.util.Set<java.lang.String> allowedTlds;
+}
+enum google.registry.model.domain.token.AllocationToken$TokenStatus {
+  CANCELLED;
+  ENDED;
+  NOT_STARTED;
+  VALID;
+}
+class google.registry.model.domain.token.AllocationToken$TokenStatusTransition {
+  google.registry.model.domain.token.AllocationToken$TokenStatus tokenStatus;
+  org.joda.time.DateTime transitionTime;
+}
+enum google.registry.model.domain.token.AllocationToken$TokenType {
+  SINGLE_USE;
+  UNLIMITED_USE;
 }
 class google.registry.model.eppcommon.AuthInfo$PasswordAuth {
   java.lang.String repoId;

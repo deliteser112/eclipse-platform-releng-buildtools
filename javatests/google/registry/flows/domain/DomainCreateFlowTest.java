@@ -21,6 +21,7 @@ import static google.registry.flows.FlowTestCase.UserPrivileges.SUPERUSER;
 import static google.registry.model.billing.BillingEvent.Flag.ANCHOR_TENANT;
 import static google.registry.model.billing.BillingEvent.Flag.SUNRISE;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
+import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
 import static google.registry.model.eppcommon.StatusValue.OK;
 import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
 import static google.registry.model.eppcommon.StatusValue.SERVER_HOLD;
@@ -175,7 +176,11 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void initCreateTest() {
     createTld("tld");
     persistResource(
-        new AllocationToken.Builder().setToken("abcDEF23456").setDomainName("anchor.tld").build());
+        new AllocationToken.Builder()
+            .setToken("abcDEF23456")
+            .setTokenType(SINGLE_USE)
+            .setDomainName("anchor.tld")
+            .build());
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -423,6 +428,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(
         new AllocationToken.Builder()
             .setToken("abc123")
+            .setTokenType(SINGLE_USE)
             .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, 505L))
             .build());
     clock.advanceOneMilli();
@@ -436,7 +442,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistContactsAndHosts();
     AllocationToken token =
-        persistResource(new AllocationToken.Builder().setToken("abc123").build());
+        persistResource(
+            new AllocationToken.Builder().setToken("abc123").setTokenType(SINGLE_USE).build());
     clock.advanceOneMilli();
     doSuccessfulTest();
     HistoryEntry historyEntry =
@@ -970,6 +977,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         new AllocationToken.Builder()
             .setDomainName("example-one.tld")
             .setToken("abcDEF23456")
+            .setTokenType(SINGLE_USE)
             .build());
     persistResource(
         Registry.get("tld")
@@ -1016,6 +1024,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         new AllocationToken.Builder()
             .setDomainName("test-validate.tld")
             .setToken("abcDEF23456")
+            .setTokenType(SINGLE_USE)
             .build());
     persistResource(
         Registry.get("tld")
@@ -1040,7 +1049,11 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testSuccess_reservedDomain_viaAllocationTokenExtension() throws Exception {
     persistResource(
-        new AllocationToken.Builder().setToken("abc123").setDomainName("resdom.tld").build());
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setTokenType(SINGLE_USE)
+            .setDomainName("resdom.tld")
+            .build());
     // Despite the domain being FULLY_BLOCKED, the non-superuser create succeeds the domain is also
     // RESERVED_FOR_SPECIFIC_USE and the correct allocation token is passed.
     setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "resdom.tld"));

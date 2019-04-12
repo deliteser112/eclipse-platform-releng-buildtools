@@ -154,7 +154,7 @@ public class Registry extends ImmutableObject implements Buildable {
 
   /**
    * A transition to a TLD state at a specific time, for use in a TimedTransitionProperty. Public
-   * because AppEngine's security manager requires this for instantiation via reflection.
+   * because App Engine's security manager requires this for instantiation via reflection.
    */
   @Embed
   public static class TldStateTransition extends TimedTransition<TldState> {
@@ -174,7 +174,8 @@ public class Registry extends ImmutableObject implements Buildable {
 
   /**
    * A transition to a given billing cost at a specific time, for use in a TimedTransitionProperty.
-   * Public because AppEngine's security manager requires this for instantiation via reflection.
+   *
+   * <p>Public because App Engine's security manager requires this for instantiation via reflection.
    */
   @Embed
   public static class BillingCostTransition extends TimedTransition<Money> {

@@ -15,6 +15,7 @@
 package google.registry.flows.domain.token;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
@@ -57,7 +58,8 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   @Test
   public void test_verifyToken_successfullyVerifiesValidToken() throws Exception {
     AllocationToken token =
-        persistResource(new AllocationToken.Builder().setToken("tokeN").build());
+        persistResource(
+            new AllocationToken.Builder().setToken("tokeN").setTokenType(SINGLE_USE).build());
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
@@ -89,7 +91,8 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
 
   @Test
   public void test_verifyToken_callsCustomLogic() {
-    persistResource(new AllocationToken.Builder().setToken("tokeN").build());
+    persistResource(
+        new AllocationToken.Builder().setToken("tokeN").setTokenType(SINGLE_USE).build());
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new FailingAllocationTokenCustomLogic());
     Exception thrown =
@@ -107,7 +110,8 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
 
   @Test
   public void test_checkDomainsWithToken_successfullyVerifiesValidToken() {
-    persistResource(new AllocationToken.Builder().setToken("tokeN").build());
+    persistResource(
+        new AllocationToken.Builder().setToken("tokeN").setTokenType(SINGLE_USE).build());
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
@@ -128,6 +132,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
     persistResource(
         new AllocationToken.Builder()
             .setToken("tokeN")
+            .setTokenType(SINGLE_USE)
             .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, 101L))
             .build());
     AllocationTokenFlowUtils flowUtils =
@@ -150,7 +155,8 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
 
   @Test
   public void test_checkDomainsWithToken_callsCustomLogic() {
-    persistResource(new AllocationToken.Builder().setToken("tokeN").build());
+    persistResource(
+        new AllocationToken.Builder().setToken("tokeN").setTokenType(SINGLE_USE).build());
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new FailingAllocationTokenCustomLogic());
     Exception thrown =
@@ -168,7 +174,8 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
 
   @Test
   public void test_checkDomainsWithToken_resultsFromCustomLogicAreIntegrated() {
-    persistResource(new AllocationToken.Builder().setToken("tokeN").build());
+    persistResource(
+        new AllocationToken.Builder().setToken("tokeN").setTokenType(SINGLE_USE).build());
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new CustomResultAllocationTokenCustomLogic());
     assertThat(

@@ -16,19 +16,36 @@ package google.registry.model.domain.token;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.CANCELLED;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.ENDED;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.NOT_STARTED;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.VALID;
+import static google.registry.util.CollectionUtils.forceEmptyToNull;
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Mapify;
+import com.googlecode.objectify.annotation.OnLoad;
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.Buildable;
 import google.registry.model.CreateAutoTimestamp;
 import google.registry.model.annotations.ReportedOn;
+import google.registry.model.common.TimedTransitionProperty;
+import google.registry.model.common.TimedTransitionProperty.TimeMapper;
+import google.registry.model.common.TimedTransitionProperty.TimedTransition;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
@@ -36,6 +53,31 @@ import org.joda.time.DateTime;
 @ReportedOn
 @Entity
 public class AllocationToken extends BackupGroupRoot implements Buildable {
+
+  // Promotions should only move forward, and ENDED / CANCELLED are terminal states.
+  private static final ImmutableMultimap<TokenStatus, TokenStatus> VALID_TOKEN_STATUS_TRANSITIONS =
+      ImmutableMultimap.<TokenStatus, TokenStatus>builder()
+          .putAll(NOT_STARTED, VALID, CANCELLED)
+          .putAll(VALID, ENDED, CANCELLED)
+          .build();
+
+  /** Single-use tokens are invalid after use. Infinite-use tokens, predictably, are not. */
+  public enum TokenType {
+    SINGLE_USE,
+    UNLIMITED_USE
+  }
+
+  /** The status of this token with regards to any potential promotion. */
+  public enum TokenStatus {
+    /** Default status for a token. Either a promotion doesn't exist or it hasn't started. */
+    NOT_STARTED,
+    /** A promotion is currently running. */
+    VALID,
+    /** The promotion has ended. */
+    ENDED,
+    /** The promotion was manually invalidated. */
+    CANCELLED
+  }
 
   /** The allocation token string. */
   @Id String token;
@@ -48,6 +90,61 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
 
   /** When this token was created. */
   CreateAutoTimestamp creationTime = CreateAutoTimestamp.create(null);
+
+  /** Allowed registrar client IDs for this token, or null if all registrars are allowed. */
+  @Nullable Set<String> allowedClientIds;
+
+  /** Allowed TLDs for this token, or null if all TLDs are allowed. */
+  @Nullable Set<String> allowedTlds;
+
+  /**
+   * For promotions, a discount off the base price for the first year between 0.0 and 1.0.
+   *
+   * <p>e.g. a value of 0.15 will mean a 15% discount off the base price for the first year.
+   */
+  double discountFraction;
+
+  /** The type of the token, either single-use or unlimited-use. */
+  // TODO(b/130301183): this should not be nullable, we can remove this once we're sure it isn't
+  @Nullable TokenType tokenType;
+
+  /**
+   * Promotional token validity periods.
+   *
+   * <p>If the token is promotional, the status will be VALID at the start of the promotion and
+   * ENDED at the end. If manually cancelled, we will add a CANCELLED status.
+   */
+  @Mapify(TimeMapper.class)
+  TimedTransitionProperty<TokenStatus, TokenStatusTransition> tokenStatusTransitions =
+      TimedTransitionProperty.forMapify(NOT_STARTED, TokenStatusTransition.class);
+
+  // TODO(b/130301183): Remove this after loading/saving all token entities
+  @OnLoad
+  void onLoad() {
+    if (tokenType == null) {
+      tokenType = TokenType.SINGLE_USE;
+    }
+  }
+
+  /**
+   * A transition to a given token status at a specific time, for use in a TimedTransitionProperty.
+   *
+   * <p>Public because App Engine's security manager requires this for instantiation via reflection.
+   */
+  @Embed
+  public static class TokenStatusTransition extends TimedTransition<TokenStatus> {
+    private TokenStatus tokenStatus;
+
+    @Override
+    public TokenStatus getValue() {
+      return tokenStatus;
+    }
+
+    @Override
+    protected void setValue(TokenStatus tokenStatus) {
+      this.tokenStatus = tokenStatus;
+    }
+  }
 
   public String getToken() {
     return token;
@@ -69,6 +166,22 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
     return Optional.ofNullable(creationTime.getTimestamp());
   }
 
+  public ImmutableSet<String> getAllowedClientIds() {
+    return nullToEmptyImmutableCopy(allowedClientIds);
+  }
+
+  public ImmutableSet<String> getAllowedTlds() {
+    return nullToEmptyImmutableCopy(allowedTlds);
+  }
+
+  public double getDiscountFraction() {
+    return discountFraction;
+  }
+
+  public TokenType getTokenType() {
+    return tokenType;
+  }
+
   @Override
   public Builder asBuilder() {
     return new Builder(clone(this));
@@ -82,17 +195,31 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
       super(instance);
     }
 
+    @Override
+    public AllocationToken build() {
+      checkArgumentNotNull(getInstance().tokenType, "Token type must be specified");
+      checkArgument(!Strings.isNullOrEmpty(getInstance().token), "Token must not be null or empty");
+      checkArgument(
+          getInstance().domainName == null || TokenType.SINGLE_USE.equals(getInstance().tokenType),
+          "Domain name can only be specified for SINGLE_USE tokens");
+      checkArgument(
+          getInstance().redemptionHistoryEntry == null
+              || TokenType.SINGLE_USE.equals(getInstance().tokenType),
+          "Redemption history entry can only be specified for SINGLE_USE tokens");
+      return super.build();
+    }
+
     public Builder setToken(String token) {
-      checkState(getInstance().token == null, "token can only be set once");
-      checkArgumentNotNull(token, "token must not be null");
-      checkArgument(!token.isEmpty(), "token must not be blank");
+      checkState(getInstance().token == null, "Token can only be set once");
+      checkArgumentNotNull(token, "Token must not be null");
+      checkArgument(!token.isEmpty(), "Token must not be blank");
       getInstance().token = token;
       return this;
     }
 
     public Builder setRedemptionHistoryEntry(Key<HistoryEntry> redemptionHistoryEntry) {
       getInstance().redemptionHistoryEntry =
-          checkArgumentNotNull(redemptionHistoryEntry, "redemptionHistoryEntry must not be null");
+          checkArgumentNotNull(redemptionHistoryEntry, "Redemption history entry must not be null");
       return this;
     }
 
@@ -104,8 +231,42 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
     @VisibleForTesting
     public Builder setCreationTimeForTest(DateTime creationTime) {
       checkState(
-          getInstance().creationTime.getTimestamp() == null, "creationTime can only be set once");
+          getInstance().creationTime.getTimestamp() == null, "Creation time can only be set once");
       getInstance().creationTime = CreateAutoTimestamp.create(creationTime);
+      return this;
+    }
+
+    public Builder setAllowedClientIds(Set<String> allowedClientIds) {
+      getInstance().allowedClientIds = forceEmptyToNull(allowedClientIds);
+      return this;
+    }
+
+    public Builder setAllowedTlds(Set<String> allowedTlds) {
+      getInstance().allowedTlds = forceEmptyToNull(allowedTlds);
+      return this;
+    }
+
+    public Builder setDiscountFraction(double discountFraction) {
+      getInstance().discountFraction = discountFraction;
+      return this;
+    }
+
+    public Builder setTokenType(TokenType tokenType) {
+      checkState(getInstance().tokenType == null, "Token type can only be set once");
+      getInstance().tokenType = tokenType;
+      return this;
+    }
+
+    public Builder setTokenStatusTransitions(
+        ImmutableSortedMap<DateTime, TokenStatus> transitions) {
+      getInstance().tokenStatusTransitions =
+          TimedTransitionProperty.make(
+              transitions,
+              TokenStatusTransition.class,
+              VALID_TOKEN_STATUS_TRANSITIONS,
+              "",
+              NOT_STARTED,
+              "");
       return this;
     }
   }

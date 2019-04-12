@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Queues.newArrayDeque;
 import static com.google.common.collect.Sets.difference;
+import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.StringGenerator.DEFAULT_PASSWORD_LENGTH;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -117,6 +118,8 @@ class GenerateAllocationTokensCommand implements CommandWithRemoteApi {
               .map(
                   t -> {
                     AllocationToken.Builder token = new AllocationToken.Builder().setToken(t);
+                    // TODO(b/129471448): allow this to be unlimited-use as well
+                    token.setTokenType(SINGLE_USE);
                     if (domainNames != null) {
                       token.setDomainName(domainNames.removeFirst());
                     }

@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
 import static google.registry.testing.DatastoreHelper.createHistoryEntryForEppResource;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -36,7 +37,11 @@ public class GetAllocationTokenCommandTest extends CommandTestCase<GetAllocation
   public void testSuccess_oneToken() throws Exception {
     AllocationToken token =
         persistResource(
-            new AllocationToken.Builder().setToken("foo").setDomainName("foo.bar").build());
+            new AllocationToken.Builder()
+                .setToken("foo")
+                .setTokenType(SINGLE_USE)
+                .setDomainName("foo.bar")
+                .build());
     runCommand("foo");
     assertInStdout(token.toString(), "Token foo was not redeemed.");
   }
@@ -48,9 +53,14 @@ public class GetAllocationTokenCommandTest extends CommandTestCase<GetAllocation
             ImmutableList.of(
                 new AllocationToken.Builder()
                     .setToken("fee")
+                    .setTokenType(SINGLE_USE)
                     .setCreationTimeForTest(DateTime.parse("2015-04-07T22:19:17.044Z"))
                     .build(),
-                new AllocationToken.Builder().setToken("fii").setDomainName("bar.baz").build()));
+                new AllocationToken.Builder()
+                    .setToken("fii")
+                    .setTokenType(SINGLE_USE)
+                    .setDomainName("bar.baz")
+                    .build()));
     runCommand("fee", "fii");
     assertInStdout(
         tokens.get(0).toString(),
@@ -68,6 +78,7 @@ public class GetAllocationTokenCommandTest extends CommandTestCase<GetAllocation
         persistResource(
             new AllocationToken.Builder()
                 .setToken("foo")
+                .setTokenType(SINGLE_USE)
                 .setDomainName("fqqdn.tld")
                 .setRedemptionHistoryEntry(Key.create(createHistoryEntryForEppResource(domain)))
                 .build());
@@ -81,12 +92,14 @@ public class GetAllocationTokenCommandTest extends CommandTestCase<GetAllocation
   public void testSuccess_oneTokenDoesNotExist() throws Exception {
     AllocationToken token =
         persistResource(
-            new AllocationToken.Builder().setToken("foo").setDomainName("foo.bar").build());
+            new AllocationToken.Builder()
+                .setToken("foo")
+                .setTokenType(SINGLE_USE)
+                .setDomainName("foo.bar")
+                .build());
     runCommand("foo", "bar");
     assertInStdout(
-        token.toString(),
-        "Token foo was not redeemed.",
-        "ERROR: Token bar does not exist.");
+        token.toString(), "Token foo was not redeemed.", "ERROR: Token bar does not exist.");
   }
 
   @Test

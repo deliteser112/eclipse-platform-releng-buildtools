@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
@@ -94,7 +95,11 @@ public class GenerateAllocationTokensCommandTest
   @Test
   public void testSuccess_tokenCollision() throws Exception {
     AllocationToken existingToken =
-        persistResource(new AllocationToken.Builder().setToken("DEADBEEF123456789ABC").build());
+        persistResource(
+            new AllocationToken.Builder()
+                .setToken("DEADBEEF123456789ABC")
+                .setTokenType(SINGLE_USE)
+                .build());
     runCommand("--number", "1", "--prefix", "DEADBEEF", "--length", "12");
     assertAllocationTokens(existingToken, createToken("DEADBEEFDEFGHJKLMNPQ", null, null));
     assertInStdout("DEADBEEFDEFGHJKLMNPQ");
@@ -177,7 +182,8 @@ public class GenerateAllocationTokensCommandTest
       String token,
       @Nullable Key<HistoryEntry> redemptionHistoryEntry,
       @Nullable String domainName) {
-    AllocationToken.Builder builder = new AllocationToken.Builder().setToken(token);
+    AllocationToken.Builder builder =
+        new AllocationToken.Builder().setToken(token).setTokenType(SINGLE_USE);
     if (redemptionHistoryEntry != null) {
       builder.setRedemptionHistoryEntry(redemptionHistoryEntry);
     }
