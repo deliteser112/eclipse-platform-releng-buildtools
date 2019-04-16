@@ -46,12 +46,12 @@
   <link rel="icon" href="/assets/images/ribbon_certified-64.png">
   {switch DEBUG}
     {case google.registry.ui.ConsoleDebug.PRODUCTION}
-      <link rel="stylesheet" href="/assets/css/{$app |blessStringAsTrustedResourceUrlForLegacy}_bin.css">
+      <link rel="stylesheet" href="/assets/css/{$app}_bin.css">
     {case google.registry.ui.ConsoleDebug.DEBUG}
-      <link rel="stylesheet" href="/assets/css/{$app |blessStringAsTrustedResourceUrlForLegacy}_dbg.css">
+      <link rel="stylesheet" href="/assets/css/{$app}_dbg.css">
     {case google.registry.ui.ConsoleDebug.RAW}
       <link rel="stylesheet"
-            href="/assets/sources/domain_registry/java/google/registry/ui/css/{$app |blessStringAsTrustedResourceUrlForLegacy}_imports_raw.css">
+            href="/assets/sources/domain_registry/java/google/registry/ui/css/{$app}_imports_raw.css">
     {default}
       <!-- No DEBUG option set. -->
   {/switch}
