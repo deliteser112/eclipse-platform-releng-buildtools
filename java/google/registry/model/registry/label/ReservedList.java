@@ -21,20 +21,16 @@ import static google.registry.config.RegistryConfig.getDomainLabelListCacheDurat
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
-import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Embed;
@@ -47,7 +43,6 @@ import google.registry.model.registry.label.DomainLabelMetrics.MetricsReservedLi
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -74,18 +69,6 @@ public final class ReservedList
 
     ReservationType reservationType;
 
-    /**
-     * Contains a comma-delimited list of the fully qualified hostnames of the nameservers that can
-     * be set on a domain with this label (only applicable to NAMESERVER_RESTRICTED).
-     *
-     * <p>A String field is persisted because Objectify 4 does not allow multi-dimensional
-     * collections in embedded entities.
-     *
-     * @see <a
-     *     href="https://github.com/objectify/objectify-legacy-wiki/blob/v4/Entities.wiki#embedding.">Embedding</a>
-     */
-    String allowedNameservers;
-
     /** Mapper for use with @Mapify */
     static class LabelMapper implements Mapper<String, ReservedListEntry> {
 
@@ -95,50 +78,19 @@ public final class ReservedList
       }
     }
 
-    /**
-     * Creates a {@link ReservedListEntry} from label, reservation type, and optionally additional
-     * restrictions
-     *
-     * <p>The additional restricitno can be the authCode for anchor tenant or the allowed
-     * nameservers (in a colon-separated string) for nameserver-restricted domains.
-     */
+    /** Creates a {@link ReservedListEntry} from a label, reservation type, and optional comment. */
     public static ReservedListEntry create(
-        String label,
-        ReservationType reservationType,
-        @Nullable String allowedNameservers,
-        @Nullable String comment) {
-      ReservedListEntry.Builder entry =
-          new ReservedListEntry.Builder()
-              .setLabel(label)
-              .setComment(comment)
-              .setReservationType(reservationType);
-      checkArgument(
-          (reservationType == NAMESERVER_RESTRICTED) ^ (allowedNameservers == null),
-          "Allowed nameservers must be specified for NAMESERVER_RESTRICTED reservations only");
-      if (allowedNameservers != null) {
-        entry.setAllowedNameservers(
-            ImmutableSet.copyOf(Splitter.on(':').trimResults().split(allowedNameservers)));
-      }
-      return entry.build();
-    }
-
-    private static void checkNameserversAreValid(Set<String> nameservers) {
-      // A domain name with fewer than two parts cannot be a hostname, as a nameserver should be.
-      nameservers.forEach(
-          (ns) ->
-              checkArgument(
-                  InternetDomainName.from(ns).parts().size() >= 3,
-                  "%s is not a valid nameserver hostname",
-                  ns));
+        String label, ReservationType reservationType, @Nullable String comment) {
+      return new ReservedListEntry.Builder()
+          .setLabel(label)
+          .setReservationType(reservationType)
+          .setComment(comment)
+          .build();
     }
 
     @Override
     public ReservationType getValue() {
       return reservationType;
-    }
-
-    public ImmutableSet<String> getAllowedNameservers() {
-      return ImmutableSet.copyOf(Splitter.on(',').splitToList(allowedNameservers));
     }
 
     @Override
@@ -154,12 +106,6 @@ public final class ReservedList
 
       private Builder(ReservedListEntry instance) {
         super(instance);
-      }
-
-      ReservedListEntry.Builder setAllowedNameservers(Set<String> allowedNameservers) {
-        checkNameserversAreValid(allowedNameservers);
-        getInstance().allowedNameservers = Joiner.on(',').join(allowedNameservers);
-        return this;
       }
 
       ReservedListEntry.Builder setReservationType(ReservationType reservationType) {
@@ -223,22 +169,6 @@ public final class ReservedList
         .stream()
         .map(ReservedListEntry::getValue)
         .collect(toImmutableSet());
-  }
-
-  /**
-   * Returns the set of nameservers that can be set on the given domain.
-   *
-   * <p>The allowed nameservers are the intersection of all allowed nameservers for the given domain
-   * across all reserved lists. Returns an empty set if not applicable, i. e. the label for the
-   * domain is not set with {@code NAMESERVER_RESTRICTED} reservation type.
-   */
-  public static ImmutableSet<String> getAllowedNameservers(InternetDomainName domainName) {
-    return getReservedListEntries(domainName.parts().get(0), domainName.parent().toString())
-        .stream()
-        .filter((entry) -> entry.reservationType == NAMESERVER_RESTRICTED)
-        .map(ReservedListEntry::getAllowedNameservers)
-        .reduce((types1, types2) -> Sets.intersection(types1, types2).immutableCopy())
-        .orElse(ImmutableSet.of());
   }
 
   /**
@@ -327,8 +257,7 @@ public final class ReservedList
         "Could not parse line in reserved list: %s", originalLine);
     String label = parts.get(0);
     ReservationType reservationType = ReservationType.valueOf(parts.get(1));
-    String restrictions = (parts.size() > 2) ? parts.get(2) : null;
-    return ReservedListEntry.create(label, reservationType, restrictions, comment);
+    return ReservedListEntry.create(label, reservationType, comment);
   }
 
   @Override

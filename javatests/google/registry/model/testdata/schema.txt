@@ -488,7 +488,6 @@ class google.registry.model.registry.Registry {
   @Id java.lang.String tldStrId;
   @Parent com.googlecode.objectify.Key<google.registry.model.common.EntityGroupRoot> parent;
   boolean dnsPaused;
-  boolean domainCreateRestricted;
   boolean escrowEnabled;
   com.googlecode.objectify.Key<google.registry.model.registry.label.PremiumList> premiumList;
   google.registry.model.CreateAutoTimestamp creationTime;
@@ -561,7 +560,6 @@ class google.registry.model.registry.label.PremiumList$PremiumListRevision {
 enum google.registry.model.registry.label.ReservationType {
   ALLOWED_IN_SUNRISE;
   FULLY_BLOCKED;
-  NAMESERVER_RESTRICTED;
   NAME_COLLISION;
   RESERVED_FOR_ANCHOR_TENANT;
   RESERVED_FOR_SPECIFIC_USE;
@@ -577,7 +575,6 @@ class google.registry.model.registry.label.ReservedList {
 class google.registry.model.registry.label.ReservedList$ReservedListEntry {
   @Id java.lang.String label;
   google.registry.model.registry.label.ReservationType reservationType;
-  java.lang.String allowedNameservers;
   java.lang.String comment;
 }
 class google.registry.model.reporting.DomainTransactionRecord {

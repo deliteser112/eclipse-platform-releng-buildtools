@@ -23,9 +23,7 @@ import static google.registry.model.registry.label.DomainLabelMetrics.reservedLi
 import static google.registry.model.registry.label.DomainLabelMetrics.reservedListProcessingTime;
 import static google.registry.model.registry.label.ReservationType.ALLOWED_IN_SUNRISE;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
-import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
-import static google.registry.model.registry.label.ReservedList.getAllowedNameservers;
 import static google.registry.model.registry.label.ReservedList.getReservationTypes;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -34,7 +32,6 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.net.InternetDomainName;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList.ReservedListEntry;
@@ -113,38 +110,6 @@ public class ReservedListTest {
       assertThat(getReservationTypes("" + c, "tld")).isEmpty();
     }
     verifyUnreservedCheckCount(26);
-  }
-
-  @Test
-  public void testGetAllowedNameservers() {
-    ReservedList rl1 =
-        persistReservedList(
-            "reserved1",
-            "lol,NAMESERVER_RESTRICTED,ns1.nameserver.com",
-            "lol1,NAMESERVER_RESTRICTED,ns1.nameserver.com:ns2.domain.tld:ns3.domain.tld",
-            "lol2,NAMESERVER_RESTRICTED,ns.name.tld # This is a comment");
-    ReservedList rl2 =
-        persistReservedList(
-            "reserved2",
-            "lol1,NAMESERVER_RESTRICTED,ns3.nameserver.com:ns2.domain.tld:ns3.domain.tld",
-            "lol2,NAMESERVER_RESTRICTED,ns3.nameserver.com:ns4.domain.tld",
-            "lol3,NAMESERVER_RESTRICTED,ns3.nameserver.com");
-    ReservedList rl3 =
-        persistReservedList(
-            "reserved3", "lol1,NAMESERVER_RESTRICTED,ns3.domain.tld", "lol4,ALLOWED_IN_SUNRISE");
-    persistResource(Registry.get("tld").asBuilder().setReservedLists(rl1, rl2, rl3).build());
-    assertThat(getReservationTypes("lol", "tld")).containsExactly(NAMESERVER_RESTRICTED);
-    assertThat(getReservationTypes("lol1", "tld")).containsExactly(NAMESERVER_RESTRICTED);
-    assertThat(getReservationTypes("lol2", "tld")).containsExactly(NAMESERVER_RESTRICTED);
-    assertThat(getReservationTypes("lol3", "tld")).containsExactly(NAMESERVER_RESTRICTED);
-    assertThat(getAllowedNameservers(InternetDomainName.from("lol.tld")))
-        .containsExactly("ns1.nameserver.com");
-    assertThat(getAllowedNameservers(InternetDomainName.from("lol1.tld")))
-        .containsExactly("ns3.domain.tld");
-    assertThat(getAllowedNameservers(InternetDomainName.from("lol2.tld"))).isEmpty();
-    assertThat(getAllowedNameservers(InternetDomainName.from("lol3.tld")))
-        .containsExactly("ns3.nameserver.com");
-    assertThat(getAllowedNameservers(InternetDomainName.from("lol4.tld"))).isEmpty();
   }
 
   @Test
@@ -353,70 +318,6 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave_additionalRestrictionWithIncompatibleReservationType() {
-    IllegalArgumentException thrown =
-        assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                persistResource(
-                    Registry.get("tld")
-                        .asBuilder()
-                        .setReservedLists(
-                            ImmutableSet.of(
-                                persistReservedList("reserved1", "lol,FULLY_BLOCKED,foobar1")))
-                        .build()));
-    assertThat(thrown)
-        .hasMessageThat()
-        .contains(
-            "Allowed nameservers must be specified for NAMESERVER_RESTRICTED reservations only");
-  }
-
-  @Test
-  public void testSave_badNameservers_invalidSyntax() {
-    IllegalArgumentException thrown =
-        assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                persistReservedList(
-                    "reserved1",
-                    "lol,NAMESERVER_RESTRICTED,ns1.domain.tld:ns2.domain.tld",
-                    "lol1,NAMESERVER_RESTRICTED,ns1.domain.tld:ns@.domain.tld"));
-    assertThat(thrown).hasMessageThat().contains("Not a valid domain name: 'ns@.domain.tld'");
-  }
-
-  @Test
-  public void testSave_badNameservers_tooFewPartsForHostname() {
-    IllegalArgumentException thrown =
-        assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                persistReservedList(
-                    "reserved1",
-                    "lol,NAMESERVER_RESTRICTED,ns1.domain.tld:ns2.domain.tld",
-                    "lol1,NAMESERVER_RESTRICTED,ns1.domain.tld:domain.tld"));
-    assertThat(thrown).hasMessageThat().contains("domain.tld is not a valid nameserver hostname");
-  }
-
-  @Test
-  public void testSave_noNameserversWithNameserverRestrictedReservation() {
-    IllegalArgumentException thrown =
-        assertThrows(
-            IllegalArgumentException.class,
-            () ->
-                persistResource(
-                    Registry.get("tld")
-                        .asBuilder()
-                        .setReservedLists(
-                            ImmutableSet.of(
-                                persistReservedList("reserved1", "lol,NAMESERVER_RESTRICTED")))
-                        .build()));
-    assertThat(thrown)
-        .hasMessageThat()
-        .contains(
-            "Allowed nameservers must be specified for NAMESERVER_RESTRICTED reservations only");
-  }
-
-  @Test
   public void testParse_cannotIncludeDuplicateLabels() {
     ReservedList rl = new ReservedList.Builder().setName("blah").build();
     IllegalStateException thrown =
@@ -441,7 +342,7 @@ public class ReservedListTest {
     Exception e =
         assertThrows(
             IllegalArgumentException.class,
-            () -> ReservedListEntry.create("UPPER.tld", FULLY_BLOCKED, null, null));
+            () -> ReservedListEntry.create("UPPER.tld", FULLY_BLOCKED, null));
     assertThat(e).hasMessageThat().contains("must be in puny-coded, lower-case form");
   }
 
@@ -450,7 +351,7 @@ public class ReservedListTest {
     Exception e =
         assertThrows(
             IllegalArgumentException.class,
-            () -> ReservedListEntry.create("lower.みんな", FULLY_BLOCKED, null, null));
+            () -> ReservedListEntry.create("lower.みんな", FULLY_BLOCKED, null));
     assertThat(e).hasMessageThat().contains("must be in puny-coded, lower-case form");
   }
 }

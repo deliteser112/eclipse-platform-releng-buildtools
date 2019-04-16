@@ -68,7 +68,6 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     assertThat(registry).isNotNull();
     assertThat(registry.getAddGracePeriodLength()).isEqualTo(Registry.DEFAULT_ADD_GRACE_PERIOD);
     assertThat(registry.getCreationTime()).isIn(Range.closed(before, after));
-    assertThat(registry.getDomainCreateRestricted()).isFalse();
     assertThat(registry.getDnsWriters()).containsExactly("FooDnsWriter");
     assertThat(registry.getTldState(registry.getCreationTime())).isEqualTo(PREDELEGATION);
     assertThat(registry.getRedemptionGracePeriodLength())
@@ -439,16 +438,6 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getAllowedFullyQualifiedHostNames())
         .containsExactly("ns1.example.com", "ns2.example.com");
-  }
-
-  @Test
-  public void testSuccess_setDomainCreateRestricted() throws Exception {
-    runCommandForced(
-        "--domain_create_restricted=true",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=FooDnsWriter",
-        "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getDomainCreateRestricted()).isTrue();
   }
 
   @Test

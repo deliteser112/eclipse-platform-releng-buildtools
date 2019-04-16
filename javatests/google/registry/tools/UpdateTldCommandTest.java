@@ -399,30 +399,6 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   }
 
   @Test
-  public void testSuccess_setTldToDomainCreateRestricted() throws Exception {
-    persistResource(
-        Registry.get("xn--q9jyb4c").asBuilder().setDomainCreateRestricted(false).build());
-    runCommandForced("--domain_create_restricted=true", "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getDomainCreateRestricted()).isTrue();
-  }
-
-  @Test
-  public void testSuccess_unsetTldToDomainCreateRestricted() throws Exception {
-    persistResource(
-        Registry.get("xn--q9jyb4c").asBuilder().setDomainCreateRestricted(true).build());
-    runCommandForced("--domain_create_restricted=false", "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getDomainCreateRestricted()).isFalse();
-  }
-
-  @Test
-  public void testSuccess_leaveDomainCreateRestrictedStatusUnchanged() throws Exception {
-    persistResource(
-        Registry.get("xn--q9jyb4c").asBuilder().setDomainCreateRestricted(true).build());
-    runCommandForced("xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getDomainCreateRestricted()).isTrue();
-  }
-
-  @Test
   public void testFailure_invalidAddGracePeriod() {
     IllegalArgumentException thrown =
         assertThrows(

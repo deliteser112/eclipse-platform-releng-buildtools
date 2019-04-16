@@ -34,33 +34,32 @@ public enum ReservationType {
   // label has multiple reservation types, its message is the that of the one with the highest
   // severity.
 
-  /** Nameservers on the domain are restricted to a given set. */
-  NAMESERVER_RESTRICTED("Nameserver restricted", 0),
-
   /** The domain can only be registered during sunrise, and is reserved thereafter. */
-  ALLOWED_IN_SUNRISE("Reserved", 1),
+  ALLOWED_IN_SUNRISE("Reserved", 0),
 
   /** The domain can only be registered by providing a specific token. */
-  RESERVED_FOR_SPECIFIC_USE("Reserved", 2),
+  RESERVED_FOR_SPECIFIC_USE("Reserved", 1),
 
   /** The domain is for an anchor tenant and can only be registered using a specific token. */
-  RESERVED_FOR_ANCHOR_TENANT("Reserved", 3),
+  RESERVED_FOR_ANCHOR_TENANT("Reserved", 2),
 
   /**
    * The domain can only be registered during sunrise for defensive purposes, and will never
    * resolve.
    */
-  NAME_COLLISION("Cannot be delegated", 4),
+  NAME_COLLISION("Cannot be delegated", 3),
 
   /** The domain can never be registered. */
-  FULLY_BLOCKED("Reserved", 5);
+  FULLY_BLOCKED("Reserved", 4);
 
   @Nullable
   private final String messageForCheck;
 
   ReservationType(@Nullable String messageForCheck, int severity) {
     this.messageForCheck = messageForCheck;
-    checkState(ordinal() == severity);
+    checkState(
+        ordinal() == severity,
+        "ReservationType enum values aren't defined in severity order");
   }
 
   @Nullable

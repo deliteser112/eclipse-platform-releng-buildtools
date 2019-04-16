@@ -26,7 +26,6 @@ import static google.registry.flows.domain.DomainFlowUtils.isAnchorTenant;
 import static google.registry.flows.domain.DomainFlowUtils.isReserved;
 import static google.registry.flows.domain.DomainFlowUtils.isValidReservedCreate;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
-import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
@@ -43,8 +42,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyRegistrarIsActi
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.eppcommon.StatusValue.SERVER_HOLD;
-import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
-import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
@@ -142,7 +139,6 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
  * @error {@link DomainFlowUtils.DashesInThirdAndFourthException}
  * @error {@link DomainFlowUtils.DomainLabelTooLongException}
- * @error {@link DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException}
  * @error {@link DomainFlowUtils.DomainReservedException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
  * @error {@link DomainFlowUtils.EmptyDomainNamePartException}
@@ -167,9 +163,7 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.MissingRegistrantException}
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}
- * @error {@link DomainFlowUtils.NameserversNotAllowedForDomainException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedForTldException}
- * @error {@link DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException}
  * @error {@link DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
@@ -227,9 +221,6 @@ public class DomainCreateFlow implements TransactionalFlow {
     String domainLabel = domainName.parts().get(0);
     Registry registry = Registry.get(domainName.parent().toString());
     validateCreateCommandContactsAndNameservers(command, registry, domainName);
-    if (registry.getDomainCreateRestricted()) {
-      validateDomainAllowedOnCreateRestrictedTld(domainName);
-    }
     TldState tldState = registry.getTldState(now);
     Optional<LaunchCreateExtension> launchCreate =
         eppInput.getSingleExtension(LaunchCreateExtension.class);
@@ -322,9 +313,6 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
 
     ImmutableSet.Builder<StatusValue> statuses = new ImmutableSet.Builder<>();
-    if (registry.getDomainCreateRestricted()) {
-      statuses.add(SERVER_UPDATE_PROHIBITED, SERVER_TRANSFER_PROHIBITED);
-    }
     if (getReservationTypes(domainName).contains(NAME_COLLISION)) {
       statuses.add(SERVER_HOLD);
       entitiesToSave.add(

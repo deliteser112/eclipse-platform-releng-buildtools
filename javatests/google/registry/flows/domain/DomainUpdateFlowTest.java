@@ -31,7 +31,6 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
-import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainBaseSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
@@ -53,7 +52,6 @@ import google.registry.flows.ResourceFlowUtils.AddRemoveSameValueException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.ResourceFlowUtils.StatusNotClientSettableException;
-import google.registry.flows.domain.DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptySecDnsUpdateException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
@@ -65,9 +63,7 @@ import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingRegistrantException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
-import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForDomainException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForTldException;
-import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
@@ -1157,7 +1153,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
-  public void testFailure_newNameserverNotWhitelisted() throws Exception {
+  public void testFailure_addedNameserverDisallowedInTld()
+      throws Exception {
     persistReferencedEntities();
     persistDomain();
     persistResource(
@@ -1165,8 +1162,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .asBuilder()
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
-    clock.advanceOneMilli();
-    EppException thrown = assertThrows(NameserversNotAllowedForTldException.class, this::runFlow);
+    NameserversNotAllowedForTldException thrown =
+        assertThrows(NameserversNotAllowedForTldException.class, this::runFlow);
+    assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1297,226 +1295,6 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         assertThrows(
             NameserversNotSpecifiedForTldWithNameserverWhitelistException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testSuccess_domainNameserverRestricted_addedNameserverAllowed() throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
-            .build());
-    doSuccessfulTest();
-  }
-
-  @Test
-  public void testFailure_domainNameserverRestricted_addedNameserverDisallowed() throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns3.example.foo"))
-            .build());
-    NameserversNotAllowedForDomainException thrown =
-        assertThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
-  }
-
-  @Test
-  public void testFailure_domainNameserverRestricted_removeLastNameserver() throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    setEppInput("domain_update_remove_nameserver.xml");
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
-            .build());
-    EppException thrown =
-        assertThrows(
-            NameserversNotSpecifiedForNameserverRestrictedDomainException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testSuccess_domainNameserverRestricted_removeNameservers() throws Exception {
-    setEppInput("domain_update_remove_nameserver.xml");
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        reloadResourceByForeignKey()
-            .asBuilder()
-            .addNameserver(
-                Key.create(
-                    loadByForeignKey(HostResource.class, "ns2.example.foo", clock.nowUtc()).get()))
-            .build());
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
-            .build());
-    assertThat(reloadResourceByForeignKey().getNameservers())
-        .contains(
-            Key.create(
-                loadByForeignKey(HostResource.class, "ns1.example.foo", clock.nowUtc()).get()));
-    clock.advanceOneMilli();
-    runFlow();
-    assertThat(reloadResourceByForeignKey().getNameservers())
-        .doesNotContain(
-            Key.create(
-                loadByForeignKey(HostResource.class, "ns1.example.foo", clock.nowUtc()).get()));
-  }
-
-  @Test
-  public void testSuccess_domainCreateRestricted_addedNameserverNotAllowed() throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns3.example.foo"))
-            .build());
-    NameserversNotAllowedForDomainException thrown =
-        assertThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
-  }
-
-  @Test
-  public void testSuccess_addedNameserversAllowedInTldAndDomainNameserversWhitelists()
-      throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setAllowedFullyQualifiedHostNames(
-                ImmutableSet.of("ns1.example.foo", "ns2.example.foo"))
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
-            .build());
-    doSuccessfulTest();
-  }
-
-  @Test
-  public void testFailure_addedNameserversAllowedInTld_disallowedInDomainNameserversWhitelists()
-      throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setAllowedFullyQualifiedHostNames(
-                ImmutableSet.of("ns1.example.foo", "ns2.example.foo"))
-            .setReservedLists(
-                persistReservedList("reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo"))
-            .build());
-    NameserversNotAllowedForDomainException thrown =
-        assertThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
-  }
-
-  @Test
-  public void testFailure_addedNameserversDisallowedInTld_AllowedInDomainNameserversWhitelists()
-      throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
-            .build());
-    NameserversNotAllowedForTldException thrown =
-        assertThrows(NameserversNotAllowedForTldException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
-  }
-
-  @Test
-  public void testFailure_tldNameserversAllowed_domainCreateRestricted_domainNotReserved()
-      throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setAllowedFullyQualifiedHostNames(
-                ImmutableSet.of("ns1.example.foo", "ns2.example.foo"))
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
-            .build());
-    EppException thrown =
-        assertThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testFailure_domainCreateRestricted_domainNotReserved() throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
-            .build());
-    EppException thrown =
-        assertThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testSuccess_domainCreateNotRestricted_domainNotReserved() throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
-            .build());
-    doSuccessfulTest();
-  }
-
-  @Test
-  public void testSuccess_domainCreateRestricted_reApplyServerProhibitedStatusCodes()
-      throws Exception {
-    persistReferencedEntities();
-    persistDomain();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
-            .build());
-    doSuccessfulTest();
-    assertAboutDomains()
-        .that(reloadResourceByForeignKey())
-        .hasStatusValue(SERVER_UPDATE_PROHIBITED)
-        .and()
-        .hasStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED);
   }
 
   @Test

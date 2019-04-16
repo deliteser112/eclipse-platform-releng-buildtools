@@ -345,15 +345,10 @@ An EPP flow that creates a new domain resource.
     *   Resource linked to this domain does not exist.
 *   2304
     *   The claims period for this TLD has ended.
-    *   Requested domain does not have nameserver-restricted reservation for a
-        TLD that requires such a reservation to create domains.
     *   Requested domain is reserved.
     *   Linked resource in pending delete prohibits operation.
     *   Requested domain requires a claims notice.
-    *   Nameservers are not whitelisted for this domain.
     *   Nameservers are not whitelisted for this TLD.
-    *   Nameservers not specified for domain with nameserver-restricted
-        reservation.
     *   Nameservers not specified for domain on TLD with nameserver whitelist.
     *   The requested domain name is on the premium price list, and this
         registrar has blocked premium registrations.
@@ -762,11 +757,6 @@ statuses are updated at once.
     *   Linked resource in pending delete prohibits operation.
     *   Nameservers are not whitelisted for this TLD.
     *   Nameservers not specified for domain on TLD with nameserver whitelist.
-    *   Nameservers are not whitelisted for this domain.
-    *   Nameservers not specified for domain with nameserver-restricted
-        reservation.
-    *   Requested domain does not have nameserver-restricted reservation for a
-        TLD that requires such a reservation to create domains.
     *   Registrant is not whitelisted for this TLD.
 *   2306
     *   Cannot add and remove the same value.

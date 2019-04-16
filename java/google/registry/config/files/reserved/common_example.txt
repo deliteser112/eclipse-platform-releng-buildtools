@@ -1,12 +1,10 @@
 # Example of a reserved list file.  This is simply a CSV file with 2-3
-# columns: sub-domain name and reservation type and (in the case of the
-# NAMESERVER_RESTRICTED type) a colon-separated list of nameservers. See
+# columns: sub-domain name and reservation type. See
 # java/google/registry/model/registry/label/ReserverationType for the complete
 # set of reservation types.
 #
 # These are manipulated using the "nomulus" tool
 # {create,update,delete,list}_reserved_list commands.
-nsrestric,NAMESERVER_RESTRICTED,foo.example.com:bar.example.com
 sunrise,ALLOWED_IN_SUNRISE
 specific,RESERVED_FOR_SPECIFIC_USE
 anchor,RESERVED_FOR_ANCHOR_TENANT

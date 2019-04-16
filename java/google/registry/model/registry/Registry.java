@@ -55,7 +55,6 @@ import google.registry.model.common.TimedTransitionProperty.TimedTransition;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.registry.label.PremiumList;
-import google.registry.model.registry.label.ReservationType;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.util.Idn;
 import java.util.Optional;
@@ -330,12 +329,6 @@ public class Registry extends ImmutableObject implements Buildable {
   boolean dnsPaused = DEFAULT_DNS_PAUSED;
 
   /**
-   * Whether only domains with {@link ReservationType#NAMESERVER_RESTRICTED} reservation type in a
-   * reserved list can be registered on this TLD.
-   */
-  boolean domainCreateRestricted;
-
-  /**
    * The length of the add grace period for this TLD.
    *
    * <p>Domain deletes are free and effective immediately so long as they take place within this
@@ -452,13 +445,6 @@ public class Registry extends ImmutableObject implements Buildable {
 
   public String getDriveFolderId() {
     return driveFolderId;
-  }
-
-  /**
-   * Returns true if only domains with nameserver restricted reservation on this TLD can be created.
-   */
-  public boolean getDomainCreateRestricted() {
-    return domainCreateRestricted;
   }
 
   public Duration getAddGracePeriodLength() {
@@ -643,11 +629,6 @@ public class Registry extends ImmutableObject implements Buildable {
 
     public Builder setDriveFolderId(String driveFolderId) {
       getInstance().driveFolderId = driveFolderId;
-      return this;
-    }
-
-    public Builder setDomainCreateRestricted(boolean domainCreateRestricted) {
-      getInstance().domainCreateRestricted = domainCreateRestricted;
       return this;
     }
 

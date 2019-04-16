@@ -23,11 +23,8 @@ import static google.registry.model.billing.BillingEvent.Flag.SUNRISE;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
 import static google.registry.model.domain.token.AllocationToken.TokenType.UNLIMITED_USE;
-import static google.registry.model.eppcommon.StatusValue.OK;
 import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
 import static google.registry.model.eppcommon.StatusValue.SERVER_HOLD;
-import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
-import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
 import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
@@ -92,7 +89,6 @@ import google.registry.flows.domain.DomainFlowUtils.CurrencyValueScaleException;
 import google.registry.flows.domain.DomainFlowUtils.DashesInThirdAndFourthException;
 import google.registry.flows.domain.DomainFlowUtils.DomainLabelTooLongException;
 import google.registry.flows.domain.DomainFlowUtils.DomainNameExistsAsTldException;
-import google.registry.flows.domain.DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException;
 import google.registry.flows.domain.DomainFlowUtils.DomainReservedException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptyDomainNamePartException;
@@ -117,9 +113,7 @@ import google.registry.flows.domain.DomainFlowUtils.MissingClaimsNoticeException
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
 import google.registry.flows.domain.DomainFlowUtils.MissingRegistrantException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
-import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForDomainException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForTldException;
-import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
@@ -1786,194 +1780,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .build());
     persistContactsAndHosts();
     doSuccessfulTest();
-  }
-
-  @Test
-  public void testSuccess_domainNameserverRestricted_allNameserversAllowed() throws Exception {
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved",
-                    "example,NAMESERVER_RESTRICTED,"
-                        + "ns1.example.net:ns2.example.net:ns3.example.net"))
-            .build());
-    doSuccessfulTest();
-  }
-
-  @Test
-  public void testFailure_domainNameserverRestricted_noNameservers() {
-    setEppInput("domain_create_no_hosts_or_dsdata.xml", ImmutableMap.of("DOMAIN", "example.tld"));
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved",
-                    "example,NAMESERVER_RESTRICTED,"
-                        + "ns1.example.net:ns2.example.net:ns3.example.net"))
-            .build());
-    EppException thrown =
-        assertThrows(
-            NameserversNotSpecifiedForNameserverRestrictedDomainException.class, this::runFlow);
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
-  }
-
-  @Test
-  public void testFailure_domainNameserverRestricted_someNameserversDisallowed() {
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "example,NAMESERVER_RESTRICTED,ns2.example.net:ns3.example.net"))
-            .build());
-    NameserversNotAllowedForDomainException thrown =
-        assertThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("ns1.example.net");
-  }
-
-  @Test
-  public void testFailure_domainCreateRestricted_domainNotReserved() {
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.net:ns2.example.net"))
-            .build());
-    DomainNotAllowedForTldWithCreateRestrictionException thrown =
-        assertThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("example.tld");
-  }
-
-  @Test
-  public void testSuccess_domainCreateNotRestricted_domainNotReserved() throws Exception {
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.net:ns2.example.net"))
-            .build());
-    doSuccessfulTest();
-  }
-
-  @Test
-  public void testSuccess_tldAndDomainNameserversWhitelistBothSatisfied() throws Exception {
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setAllowedFullyQualifiedHostNames(
-                ImmutableSet.of("ns1.example.net", "ns2.example.net", "ns3.example.net"))
-            .setReservedLists(
-                persistReservedList(
-                    "reserved",
-                    "example,NAMESERVER_RESTRICTED,"
-                        + "ns1.example.net:ns2.example.net:ns4.example.net"))
-            .build());
-    doSuccessfulTest();
-  }
-
-  @Test
-  public void testFailure_domainNameserversAllowed_tldNameserversDisallowed() {
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setAllowedFullyQualifiedHostNames(
-                ImmutableSet.of("ns2.example.net", "ns3.example.net", "ns4.example.net"))
-            .setReservedLists(
-                persistReservedList(
-                    "reserved",
-                    "example,NAMESERVER_RESTRICTED,"
-                        + "ns1.example.net:ns2.example.net:ns3.example.net"))
-            .build());
-    NameserversNotAllowedForTldException thrown =
-        assertThrows(NameserversNotAllowedForTldException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("ns1.example.net");
-  }
-
-  @Test
-  public void testFailure_domainNameserversDisallowed_tldNameserversAllowed() {
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setAllowedFullyQualifiedHostNames(
-                ImmutableSet.of("ns1.example.net", "ns2.example.net", "ns3.example.net"))
-            .setReservedLists(
-                persistReservedList(
-                    "reserved",
-                    "example,NAMESERVER_RESTRICTED,"
-                        + "ns2.example.net:ns3.example.net:ns4.example.net"))
-            .build());
-    NameserversNotAllowedForDomainException thrown =
-        assertThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("ns1.example.net");
-  }
-
-  @Test
-  public void testFailure_tldNameserversAllowed_domainCreateRestricted_domainNotReserved() {
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setAllowedFullyQualifiedHostNames(
-                ImmutableSet.of("ns1.example.net", "ns2.example.net", "ns3.example.net"))
-            .setReservedLists(
-                persistReservedList(
-                    "reserved",
-                    "lol,NAMESERVER_RESTRICTED,"
-                        + "ns1.example.net:ns2.example.net:ns3.example.net"))
-            .build());
-    DomainNotAllowedForTldWithCreateRestrictionException thrown =
-        assertThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("example.tld");
-  }
-
-  @Test
-  public void testSuccess_domainCreateRestricted_serverStatusSet() throws Exception {
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setDomainCreateRestricted(true)
-            .setReservedLists(
-                persistReservedList(
-                    "reserved",
-                    "example,NAMESERVER_RESTRICTED,"
-                        + "ns1.example.net:ns2.example.net:ns3.example.net"))
-            .build());
-    doSuccessfulTest();
-    assertThat(reloadResourceByForeignKey().getStatusValues())
-        .containsExactly(SERVER_UPDATE_PROHIBITED, SERVER_TRANSFER_PROHIBITED);
-  }
-
-  @Test
-  public void testSuccess_domainCreateNotRestricted_serverStatusNotSet() throws Exception {
-    persistContactsAndHosts();
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                persistReservedList(
-                    "reserved",
-                    "example,NAMESERVER_RESTRICTED,"
-                        + "ns1.example.net:ns2.example.net:ns3.example.net"))
-            .build());
-    doSuccessfulTest();
-    assertThat(reloadResourceByForeignKey().getStatusValues()).containsExactly(OK);
   }
 
   @Test

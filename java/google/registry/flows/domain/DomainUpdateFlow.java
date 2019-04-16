@@ -29,10 +29,8 @@ import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToT
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.updateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
-import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateFeesAckedIfPresent;
-import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnDomain;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversCountForTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateNoDuplicateContacts;
@@ -41,7 +39,6 @@ import static google.registry.flows.domain.DomainFlowUtils.validateRequiredConta
 import static google.registry.flows.domain.DomainFlowUtils.verifyClientUpdateNotProhibited;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPendingDelete;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
@@ -112,9 +109,6 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.MissingRegistrantException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedForTldException}
  * @error {@link DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException}
- * @error {@link DomainFlowUtils.NameserversNotAllowedForDomainException}
- * @error {@link DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException}
- * @error {@link DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.SecDnsAllUsageException}
@@ -216,13 +210,6 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     validateRegistrantAllowedOnTld(tld, command.getInnerChange().getRegistrantContactId());
     validateNameserversAllowedOnTld(
         tld, add.getNameserverFullyQualifiedHostNames());
-    InternetDomainName domainName =
-        InternetDomainName.from(existingDomain.getFullyQualifiedDomainName());
-    if (registry.getDomainCreateRestricted()) {
-      validateDomainAllowedOnCreateRestrictedTld(domainName);
-    }
-    validateNameserversAllowedOnDomain(
-        domainName, nullToEmpty(add.getNameserverFullyQualifiedHostNames()));
   }
 
   private HistoryEntry buildHistoryEntry(DomainBase existingDomain, DateTime now) {
@@ -262,11 +249,6 @@ public final class DomainUpdateFlow implements TransactionalFlow {
             .removeContacts(remove.getContacts())
             .setRegistrant(firstNonNull(change.getRegistrant(), domain.getRegistrant()))
             .setAuthInfo(firstNonNull(change.getAuthInfo(), domain.getAuthInfo()));
-    if (Registry.get(domain.getTld()).getDomainCreateRestricted()) {
-      domainBuilder
-          .addStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED)
-          .addStatusValue(StatusValue.SERVER_UPDATE_PROHIBITED);
-    }
     return domainBuilder.build();
   }
 

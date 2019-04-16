@@ -199,14 +199,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
   @Nullable
   @Parameter(
-    names = {"--domain_create_restricted"},
-    description = "If only domains with nameserver restricted reservation can be created",
-    arity = 1
-  )
-  Boolean domainCreateRestricted;
-
-  @Nullable
-  @Parameter(
       names = "--claims_period_end",
       description = "The end of the claims period")
   DateTime claimsPeriodEnd;
@@ -331,7 +323,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       Optional.ofNullable(tldType).ifPresent(builder::setTldType);
       Optional.ofNullable(lordnUsername).ifPresent(u -> builder.setLordnUsername(u.orElse(null)));
       Optional.ofNullable(claimsPeriodEnd).ifPresent(builder::setClaimsPeriodEnd);
-      Optional.ofNullable(domainCreateRestricted).ifPresent(builder::setDomainCreateRestricted);
       Optional.ofNullable(numDnsPublishShards).ifPresent(builder::setNumDnsPublishLocks);
 
       if (premiumListName != null) {
