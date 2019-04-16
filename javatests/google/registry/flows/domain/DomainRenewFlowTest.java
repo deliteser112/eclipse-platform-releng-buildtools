@@ -260,7 +260,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testSuccess_customLogicFee() throws Exception {
     // The "costly-renew" domain has an additional RENEW fee of 100 from custom logic on top of the
     // normal $11 standard renew price for this TLD.
-    ImmutableMap customFeeMap =
+    ImmutableMap<String, String> customFeeMap =
         updateSubstitutions(
             FEE_06_MAP,
             "NAME", "costly-renew.tld",
