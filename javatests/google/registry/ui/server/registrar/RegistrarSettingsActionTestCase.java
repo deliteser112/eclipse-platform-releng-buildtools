@@ -22,16 +22,20 @@ import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.O
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.disallowRegistrarAccess;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.truth.Truth;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.ofy.Ofy;
+import google.registry.model.registrar.RegistrarContact;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonResponse;
 import google.registry.request.ResponseImpl;
@@ -84,14 +88,26 @@ public class RegistrarSettingsActionTestCase {
   final StringWriter writer = new StringWriter();
   final FakeClock clock = new FakeClock(DateTime.parse("2014-01-01T00:00:00Z"));
 
+  RegistrarContact techContact;
+
   @Before
   public void setUp() throws Exception {
-    // Create a tld and give access to registrar "TheRegistrar" for most common test case.
-    createTlds("currenttld");
-    // Create another tld but remove access for registrar "TheRegistrar". This is for the test case
-    // of updating allowed tld for registrar
-    createTlds("newtld");
+    // Registrar "TheRegistrar" has access to TLD "currenttld" but not to "newtld".
+    createTlds("currenttld", "newtld");
     disallowRegistrarAccess(CLIENT_ID, "newtld");
+
+    // Add a technical contact to the registrar (in addition to the default admin contact created by
+    // AppEngineRule).
+    techContact =
+        persistResource(
+            new RegistrarContact.Builder()
+                .setParent(loadRegistrar(CLIENT_ID))
+                .setName("Jian-Yang")
+                .setEmailAddress("jyang@bachman.accelerator")
+                .setPhoneNumber("+1.1234567890")
+                .setTypes(ImmutableSet.of(RegistrarContact.Type.TECH))
+                .build());
+
     action.registrarAccessor = null;
     action.appEngineServiceUtils = appEngineServiceUtils;
     when(appEngineServiceUtils.getCurrentVersionHostname("backend")).thenReturn("backend.hostname");
@@ -154,7 +170,7 @@ public class RegistrarSettingsActionTestCase {
   }
 
   /** Verifies that the original contact of TheRegistrar is among those notified of a change. */
-  protected void verifyContactsNotified() throws Exception {
+  protected void verifyNotificationEmailsSent() throws Exception {
     ArgumentCaptor<EmailMessage> captor = ArgumentCaptor.forClass(EmailMessage.class);
     verify(emailService).sendEmail(captor.capture());
     Truth.assertThat(captor.getValue().recipients())

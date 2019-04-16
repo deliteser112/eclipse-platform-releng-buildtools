@@ -61,7 +61,7 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response.get("results")).isEqualTo(ImmutableList.of(modified.toJsonMap()));
     assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
-    verifyContactsNotified();
+    verifyNotificationEmailsSent();
   }
 
   @Test

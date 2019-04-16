@@ -56,9 +56,11 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   @Test
   public void testSuccess_updateRegistrarInfo_andSendsNotificationEmail() throws Exception {
     String expectedEmailBody = loadFile(getClass(), "update_registrar_email.txt");
+    // This update changes some values on the admin contact and makes it a tech contact as well,
+    // while deleting the existing tech contact (by omission).
     action.handleJsonRequest(readJsonFromFile("update_registrar.json", getLastUpdateTime()));
     verify(rsp, never()).setStatus(anyInt());
-    verifyContactsNotified();
+    verifyNotificationEmailsSent();
     ArgumentCaptor<EmailMessage> contentCaptor = ArgumentCaptor.forClass(EmailMessage.class);
     verify(emailService).sendEmail(contentCaptor.capture());
     assertThat(contentCaptor.getValue().body()).isEqualTo(expectedEmailBody);

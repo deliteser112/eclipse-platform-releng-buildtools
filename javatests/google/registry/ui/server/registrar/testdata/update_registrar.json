@@ -12,7 +12,7 @@
       {
         "visibleInWhoisAsAdmin": true,
         "faxNumber": null,
-        "phoneNumber": null,
+        "phoneNumber": "+1.2345678901",
         "name": "Extra Terrestrial",
         "visibleInWhoisAsTech": false,
         "emailAddress": "etphonehome@example.com",

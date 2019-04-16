@@ -55,7 +55,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(response).containsEntry("results", ImmutableList.of(modified.toJsonMap()));
     assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
-    verifyContactsNotified();
+    verifyNotificationEmailsSent();
   }
 
   @Test
@@ -85,7 +85,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(registrar.getFailoverClientCertificate()).isNull();
     assertThat(registrar.getFailoverClientCertificateHash()).isNull();
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
-    verifyContactsNotified();
+    verifyNotificationEmailsSent();
   }
 
   @Test
@@ -99,7 +99,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     assertThat(registrar.getFailoverClientCertificate()).isEqualTo(SAMPLE_CERT2);
     assertThat(registrar.getFailoverClientCertificateHash()).isEqualTo(SAMPLE_CERT2_HASH);
     assertMetric(CLIENT_ID, "update", "[OWNER]", "SUCCESS");
-    verifyContactsNotified();
+    verifyNotificationEmailsSent();
   }
 
   @Test

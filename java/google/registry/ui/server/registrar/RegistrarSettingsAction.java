@@ -406,20 +406,19 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       }
     }
     // Check that required contacts don't go away, once they are set.
-    Multimap<RegistrarContact.Type, RegistrarContact> oldContactsByType = HashMultimap.create();
+    Multimap<Type, RegistrarContact> oldContactsByType = HashMultimap.create();
     for (RegistrarContact contact : existingContacts) {
-      for (RegistrarContact.Type t : contact.getTypes()) {
+      for (Type t : contact.getTypes()) {
         oldContactsByType.put(t, contact);
       }
     }
-    Multimap<RegistrarContact.Type, RegistrarContact> newContactsByType = HashMultimap.create();
+    Multimap<Type, RegistrarContact> newContactsByType = HashMultimap.create();
     for (RegistrarContact contact : updatedContacts) {
-      for (RegistrarContact.Type t : contact.getTypes()) {
+      for (Type t : contact.getTypes()) {
         newContactsByType.put(t, contact);
       }
     }
-    for (RegistrarContact.Type t
-        : difference(oldContactsByType.keySet(), newContactsByType.keySet())) {
+    for (Type t : difference(oldContactsByType.keySet(), newContactsByType.keySet())) {
       if (t.isRequired()) {
         throw new ContactRequirementException(t);
       }
@@ -446,10 +445,10 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
    * one before.
    */
   private static void ensurePhoneNumberNotRemovedForContactTypes(
-      Multimap<RegistrarContact.Type, RegistrarContact> oldContactsByType,
-      Multimap<RegistrarContact.Type, RegistrarContact> newContactsByType,
-      RegistrarContact.Type... types) {
-    for (RegistrarContact.Type type : types) {
+      Multimap<Type, RegistrarContact> oldContactsByType,
+      Multimap<Type, RegistrarContact> newContactsByType,
+      Type... types) {
+    for (Type type : types) {
       if (oldContactsByType.get(type).stream().anyMatch(HAS_PHONE)
           && newContactsByType.get(type).stream().noneMatch(HAS_PHONE)) {
         throw new ContactRequirementException(
@@ -511,6 +510,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
             authResult.userIdForLogging(),
             DiffUtils.prettyPrintDiffedMap(diffs, null)),
         existingContacts.stream()
+            .filter(c -> c.getTypes().contains(Type.ADMIN))
             .map(RegistrarContact::getEmailAddress)
             .collect(toImmutableList()));
   }
@@ -521,8 +521,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       super(msg);
     }
 
-    ContactRequirementException(RegistrarContact.Type type) {
-      super("Must have at least one " + type.getDisplayName() + " contact");
+    ContactRequirementException(Type type) {
+      super(String.format("Must have at least one %s contact", type.getDisplayName()));
     }
   }
 }
