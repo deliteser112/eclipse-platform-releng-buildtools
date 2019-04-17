@@ -1,11 +1,11 @@
 
 repositories {
   if (project.ext.properties.mavenUrl == null) {
-    println "Plugins: Using Maven central..."
+    println "Plugin dependencies: Using Maven central..."
     mavenCentral()
   } else {
     maven {
-      println "Plugins: Using repo ${mavenUrl}..."
+      println "Plugin dependencies: Using repo ${mavenUrl}..."
       url mavenUrl
     }
   }

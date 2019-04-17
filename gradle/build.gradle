@@ -94,9 +94,11 @@ allprojects {
   repositories {
     if (rootProject.mavenUrl) {
       maven {
+        println "Java dependencies: Using repo $pluginsUrl..."
         url rootProject.mavenUrl
       }
     } else {
+      println "Java dependencies: Using Maven Central..."
       mavenCentral()
     }
   }

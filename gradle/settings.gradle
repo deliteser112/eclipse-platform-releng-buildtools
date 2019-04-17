@@ -1,5 +1,5 @@
 if (pluginsUrl) {
-  println "Using repository $pluginsUrl for plugins"
+  println "Plugins: Using repo $pluginsUrl..."
   pluginManagement {
     repositories {
       maven {
@@ -8,7 +8,7 @@ if (pluginsUrl) {
     }
   }
 } else {
-  println "Using default repository for plugins"
+  println "Plugins: Using default repo..."
 }
 
 rootProject.name = 'nomulus'
