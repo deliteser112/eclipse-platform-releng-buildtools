@@ -383,7 +383,6 @@ public class BouncyCastleTest {
    * Googler who was also uncertain about the precise reason why it's needed.
    */
   private void addUserInfoToSignature(PGPPublicKey publicKey, PGPSignatureGenerator signer) {
-    @SuppressWarnings("unchecked") // Safe by specification.
     Iterator<String> uidIter = publicKey.getUserIDs();
     if (uidIter.hasNext()) {
       PGPSignatureSubpacketGenerator spg = new PGPSignatureSubpacketGenerator();

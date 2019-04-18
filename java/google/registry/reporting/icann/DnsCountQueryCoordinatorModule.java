@@ -33,8 +33,6 @@ public class DnsCountQueryCoordinatorModule {
       @Config("projectId") String projectId) {
     DnsCountQueryCoordinator.Params params =
         new DnsCountQueryCoordinator.Params(bigquery, projectId);
-    DnsCountQueryCoordinator result =
-        instantiate(getClassFromString(customClass, DnsCountQueryCoordinator.class), params);
-    return result;
+    return instantiate(getClassFromString(customClass, DnsCountQueryCoordinator.class), params);
   }
 }

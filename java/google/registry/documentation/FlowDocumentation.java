@@ -113,12 +113,9 @@ public class FlowDocumentation {
   /** Iterates through javadoc tags on the underlying class and calls specific parsing methods. */
   private void parseTags(ClassDoc flowDoc) {
     for (Tag tag : flowDoc.tags()) {
-      switch (tag.name()) {
-        case "@error":
-          parseErrorTag(tag);
-          break;
-        default:
-          // Not a relevant tag.
+      // Everything else is not a relevant tag.
+      if ("@error".equals(tag.name())) {
+        parseErrorTag(tag);
       }
     }
   }

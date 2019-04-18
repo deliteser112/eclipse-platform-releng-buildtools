@@ -15,7 +15,6 @@
 package google.registry.cron;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
@@ -24,6 +23,7 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
 import google.registry.util.TaskQueueUtils;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.Random;
 import javax.inject.Inject;
@@ -50,11 +50,12 @@ public final class CommitLogFanoutAction implements Runnable {
   public void run() {
     Queue taskQueue = getQueue(queue);
     for (int bucketId : CommitLogBucket.getBucketIds()) {
-      TaskOptions taskOptions = TaskOptions.Builder.withUrl(endpoint)
-          .param(BUCKET_PARAM, Integer.toString(bucketId))
-          .countdownMillis(jitterSeconds.isPresent()
-              ? random.nextInt((int) SECONDS.toMillis(jitterSeconds.get()))
-              : 0);
+      long delay =
+          jitterSeconds.map(i -> random.nextInt((int) Duration.ofSeconds(i).toMillis())).orElse(0);
+      TaskOptions taskOptions =
+          TaskOptions.Builder.withUrl(endpoint)
+              .param(BUCKET_PARAM, Integer.toString(bucketId))
+              .countdownMillis(delay);
       taskQueueUtils.enqueue(taskQueue, taskOptions);
     }
   }

@@ -88,14 +88,12 @@ public final class IcannReportingModule {
   static BigqueryConnection provideBigqueryConnection(
       BigqueryConnection.Builder bigQueryConnectionBuilder) {
     try {
-      BigqueryConnection connection =
-          bigQueryConnectionBuilder
-              .setExecutorService(MoreExecutors.newDirectExecutorService())
-              .setDatasetId(ICANN_REPORTING_DATA_SET)
-              .setOverwrite(true)
-              .setPollInterval(Duration.standardSeconds(1))
-              .build();
-      return connection;
+      return bigQueryConnectionBuilder
+          .setExecutorService(MoreExecutors.newDirectExecutorService())
+          .setDatasetId(ICANN_REPORTING_DATA_SET)
+          .setOverwrite(true)
+          .setPollInterval(Duration.standardSeconds(1))
+          .build();
     } catch (Throwable e) {
       throw new RuntimeException("Could not initialize BigqueryConnection!", e);
     }

@@ -293,11 +293,10 @@ public class AuthenticatedRegistrarAccessor {
 
     // both GAE project admin and members of the gSuiteSupportGroupEmailAddress are considered
     // admins for the RegistrarConsole.
-    return bypassAdminCheck
-        ? false
-        : userAuthInfo.isUserAdmin()
+    return !bypassAdminCheck
+        && (userAuthInfo.isUserAdmin()
             || checkIsSupport(
-                lazyGroupsConnection, user.getEmail(), gSuiteSupportGroupEmailAddress);
+                lazyGroupsConnection, user.getEmail(), gSuiteSupportGroupEmailAddress));
   }
 
   /**

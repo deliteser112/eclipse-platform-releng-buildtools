@@ -53,13 +53,11 @@ final class BigqueryParameters {
 
   /** Returns a new BigqueryConnection constructed according to the delegate's flag settings. */
   BigqueryConnection newConnection(BigqueryConnection.Builder connectionBuilder) throws Exception {
-    BigqueryConnection connection =
-        connectionBuilder
-            .setExecutorService(Executors.newFixedThreadPool(bigqueryNumThreads))
-            .setDatasetId(bigqueryDataset)
-            .setOverwrite(bigqueryOverwrite)
-            .setPollInterval(bigqueryPollInterval)
-            .build();
-    return connection;
+    return connectionBuilder
+        .setExecutorService(Executors.newFixedThreadPool(bigqueryNumThreads))
+        .setDatasetId(bigqueryDataset)
+        .setOverwrite(bigqueryOverwrite)
+        .setPollInterval(bigqueryPollInterval)
+        .build();
   }
 }

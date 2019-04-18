@@ -45,9 +45,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class PublishInvoicesActionTest {
 
-  private Dataflow dataflow;
-  private Projects projects;
-  private Jobs jobs;
   private Get get;
   private BillingEmailUtils emailUtils;
 
@@ -60,9 +57,9 @@ public class PublishInvoicesActionTest {
 
   @Before
   public void setUp() throws IOException {
-    dataflow = mock(Dataflow.class);
-    projects = mock(Projects.class);
-    jobs = mock(Jobs.class);
+    Dataflow dataflow = mock(Dataflow.class);
+    Projects projects = mock(Projects.class);
+    Jobs jobs = mock(Jobs.class);
     get = mock(Get.class);
     when(dataflow.projects()).thenReturn(projects);
     when(projects.jobs()).thenReturn(jobs);

@@ -168,7 +168,6 @@ public class NordnUploadActionTest {
     assertThat(action.loadAllTasks(queue, "tld")).containsExactly(task);
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void test_loadAllTasks_retryLogic_allFailures() {
     Queue queue = mock(Queue.class);

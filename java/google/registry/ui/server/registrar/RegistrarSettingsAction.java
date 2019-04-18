@@ -246,8 +246,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
             .map(RegistrarContact::toDiffableFieldMap)
             .collect(toImmutableSet());
     // Use LinkedHashMap here to preserve ordering; null values mean we can't use ImmutableMap.
-    LinkedHashMap<String, Object> result = new LinkedHashMap<>();
-    result.putAll(registrar.toDiffableFieldMap());
+    LinkedHashMap<String, Object> result = new LinkedHashMap<>(registrar.toDiffableFieldMap());
     result.put("contacts", expandedContacts);
     return result;
   }

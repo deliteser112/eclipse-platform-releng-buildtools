@@ -41,8 +41,7 @@ public abstract class ParameterConverterValidator<T>
       convert(value);
     } catch (IllegalArgumentException e) {
       ParameterException pe =
-          new ParameterException(String.format("%s=%s %s", name, value, messageForInvalid));
-      pe.initCause(e);
+          new ParameterException(String.format("%s=%s %s", name, value, messageForInvalid), e);
       throw pe;
     }
   }

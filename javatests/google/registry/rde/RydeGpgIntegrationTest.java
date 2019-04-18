@@ -30,7 +30,6 @@ import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.ShardableTestCase;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -208,7 +207,7 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     assertThat(slurp(xmlFile)).isEqualTo(content.get());
   }
 
-  private String slurp(File file) throws FileNotFoundException, IOException {
+  private String slurp(File file) throws IOException {
     return CharStreams.toString(new InputStreamReader(new FileInputStream(file), UTF_8));
   }
 

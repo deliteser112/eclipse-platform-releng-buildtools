@@ -53,7 +53,7 @@ public class DesignatedContact extends ImmutableObject {
     @XmlEnumValue("tech")
     TECH,
     /** The registrant type is not reflected in XML and exists only for internal use. */
-    REGISTRANT;
+    REGISTRANT
   }
 
   public static DesignatedContact create(Type type, Key<ContactResource> contact) {

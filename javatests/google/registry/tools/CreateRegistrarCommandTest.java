@@ -235,7 +235,6 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     verifyZeroInteractions(connection);
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void testFailure_groupCreationFails() throws Exception {
     when(connection.sendPostRequest(

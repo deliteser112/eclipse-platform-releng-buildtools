@@ -98,7 +98,6 @@ public final class Marksdb {
     }
   }
 
-  @SuppressWarnings("deprecation")
   private static void pgpVerifySignature(byte[] data, byte[] signature, PGPPublicKey publicKey)
       throws PGPException, SignatureException {
     Security.addProvider(new BouncyCastleProvider());

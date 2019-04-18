@@ -116,7 +116,6 @@ public class SafeBrowsingTransforms {
      * @param clientSupplier a serializable CloseableHttpClient supplier
      */
     @VisibleForTesting
-    @SuppressWarnings("unchecked")
     EvaluateSafeBrowsingFn(
         ValueProvider<String> apiKeyProvider,
         Retrier retrier,

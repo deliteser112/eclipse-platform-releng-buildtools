@@ -31,7 +31,7 @@ public class MarkHolder extends CommonMarkContactFields {
     ASSIGNEE,
 
     @XmlEnumValue("licensee")
-    LICENSEE;
+    LICENSEE
   }
 
   @XmlAttribute

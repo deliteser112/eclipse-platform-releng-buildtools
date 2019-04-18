@@ -140,7 +140,7 @@ public abstract class ImmutableObject implements Cloneable {
   }
 
   /** Helper function to recursively hydrate an ImmutableObject. */
-  private static final Object hydrate(Object value) {
+  private static Object hydrate(Object value) {
     if (value instanceof Key) {
       return hydrate(ofy().load().key((Key<?>) value).now());
     } else if (value instanceof Map) {

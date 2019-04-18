@@ -47,7 +47,6 @@ public class ResaveAllHistoryEntriesAction implements Runnable {
   @Inject Response response;
   @Inject ResaveAllHistoryEntriesAction() {}
 
-  @SuppressWarnings("unchecked")
   @Override
   public void run() {
     mrRunner

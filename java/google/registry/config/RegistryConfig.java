@@ -473,7 +473,7 @@ public final class RegistryConfig {
       PRODUCTION,
 
       /** Pilot mode, for everything else (e.g. sandbox). */
-      PILOT;
+      PILOT
     }
 
     /**

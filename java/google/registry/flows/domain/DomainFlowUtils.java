@@ -509,7 +509,6 @@ public class DomainFlowUtils {
    * (if opening the message interval). This may cause an autorenew billing event to have an end
    * time earlier than its event time (i.e. if it's being ended before it was ever triggered).
    */
-  @SuppressWarnings("unchecked")
   public static void updateAutorenewRecurrenceEndTime(DomainBase domain, DateTime newEndTime) {
     Optional<PollMessage.Autorenew> autorenewPollMessage =
         Optional.ofNullable(ofy().load().key(domain.getAutorenewPollMessage()).now());

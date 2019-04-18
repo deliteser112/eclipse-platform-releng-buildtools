@@ -608,7 +608,6 @@ public abstract class BillingEvent extends ImmutableObject
       }
 
       @Override
-      @SuppressWarnings("unchecked")
       public Modification build() {
         Modification instance = getInstance();
         checkNotNull(instance.reason);

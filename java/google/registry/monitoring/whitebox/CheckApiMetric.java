@@ -32,7 +32,7 @@ public abstract class CheckApiMetric {
 
     private final String displayLabel;
 
-    private Tier(String displayLabel) {
+    Tier(String displayLabel) {
       this.displayLabel = displayLabel;
     }
 
@@ -49,7 +49,7 @@ public abstract class CheckApiMetric {
 
     private final String displayLabel;
 
-    private Availability(String displayLabel) {
+    Availability(String displayLabel) {
       this.displayLabel = displayLabel;
     }
 
@@ -67,7 +67,7 @@ public abstract class CheckApiMetric {
 
     private final String displayLabel;
 
-    private Status(String displayLabel) {
+    Status(String displayLabel) {
       this.displayLabel = displayLabel;
     }
 

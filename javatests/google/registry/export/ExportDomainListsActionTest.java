@@ -86,7 +86,7 @@ public class ExportDomainListsActionTest extends MapreduceTestCase<ExportDomainL
             eq(EXPORT_MIME_TYPE),
             eq(folderId),
             bytesExportedToDrive.capture());
-    assertThat(new String(bytesExportedToDrive.getValue(), "UTF-8")).isEqualTo(domains);
+    assertThat(new String(bytesExportedToDrive.getValue(), UTF_8)).isEqualTo(domains);
   }
 
   @Test

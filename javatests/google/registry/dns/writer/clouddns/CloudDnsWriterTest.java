@@ -425,7 +425,6 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void retryMutateZoneOnError() {
     CloudDnsWriter spyWriter = spy(writer);
     // First call - throw. Second call - do nothing.

@@ -151,14 +151,10 @@ public class EppInput extends ImmutableObject {
 
   /** Get the extension based on type, or null. If there are multiple, it chooses the first. */
   public <E extends CommandExtension> Optional<E> getSingleExtension(Class<E> clazz) {
-    return Optional.ofNullable(
-        getCommandWrapper()
-            .getExtensions()
-            .stream()
-            .filter(clazz::isInstance)
-            .map(clazz::cast)
-            .findFirst()
-            .orElse(null));
+    return getCommandWrapper().getExtensions().stream()
+        .filter(clazz::isInstance)
+        .map(clazz::cast)
+        .findFirst();
   }
 
   /** A tag that goes inside of an EPP {@literal <command>}. */
@@ -225,7 +221,7 @@ public class EppInput extends ImmutableObject {
       REJECT,
 
       @XmlEnumValue("request")
-      REQUEST;
+      REQUEST
     }
 
     @XmlAttribute(name = "op")
@@ -251,7 +247,7 @@ public class EppInput extends ImmutableObject {
 
       /** Request the next poll message. */
       @XmlEnumValue("req")
-      REQUEST;
+      REQUEST
     }
 
     @XmlAttribute

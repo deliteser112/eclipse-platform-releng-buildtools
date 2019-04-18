@@ -72,7 +72,7 @@ public class LaunchCreateExtension extends LaunchExtension implements CommandExt
      * uses a "first-come, first-served" model.
      */
     @XmlEnumValue("registration")
-    REGISTRATION;
+    REGISTRATION
   }
 
   @XmlAttribute

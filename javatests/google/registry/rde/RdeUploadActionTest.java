@@ -76,7 +76,6 @@ import google.registry.testing.sftp.SftpServerRule;
 import google.registry.util.Retrier;
 import google.registry.util.TaskQueueUtils;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -353,7 +352,7 @@ public class RdeUploadActionTest {
                 + "upload; last upload attempt was at 2010-10-16T22:23:00.000Z (97 minutes ago)");
   }
 
-  private String slurp(InputStream is) throws FileNotFoundException, IOException {
+  private String slurp(InputStream is) throws IOException {
     return CharStreams.toString(new InputStreamReader(is, UTF_8));
   }
 }

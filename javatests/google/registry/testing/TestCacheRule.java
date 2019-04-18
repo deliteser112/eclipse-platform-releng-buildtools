@@ -82,8 +82,7 @@ public class TestCacheRule extends ExternalResource {
     }
 
     public TestCacheRule build() {
-      TestCacheRule rule = new TestCacheRule(ImmutableList.copyOf(cacheHandlerMap.values()));
-      return rule;
+      return new TestCacheRule(ImmutableList.copyOf(cacheHandlerMap.values()));
     }
   }
 

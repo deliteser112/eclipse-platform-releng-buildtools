@@ -30,7 +30,6 @@ public final class TmchData {
   private static final String BEGIN_ENCODED_SMD = "-----BEGIN ENCODED SMD-----";
   private static final String END_ENCODED_SMD = "-----END ENCODED SMD-----";
 
-  @SuppressWarnings("deprecation")
   static PGPPublicKey loadPublicKey(ByteSource pgpPublicKeyFile) {
     try (InputStream input = pgpPublicKeyFile.openStream();
         InputStream decoder = PGPUtil.getDecoderStream(input)) {

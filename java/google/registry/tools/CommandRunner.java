@@ -20,5 +20,5 @@ package google.registry.tools;
  * <p>This exists only to allow us to test ShellCommand.
  */
 interface CommandRunner {
-  public void run(String[] args) throws Exception;
+  void run(String[] args) throws Exception;
 }

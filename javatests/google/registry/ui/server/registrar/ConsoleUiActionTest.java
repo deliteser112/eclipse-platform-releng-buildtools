@@ -77,8 +77,7 @@ public class ConsoleUiActionTest {
     action.userService = UserServiceFactory.getUserService();
     action.xsrfTokenManager = new XsrfTokenManager(new FakeClock(), action.userService);
     action.paramClientId = Optional.empty();
-    AuthResult authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
-    action.authResult = authResult;
+    action.authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     action.environment = RegistryEnvironment.UNITTEST;
 
     action.registrarAccessor =

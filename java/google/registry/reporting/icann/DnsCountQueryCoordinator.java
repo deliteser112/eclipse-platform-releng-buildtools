@@ -34,7 +34,7 @@ public interface DnsCountQueryCoordinator {
    *
    * If your report query requires any additional parameters, add them here.
    */
-  public class Params {
+  class Params {
     public BigqueryConnection bigquery;
 
     /** The Google Cloud project id. */

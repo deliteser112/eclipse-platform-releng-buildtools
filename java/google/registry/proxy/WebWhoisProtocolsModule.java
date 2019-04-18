@@ -86,7 +86,7 @@ public class WebWhoisProtocolsModule {
         httpServerCodecProvider,
         httpServerExpectContinueHandlerProvider,
         webWhoisRedirectHandlerProvides);
-  };
+  }
 
   @Provides
   @HttpsWhoisProtocol
@@ -101,7 +101,7 @@ public class WebWhoisProtocolsModule {
         httpServerCodecProvider,
         httpServerExpectContinueHandlerProvider,
         webWhoisRedirectHandlerProvides);
-  };
+  }
 
   @Provides
   static HttpServerCodec provideHttpServerCodec() {

@@ -15,6 +15,7 @@
 package google.registry.util;
 
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static org.junit.Assert.assertNotEquals;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.InetAddresses;
@@ -264,8 +265,8 @@ public class CidrAddressBlockTest extends TestCase {
     assertEquals(b0, b1);
     assertEquals(b0, new CidrAddressBlock(b0.toString()));
     assertEquals(b0.hashCode(), b1.hashCode());
-    assertFalse(b0.equals(b2));
-    assertFalse(b0.equals(b3));
+    assertNotEquals(b0, b2);
+    assertNotEquals(b0, b3);
   }
 
   public void testIterate() {

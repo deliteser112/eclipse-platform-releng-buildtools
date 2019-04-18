@@ -51,9 +51,10 @@ public final class SoyTemplateUtils {
           for (SoyFileInfo soyInfo : soyInfos) {
             builder.add(getResource(soyInfo.getClass(), soyInfo.getFileName()));
           }
-          Map<String, Object> globals = new HashMap<>();
+          Map<String, Object> globals;
           try {
-            globals.putAll(SoyUtils.parseCompileTimeGlobals(asCharSource(SOY_GLOBALS, UTF_8)));
+            globals =
+                new HashMap<>(SoyUtils.parseCompileTimeGlobals(asCharSource(SOY_GLOBALS, UTF_8)));
           } catch (IOException e) {
             throw new RuntimeException("Failed to load soy globals", e);
           }

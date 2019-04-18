@@ -96,7 +96,6 @@ public class RydePgpSigningOutputStream extends ImprovedOutputStream {
    * googler who was also uncertain about the precise reason why it's needed.
    */
   private static void addUserInfoToSignature(PGPPublicKey publicKey, PGPSignatureGenerator signer) {
-    @SuppressWarnings("unchecked") // safe by specification.
     Iterator<String> uidIter = publicKey.getUserIDs();
     if (uidIter.hasNext()) {
       PGPSignatureSubpacketGenerator spg = new PGPSignatureSubpacketGenerator();

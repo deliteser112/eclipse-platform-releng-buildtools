@@ -60,7 +60,6 @@ import google.registry.xml.ValidationMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -183,14 +182,11 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     ImmutableMap.Builder<GracePeriod, BillingEvent> builder = new ImmutableMap.Builder<>();
     for (Map.Entry<GracePeriod, ? extends BillingEvent> entry : gracePeriods.entrySet()) {
       builder.put(
-          ((Function<GracePeriod, GracePeriod>)
-                  gracePeriod ->
-                      GracePeriod.create(
-                          gracePeriod.getType(),
-                          gracePeriod.getExpirationTime(),
-                          gracePeriod.getClientId(),
-                          null))
-              .apply(entry.getKey()),
+          GracePeriod.create(
+              entry.getKey().getType(),
+              entry.getKey().getExpirationTime(),
+              entry.getKey().getClientId(),
+              null),
           stripBillingEventId(entry.getValue()));
     }
     return builder.build();

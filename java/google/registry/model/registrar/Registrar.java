@@ -165,7 +165,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
      * This registrar is completely disabled and cannot perform any EPP actions whatsoever, nor log
      * in to the registrar console.
      */
-    DISABLED;
+    DISABLED
   }
 
   /** Regex for E.164 phone number format specified by {@code contact.xsd}. */

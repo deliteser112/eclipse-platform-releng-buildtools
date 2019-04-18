@@ -105,7 +105,7 @@ public final class PosixTarHeader {
     DIRECTORY,
 
     /** This indicates we read a file from an archive with an unsupported type. */
-    UNSUPPORTED;
+    UNSUPPORTED
   }
 
   public static final int HEADER_LENGTH = 512;

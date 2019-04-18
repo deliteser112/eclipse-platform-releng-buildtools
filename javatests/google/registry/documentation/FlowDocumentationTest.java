@@ -16,6 +16,7 @@ package google.registry.documentation;
 
 import static com.google.common.truth.Truth.assert_;
 import static google.registry.util.BuildPathUtils.getProjectRoot;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Joiner;
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class FlowDocumentationTest {
     Path goldenMarkdownPath =
         GOLDEN_MARKDOWN_FILEPATH;
 
-    String goldenMarkdown = new String(Files.readAllBytes(goldenMarkdownPath), "UTF-8");
+    String goldenMarkdown = new String(Files.readAllBytes(goldenMarkdownPath), UTF_8);
 
     // Don't use Truth's isEqualTo() because the output is huge and unreadable for large files.
     DocumentationGenerator generator = new DocumentationGenerator();

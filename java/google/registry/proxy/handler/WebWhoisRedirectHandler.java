@@ -105,7 +105,6 @@ public class WebWhoisRedirectHandler extends SimpleChannelInboundHandler<HttpReq
             isHttps
                 ? new DefaultFullHttpResponse(HTTP_1_1, FORBIDDEN)
                 : new DefaultFullHttpResponse(HTTP_1_1, OK);
-        ;
       } else {
         // HTTP -> HTTPS is a 301 redirect, whereas HTTPS -> web WHOIS site is 302 redirect.
         response = new DefaultFullHttpResponse(HTTP_1_1, isHttps ? FOUND : MOVED_PERMANENTLY);

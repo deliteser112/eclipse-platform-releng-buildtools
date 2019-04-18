@@ -236,7 +236,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
       enum Status {
         ALREADY_DELETED,
         AFTER_THRESHOLD,
-        SUCCESS;
+        SUCCESS
       }
 
       public abstract Status status();

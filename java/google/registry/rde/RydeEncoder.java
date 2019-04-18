@@ -54,10 +54,6 @@ public final class RydeEncoder extends FilterOutputStream {
 
   private final OutputStream sigOutput;
   private final RydePgpSigningOutputStream signer;
-  private final OutputStream encryptLayer;
-  private final OutputStream kompressor;
-  private final OutputStream fileLayer;
-  private final OutputStream tarLayer;
   // We use a Closer to handle the stream .close, to make sure it's done correctly.
   private final Closer closer = Closer.create();
   private boolean isClosed = false;
@@ -73,10 +69,12 @@ public final class RydeEncoder extends FilterOutputStream {
     super(null);
     this.sigOutput = sigOutput;
     signer = closer.register(new RydePgpSigningOutputStream(checkNotNull(rydeOutput), signingKey));
-    encryptLayer = closer.register(openEncryptor(signer, RYDE_USE_INTEGRITY_PACKET, receiverKeys));
-    kompressor = closer.register(openCompressor(encryptLayer));
-    fileLayer = closer.register(openPgpFileWriter(kompressor, filenamePrefix + ".tar", modified));
-    tarLayer =
+    OutputStream encryptLayer =
+        closer.register(openEncryptor(signer, RYDE_USE_INTEGRITY_PACKET, receiverKeys));
+    OutputStream kompressor = closer.register(openCompressor(encryptLayer));
+    OutputStream fileLayer =
+        closer.register(openPgpFileWriter(kompressor, filenamePrefix + ".tar", modified));
+    OutputStream tarLayer =
         closer.register(openTarWriter(fileLayer, dataLength, filenamePrefix + ".xml", modified));
     this.out = tarLayer;
   }

@@ -31,7 +31,7 @@ public class MarkContact extends CommonMarkContactFields {
     AGENT,
 
     @XmlEnumValue("thirdParty")
-    THIRD_PARTY;
+    THIRD_PARTY
   }
 
   @XmlAttribute

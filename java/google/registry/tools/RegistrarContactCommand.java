@@ -307,8 +307,7 @@ final class RegistrarContactCommand extends MutatingCommand {
   private void unsetOtherWhoisAbuseFlags(
       ImmutableSet<RegistrarContact> contacts, @Nullable String emailAddressNotToChange) {
     for (RegistrarContact contact : contacts) {
-      if (((emailAddressNotToChange == null)
-              || !contact.getEmailAddress().equals(emailAddressNotToChange))
+      if (!contact.getEmailAddress().equals(emailAddressNotToChange)
           && contact.getVisibleInDomainWhoisAsAbuse()) {
         RegistrarContact newContact =
             contact.asBuilder().setVisibleInDomainWhoisAsAbuse(false).build();

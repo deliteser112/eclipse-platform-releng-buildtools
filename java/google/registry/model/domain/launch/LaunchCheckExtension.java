@@ -60,7 +60,7 @@ public class LaunchCheckExtension extends ImmutableObject implements CommandExte
 
     /** A check to see if there are matching trademarks on the specified domain names. */
     @XmlEnumValue("claims")
-    CLAIMS;
+    CLAIMS
   }
 
   /**

@@ -74,8 +74,6 @@ public final class PgpHelper {
   public static PGPPublicKey lookupPublicKey(
       PGPPublicKeyRingCollection keyring, String query, KeyRequirement want) {
     try {
-      // Safe by specification.
-      @SuppressWarnings("unchecked")
       Iterator<PGPPublicKeyRing> results =
           keyring.getKeyRings(checkNotNull(query, "query"), true, true);
       verify(results.hasNext(), "No public key found matching substring: %s", query);
@@ -98,7 +96,6 @@ public final class PgpHelper {
    * @throws VerifyException if either keys couldn't be found.
    * @see #lookupPublicKey
    */
-  @SuppressWarnings("deprecation")
   public static PGPKeyPair lookupKeyPair(
       PGPPublicKeyRingCollection publics,
       PGPSecretKeyRingCollection privates,
@@ -130,8 +127,6 @@ public final class PgpHelper {
    */
   public static Optional<PGPPublicKey> lookupPublicSubkey(
       PGPPublicKeyRing ring, KeyRequirement want) {
-    // Safe by specification.
-    @SuppressWarnings("unchecked")
     Iterator<PGPPublicKey> keys = ring.getPublicKeys();
     while (keys.hasNext()) {
       PGPPublicKey key = keys.next();

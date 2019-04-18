@@ -24,7 +24,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.tools.LevelDbFileBuilder.Property;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +40,7 @@ public class LevelDbFileBuilderTest {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Test
-  public void testSingleRecordWrites() throws FileNotFoundException, IOException {
+  public void testSingleRecordWrites() throws IOException {
     File subdir = tempFs.newFolder("folder");
     File logFile = new File(subdir, "testfile");
     LevelDbFileBuilder builder = new LevelDbFileBuilder(logFile);
@@ -64,7 +63,7 @@ public class LevelDbFileBuilderTest {
   }
 
   @Test
-  public void testMultipleRecordWrites() throws FileNotFoundException, IOException {
+  public void testMultipleRecordWrites() throws IOException {
     File subdir = tempFs.newFolder("folder");
     File logFile = new File(subdir, "testfile");
     LevelDbFileBuilder builder = new LevelDbFileBuilder(logFile);

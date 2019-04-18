@@ -351,22 +351,18 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
       return;
     }
     String environment = Ascii.toLowerCase(String.valueOf(registryEnvironment));
-    StringBuilder builder = new StringBuilder();
-    builder
-        .append(
-            String.format(
+    String body =
+        String.format(
                 "The following registrar was created in %s by %s:\n",
-                environment, registrarAccessor.userIdForLogging()))
-        .append(toEmailLine(clientId, "clientId"))
-        .append(toEmailLine(name, "name"))
-        .append(toEmailLine(billingAccount, "billingAccount"))
-        .append(toEmailLine(ianaId, "ianaId"))
-        .append(toEmailLine(referralEmail, "referralEmail"))
-        .append(toEmailLine(driveId, "driveId"))
-        .append(
-            String.format("Gave user %s web access to the registrar\n", consoleUserEmail.get()));
+                environment, registrarAccessor.userIdForLogging())
+            + toEmailLine(clientId, "clientId")
+            + toEmailLine(name, "name")
+            + toEmailLine(billingAccount, "billingAccount")
+            + toEmailLine(ianaId, "ianaId")
+            + toEmailLine(referralEmail, "referralEmail")
+            + toEmailLine(driveId, "driveId")
+            + String.format("Gave user %s web access to the registrar\n", consoleUserEmail.get());
     sendEmailUtils.sendEmail(
-        String.format("Registrar %s created in %s", clientId.get(), environment),
-        builder.toString());
+        String.format("Registrar %s created in %s", clientId.get(), environment), body);
   }
 }

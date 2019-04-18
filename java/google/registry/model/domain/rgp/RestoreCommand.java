@@ -28,7 +28,7 @@ public class RestoreCommand {
     REQUEST,
 
     @XmlEnumValue("report")
-    REPORT;
+    REPORT
   }
 
   /** The restore operation. */

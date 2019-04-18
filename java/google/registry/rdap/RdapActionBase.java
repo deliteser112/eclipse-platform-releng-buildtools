@@ -235,10 +235,7 @@ public abstract class RdapActionBase implements Runnable {
     if (userAuthInfo.isUserAdmin()) {
       return true;
     }
-    if (registrarAccessor.getAllClientIdWithRoles().isEmpty()) {
-      return false;
-    }
-    return true;
+    return !registrarAccessor.getAllClientIdWithRoles().isEmpty();
   }
 
   DeletedItemHandling getDeletedItemHandling() {
