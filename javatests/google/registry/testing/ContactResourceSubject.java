@@ -15,6 +15,7 @@
 package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.FailureMetadata;
@@ -39,14 +40,14 @@ public final class ContactResourceSubject
 
   public And<ContactResourceSubject> hasNullLocalizedPostalInfo() {
     if (actual().getLocalizedPostalInfo() != null) {
-      fail("has null localized postal info");
+      failWithActual(simpleFact("expected to have null localized postal info"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullLocalizedPostalInfo() {
     if (actual().getLocalizedPostalInfo() == null) {
-      fail("has non-null localized postal info");
+      failWithActual(simpleFact("expected to have non-null localized postal info"));
     }
     return andChainer();
   }
@@ -61,7 +62,7 @@ public final class ContactResourceSubject
 
   public And<ContactResourceSubject> hasNullInternationalizedPostalInfo() {
     if (actual().getInternationalizedPostalInfo() != null) {
-      fail("has null internationalized postal info");
+      failWithActual(simpleFact("expected to have null internationalized postal info"));
     }
     return andChainer();
   }
@@ -69,49 +70,49 @@ public final class ContactResourceSubject
 
   public And<ContactResourceSubject> hasNonNullInternationalizedPostalInfo() {
     if (actual().getInternationalizedPostalInfo() == null) {
-      fail("has non-null internationalized postal info");
+      failWithActual(simpleFact("expected to have non-null internationalized postal info"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNullEmailAddress() {
     if (actual().getEmailAddress() != null) {
-      fail("has null email address");
+      failWithActual(simpleFact("expected to have null email address"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullEmailAddress() {
     if (actual().getEmailAddress() == null) {
-      fail("has non-null email address");
+      failWithActual(simpleFact("expected to have non-null email address"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNullVoiceNumber() {
     if (actual().getVoiceNumber() != null) {
-      fail("has null voice number");
+      failWithActual(simpleFact("expected to have null voice number"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullVoiceNumber() {
     if (actual().getVoiceNumber() == null) {
-      fail("has non-null voice number");
+      failWithActual(simpleFact("expected to have non-null voice number"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNullFaxNumber() {
     if (actual().getFaxNumber() != null) {
-      fail("has null fax number");
+      failWithActual(simpleFact("expected to have null fax number"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullFaxNumber() {
     if (actual().getFaxNumber() == null) {
-      fail("has non-null fax number");
+      failWithActual(simpleFact("expected to have non-null fax number"));
     }
     return andChainer();
   }

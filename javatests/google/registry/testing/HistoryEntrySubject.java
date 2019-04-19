@@ -14,6 +14,7 @@
 
 package google.registry.testing;
 
+import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.FailureMetadata;
@@ -67,7 +68,7 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
 
   public And<HistoryEntrySubject> hasPeriod() {
     if (actual().getPeriod() == null) {
-      fail("has a period");
+      failWithActual(simpleFact("expected to have a period"));
     }
     return new And<>(this);
   }
@@ -80,7 +81,7 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
 
   public And<HistoryEntrySubject> hasNoXml() {
     if (actual().getXmlBytes() != null) {
-      fail("has no xml");
+      failWithActual(simpleFact("expected to have no xml"));
     }
     return new And<>(this);
   }
@@ -92,7 +93,8 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
   public And<HistoryEntrySubject> hasMetadataRequestedByRegistrar(
         boolean requestedByRegistrar) {
     if (actual().getRequestedByRegistrar() != requestedByRegistrar) {
-      fail("has metadata requestedByRegistrar with value", requestedByRegistrar);
+      failWithActual(
+          "expected to have metadata requestedByRegistrar with value", requestedByRegistrar);
     }
     return new And<>(this);
   }

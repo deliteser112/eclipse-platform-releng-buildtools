@@ -80,7 +80,7 @@ abstract class AbstractEppResourceSubject
 
   public And<S> hasNoHistoryEntries() {
     if (!getHistoryEntries().isEmpty()) {
-      fail("has no history entries");
+      failWithActual(simpleFact("expected to have no history entries"));
     }
     return andChainer();
   }

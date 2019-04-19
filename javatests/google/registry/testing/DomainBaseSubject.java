@@ -15,6 +15,7 @@
 package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.FailureMetadata;
@@ -54,14 +55,14 @@ public final class DomainBaseSubject
 
   public And<DomainBaseSubject> hasDeletePollMessage() {
     if (actual().getDeletePollMessage() == null) {
-      fail("has a delete poll message");
+      failWithActual(simpleFact("expected to have a delete poll message"));
     }
     return andChainer();
   }
 
   public And<DomainBaseSubject> hasNoDeletePollMessage() {
     if (actual().getDeletePollMessage() != null) {
-      fail("has no delete poll message");
+      failWithActual(simpleFact("expected to have no delete poll message"));
     }
     return andChainer();
   }

@@ -14,6 +14,7 @@
 
 package google.registry.testing;
 
+import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertAbout;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
@@ -50,7 +51,7 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
 
   public And<EppMetricSubject> hasNoStatus() {
     if (actual().getStatus().isPresent()) {
-      fail("has no status");
+      failWithActual(simpleFact("expected to have no status"));
     }
     return new And<>(this);
   }
@@ -61,7 +62,7 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
 
   public And<EppMetricSubject> hasNoTld() {
     if (actual().getTld().isPresent()) {
-      fail("has no tld");
+      failWithActual(simpleFact("expected to have no tld"));
     }
     return new And<>(this);
   }
@@ -69,9 +70,9 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
   private <E> And<EppMetricSubject> hasValue(E expected, Optional<E> actual, String verb) {
     checkArgumentNotNull(expected, "Expected value cannot be null");
     if (actual == null) {
-      fail("is non-null", expected);
+      failWithActual("expected to be non-null", expected);
     } else if (!actual.isPresent()) {
-      fail("has value", expected);
+      failWithActual("expected to have value", expected);
     } else if (!Objects.equals(expected, actual.get())) {
       failWithBadResults(verb, expected, verb, actual);
     }
