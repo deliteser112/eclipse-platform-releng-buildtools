@@ -33,6 +33,10 @@ curl https://packages.cloud.google.com/apt/doc/apt-key.gpg \
   | apt-key add -
 apt-get update -y
 apt-get install google-cloud-sdk-app-engine-java -y
+# Install git
+apt-get install git -y
+# Install docker
+apt-get install docker.io -y
 apt-get remove apt-utils locales lsb-release -y
 apt-get autoclean -y
 apt-get autoremove -y

@@ -16,46 +16,51 @@
 # https://cloud.google.com/cloud-build/docs/running-builds/automate-builds
 steps:
 # Set permissions correctly. Not sure why it is necessary, but it is.
-- name: 'alpine'
+- name: 'gcr.io/${PROJECT_ID}/builder:latest'
+  entrypoint: /bin/bash
   args: ['chown', '-R', 'root:root', '.']
-- name: 'alpine'
+- name: 'gcr.io/${PROJECT_ID}/builder:latest'
+  entrypoint: /bin/bash
   args: ['chmod', '-R', '777', '.']
-# Clone the private repo and merge its contents.
-- name: 'gcr.io/cloud-builders/gcloud'
-  args: ['source', 'repos', 'clone', 'nomulus-internal']
-- name: 'alpine'
-  args: ['sh', '-c', 'cp -r nomulus-internal/* .']
 # Create a directory to store the artifacts
-- name: 'alpine'
+- name: 'gcr.io/${PROJECT_ID}/builder:latest'
+  entrypoint: /bin/bash
   args: ['mkdir', 'nomulus']
+# Run tests
+- name: 'gcr.io/${PROJECT_ID}/builder:latest'
+  args: ['./gradlew', 'test']
+  dir: 'gradle'
 # Build the deployment files for sandbox.
-- name: 'gcr.io/${PROJECT_ID}/builder'
+- name: 'gcr.io/${PROJECT_ID}/builder:latest'
   args:
-    - './gradlew'
-    - 'stage'
-    - '-x'
-    - 'autoLintGradle'
-    - '-Penvironment=sandbox'
-    - '-PmavenUrl=gcs://domain-registry-maven-repository/maven'
-    - '-PpluginsUrl=gcs://domain-registry-maven-repository/plugins'
+  - './gradlew'
+  - 'stage'
+  - '-x'
+  - 'autoLintGradle'
+  - '-Penvironment=sandbox'
+  - '-PmavenUrl=gcs://domain-registry-maven-repository/maven'
+  - '-PpluginsUrl=gcs://domain-registry-maven-repository/plugins'
   dir: 'gradle'
-- name: 'alpine'
-  args: ['sh', './move_artifacts.sh', 'sandbox', 'nomulus']
+- name: 'gcr.io/${PROJECT_ID}/builder:latest'
+  entrypoint: bin/bash
+  args: ['./move_artifacts.sh', 'sandbox', 'nomulus']
 # Build the deployment files for crash.
-- name: 'gcr.io/${PROJECT_ID}/builder'
+- name: 'gcr.io/${PROJECT_ID}/builder:latest'
   args:
-    - './gradlew'
-    - 'stage'
-    - '-x'
-    - 'autoLintGradle'
-    - '-Penvironment=crash'
-    - '-PmavenUrl=gcs://domain-registry-maven-repository/maven'
-    - '-PpluginsUrl=gcs://domain-registry-maven-repository/plugins'
+  - './gradlew'
+  - 'stage'
+  - '-x'
+  - 'autoLintGradle'
+  - '-Penvironment=crash'
+  - '-PmavenUrl=gcs://domain-registry-maven-repository/maven'
+  - '-PpluginsUrl=gcs://domain-registry-maven-repository/plugins'
   dir: 'gradle'
-- name: 'alpine'
-  args: ['sh', './move_artifacts.sh', 'crash', 'nomulus']
+- name: 'gcr.io/${PROJECT_ID}/builder:latest'
+  entrypoint: bin/bash
+  args: ['./move_artifacts.sh', 'crash', 'nomulus']
 # Create the uber tarball including all environments.
-- name: 'alpine'
+- name: 'gcr.io/${PROJECT_ID}/builder:latest'
+  entrypoint: bin/bash
   args: ['tar', 'cvf', '../nomulus.tar', '.']
   dir: 'nomulus'
 # The tarball to upload to GCS.

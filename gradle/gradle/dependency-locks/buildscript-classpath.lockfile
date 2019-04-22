@@ -13,8 +13,8 @@ com.jcraft:jzlib:1.1.1
 com.moowork.gradle:gradle-node-plugin:1.2.0
 com.moowork.node:com.moowork.node.gradle.plugin:1.2.0
 com.netflix.nebula:gradle-lint-plugin:10.4.2
-com.netflix.nebula:nebula-gradle-interop:1.0.6
-com.netflix.nebula:nebula-test:7.2.3
+com.netflix.nebula:nebula-gradle-interop:1.0.7
+com.netflix.nebula:nebula-test:7.2.4
 commons-codec:commons-codec:1.9
 commons-io:commons-io:2.5
 commons-lang:commons-lang:2.6

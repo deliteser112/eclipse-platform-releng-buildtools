@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This Dockerfile builds an image that can be used to build the nomulus app.
-# We need the following programs during Gradle build:
+# This Dockerfile builds an image that can be used in Google Cloud Build.
+# We need the following programs to build the Nomulus app and the proxy:
 # 1. Java 8 for compilation.
 # 2. Node.js/NPM for JavaScript compilation.
 # 3. Google Cloud SDK for generating the WARs.
+# 4. Git to manipulate the private and the merged repos.
+# 5. Docker to build and push images.
 FROM marketplace.gcr.io/google/ubuntu1804
 ENV DEBIAN_FRONTEND=noninteractive LANG=en_US.UTF-8
 ADD ./build.sh .
