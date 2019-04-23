@@ -40,13 +40,6 @@ steps:
 - name: 'gcr.io/${PROJECT_ID}/builder:latest'
   entrypoint: /bin/bash
   args: ['-c', 'mv java/google/registry/proxy/kubernetes/* .']
-# Replace the tag "latest" with the git tag that triggered this build. This is due to a bug in
-# Spinnaker where the tag is appended to the image name when the deployment pipeline is triggered
-# by GCB pubsub messages. The bug is fixed in https://github.com/spinnaker/echo/pull/498 and we can
-# remove this step and the "latest" tag in the manifests when Spinnaker 1.13 is deployed.
-- name: 'gcr.io/${PROJECT_ID}/builder:latest'
-  entrypoint: /bin/bash
-  args: ['-c', 'sed -i s/:latest/:${TAG_NAME}/ proxy-*.yaml']
 # Push the image. We can't let Cloud Build's default processing do that for us
 # because we need to push the image before we can sign it in the following
 # step.

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: proxy-canary
-        image: gcr.io/GCP_PROJECT/proxy:latest
+        image: gcr.io/GCP_PROJECT/proxy
         ports:
         - containerPort: 30000
           name: health-check
