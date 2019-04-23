@@ -23,13 +23,11 @@ import java.util.List;
 @AutoValue
 public abstract class RegistrarThreatMatches {
 
-  public abstract String registrarEmailAddress();
+  public abstract String clientId();
 
   public abstract ImmutableList<ThreatMatch> threatMatches();
 
-  static RegistrarThreatMatches create(
-      String registrarEmailAddress, List<ThreatMatch> threatMatches) {
-    return new AutoValue_RegistrarThreatMatches(
-        registrarEmailAddress, ImmutableList.copyOf(threatMatches));
+  static RegistrarThreatMatches create(String clientId, List<ThreatMatch> threatMatches) {
+    return new AutoValue_RegistrarThreatMatches(clientId, ImmutableList.copyOf(threatMatches));
   }
 }

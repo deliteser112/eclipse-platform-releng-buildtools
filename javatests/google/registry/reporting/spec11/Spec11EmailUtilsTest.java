@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.reporting.spec11.Spec11RegistrarThreatMatchesParserTest.getMatchA;
 import static google.registry.reporting.spec11.Spec11RegistrarThreatMatchesParserTest.getMatchB;
 import static google.registry.reporting.spec11.Spec11RegistrarThreatMatchesParserTest.sampleThreatMatches;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -26,8 +27,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.net.MediaType;
 import google.registry.reporting.spec11.soy.Spec11EmailSoyInfo;
+import google.registry.testing.AppEngineRule;
 import google.registry.util.EmailMessage;
 import google.registry.util.SendEmailService;
 import java.util.LinkedHashSet;
@@ -37,6 +40,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import org.joda.time.LocalDate;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -106,6 +110,8 @@ public class Spec11EmailUtilsTest {
           + "<p>If you have any questions regarding this notice, please contact "
           + "my-reply-to@test.com.</p>";
 
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+
   private SendEmailService emailService;
   private Spec11EmailUtils emailUtils;
   private Spec11RegistrarThreatMatchesParser parser;
@@ -141,7 +147,7 @@ public class Spec11EmailUtilsTest {
     validateMessage(
         capturedContents.get(0),
         "my-sender@test.com",
-        "a@fake.com",
+        "the.registrar@example.com",
         Optional.of("my-reply-to@test.com"),
         "Super Cool Registry Monthly Threat Detector [2018-07-15]",
         String.format(MONTHLY_EMAIL_FORMAT, "<tr><td>a.com</td><td>MALWARE</td></tr>"),
@@ -149,7 +155,7 @@ public class Spec11EmailUtilsTest {
     validateMessage(
         capturedContents.get(1),
         "my-sender@test.com",
-        "b@fake.com",
+        "new.registrar@example.com",
         Optional.of("my-reply-to@test.com"),
         "Super Cool Registry Monthly Threat Detector [2018-07-15]",
         String.format(
@@ -179,7 +185,7 @@ public class Spec11EmailUtilsTest {
     validateMessage(
         capturedMessages.get(0),
         "my-sender@test.com",
-        "a@fake.com",
+        "the.registrar@example.com",
         Optional.of("my-reply-to@test.com"),
         "Super Cool Registry Daily Threat Detector [2018-07-15]",
         String.format(DAILY_EMAIL_FORMAT, "<tr><td>a.com</td><td>MALWARE</td></tr>"),
@@ -187,7 +193,7 @@ public class Spec11EmailUtilsTest {
     validateMessage(
         capturedMessages.get(1),
         "my-sender@test.com",
-        "b@fake.com",
+        "new.registrar@example.com",
         Optional.of("my-reply-to@test.com"),
         "Super Cool Registry Daily Threat Detector [2018-07-15]",
         String.format(
@@ -234,7 +240,7 @@ public class Spec11EmailUtilsTest {
     validateMessage(
         capturedMessages.get(0),
         "my-sender@test.com",
-        "a@fake.com",
+        "the.registrar@example.com",
         Optional.of("my-reply-to@test.com"),
         "Super Cool Registry Monthly Threat Detector [2018-07-15]",
         String.format(MONTHLY_EMAIL_FORMAT, "<tr><td>a.com</td><td>MALWARE</td></tr>"),
@@ -242,7 +248,7 @@ public class Spec11EmailUtilsTest {
     validateMessage(
         capturedMessages.get(1),
         "my-sender@test.com",
-        "b@fake.com",
+        "new.registrar@example.com",
         Optional.of("my-reply-to@test.com"),
         "Super Cool Registry Monthly Threat Detector [2018-07-15]",
         String.format(
@@ -260,7 +266,7 @@ public class Spec11EmailUtilsTest {
   }
 
   @Test
-  public void testSuccess_sendAlertEmail() throws MessagingException {
+  public void testSuccess_sendAlertEmail() throws Exception {
     emailUtils.sendAlertEmail("Spec11 Pipeline Alert: 2018-07", "Alert!");
     verify(emailService).sendEmail(contentCaptor.capture());
     validateMessage(
@@ -271,6 +277,45 @@ public class Spec11EmailUtilsTest {
         "Spec11 Pipeline Alert: 2018-07",
         "Alert!",
         Optional.empty());
+  }
+
+  @Test
+  public void testSuccess_useWhoisAbuseEmailIfAvailable() throws Exception {
+    // if John Doe is the whois abuse contact, email them instead of the regular email
+    persistResource(
+        AppEngineRule.makeRegistrarContact2()
+            .asBuilder()
+            .setEmailAddress("johndoe@theregistrar.com")
+            .setVisibleInDomainWhoisAsAbuse(true)
+            .build());
+    emailUtils.emailSpec11Reports(
+        date,
+        Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL,
+        "Super Cool Registry Monthly Threat Detector [2018-07-15]",
+        sampleThreatMatches());
+    verify(emailService, times(3)).sendEmail(contentCaptor.capture());
+    assertThat(contentCaptor.getAllValues().get(0).recipients())
+        .containsExactly(new InternetAddress("johndoe@theregistrar.com"));
+  }
+
+  @Test
+  public void testFailure_badClientId() {
+    RuntimeException thrown =
+        assertThrows(
+            RuntimeException.class,
+            () ->
+                emailUtils.emailSpec11Reports(
+                    date,
+                    Spec11EmailSoyInfo.MONTHLY_SPEC_11_EMAIL,
+                    "Super Cool Registry Monthly Threat Detector [2018-07-15]",
+                    ImmutableSet.of(
+                        RegistrarThreatMatches.create(
+                            "badClientId", getMatchA().threatMatches()))));
+    assertThat(thrown)
+        .hasCauseThat()
+        .hasMessageThat()
+        .isEqualTo("Could not find registrar badClientId");
+    assertThat(thrown).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
   }
 
   private void validateMessage(

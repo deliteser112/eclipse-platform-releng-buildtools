@@ -177,7 +177,7 @@ public class PublishSpec11ReportActionTest {
     RegistrarThreatMatches firstMatches = getMatchA();
     ImmutableList<ThreatMatch> secondMatchList = getMatchB().threatMatches();
     RegistrarThreatMatches secondMatches =
-        RegistrarThreatMatches.create("a@fake.com", secondMatchList);
+        RegistrarThreatMatches.create("TheRegistrar", secondMatchList);
     when(parser.getRegistrarThreatMatches(date))
         .thenReturn(ImmutableSet.of(firstMatches, secondMatches));
     expectedJob.setCurrentState("JOB_STATE_DONE");
@@ -185,7 +185,7 @@ public class PublishSpec11ReportActionTest {
     ImmutableSet<RegistrarThreatMatches> expectedMatchSet =
         ImmutableSet.of(
             RegistrarThreatMatches.create(
-                "a@fake.com",
+                "TheRegistrar",
                 ImmutableList.<ThreatMatch>builder()
                     .addAll(firstMatches.threatMatches())
                     .addAll(secondMatchList)

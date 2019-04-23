@@ -84,7 +84,7 @@ public class Spec11RegistrarThreatMatchesParserTest {
 
   static RegistrarThreatMatches getMatchA() throws Exception {
     return RegistrarThreatMatches.create(
-        "a@fake.com",
+        "TheRegistrar",
         ImmutableList.of(
             ThreatMatch.fromJSON(
                 new JSONObject(
@@ -97,7 +97,7 @@ public class Spec11RegistrarThreatMatchesParserTest {
 
   static RegistrarThreatMatches getMatchB() throws Exception {
     return RegistrarThreatMatches.create(
-        "b@fake.com",
+        "NewRegistrar",
         ImmutableList.of(
             ThreatMatch.fromJSON(
                 new JSONObject(

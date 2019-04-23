@@ -12,6 +12,7 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/gcs",
         "//java/google/registry/keyring/api",
+        "//java/google/registry/model",
         "//java/google/registry/reporting",
         "//java/google/registry/reporting/spec11/soy:soy_java_wrappers",
         "//java/google/registry/request",

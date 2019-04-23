@@ -27,6 +27,8 @@ import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.google.template.soy.tofu.SoyTofu;
 import com.google.template.soy.tofu.SoyTofu.Renderer;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.RegistrarContact;
 import google.registry.reporting.spec11.soy.Spec11EmailSoyInfo;
 import google.registry.util.EmailMessage;
 import google.registry.util.SendEmailService;
@@ -105,11 +107,10 @@ public class Spec11EmailUtils {
           String.format("Spec11 Emailing Failure %s", date),
           String.format("Emailing Spec11 reports failed due to %s", firstThrowable.getMessage()));
       for (int i = 1; i < failedMatches.size(); i++) {
-        // TODO(b/129401965): Use only client IDs in this message
         logger.atSevere().withCause(failedMatchesList.get(i).getValue()).log(
             "Additional exception thrown when sending email to registrar %s, in addition to the"
                 + " re-thrown exception",
-            failedMatchesList.get(i).getKey().registrarEmailAddress());
+            failedMatchesList.get(i).getKey().clientId());
       }
       throw new RuntimeException(
           "Emailing Spec11 reports failed, first exception:", firstThrowable);
@@ -131,7 +132,7 @@ public class Spec11EmailUtils {
             .setBody(getContent(date, soyTemplateInfo, registrarThreatMatches))
             .setContentType(MediaType.HTML_UTF_8)
             .setFrom(outgoingEmailAddress)
-            .addRecipient(new InternetAddress(registrarThreatMatches.registrarEmailAddress()))
+            .addRecipient(getEmailAddressForRegistrar(registrarThreatMatches.clientId()))
             .setBcc(spec11ReplyToAddress)
             .build());
   }
@@ -175,5 +176,20 @@ public class Spec11EmailUtils {
     } catch (Throwable e) {
       throw new RuntimeException("The spec11 alert e-mail system failed.", e);
     }
+  }
+
+  private InternetAddress getEmailAddressForRegistrar(String clientId) throws MessagingException {
+    // Attempt to use the registrar's WHOIS abuse contact, then fall back to the regular address.
+    Registrar registrar =
+        Registrar.loadByClientIdCached(clientId)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        String.format("Could not find registrar %s", clientId)));
+    return new InternetAddress(
+        registrar
+            .getWhoisAbuseContact()
+            .map(RegistrarContact::getEmailAddress)
+            .orElse(registrar.getEmailAddress()));
   }
 }

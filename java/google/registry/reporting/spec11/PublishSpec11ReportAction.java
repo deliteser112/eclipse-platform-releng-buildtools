@@ -52,8 +52,8 @@ import org.json.JSONException;
  * Retries until a {@code Dataflow} job with a given {@code jobId} completes, continuing the Spec11
  * pipeline accordingly.
  *
- * <p>This calls {@link Spec11EmailUtils#emailSpec11Reports(SoyTemplateInfo, String, Set)} on
- * success or {@link Spec11EmailUtils#sendAlertEmail(String, String)} on failure.
+ * <p>This calls {@link Spec11EmailUtils#emailSpec11Reports(LocalDate, SoyTemplateInfo, String,
+ * Set)} on success or {@link Spec11EmailUtils#sendAlertEmail(String, String)} on failure.
  */
 @Action(
     service = Action.Service.BACKEND,
@@ -193,7 +193,7 @@ public class PublishSpec11ReportAction implements Runnable {
     // Group by email address then flat-map all of the ThreatMatch objects together
     return ImmutableMap.copyOf(
         Maps.transformValues(
-            Multimaps.index(registrarThreatMatches, RegistrarThreatMatches::registrarEmailAddress)
+            Multimaps.index(registrarThreatMatches, RegistrarThreatMatches::clientId)
                 .asMap(),
             registrarThreatMatchesCollection ->
                 registrarThreatMatchesCollection.stream()
