@@ -14,7 +14,6 @@
 
 package google.registry.reporting.spec11;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.reporting.ReportingModule.PARAM_DATE;
 import static google.registry.request.Action.Method.POST;
@@ -25,10 +24,12 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.services.dataflow.Dataflow;
 import com.google.api.services.dataflow.model.Job;
-import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Sets;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
@@ -41,11 +42,8 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.joda.time.LocalDate;
 import org.json.JSONException;
@@ -170,31 +168,37 @@ public class PublishSpec11ReportAction implements Runnable {
   }
 
   private ImmutableSet<RegistrarThreatMatches> getNewMatches(
-      Set<RegistrarThreatMatches> previousMatchesSet,
-      Set<RegistrarThreatMatches> currentMatchesSet) {
+      ImmutableSet<RegistrarThreatMatches> previousMatchesSet,
+      ImmutableSet<RegistrarThreatMatches> currentMatchesSet) {
+    ImmutableMap<String, ImmutableSet<ThreatMatch>> previousMatchesByEmail =
+        groupByKeyAndFlatMap(previousMatchesSet);
+    ImmutableMap<String, ImmutableSet<ThreatMatch>> currentMatchesByEmail =
+        groupByKeyAndFlatMap(currentMatchesSet);
+    ImmutableSet.Builder<RegistrarThreatMatches> resultsBuilder = ImmutableSet.builder();
+    for (String email : currentMatchesByEmail.keySet()) {
+      // Only include matches in the result if they're non-empty
+      Set<ThreatMatch> difference =
+          Sets.difference(
+              currentMatchesByEmail.get(email),
+              previousMatchesByEmail.getOrDefault(email, ImmutableSet.of()));
+      if (!difference.isEmpty()) {
+        resultsBuilder.add(RegistrarThreatMatches.create(email, ImmutableList.copyOf(difference)));
+      }
+    }
+    return resultsBuilder.build();
+  }
+
+  private ImmutableMap<String, ImmutableSet<ThreatMatch>> groupByKeyAndFlatMap(
+      ImmutableSet<RegistrarThreatMatches> registrarThreatMatches) {
     // Group by email address then flat-map all of the ThreatMatch objects together
-    ImmutableListMultimap<String, RegistrarThreatMatches> currentMatchesByEmail =
-        Multimaps.index(currentMatchesSet, RegistrarThreatMatches::registrarEmailAddress);
-    Map<String, List<ThreatMatch>> currentMatchMap =
+    return ImmutableMap.copyOf(
         Maps.transformValues(
-            currentMatchesByEmail.asMap(),
+            Multimaps.index(registrarThreatMatches, RegistrarThreatMatches::registrarEmailAddress)
+                .asMap(),
             registrarThreatMatchesCollection ->
                 registrarThreatMatchesCollection.stream()
                     .flatMap(matches -> matches.threatMatches().stream())
-                    .collect(toImmutableList()));
-    previousMatchesSet.forEach(
-        previousMatches ->
-            currentMatchMap.computeIfPresent(
-                previousMatches.registrarEmailAddress(),
-                (email, currentMatches) ->
-                    currentMatches.stream()
-                        .filter(
-                            currentMatch -> !previousMatches.threatMatches().contains(currentMatch))
-                        .collect(Collectors.toList())));
-    return currentMatchMap.entrySet().stream()
-        .filter(entry -> !entry.getValue().isEmpty())
-        .map(entry -> RegistrarThreatMatches.create(entry.getKey(), entry.getValue()))
-        .collect(toImmutableSet());
+                    .collect(toImmutableSet())));
   }
 
   private boolean shouldSendMonthlySpec11Email() {

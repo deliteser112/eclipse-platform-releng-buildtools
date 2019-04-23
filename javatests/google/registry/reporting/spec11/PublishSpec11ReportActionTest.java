@@ -200,6 +200,24 @@ public class PublishSpec11ReportActionTest {
   }
 
   @Test
+  public void testJobDone_noDifferentResults() throws Exception {
+    LocalDate yesterday = date.minusDays(1);
+    when(parser.getPreviousDateWithMatches(date)).thenReturn(Optional.of(yesterday));
+    when(parser.getRegistrarThreatMatches(date)).thenReturn(sampleThreatMatches());
+    when(parser.getRegistrarThreatMatches(yesterday)).thenReturn(sampleThreatMatches());
+    expectedJob.setCurrentState("JOB_STATE_DONE");
+    publishAction.run();
+    assertThat(response.getStatus()).isEqualTo(SC_OK);
+    verify(emailUtils)
+        .emailSpec11Reports(
+            date,
+            Spec11EmailSoyInfo.DAILY_SPEC_11_EMAIL,
+            "Super Cool Registry Daily Threat Detector [2018-06-05]",
+            ImmutableSet.of());
+    verifyNoMoreInteractions(emailUtils);
+  }
+
+  @Test
   public void testJobDone_failsDueToNoPreviousResults() {
     when(parser.getPreviousDateWithMatches(date)).thenReturn(Optional.empty());
     expectedJob.setCurrentState("JOB_STATE_DONE");
