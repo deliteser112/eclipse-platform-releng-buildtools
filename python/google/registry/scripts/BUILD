@@ -5,6 +5,7 @@ licenses(["notice"])  # Apache 2.0
 py_binary(
     name = "xml_to_index_yaml_translator",
     srcs = ["xml_to_index_yaml_translator.py"],
+    python_version = "PY2",
     deps = [":xml_to_index_yaml_translator_lib"],
 )
 
@@ -22,5 +23,6 @@ py_test(
         "testdata/datastore-indexes.xml",
         "testdata/index.yaml",
     ],
+    python_version = "PY2",
     deps = [":xml_to_index_yaml_translator_lib"],
 )
