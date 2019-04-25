@@ -295,6 +295,7 @@ public class DomainCreateFlow implements TransactionalFlow {
             years,
             feesAndCredits,
             historyEntry,
+            allocationToken,
             now);
     // Create a new autorenew billing event and poll message starting at the expiration time.
     BillingEvent.Recurring autorenewBillingEvent =
@@ -477,6 +478,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       int years,
       FeesAndCredits feesAndCredits,
       HistoryEntry historyEntry,
+      Optional<AllocationToken> allocationToken,
       DateTime now) {
     ImmutableSet.Builder<Flag> flagsBuilder = new ImmutableSet.Builder<>();
     // Sunrise and anchor tenancy are orthogonal tags and thus both can be present together.
@@ -497,6 +499,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         .setPeriodYears(years)
         .setCost(feesAndCredits.getCreateCost())
         .setEventTime(now)
+        .setAllocationToken(allocationToken.map(Key::create).orElse(null))
         .setBillingTime(
             now.plus(
                 isAnchorTenant

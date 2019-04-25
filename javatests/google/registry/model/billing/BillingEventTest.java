@@ -15,6 +15,7 @@
 package google.registry.model.billing;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.domain.token.AllocationToken.TokenType.UNLIMITED_USE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -25,6 +26,7 @@ import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -32,7 +34,10 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.domain.token.AllocationToken.TokenStatus;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.util.DateTimeUtils;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -67,22 +72,41 @@ public class BillingEventTest extends EntityTestCase {
         .setModificationTime(now.plusDays(1))
         .build());
 
-    oneTime = persistResource(commonInit(
-        new BillingEvent.OneTime.Builder()
-            .setParent(historyEntry)
-            .setReason(Reason.CREATE)
-            .setFlags(ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT))
-            .setPeriodYears(2)
-            .setCost(Money.of(USD, 1))
-            .setEventTime(now)
-            .setBillingTime(now.plusDays(5))));
-    recurring = persistResource(commonInit(
-        new BillingEvent.Recurring.Builder()
-            .setParent(historyEntry)
-            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
-            .setReason(Reason.RENEW)
-            .setEventTime(now.plusYears(1))
-            .setRecurrenceEndTime(END_OF_TIME)));
+    AllocationToken allocationToken =
+        persistResource(
+            new AllocationToken.Builder()
+                .setToken("abc123")
+                .setTokenType(UNLIMITED_USE)
+                .setDiscountFraction(0.5)
+                .setTokenStatusTransitions(
+                    ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                        .put(DateTimeUtils.START_OF_TIME, TokenStatus.NOT_STARTED)
+                        .put(DateTime.now(UTC), TokenStatus.VALID)
+                        .put(DateTime.now(UTC).plusWeeks(8), TokenStatus.ENDED)
+                        .build())
+                .build());
+
+    oneTime =
+        persistResource(
+            commonInit(
+                new BillingEvent.OneTime.Builder()
+                    .setParent(historyEntry)
+                    .setReason(Reason.CREATE)
+                    .setFlags(ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT))
+                    .setPeriodYears(2)
+                    .setCost(Money.of(USD, 1))
+                    .setEventTime(now)
+                    .setBillingTime(now.plusDays(5))
+                    .setAllocationToken(Key.create(allocationToken))));
+    recurring =
+        persistResource(
+            commonInit(
+                new BillingEvent.Recurring.Builder()
+                    .setParent(historyEntry)
+                    .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
+                    .setReason(Reason.RENEW)
+                    .setEventTime(now.plusYears(1))
+                    .setRecurrenceEndTime(END_OF_TIME)));
     oneTimeSynthetic = persistResource(commonInit(
         new BillingEvent.OneTime.Builder()
             .setParent(historyEntry)
@@ -166,9 +190,20 @@ public class BillingEventTest extends EntityTestCase {
 
   @Test
   public void testIndexing() throws Exception {
-    verifyIndexing(oneTime, "clientId", "eventTime", "billingTime", "syntheticCreationTime");
     verifyIndexing(
-        oneTimeSynthetic, "clientId", "eventTime", "billingTime", "syntheticCreationTime");
+        oneTime,
+        "clientId",
+        "eventTime",
+        "billingTime",
+        "syntheticCreationTime",
+        "allocationToken");
+    verifyIndexing(
+        oneTimeSynthetic,
+        "clientId",
+        "eventTime",
+        "billingTime",
+        "syntheticCreationTime",
+        "allocationToken");
     verifyIndexing(
         recurring, "clientId", "eventTime", "recurrenceEndTime", "recurrenceTimeOfYear.timeString");
     verifyIndexing(cancellationOneTime, "clientId", "eventTime", "billingTime");

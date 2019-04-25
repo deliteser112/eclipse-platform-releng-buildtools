@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.flows.FlowTestCase.UserPrivileges.SUPERUSER;
 import static google.registry.model.billing.BillingEvent.Flag.ANCHOR_TENANT;
+import static google.registry.model.billing.BillingEvent.Flag.RESERVED;
 import static google.registry.model.billing.BillingEvent.Flag.SUNRISE;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
@@ -151,6 +152,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.util.Map;
+import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -162,6 +164,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   private static final String CLAIMS_KEY = "2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001";
 
+  private AllocationToken allocationToken;
+
   public DomainCreateFlowTest() {
     setEppInput("domain_create.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     clock.setTo(DateTime.parse("1999-04-03T22:00:00.0Z").minus(Duration.millis(1)));
@@ -170,12 +174,13 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Before
   public void initCreateTest() {
     createTld("tld");
-    persistResource(
-        new AllocationToken.Builder()
-            .setToken("abcDEF23456")
-            .setTokenType(SINGLE_USE)
-            .setDomainName("anchor.tld")
-            .build());
+    allocationToken =
+        persistResource(
+            new AllocationToken.Builder()
+                .setToken("abcDEF23456")
+                .setTokenType(SINGLE_USE)
+                .setDomainName("anchor.tld")
+                .build());
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -212,6 +217,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   private void assertSuccessfulCreate(
       String domainTld, ImmutableSet<BillingEvent.Flag> expectedBillingFlags) throws Exception {
+    assertSuccessfulCreate(domainTld, expectedBillingFlags, null);
+  }
+
+  private void assertSuccessfulCreate(
+      String domainTld,
+      ImmutableSet<BillingEvent.Flag> expectedBillingFlags,
+      @Nullable AllocationToken allocationToken)
+      throws Exception {
     DomainBase domain = reloadResourceByForeignKey();
 
     boolean isAnchorTenant = expectedBillingFlags.contains(ANCHOR_TENANT);
@@ -252,6 +265,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .setBillingTime(billingTime)
             .setFlags(expectedBillingFlags)
             .setParent(historyEntry)
+            .setAllocationToken(allocationToken == null ? null : Key.create(allocationToken))
             .build();
 
     BillingEvent.Recurring renewBillingEvent =
@@ -440,7 +454,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         persistResource(
             new AllocationToken.Builder().setToken("abc123").setTokenType(SINGLE_USE).build());
     clock.advanceOneMilli();
-    doSuccessfulTest();
+    runFlow();
+    assertSuccessfulCreate("tld", ImmutableSet.of(), token);
     HistoryEntry historyEntry =
         ofy().load().type(HistoryEntry.class).ancestor(reloadResourceByForeignKey()).first().now();
     assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry())
@@ -451,10 +466,12 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_validAllocationToken_multiUse() throws Exception {
     setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistContactsAndHosts();
-    persistResource(
-        new AllocationToken.Builder().setTokenType(UNLIMITED_USE).setToken("abc123").build());
+    allocationToken =
+        persistResource(
+            new AllocationToken.Builder().setTokenType(UNLIMITED_USE).setToken("abc123").build());
     clock.advanceOneMilli();
-    doSuccessfulTest();
+    runFlow();
+    assertSuccessfulCreate("tld", ImmutableSet.of(), allocationToken);
     clock.advanceOneMilli();
     setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "otherexample.tld"));
     runFlowAssertResponse(
@@ -955,7 +972,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_anchor_allocationtoken.xml");
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT), allocationToken);
     assertNoLordn();
     assertAllocationTokenWasRedeemed("abcDEF23456");
   }
@@ -975,7 +992,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_anchor_allocationtoken.xml");
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT), allocationToken);
     assertNoLordn();
     assertAllocationTokenWasRedeemed("abcDEF23456");
   }
@@ -998,7 +1015,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT), allocationToken);
     assertDnsTasksEnqueued("example-one.tld");
     assertClaimsLordn();
     assertAllocationTokenWasRedeemed("abcDEF23456");
@@ -1029,12 +1046,13 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_anchorTenantInSunrise_withSignedMark() throws Exception {
-    persistResource(
-        new AllocationToken.Builder()
-            .setDomainName("test-validate.tld")
-            .setToken("abcDEF23456")
-            .setTokenType(SINGLE_USE)
-            .build());
+    allocationToken =
+        persistResource(
+            new AllocationToken.Builder()
+                .setDomainName("test-validate.tld")
+                .setToken("abcDEF23456")
+                .setTokenType(SINGLE_USE)
+                .build());
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -1049,7 +1067,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         loadFile(
             "domain_create_response_encoded_signed_mark_name.xml",
             ImmutableMap.of("DOMAIN", "test-validate.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT, SUNRISE));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT, SUNRISE), allocationToken);
     assertDnsTasksEnqueued("test-validate.tld");
     assertSunriseLordn("test-validate.tld");
     assertAllocationTokenWasRedeemed("abcDEF23456");
@@ -1057,19 +1075,20 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_reservedDomain_viaAllocationTokenExtension() throws Exception {
-    persistResource(
-        new AllocationToken.Builder()
-            .setToken("abc123")
-            .setTokenType(SINGLE_USE)
-            .setDomainName("resdom.tld")
-            .build());
+    allocationToken =
+        persistResource(
+            new AllocationToken.Builder()
+                .setToken("abc123")
+                .setTokenType(SINGLE_USE)
+                .setDomainName("resdom.tld")
+                .build());
     // Despite the domain being FULLY_BLOCKED, the non-superuser create succeeds the domain is also
     // RESERVED_FOR_SPECIFIC_USE and the correct allocation token is passed.
     setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "resdom.tld"));
     persistContactsAndHosts();
     runFlowAssertResponse(
         loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "resdom.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.RESERVED));
+    assertSuccessfulCreate("tld", ImmutableSet.of(RESERVED), allocationToken);
     assertNoLordn();
     assertAllocationTokenWasRedeemed("abc123");
   }
@@ -1088,7 +1107,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     runFlowAssertResponse(
         CommitMode.LIVE, SUPERUSER, loadFile("domain_create_reserved_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.RESERVED));
+    assertSuccessfulCreate("tld", ImmutableSet.of(RESERVED));
   }
 
   @Test
@@ -1643,7 +1662,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         loadFile(
             "domain_create_response_encoded_signed_mark_name.xml",
             ImmutableMap.of("DOMAIN", "test-validate.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.SUNRISE));
+    assertSuccessfulCreate("tld", ImmutableSet.of(SUNRISE));
     assertSunriseLordn("test-validate.tld");
   }
 
@@ -1661,7 +1680,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         loadFile(
             "domain_create_response_encoded_signed_mark_name.xml",
             ImmutableMap.of("DOMAIN", "test-validate.tld")));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.SUNRISE));
+    assertSuccessfulCreate("tld", ImmutableSet.of(SUNRISE));
     assertSunriseLordn("test-validate.tld");
   }
 

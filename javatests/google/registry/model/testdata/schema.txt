@@ -41,6 +41,7 @@ class google.registry.model.billing.BillingEvent$OneTime {
   @Id long id;
   @Parent com.googlecode.objectify.Key<google.registry.model.reporting.HistoryEntry> parent;
   com.googlecode.objectify.Key<? extends google.registry.model.billing.BillingEvent> cancellationMatchingBillingEvent;
+  com.googlecode.objectify.Key<google.registry.model.domain.token.AllocationToken> allocationToken;
   google.registry.model.billing.BillingEvent$Reason reason;
   java.lang.Integer periodYears;
   java.lang.String clientId;

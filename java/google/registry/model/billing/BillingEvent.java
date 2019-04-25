@@ -40,6 +40,7 @@ import google.registry.model.annotations.ReportedOn;
 import google.registry.model.common.TimeOfYear;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import java.util.Objects;
@@ -244,6 +245,11 @@ public abstract class BillingEvent extends ImmutableObject
      */
     Key<? extends BillingEvent> cancellationMatchingBillingEvent;
 
+    /**
+     * The {@link AllocationToken} used in the creation of this event, or null if one was not used.
+     */
+    @Index @Nullable Key<AllocationToken> allocationToken;
+
     public Money getCost() {
       return cost;
     }
@@ -262,6 +268,10 @@ public abstract class BillingEvent extends ImmutableObject
 
     public Key<? extends BillingEvent> getCancellationMatchingBillingEvent() {
       return cancellationMatchingBillingEvent;
+    }
+
+    public Optional<Key<AllocationToken>> getAllocationToken() {
+      return Optional.ofNullable(allocationToken);
     }
 
     @Override
@@ -303,6 +313,11 @@ public abstract class BillingEvent extends ImmutableObject
       public Builder setCancellationMatchingBillingEvent(
           Key<? extends BillingEvent> cancellationMatchingBillingEvent) {
         getInstance().cancellationMatchingBillingEvent = cancellationMatchingBillingEvent;
+        return this;
+      }
+
+      public Builder setAllocationToken(@Nullable Key<AllocationToken> allocationToken) {
+        getInstance().allocationToken = allocationToken;
         return this;
       }
 
