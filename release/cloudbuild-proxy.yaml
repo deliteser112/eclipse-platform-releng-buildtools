@@ -24,8 +24,6 @@ steps:
   - './gradlew'
   - ':proxy:test'
   - ':proxy:deployJar'
-  - '-x'
-  - 'autoLintGradle'
   - '-PmavenUrl=https://storage.googleapis.com/domain-registry-maven-repository/maven'
   - '-PpluginsUrl=https://storage.googleapis.com/domain-registry-maven-repository/plugins'
   dir: 'gradle'
