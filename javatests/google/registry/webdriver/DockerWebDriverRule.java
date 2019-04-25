@@ -40,7 +40,7 @@ class DockerWebDriverRule extends ExternalResource {
 
   private static URL getWebDriverUrl() {
     GenericContainer container =
-        new GenericContainer("selenium/standalone-chrome")
+        new GenericContainer("selenium/standalone-chrome:3.141.59-mercury")
             .withFileSystemBind("/dev/shm", "/dev/shm", BindMode.READ_WRITE)
             .withExposedPorts(CHROME_DRIVER_SERVICE_PORT)
             .waitingFor(Wait.forHttp("/").withStartupTimeout(Duration.of(20, ChronoUnit.SECONDS)));
