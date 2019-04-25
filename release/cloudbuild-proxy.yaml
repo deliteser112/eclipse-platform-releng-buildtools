@@ -26,8 +26,8 @@ steps:
   - ':proxy:deployJar'
   - '-x'
   - 'autoLintGradle'
-  - '-PmavenUrl=gcs://domain-registry-maven-repository/maven'
-  - '-PpluginsUrl=gcs://domain-registry-maven-repository/plugins'
+  - '-PmavenUrl=https://storage.googleapis.com/domain-registry-maven-repository/maven'
+  - '-PpluginsUrl=https://storage.googleapis.com/domain-registry-maven-repository/plugins'
   dir: 'gradle'
 # Build the docker image.
 - name: 'gcr.io/${PROJECT_ID}/builder:latest'
