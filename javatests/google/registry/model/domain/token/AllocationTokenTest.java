@@ -16,11 +16,16 @@ package google.registry.model.domain.token;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.CANCELLED;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.ENDED;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.NOT_STARTED;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.VALID;
 import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
 import static google.registry.model.domain.token.AllocationToken.TokenType.UNLIMITED_USE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;
@@ -30,7 +35,6 @@ import google.registry.model.EntityTestCase;
 import google.registry.model.domain.token.AllocationToken.TokenStatus;
 import google.registry.model.domain.token.AllocationToken.TokenType;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.util.DateTimeUtils;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -50,7 +54,7 @@ public class AllocationTokenTest extends EntityTestCase {
                 .setDiscountFraction(0.5)
                 .setTokenStatusTransitions(
                     ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
-                        .put(DateTimeUtils.START_OF_TIME, TokenStatus.NOT_STARTED)
+                        .put(START_OF_TIME, NOT_STARTED)
                         .put(DateTime.now(UTC), TokenStatus.VALID)
                         .put(DateTime.now(UTC).plusWeeks(8), TokenStatus.ENDED)
                         .build())
@@ -152,6 +156,76 @@ public class AllocationTokenTest extends EntityTestCase {
   }
 
   @Test
+  public void testSetTransitions_notStartOfTime() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                new AllocationToken.Builder()
+                    .setTokenStatusTransitions(
+                        ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                            .put(DateTime.now(UTC), NOT_STARTED)
+                            .put(DateTime.now(UTC).plusDays(1), TokenStatus.VALID)
+                            .put(DateTime.now(UTC).plusDays(2), TokenStatus.ENDED)
+                            .build()));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("tokenStatusTransitions map must start at START_OF_TIME.");
+  }
+
+  @Test
+  public void testSetTransitions_badInitialValue() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                new AllocationToken.Builder()
+                    .setTokenStatusTransitions(
+                        ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                            .put(START_OF_TIME, TokenStatus.VALID)
+                            .put(DateTime.now(UTC), TokenStatus.ENDED)
+                            .build()));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("tokenStatusTransitions must start with NOT_STARTED");
+  }
+
+  @Test
+  public void testSetTransitions_invalidInitialTransitions() {
+    // NOT_STARTED can only go to VALID or CANCELLED
+    assertBadInitialTransition(NOT_STARTED);
+    assertBadInitialTransition(ENDED);
+  }
+
+  @Test
+  public void testSetTransitions_badTransitionsFromValid() {
+    // VALID can only go to ENDED or CANCELLED
+    assertBadTransition(
+        ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+            .put(START_OF_TIME, NOT_STARTED)
+            .put(DateTime.now(UTC), VALID)
+            .put(DateTime.now(UTC).plusDays(1), VALID)
+            .build(),
+        VALID,
+        VALID);
+    assertBadTransition(
+        ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+            .put(START_OF_TIME, NOT_STARTED)
+            .put(DateTime.now(UTC), VALID)
+            .put(DateTime.now(UTC).plusDays(1), NOT_STARTED)
+            .build(),
+        VALID,
+        NOT_STARTED);
+  }
+
+  @Test
+  public void testSetTransitions_terminalTransitions() {
+    // both ENDED and CANCELLED are terminal
+    assertTerminal(ENDED);
+    assertTerminal(CANCELLED);
+  }
+
+  @Test
   public void testBuild_noTokenType() {
     IllegalArgumentException thrown =
         assertThrows(
@@ -176,5 +250,46 @@ public class AllocationTokenTest extends EntityTestCase {
             IllegalArgumentException.class,
             () -> new AllocationToken.Builder().setToken("").setTokenType(SINGLE_USE).build());
     assertThat(thrown).hasMessageThat().isEqualTo("Token must not be blank");
+  }
+
+  private void assertBadInitialTransition(TokenStatus status) {
+    assertBadTransition(
+        ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+            .put(START_OF_TIME, NOT_STARTED)
+            .put(DateTime.now(UTC), status)
+            .build(),
+        NOT_STARTED,
+        status);
+  }
+
+  private void assertBadTransition(
+      ImmutableSortedMap<DateTime, TokenStatus> map, TokenStatus from, TokenStatus to) {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new AllocationToken.Builder().setTokenStatusTransitions(map));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            String.format("tokenStatusTransitions map cannot transition from %s to %s.", from, to));
+  }
+
+  private void assertTerminal(TokenStatus status) {
+    // The "terminal" message is slightly different so it must be tested separately
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                new AllocationToken.Builder()
+                    .setTokenStatusTransitions(
+                        ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                            .put(START_OF_TIME, NOT_STARTED)
+                            .put(DateTime.now(UTC), VALID)
+                            .put(DateTime.now(UTC).plusDays(1), status)
+                            .put(DateTime.now(UTC).plusDays(2), CANCELLED)
+                            .build()));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(String.format("tokenStatusTransitions map cannot transition from %s.", status));
   }
 }

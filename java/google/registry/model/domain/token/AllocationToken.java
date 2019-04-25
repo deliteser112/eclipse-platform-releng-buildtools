@@ -264,9 +264,9 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
               transitions,
               TokenStatusTransition.class,
               VALID_TOKEN_STATUS_TRANSITIONS,
-              "",
+              "tokenStatusTransitions",
               NOT_STARTED,
-              "");
+              "tokenStatusTransitions must start with NOT_STARTED");
       return this;
     }
   }
