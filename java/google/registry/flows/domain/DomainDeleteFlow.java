@@ -195,9 +195,10 @@ public final class DomainDeleteFlow implements TransactionalFlow {
               redemptionTime,
               clientId)));
       // Note: The expiration time is unchanged, so if it's before the new deletion time, there will
-      // be a "phantom autorenew" where the expiration time advances but no billing event or poll
-      // message are produced (since we are ending the autorenew recurrences at "now" below).  For
-      // now at least this is working as intended.
+      // be a "phantom autorenew" where the expiration time advances. No poll message will be
+      // produced (since we are ending the autorenew recurrences at "now" below) and the billing
+      // event that's created will be automatically cancelled by the corresponding Cancellation
+      // event that we create below. For now, at least, this is working as intended.
     }
 
     // Enqueue the deletion poll message if the delete is asynchronous or if requested by a
