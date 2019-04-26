@@ -36,7 +36,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ShardableTestCase;
-import java.util.Map;
+import java.util.function.Function;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -63,7 +63,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
-            flowUtils.verifyToken(
+            flowUtils.loadAndVerifyToken(
                 createCommand("blah.tld"),
                 "tokeN",
                 Registry.get("tld"),
@@ -80,7 +80,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
         assertThrows(
             InvalidAllocationTokenException.class,
             () ->
-                flowUtils.verifyToken(
+                flowUtils.loadAndVerifyToken(
                     createCommand("blah.tld"),
                     "tokeN",
                     Registry.get("tld"),
@@ -99,7 +99,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
         assertThrows(
             IllegalStateException.class,
             () ->
-                flowUtils.verifyToken(
+                flowUtils.loadAndVerifyToken(
                     createCommand("blah.tld"),
                     "tokeN",
                     Registry.get("tld"),
@@ -115,12 +115,14 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
-            flowUtils.checkDomainsWithToken(
-                ImmutableList.of(
-                    InternetDomainName.from("blah.tld"), InternetDomainName.from("blah2.tld")),
-                "tokeN",
-                "TheRegistrar",
-                DateTime.now(UTC)))
+            flowUtils
+                .checkDomainsWithToken(
+                    ImmutableList.of(
+                        InternetDomainName.from("blah.tld"), InternetDomainName.from("blah2.tld")),
+                    "tokeN",
+                    "TheRegistrar",
+                    DateTime.now(UTC))
+                .domainCheckResults())
         .containsExactlyEntriesIn(
             ImmutableMap.of(
                 InternetDomainName.from("blah.tld"), "", InternetDomainName.from("blah2.tld"), ""))
@@ -138,12 +140,14 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
-            flowUtils.checkDomainsWithToken(
-                ImmutableList.of(
-                    InternetDomainName.from("blah.tld"), InternetDomainName.from("blah2.tld")),
-                "tokeN",
-                "TheRegistrar",
-                DateTime.now(UTC)))
+            flowUtils
+                .checkDomainsWithToken(
+                    ImmutableList.of(
+                        InternetDomainName.from("blah.tld"), InternetDomainName.from("blah2.tld")),
+                    "tokeN",
+                    "TheRegistrar",
+                    DateTime.now(UTC))
+                .domainCheckResults())
         .containsExactlyEntriesIn(
             ImmutableMap.of(
                 InternetDomainName.from("blah.tld"),
@@ -179,12 +183,14 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new CustomResultAllocationTokenCustomLogic());
     assertThat(
-            flowUtils.checkDomainsWithToken(
-                ImmutableList.of(
-                    InternetDomainName.from("blah.tld"), InternetDomainName.from("bunny.tld")),
-                "tokeN",
-                "TheRegistrar",
-                DateTime.now(UTC)))
+            flowUtils
+                .checkDomainsWithToken(
+                    ImmutableList.of(
+                        InternetDomainName.from("blah.tld"), InternetDomainName.from("bunny.tld")),
+                    "tokeN",
+                    "TheRegistrar",
+                    DateTime.now(UTC))
+                .domainCheckResults())
         .containsExactlyEntriesIn(
             ImmutableMap.of(
                 InternetDomainName.from("blah.tld"),
@@ -215,7 +221,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
 
     @Override
     public ImmutableMap<InternetDomainName, String> checkDomainsWithToken(
-        ImmutableMap<InternetDomainName, String> checkResults,
+        ImmutableList<InternetDomainName> domainNames,
         AllocationToken tokenEntity,
         String clientId,
         DateTime now) {
@@ -228,18 +234,15 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
 
     @Override
     public ImmutableMap<InternetDomainName, String> checkDomainsWithToken(
-        ImmutableMap<InternetDomainName, String> checkResults,
+        ImmutableList<InternetDomainName> domainNames,
         AllocationToken tokenEntity,
         String clientId,
         DateTime now) {
-      return checkResults
-          .entrySet()
-          .stream()
+      return domainNames.stream()
           .collect(
               ImmutableMap.toImmutableMap(
-                  Map.Entry::getKey,
-                  entry ->
-                      entry.getKey().toString().contains("bunny") ? "fufu" : entry.getValue()));
+                  Function.identity(),
+                  domainName -> domainName.toString().contains("bunny") ? "fufu" : ""));
     }
   }
 }

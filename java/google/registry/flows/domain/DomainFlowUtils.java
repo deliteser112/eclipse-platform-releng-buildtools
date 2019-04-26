@@ -550,7 +550,8 @@ public class DomainFlowUtils {
       InternetDomainName domain,
       @Nullable CurrencyUnit topLevelCurrency,
       DateTime currentDate,
-      DomainPricingLogic pricingLogic)
+      DomainPricingLogic pricingLogic,
+      Optional<AllocationToken> allocationToken)
       throws EppException {
     DateTime now = currentDate;
     // Use the custom effective date specified in the fee check request, if there is one.
@@ -588,10 +589,10 @@ public class DomainFlowUtils {
           builder.setReasonIfSupported("reserved");
         } else {
           builder.setAvailIfSupported(true);
-          // TODO(b/117145844): Once allocation token support for domain check flow is implemented,
-          // we should be able to calculate the correct price here.
           fees =
-              pricingLogic.getCreatePrice(registry, domainNameString, now, years, false).getFees();
+              pricingLogic
+                  .getCreatePrice(registry, domainNameString, now, years, false, allocationToken)
+                  .getFees();
         }
         break;
       case RENEW:

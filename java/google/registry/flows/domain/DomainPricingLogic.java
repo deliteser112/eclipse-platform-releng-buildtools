@@ -14,7 +14,7 @@
 
 package google.registry.flows.domain;
 
-import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
+import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.pricing.PricingEngineProxy.getDomainFeeClass;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 
@@ -30,8 +30,12 @@ import google.registry.flows.custom.DomainPricingCustomLogic.UpdatePriceParamete
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
+import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.model.registry.Registry;
+import google.registry.pricing.PricingEngineProxy;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.money.CurrencyUnit;
@@ -51,16 +55,27 @@ public final class DomainPricingLogic {
   @Inject
   DomainPricingLogic() {}
 
-  /** Returns a new create price for the pricer. */
+  /**
+   * Returns a new create price for the pricer.
+   *
+   * <p>If {@code allocationToken} is present and the domain is non-premium, that discount will be
+   * applied to the first year.
+   */
   public FeesAndCredits getCreatePrice(
-      Registry registry, String domainName, DateTime date, int years, boolean isAnchorTenant)
+      Registry registry,
+      String domainName,
+      DateTime date,
+      int years,
+      boolean isAnchorTenant,
+      Optional<AllocationToken> allocationToken)
       throws EppException {
     CurrencyUnit currency = registry.getCurrency();
-
-    // Get the vanilla create cost, or 0 for anchor tenants.
-    BigDecimal domainCreateCost =
-        isAnchorTenant ? BigDecimal.ZERO : getDomainCreateCost(domainName, date, years).getAmount();
-    BaseFee createFeeOrCredit = Fee.create(domainCreateCost, FeeType.CREATE);
+    // Domain create cost is always zero for anchor tenants
+    Money domainCreateCost =
+        isAnchorTenant
+            ? Money.of(currency, BigDecimal.ZERO)
+            : getDomainCreateCostWithDiscount(domainName, date, years, allocationToken);
+    BaseFee createFeeOrCredit = Fee.create(domainCreateCost.getAmount(), FeeType.CREATE);
 
     // Create fees for the cost and the EAP fee, if any.
     Fee eapFee = registry.getEapFeeFor(date);
@@ -80,7 +95,6 @@ public final class DomainPricingLogic {
             .setAsOfDate(date)
             .setYears(years)
             .build());
-
   }
 
   /** Returns a new renew price for the pricer. */
@@ -154,7 +168,7 @@ public final class DomainPricingLogic {
             .setFeesAndCredits(
                 new FeesAndCredits.Builder()
                     .setCurrency(currency)
-                    .addFeeOrCredit(feeOrCredit)
+                    .setFeesAndCredits(feeOrCredit)
                     .build())
             .setRegistry(registry)
             .setDomainName(InternetDomainName.from(domainName))
@@ -165,5 +179,25 @@ public final class DomainPricingLogic {
   /** Returns the fee class for a given domain and date. */
   public Optional<String> getFeeClass(String domainName, DateTime date) {
     return getDomainFeeClass(domainName, date);
+  }
+
+  private Money getDomainCreateCostWithDiscount(
+      String domainName, DateTime date, int years, Optional<AllocationToken> allocationToken) {
+    DomainPrices domainPrices = PricingEngineProxy.getPricesForDomainName(domainName, date);
+    checkArgument(
+        !allocationToken.isPresent()
+            || allocationToken.get().getDiscountFraction() == 0.0
+            || !domainPrices.isPremium(),
+        "A nonzero discount code cannot be applied to premium domains");
+    Money oneYearCreateCost = domainPrices.getCreateCost();
+    Money totalDomainCreateCost = oneYearCreateCost.multipliedBy(years);
+    // If a discount is applicable, apply it only to the first year
+    if (allocationToken.isPresent()) {
+      Money discount =
+          oneYearCreateCost.multipliedBy(
+              allocationToken.get().getDiscountFraction(), RoundingMode.HALF_UP);
+      totalDomainCreateCost = totalDomainCreateCost.minus(discount);
+    }
+    return totalDomainCreateCost;
   }
 }

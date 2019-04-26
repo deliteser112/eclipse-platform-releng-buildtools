@@ -14,12 +14,14 @@
 
 package google.registry.flows.domain.token;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainCommand;
 import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.registry.Registry;
+import java.util.function.Function;
 import org.joda.time.DateTime;
 
 /**
@@ -43,11 +45,12 @@ public class AllocationTokenCustomLogic {
 
   /** Performs additional custom logic for performing domain checks using a token. */
   public ImmutableMap<InternetDomainName, String> checkDomainsWithToken(
-      ImmutableMap<InternetDomainName, String> checkResults,
+      ImmutableList<InternetDomainName> domainNames,
       AllocationToken token,
       String clientId,
       DateTime now) {
     // Do nothing.
-    return checkResults;
+    return domainNames.stream()
+        .collect(ImmutableMap.toImmutableMap(Function.identity(), ignored -> ""));
   }
 }

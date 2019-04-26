@@ -65,6 +65,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig;
 import google.registry.flows.EppException;
@@ -140,6 +141,8 @@ import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.domain.token.AllocationToken.TokenStatus;
+import google.registry.model.domain.token.AllocationToken.TokenType;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
@@ -151,6 +154,7 @@ import google.registry.model.reporting.DomainTransactionRecord.TransactionReport
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import java.math.BigDecimal;
 import java.util.Map;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
@@ -1099,6 +1103,57 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertThat(reloadedToken.isRedeemed()).isTrue();
     assertThat(reloadedToken.getRedemptionHistoryEntry())
         .isEqualTo(Key.create(getHistoryEntries(reloadResourceByForeignKey()).get(0)));
+  }
+
+  @Test
+  public void testSuccess_allocationTokenPromotion() throws Exception {
+    // A discount of 0.5 means that the first-year cost (13) is cut in half, so a discount of 6.5
+    // Note: we're asking to register it for two years so the total cost should be 13 + (13/2)
+    persistContactsAndHosts();
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setTokenType(TokenType.UNLIMITED_USE)
+            .setDiscountFraction(0.5)
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                    .put(clock.nowUtc().plusMillis(1), TokenStatus.VALID)
+                    .put(clock.nowUtc().plusSeconds(1), TokenStatus.ENDED)
+                    .build())
+            .build());
+    clock.advanceOneMilli();
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "example.tld"));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
+    BillingEvent.OneTime billingEvent =
+        Iterables.getOnlyElement(ofy().load().type(BillingEvent.OneTime.class));
+    assertThat(billingEvent.getTargetId()).isEqualTo("example.tld");
+    assertThat(billingEvent.getCost()).isEqualTo(Money.of(USD, BigDecimal.valueOf(19.5)));
+  }
+
+  @Test
+  public void testSuccess_promotionDoesNotApplyToPremiumPrice() {
+    // At the moment, discounts cannot apply to premium domains
+    createTld("example");
+    persistContactsAndHosts();
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setTokenType(TokenType.UNLIMITED_USE)
+            .setDiscountFraction(0.5)
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                    .put(clock.nowUtc().plusMillis(1), TokenStatus.VALID)
+                    .put(clock.nowUtc().plusSeconds(1), TokenStatus.ENDED)
+                    .build())
+            .build());
+    clock.advanceOneMilli();
+    setEppInput("domain_create_premium_allocationtoken.xml");
+    assertThat(assertThrows(IllegalArgumentException.class, this::runFlow))
+        .hasMessageThat()
+        .isEqualTo("A nonzero discount code cannot be applied to premium domains");
   }
 
   @Test

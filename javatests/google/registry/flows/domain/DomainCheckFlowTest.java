@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
+import static google.registry.model.domain.token.AllocationToken.TokenType.UNLIMITED_USE;
 import static google.registry.model.eppoutput.CheckData.DomainCheck.create;
 import static google.registry.model.registry.Registry.TldState.PREDELEGATION;
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
@@ -63,6 +64,7 @@ import google.registry.flows.domain.DomainFlowUtils.UnknownFeeCommandException;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.domain.token.AllocationToken.TokenStatus;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservedList;
@@ -180,6 +182,24 @@ public class DomainCheckFlowTest
         create(false, "anchor.tld", "Reserved"),
         create(false, "allowedinsunrise.tld", "Reserved"),
         create(false, "premiumcollision.tld", "Cannot be delegated"));
+  }
+
+  @Test
+  public void testSuccess_allocationTokenPromotion() throws Exception {
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setTokenType(UNLIMITED_USE)
+            .setDiscountFraction(0.5)
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                    .put(clock.nowUtc().plusMillis(1), TokenStatus.VALID)
+                    .put(clock.nowUtc().plusSeconds(1), TokenStatus.ENDED)
+                    .build())
+            .build());
+    setEppInput("domain_check_allocationtoken_fee.xml");
+    runFlowAssertResponse(loadFile("domain_check_allocationtoken_fee_response.xml"));
   }
 
   @Test

@@ -163,7 +163,8 @@ public final class DomainInfoFlow implements Flow {
           InternetDomainName.from(targetId),
           null,
           now,
-          pricingLogic);
+          pricingLogic,
+          Optional.empty());
       extensions.add(builder.build());
     }
     return extensions.build();

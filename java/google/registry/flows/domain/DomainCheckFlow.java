@@ -44,6 +44,7 @@ import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic.BeforeResponseReturnData;
+import google.registry.flows.domain.token.AllocationTokenDomainCheckResults;
 import google.registry.flows.domain.token.AllocationTokenFlowUtils;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainCommand.Check;
@@ -51,6 +52,7 @@ import google.registry.model.domain.fee.FeeCheckCommandExtension;
 import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
 import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
 import google.registry.model.domain.launch.LaunchCheckExtension;
+import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.domain.token.AllocationTokenExtension;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
@@ -150,27 +152,38 @@ public final class DomainCheckFlow implements Flow {
     Set<String> existingIds = checkResourcesExist(DomainBase.class, targetIds, now);
     Optional<AllocationTokenExtension> allocationTokenExtension =
         eppInput.getSingleExtension(AllocationTokenExtension.class);
-    ImmutableMap<InternetDomainName, String> tokenCheckResults =
-        allocationTokenExtension.isPresent()
-            ? allocationTokenFlowUtils.checkDomainsWithToken(
-                ImmutableList.copyOf(domainNames.values()),
-                allocationTokenExtension.get().getAllocationToken(),
-                clientId,
-                now)
-            : ImmutableMap.of();
+    Optional<AllocationTokenDomainCheckResults> tokenDomainCheckResults =
+        allocationTokenExtension.map(
+            tokenExtension ->
+                allocationTokenFlowUtils.checkDomainsWithToken(
+                    ImmutableList.copyOf(domainNames.values()),
+                    tokenExtension.getAllocationToken(),
+                    clientId,
+                    now));
+
     ImmutableList.Builder<DomainCheck> checks = new ImmutableList.Builder<>();
     ImmutableMap<String, TldState> tldStates =
         Maps.toMap(seenTlds, tld -> Registry.get(tld).getTldState(now));
+    ImmutableMap<InternetDomainName, String> domainCheckResults =
+        tokenDomainCheckResults
+            .map(AllocationTokenDomainCheckResults::domainCheckResults)
+            .orElse(ImmutableMap.of());
     for (String targetId : targetIds) {
       Optional<String> message =
-          getMessageForCheck(domainNames.get(targetId), existingIds, tokenCheckResults, tldStates);
+          getMessageForCheck(
+              domainNames.get(targetId),
+              existingIds,
+              domainCheckResults,
+              tldStates);
       checks.add(DomainCheck.create(!message.isPresent(), targetId, message.orElse(null)));
     }
+    Optional<AllocationToken> allocationToken =
+        tokenDomainCheckResults.flatMap(AllocationTokenDomainCheckResults::token);
     BeforeResponseReturnData responseData =
         flowCustomLogic.beforeResponse(
             BeforeResponseParameters.newBuilder()
                 .setDomainChecks(checks.build())
-                .setResponseExtensions(getResponseExtensions(domainNames, now))
+                .setResponseExtensions(getResponseExtensions(domainNames, now, allocationToken))
                 .setAsOfDate(now)
                 .build());
     return responseBuilder
@@ -199,11 +212,14 @@ public final class DomainCheckFlow implements Flow {
 
   /** Handle the fee check extension. */
   private ImmutableList<? extends ResponseExtension> getResponseExtensions(
-      ImmutableMap<String, InternetDomainName> domainNames, DateTime now) throws EppException {
+      ImmutableMap<String, InternetDomainName> domainNames,
+      DateTime now,
+      Optional<AllocationToken> allocationToken)
+      throws EppException {
     Optional<FeeCheckCommandExtension> feeCheckOpt =
         eppInput.getSingleExtension(FeeCheckCommandExtension.class);
     if (!feeCheckOpt.isPresent()) {
-      return ImmutableList.of();  // No fee checks were requested.
+      return ImmutableList.of(); // No fee checks were requested.
     }
     FeeCheckCommandExtension<?, ?> feeCheck = feeCheckOpt.get();
     ImmutableList.Builder<FeeCheckResponseExtensionItem> responseItems =
@@ -217,7 +233,8 @@ public final class DomainCheckFlow implements Flow {
             domainNames.get(domainName),
             feeCheck.getCurrency(),
             now,
-            pricingLogic);
+            pricingLogic,
+            allocationToken);
         responseItems.add(builder.setDomainNameIfSupported(domainName).build());
       }
     }

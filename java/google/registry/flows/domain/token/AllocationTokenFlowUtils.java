@@ -17,7 +17,9 @@ package google.registry.flows.domain.token;
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -29,7 +31,7 @@ import google.registry.model.domain.token.AllocationToken.TokenType;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -49,16 +51,10 @@ public class AllocationTokenFlowUtils {
    * @return the loaded {@link AllocationToken} for that string.
    * @throws InvalidAllocationTokenException if the token doesn't exist.
    */
-  public AllocationToken verifyToken(
+  public AllocationToken loadAndVerifyToken(
       DomainCommand.Create command, String token, Registry registry, String clientId, DateTime now)
       throws EppException {
-    AllocationToken tokenEntity = ofy().load().key(Key.create(AllocationToken.class, token)).now();
-    if (tokenEntity == null) {
-      throw new InvalidAllocationTokenException();
-    }
-    if (tokenEntity.isRedeemed()) {
-      throw new AlreadyRedeemedAllocationTokenException();
-    }
+    AllocationToken tokenEntity = loadToken(token);
     return tokenCustomLogic.verifyToken(command, tokenEntity, registry, clientId, now);
   }
 
@@ -69,26 +65,21 @@ public class AllocationTokenFlowUtils {
    *     for a a given domain then it does not validate with this allocation token; domains that do
    *     validate have blank messages (i.e. no error).
    */
-  public ImmutableMap<InternetDomainName, String> checkDomainsWithToken(
+  public AllocationTokenDomainCheckResults checkDomainsWithToken(
       List<InternetDomainName> domainNames, String token, String clientId, DateTime now) {
-    AllocationToken tokenEntity = ofy().load().key(Key.create(AllocationToken.class, token)).now();
-    String globalResult;
-    if (tokenEntity == null) {
-      globalResult = new InvalidAllocationTokenException().getMessage();
-    } else if (tokenEntity.isRedeemed()) {
-      globalResult = AlreadyRedeemedAllocationTokenException.ERROR_MSG_SHORT;
-    } else {
-      globalResult = "";
+    try {
+      AllocationToken tokenEntity = loadToken(token);
+      // Only call custom logic if there wasn't a global allocation token error that applies to all
+      // check results. The custom logic can only add errors, not override existing errors.
+      return AllocationTokenDomainCheckResults.create(
+          Optional.of(tokenEntity),
+          tokenCustomLogic.checkDomainsWithToken(
+              ImmutableList.copyOf(domainNames), tokenEntity, clientId, now));
+    } catch (EppException e) {
+      return AllocationTokenDomainCheckResults.create(
+          Optional.empty(),
+          ImmutableMap.copyOf(Maps.toMap(domainNames, ignored -> e.getMessage())));
     }
-    ImmutableMap<InternetDomainName, String> checkResults =
-        domainNames
-            .stream()
-            .collect(ImmutableMap.toImmutableMap(Function.identity(), domainName -> globalResult));
-    // Only call custom logic if there wasn't a global allocation token error that applies to all
-    // check results. The custom logic can only add errors, not override existing errors.
-    return globalResult.isEmpty()
-        ? tokenCustomLogic.checkDomainsWithToken(checkResults, tokenEntity, clientId, now)
-        : checkResults;
   }
 
   /**
@@ -102,17 +93,22 @@ public class AllocationTokenFlowUtils {
     return token.asBuilder().setRedemptionHistoryEntry(redemptionHistoryEntry).build();
   }
 
+  private AllocationToken loadToken(String token) throws EppException {
+    AllocationToken tokenEntity = ofy().load().key(Key.create(AllocationToken.class, token)).now();
+    if (tokenEntity == null) {
+      throw new InvalidAllocationTokenException();
+    }
+    if (tokenEntity.isRedeemed()) {
+      throw new AlreadyRedeemedAllocationTokenException();
+    }
+    return tokenEntity;
+  }
+
   /** The allocation token was already redeemed. */
   public static class AlreadyRedeemedAllocationTokenException
       extends AssociationProhibitsOperationException {
-
-    public static final String ERROR_MSG_LONG = "The allocation token was already redeemed";
-
-    /** A short error message fitting within 32 characters for use in domain check responses. */
-    public static final String ERROR_MSG_SHORT = "Alloc token was already redeemed";
-
     public AlreadyRedeemedAllocationTokenException() {
-      super(ERROR_MSG_LONG);
+      super("Alloc token was already redeemed");
     }
   }
 

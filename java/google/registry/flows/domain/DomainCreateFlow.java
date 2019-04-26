@@ -277,7 +277,8 @@ public class DomainCreateFlow implements TransactionalFlow {
     Optional<FeeCreateCommandExtension> feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     FeesAndCredits feesAndCredits =
-        pricingLogic.getCreatePrice(registry, targetId, now, years, isAnchorTenant);
+        pricingLogic.getCreatePrice(
+            registry, targetId, now, years, isAnchorTenant, allocationToken);
     validateFeeChallenge(targetId, now, feeCreate, feesAndCredits);
     Optional<SecDnsCreateExtension> secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
@@ -444,7 +445,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         eppInput.getSingleExtension(AllocationTokenExtension.class);
     return Optional.ofNullable(
         extension.isPresent()
-            ? allocationTokenFlowUtils.verifyToken(
+            ? allocationTokenFlowUtils.loadAndVerifyToken(
                 command, extension.get().getAllocationToken(), registry, clientId, now)
             : null);
   }
