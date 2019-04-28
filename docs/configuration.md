@@ -73,9 +73,7 @@ description of each option:
 ```yaml
 appEngine:
   projectId: # Your App Engine project ID
-  toolsServiceUrl:
-    hostName: tools-dot-PROJECT-ID.appspot.com  # Insert your project ID
-    port: 443
+  toolsServiceUrl: https://tools-dot-PROJECT-ID.appspot.com  # Insert your project ID
 
 gSuite:
   domainName: # Your G Suite domain name
