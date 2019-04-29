@@ -17,7 +17,6 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.lenientFormat;
 import static com.google.common.truth.Fact.simpleFact;
-import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.testing.DatastoreHelper.getHistoryEntriesOfType;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
@@ -158,7 +157,9 @@ abstract class AbstractEppResourceSubject
   public And<S> hasExactlyStatusValues(StatusValue... statusValues) {
     if (!ImmutableSet.copyOf(actual().getStatusValues())
         .equals(ImmutableSet.copyOf(statusValues))) {
-      assertThat(actual().getStatusValues()).named("status values for " + actualAsString())
+      check("getStatusValues()")
+          .that(actual().getStatusValues())
+          .named("status values for " + actualAsString())
           .containsExactly((Object[]) statusValues);
     }
     return andChainer();
