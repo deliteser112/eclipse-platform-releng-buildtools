@@ -14,7 +14,7 @@
 
 package google.registry.tools;
 
-import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
@@ -34,7 +34,7 @@ public class GetSchemaTreeCommandTest extends CommandTestCase<GetSchemaTreeComma
       while (matcher.find()) {
         count++;
       }
-      assertThat(count).named(printableName + " occurences").isEqualTo(1);
+      assertWithMessage(printableName + " occurences").that(count).isEqualTo(1);
     }
   }
 }

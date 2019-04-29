@@ -159,7 +159,6 @@ abstract class AbstractEppResourceSubject
         .equals(ImmutableSet.copyOf(statusValues))) {
       check("getStatusValues()")
           .that(actual().getStatusValues())
-          .named("status values for " + actualAsString())
           .containsExactly((Object[]) statusValues);
     }
     return andChainer();

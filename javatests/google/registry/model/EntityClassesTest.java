@@ -15,8 +15,9 @@
 package google.registry.model;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.truth.StreamSubject.streams;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.EntityClasses.ALL_CLASSES;
 import static google.registry.util.TypeUtils.hasAnnotation;
 
@@ -46,8 +47,9 @@ public class EntityClassesTest {
 
   @Test
   public void testEntityClasses_baseEntitiesHaveUniqueKinds() {
-    assertThat(ALL_CLASSES.stream().filter(hasAnnotation(Entity.class)).map(Key::getKind))
-        .named("base entity kinds")
+    assertWithMessage("base entity kinds")
+        .about(streams())
+        .that(ALL_CLASSES.stream().filter(hasAnnotation(Entity.class)).map(Key::getKind))
         .containsNoDuplicates();
   }
 
@@ -65,7 +67,7 @@ public class EntityClassesTest {
             .filter(hasAnnotation(EntitySubclass.class))
             .map(Key::getKind)
             .collect(toImmutableSet());
-    assertThat(baseEntityKinds).named("base entity kinds").containsAllIn(entitySubclassKinds);
+    assertWithMessage("base entity kinds").that(baseEntityKinds).containsAllIn(entitySubclassKinds);
   }
 
   @Test
@@ -73,8 +75,8 @@ public class EntityClassesTest {
     for (Class<?> clazz : ALL_CLASSES) {
       boolean isEntityXorEntitySubclass =
           clazz.isAnnotationPresent(Entity.class) ^ clazz.isAnnotationPresent(EntitySubclass.class);
-      assertThat(isEntityXorEntitySubclass)
-          .named("class " + clazz.getSimpleName() + " is @Entity or @EntitySubclass")
+      assertWithMessage("class " + clazz.getSimpleName() + " is @Entity or @EntitySubclass")
+          .that(isEntityXorEntitySubclass)
           .isTrue();
     }
   }

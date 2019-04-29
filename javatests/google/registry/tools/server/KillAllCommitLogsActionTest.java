@@ -19,6 +19,7 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newContactResource;
@@ -79,7 +80,7 @@ public class KillAllCommitLogsActionTest extends MapreduceTestCase<KillAllCommit
             START_OF_TIME.plusDays(1),
             ImmutableMap.of(1, bucketTime, 2, bucketTime, 3, bucketTime)));
     for (Class<?> clazz : AFFECTED_TYPES) {
-      assertThat(ofy().load().type(clazz)).named("entities of type " + clazz).isNotEmpty();
+      assertWithMessage("entities of type " + clazz).that(ofy().load().type(clazz)).isNotEmpty();
     }
     ImmutableList<?> otherStuff =
         Streams.stream(ofy().load())
@@ -88,7 +89,7 @@ public class KillAllCommitLogsActionTest extends MapreduceTestCase<KillAllCommit
     assertThat(otherStuff).isNotEmpty();
     runMapreduce();
     for (Class<?> clazz : AFFECTED_TYPES) {
-      assertThat(ofy().load().type(clazz)).named("entities of type " + clazz).isEmpty();
+      assertWithMessage("entities of type " + clazz).that(ofy().load().type(clazz)).isEmpty();
     }
     // Filter out raw Entity objects created by the mapreduce.
     assertThat(filter(ofy().load(), not(instanceOf(Entity.class))))

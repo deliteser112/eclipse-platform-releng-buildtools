@@ -15,6 +15,7 @@
 package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.testing.TestLogHandlerUtils.findFirstLogMessageByPrefix;
@@ -170,7 +171,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.run(eppMetricBuilder);
     String logMessage = findFirstLogMessageByPrefix(handler, "EPP Command\n\t");
     List<String> lines = Splitter.on("\n\t").splitToList(logMessage);
-    assertThat(lines.size()).named("number of lines in log message").isAtLeast(9);
+    assertWithMessage("number of lines in log message").that(lines.size()).isAtLeast(9);
     String xml = Joiner.on('\n').join(lines.subList(3, lines.size() - 4));
     assertThat(xml).isEqualTo(sanitizedDomainCreateXml);
   }

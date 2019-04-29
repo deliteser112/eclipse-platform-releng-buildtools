@@ -136,8 +136,8 @@ public class PosixTarHeaderSystemTest {
 
     for (String name : files.keySet()) {
       File file = new File(folder.getRoot(), name);
-      assertThat(file.exists()).named(name + " exists").isTrue();
-      assertThat(file.isFile()).named(name + " is a file").isTrue();
+      assertWithMessage(name + " exists").that(file.exists()).isTrue();
+      assertWithMessage(name + " is a file").that(file.isFile()).isTrue();
       byte[] data = files.get(name).getBytes(UTF_8);
       assertThat(Files.asByteSource(file).read()).isEqualTo(data);
     }

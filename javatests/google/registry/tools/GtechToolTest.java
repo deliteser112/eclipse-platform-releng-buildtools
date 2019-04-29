@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.google.common.collect.Sets;
 import google.registry.testing.SystemPropertyRule;
@@ -42,8 +43,8 @@ public class GtechToolTest {
 
   @Test
   public void test_commandSet_namesAreSubsetOfRegistryToolCommands() {
-    assertThat(Sets.difference(GtechTool.COMMAND_SET, RegistryTool.COMMAND_MAP.keySet()))
-        .named("commands in GtechTool.COMMAND_SET but not in RegistryTool.COMMAND_MAP")
+    assertWithMessage("commands in GtechTool.COMMAND_SET but not in RegistryTool.COMMAND_MAP")
+        .that(Sets.difference(GtechTool.COMMAND_SET, RegistryTool.COMMAND_MAP.keySet()))
         .isEmpty();
   }
 }

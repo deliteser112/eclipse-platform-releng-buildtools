@@ -15,7 +15,7 @@
 package google.registry.testing;
 
 import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.TestLogHandler;
@@ -76,8 +76,9 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
         .contains(message);
     for (String messageCandidate : messagesAtLevel) {
       if (messageCandidate.contains(message)) {
-        return new Which<>(assertThat(messageCandidate)
-            .named(String.format("log message at %s matching '%s'", level, message)));
+        return new Which<>(
+            assertWithMessage(String.format("log message at %s matching '%s'", level, message))
+                .that(messageCandidate));
       }
     }
     throw new AssertionError("Message check passed yet matching message not found");

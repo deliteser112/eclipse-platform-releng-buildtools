@@ -18,6 +18,7 @@ import static com.google.common.base.CaseFormat.LOWER_UNDERSCORE;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.reflect.Reflection.getPackageName;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableSet;
@@ -59,14 +60,12 @@ public class RegistryToolTest {
     ImmutableSet<?> commandMapClasses = ImmutableSet.copyOf(RegistryTool.COMMAND_MAP.values());
     ImmutableSet<?> classLoaderClasses = getAllCommandClasses();
     // Not using plain old containsExactlyElementsIn() since it produces a huge unreadable blob.
-    assertThat(
-        Sets.difference(commandMapClasses, classLoaderClasses))
-            .named("command classes in RegistryTool.COMMAND_MAP but not found by class loader")
-                .isEmpty();
-    assertThat(
-        Sets.difference(classLoaderClasses, commandMapClasses))
-            .named("command classes found by class loader but not in RegistryTool.COMMAND_MAP")
-                .isEmpty();
+    assertWithMessage("command classes in RegistryTool.COMMAND_MAP but not found by class loader")
+        .that(Sets.difference(commandMapClasses, classLoaderClasses))
+        .isEmpty();
+    assertWithMessage("command classes found by class loader but not in RegistryTool.COMMAND_MAP")
+        .that(Sets.difference(classLoaderClasses, commandMapClasses))
+        .isEmpty();
   }
 
   @Test

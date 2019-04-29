@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.eppcommon.EppXmlTransformer.marshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.POLL_MESSAGE_ID_STRIPPER;
@@ -161,8 +162,8 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
       assertThat(flowClass).isAssignableTo(TransactionalFlow.class);
     } else {
       // There's no "isNotAssignableTo" in Truth.
-      assertThat(TransactionalFlow.class.isAssignableFrom(flowClass))
-          .named(flowClass.getSimpleName() + " implements TransactionalFlow")
+      assertWithMessage(flowClass.getSimpleName() + " implements TransactionalFlow")
+          .that(TransactionalFlow.class.isAssignableFrom(flowClass))
           .isFalse();
     }
   }
@@ -193,8 +194,8 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   }
 
   private static BillingEvent expandGracePeriod(GracePeriod gracePeriod) {
-    assertThat(gracePeriod.hasBillingEvent())
-        .named("Billing event is present for grace period: " + gracePeriod)
+    assertWithMessage("Billing event is present for grace period: " + gracePeriod)
+        .that(gracePeriod.hasBillingEvent())
         .isTrue();
     return ofy()
         .load()

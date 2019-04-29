@@ -16,6 +16,7 @@ package google.registry.rde;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainBase;
@@ -147,9 +148,9 @@ public class DomainBaseToXjcConverterTest {
     assertThat(bean.getRgpStatuses().stream().map(XjcRgpStatusType::getS))
         .containsExactly(TRANSFER_PERIOD, RENEW_PERIOD);
 
-    assertThat(bean.getSecDNS()).named("secdns").isNotNull();
-    assertThat(bean.getSecDNS().getDsDatas()).named("secdns dsdata").isNotNull();
-    assertThat(bean.getSecDNS().getDsDatas()).named("secdns dsdata").hasSize(1);
+    assertWithMessage("secdns").that(bean.getSecDNS()).isNotNull();
+    assertWithMessage("secdns dsdata").that(bean.getSecDNS().getDsDatas()).isNotNull();
+    assertWithMessage("secdns dsdata").that(bean.getSecDNS().getDsDatas()).hasSize(1);
     XjcSecdnsDsDataType dsData = bean.getSecDNS().getDsDatas().get(0);
     assertThat(dsData.getAlg()).isEqualTo((short) 200);
     assertThat(dsData.getDigest()).isEqualTo(base16().decode("1234567890"));
