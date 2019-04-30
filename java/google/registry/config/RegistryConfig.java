@@ -343,7 +343,7 @@ public final class RegistryConfig {
     @Provides
     @Config("dnsDefaultATtl")
     public static Duration provideDnsDefaultATtl() {
-      return Duration.standardMinutes(3);
+      return Duration.standardHours(1);
     }
 
     /**
@@ -354,7 +354,7 @@ public final class RegistryConfig {
     @Provides
     @Config("dnsDefaultNsTtl")
     public static Duration provideDnsDefaultNsTtl() {
-      return Duration.standardMinutes(3);
+      return Duration.standardHours(1);
     }
 
     /**
@@ -365,7 +365,7 @@ public final class RegistryConfig {
     @Provides
     @Config("dnsDefaultDsTtl")
     public static Duration provideDnsDefaultDsTtl() {
-      return Duration.standardMinutes(3);
+      return Duration.standardHours(1);
     }
 
     /**
