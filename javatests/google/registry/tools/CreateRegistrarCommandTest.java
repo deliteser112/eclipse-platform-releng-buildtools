@@ -23,7 +23,7 @@ import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -239,7 +239,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   public void testFailure_groupCreationFails() throws Exception {
     when(connection.sendPostRequest(
             Mockito.anyString(),
-            Mockito.anyMapOf(String.class, String.class),
+            Mockito.anyMap(),
             Mockito.any(MediaType.class),
             Mockito.any(byte[].class)))
         .thenThrow(new IOException("BAD ROBOT NO COOKIE"));

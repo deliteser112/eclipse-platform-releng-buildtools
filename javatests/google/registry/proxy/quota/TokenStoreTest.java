@@ -16,7 +16,7 @@ package google.registry.proxy.quota;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.proxy.quota.QuotaConfig.SENTINEL_UNLIMITED_TOKENS;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;

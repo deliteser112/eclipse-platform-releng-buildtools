@@ -16,9 +16,9 @@ package google.registry.tools;
 
 import static google.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
 import static google.registry.testing.TestDataHelper.loadFile;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
@@ -47,10 +47,7 @@ public class UpdatePremiumListCommandTest<C extends UpdatePremiumListCommand>
             "example_premium_terms.csv",
             loadFile(UpdatePremiumListCommandTest.class, "example_premium_terms.csv"));
     when(connection.sendPostRequest(
-            eq(UpdatePremiumListAction.PATH),
-            anyMapOf(String.class, String.class),
-            any(MediaType.class),
-            any(byte[].class)))
+            eq(UpdatePremiumListAction.PATH), anyMap(), any(MediaType.class), any(byte[].class)))
         .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"success\",\"lines\":[]}");
   }
 

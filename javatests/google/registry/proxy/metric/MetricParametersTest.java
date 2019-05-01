@@ -23,8 +23,8 @@ import static google.registry.proxy.metric.MetricParameters.POD_ID_ENV;
 import static google.registry.proxy.metric.MetricParameters.PROJECT_ID_PATH;
 import static google.registry.proxy.metric.MetricParameters.ZONE_PATH;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

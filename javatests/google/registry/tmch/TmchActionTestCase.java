@@ -15,7 +15,7 @@
 package google.registry.tmch;
 
 import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.urlfetch.HTTPRequest;

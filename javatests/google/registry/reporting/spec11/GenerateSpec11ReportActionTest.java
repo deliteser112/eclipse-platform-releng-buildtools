@@ -16,7 +16,7 @@ package google.registry.reporting.spec11;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

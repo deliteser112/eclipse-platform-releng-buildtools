@@ -19,9 +19,9 @@ import static google.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
 import static google.registry.tools.server.ListObjectsAction.FIELDS_PARAM;
 import static google.registry.tools.server.ListObjectsAction.FULL_FIELD_NAMES_PARAM;
 import static google.registry.tools.server.ListObjectsAction.PRINT_HEADER_ROW_PARAM;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -62,10 +62,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     }
     command.setConnection(connection);
     when(connection.sendPostRequest(
-            eq(getTaskPath()),
-            anyMapOf(String.class, Object.class),
-            eq(MediaType.PLAIN_TEXT_UTF_8),
-            any(byte[].class)))
+            eq(getTaskPath()), anyMap(), eq(MediaType.PLAIN_TEXT_UTF_8), any(byte[].class)))
         .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"success\",\"lines\":[]}");
   }
 

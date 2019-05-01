@@ -18,9 +18,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TestDataHelper.loadFile;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +31,7 @@ import com.google.common.net.MediaType;
 import google.registry.tools.server.CreatePremiumListAction;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 
 /** Unit tests for {@link CreatePremiumListCommand}. */
@@ -53,7 +54,7 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
     servletPath = "/_dr/admin/createPremiumList";
     when(connection.sendPostRequest(
             eq(CreatePremiumListAction.PATH),
-            anyMapOf(String.class, String.class),
+            ArgumentMatchers.<String, String>anyMap(),
             any(MediaType.class),
             any(byte[].class)))
         .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"success\",\"lines\":[]}");
@@ -85,10 +86,7 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
     reset(connection);
     command.setConnection(connection);
     when(connection.sendPostRequest(
-            eq(CreatePremiumListAction.PATH),
-            anyMapOf(String.class, String.class),
-            any(MediaType.class),
-            any(byte[].class)))
+            eq(CreatePremiumListAction.PATH), anyMap(), any(MediaType.class), any(byte[].class)))
         .thenReturn(JSON_SAFETY_PREFIX + "{\"status\":\"error\",\"error\":\"foo already exists\"}");
     VerifyException thrown =
         assertThrows(

@@ -18,9 +18,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,7 +41,7 @@ public class VerifyOteCommandTest extends CommandTestCase<VerifyOteCommand> {
     command.setConnection(connection);
     ImmutableMap<String, Object> response =
         ImmutableMap.of("blobio", "Num actions: 19 - Reqs passed: 19/19 - Overall: PASS");
-    when(connection.sendJson(anyString(), anyMapOf(String.class, Object.class)))
+    when(connection.sendJson(anyString(), anyMap()))
         .thenReturn(ImmutableMap.of("blobio", response));
   }
 
