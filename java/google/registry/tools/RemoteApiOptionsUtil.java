@@ -38,6 +38,7 @@ public class RemoteApiOptionsUtil {
             + " Stop using RemoteApiOptionsUtil.");
     method.setAccessible(true);
     method.invoke(options, stream);
+    method.setAccessible(false);
     return options;
   }
 }
