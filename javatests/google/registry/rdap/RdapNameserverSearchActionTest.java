@@ -58,7 +58,7 @@ public class RdapNameserverSearchActionTest
     extends RdapSearchActionTestCase<RdapNameserverSearchAction> {
 
   public RdapNameserverSearchActionTest() {
-    super(RdapNameserverSearchAction.class, RdapNameserverSearchAction.PATH);
+    super(RdapNameserverSearchAction.class);
   }
 
   private DomainBase domainCatLol;
@@ -263,7 +263,7 @@ public class RdapNameserverSearchActionTest
 
   @Test
   public void testInvalidPath_rejected() {
-    action.requestPath = RdapDomainSearchAction.PATH + "/path";
+    action.requestPath = actionPath + "/path";
     action.run();
     assertThat(response.getStatus()).isEqualTo(400);
     verifyErrorMetrics(Optional.empty(), 400);

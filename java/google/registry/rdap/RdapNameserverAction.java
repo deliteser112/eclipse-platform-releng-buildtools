@@ -36,29 +36,14 @@ import org.joda.time.DateTime;
 /** RDAP (new WHOIS) action for nameserver requests. */
 @Action(
     service = Action.Service.PUBAPI,
-    path = RdapNameserverAction.PATH,
+    path = "/rdap/nameserver/",
     method = {GET, HEAD},
     isPrefix = true,
     auth = Auth.AUTH_PUBLIC_ANONYMOUS)
 public class RdapNameserverAction extends RdapActionBase {
 
-  public static final String PATH = "/rdap/nameserver/";
-
-  @Inject public RdapNameserverAction() {}
-
-  @Override
-  public String getHumanReadableObjectTypeName() {
-    return "nameserver";
-  }
-
-  @Override
-  public EndpointType getEndpointType() {
-    return EndpointType.NAMESERVER;
-  }
-
-  @Override
-  public String getActionPath() {
-    return PATH;
+  @Inject public RdapNameserverAction() {
+    super("nameserver", EndpointType.NAMESERVER);
   }
 
   @Override

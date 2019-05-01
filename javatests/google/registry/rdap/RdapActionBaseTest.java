@@ -17,6 +17,7 @@ package google.registry.rdap;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.Action.Method.GET;
+import static google.registry.request.Action.Method.HEAD;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.verify;
@@ -29,6 +30,7 @@ import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
+import google.registry.request.auth.Auth;
 import java.util.Optional;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -41,29 +43,19 @@ import org.junit.runners.JUnit4;
 public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTest.RdapTestAction> {
 
   public RdapActionBaseTest() {
-    super(RdapTestAction.class, RdapTestAction.PATH);
+    super(RdapTestAction.class);
   }
 
-  /**
-   * Dummy RdapActionBase subclass used for testing.
-   */
+  /** Dummy RdapActionBase subclass used for testing. */
+  @Action(
+      service = Action.Service.PUBAPI,
+      path = "/rdap/test/",
+      method = {GET, HEAD},
+      auth = Auth.AUTH_PUBLIC_ANONYMOUS)
   public static class RdapTestAction extends RdapActionBase {
 
-    public static final String PATH = "/rdap/test/";
-
-    @Override
-    public String getHumanReadableObjectTypeName() {
-      return "human-readable string";
-    }
-
-    @Override
-    public EndpointType getEndpointType() {
-      return EndpointType.HELP;
-    }
-
-    @Override
-    public String getActionPath() {
-      return PATH;
+    public RdapTestAction() {
+      super("human-readable string", EndpointType.HELP);
     }
 
     @Override
@@ -90,7 +82,7 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
   @Before
   public void setUp() {
     createTld("thing");
-    action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
+    action.fullServletPath = "http://myserver.example.com" + actionPath;
   }
 
   @Test
@@ -188,7 +180,7 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
 
   @Test
   public void testUnformatted() {
-    action.requestPath = RdapTestAction.PATH + "no.thing";
+    action.requestPath = actionPath + "no.thing";
     action.requestMethod = GET;
     action.run();
     assertThat(response.getPayload())
@@ -197,7 +189,7 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
 
   @Test
   public void testFormatted() {
-    action.requestPath = RdapTestAction.PATH + "no.thing?formatOutput=true";
+    action.requestPath = actionPath + "no.thing?formatOutput=true";
     action.requestMethod = GET;
     action.formatOutputParam = Optional.of(true);
     action.run();

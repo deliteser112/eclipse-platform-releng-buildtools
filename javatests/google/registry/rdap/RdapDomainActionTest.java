@@ -59,7 +59,7 @@ import org.junit.runners.JUnit4;
 public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainAction> {
 
   public RdapDomainActionTest() {
-    super(RdapDomainAction.class, RdapDomainAction.PATH);
+    super(RdapDomainAction.class);
   }
 
   @Before

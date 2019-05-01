@@ -58,7 +58,7 @@ import org.junit.runners.JUnit4;
 public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEntitySearchAction> {
 
   public RdapEntitySearchActionTest() {
-    super(RdapEntitySearchAction.class, RdapEntitySearchAction.PATH);
+    super(RdapEntitySearchAction.class);
   }
 
   private enum QueryType {
@@ -418,7 +418,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
 
   @Test
   public void testInvalidPath_rejected() {
-    action.requestPath = RdapEntitySearchAction.PATH + "/path";
+    action.requestPath = actionPath + "/path";
     action.run();
     assertThat(response.getStatus()).isEqualTo(400);
     verifyErrorMetrics(Optional.empty(), 400);

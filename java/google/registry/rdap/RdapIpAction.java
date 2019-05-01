@@ -32,29 +32,14 @@ import javax.inject.Inject;
  */
 @Action(
     service = Action.Service.PUBAPI,
-    path = RdapIpAction.PATH,
+    path = "/rdap/ip/",
     method = {GET, HEAD},
     isPrefix = true,
     auth = Auth.AUTH_PUBLIC_ANONYMOUS)
 public class RdapIpAction extends RdapActionBase {
 
-  public static final String PATH = "/rdap/ip/";
-
-  @Inject RdapIpAction() {}
-
-  @Override
-  public String getHumanReadableObjectTypeName() {
-    return "ip";
-  }
-
-  @Override
-  public EndpointType getEndpointType() {
-    return EndpointType.IP;
-  }
-
-  @Override
-  public String getActionPath() {
-    return PATH;
+  @Inject RdapIpAction() {
+    super("ip", EndpointType.IP);
   }
 
   @Override

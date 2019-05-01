@@ -71,7 +71,7 @@ import org.junit.runners.JUnit4;
 public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDomainSearchAction> {
 
   public RdapDomainSearchActionTest() {
-    super(RdapDomainSearchAction.class, RdapDomainSearchAction.PATH);
+    super(RdapDomainSearchAction.class);
   }
 
   private Registrar registrar;
@@ -96,7 +96,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
 
   private Object generateActualJson(
       RequestType requestType, String paramValue, String cursor) {
-    action.requestPath = RdapDomainSearchAction.PATH;
+    action.requestPath = actionPath;
     action.requestMethod = POST;
     String requestTypeParam = null;
     switch (requestType) {
@@ -829,7 +829,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
 
   @Test
   public void testInvalidPath_rejected() {
-    action.requestPath = RdapDomainSearchAction.PATH + "/path";
+    action.requestPath = actionPath + "/path";
     action.run();
     assertThat(response.getStatus()).isEqualTo(400);
     verifyErrorMetrics(SearchType.NONE, Optional.empty(), 400);

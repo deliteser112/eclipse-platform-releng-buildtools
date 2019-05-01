@@ -68,12 +68,10 @@ import org.joda.time.DateTime;
  */
 @Action(
     service = Action.Service.PUBAPI,
-    path = RdapDomainSearchAction.PATH,
+    path = "/rdap/domains",
     method = {GET, HEAD},
     auth = Auth.AUTH_PUBLIC)
 public class RdapDomainSearchAction extends RdapSearchActionBase {
-
-  static final String PATH = "/rdap/domains";
 
   static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
 
@@ -85,21 +83,8 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
   @Inject @Parameter("name") Optional<String> nameParam;
   @Inject @Parameter("nsLdhName") Optional<String> nsLdhNameParam;
   @Inject @Parameter("nsIp") Optional<String> nsIpParam;
-  @Inject public RdapDomainSearchAction() {}
-
-  @Override
-  public String getHumanReadableObjectTypeName() {
-    return "domain search";
-  }
-
-  @Override
-  public EndpointType getEndpointType() {
-    return EndpointType.DOMAINS;
-  }
-
-  @Override
-  public String getActionPath() {
-    return PATH;
+  @Inject public RdapDomainSearchAction() {
+    super("domain search", EndpointType.DOMAINS);
   }
 
   /**

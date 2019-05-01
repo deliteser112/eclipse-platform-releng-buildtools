@@ -30,8 +30,8 @@ import org.junit.Before;
 public class RdapSearchActionTestCase<A extends RdapSearchActionBase>
     extends RdapActionBaseTestCase<A> {
 
-  protected RdapSearchActionTestCase(Class<A> rdapActionClass, String path) {
-    super(rdapActionClass, path);
+  protected RdapSearchActionTestCase(Class<A> rdapActionClass) {
+    super(rdapActionClass);
   }
 
   SearchType metricSearchType = SearchType.NONE;

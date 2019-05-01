@@ -32,29 +32,14 @@ import javax.inject.Inject;
  */
 @Action(
     service = Action.Service.PUBAPI,
-    path = RdapAutnumAction.PATH,
+    path = "/rdap/autnum/",
     method = {GET, HEAD},
     isPrefix = true,
     auth = Auth.AUTH_PUBLIC_ANONYMOUS)
 public class RdapAutnumAction extends RdapActionBase {
 
-  public static final String PATH = "/rdap/autnum/";
-
-  @Inject RdapAutnumAction() {}
-
-  @Override
-  public String getHumanReadableObjectTypeName() {
-    return "autnum";
-  }
-
-  @Override
-  public EndpointType getEndpointType() {
-    return EndpointType.AUTNUM;
-  }
-
-  @Override
-  public String getActionPath() {
-    return PATH;
+  @Inject RdapAutnumAction() {
+    super("authnum", EndpointType.AUTNUM);
   }
 
   @Override

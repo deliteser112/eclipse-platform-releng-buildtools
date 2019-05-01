@@ -36,29 +36,14 @@ import org.joda.time.DateTime;
 /** RDAP (new WHOIS) action for domain requests. */
 @Action(
     service = Action.Service.PUBAPI,
-    path = RdapDomainAction.PATH,
+    path = "/rdap/domain/",
     method = {GET, HEAD},
     isPrefix = true,
     auth = Auth.AUTH_PUBLIC)
 public class RdapDomainAction extends RdapActionBase {
 
-  public static final String PATH = "/rdap/domain/";
-
-  @Inject public RdapDomainAction() {}
-
-  @Override
-  public String getHumanReadableObjectTypeName() {
-    return "domain name";
-  }
-
-  @Override
-  public String getActionPath() {
-    return PATH;
-  }
-
-  @Override
-  public EndpointType getEndpointType() {
-    return EndpointType.DOMAIN;
+  @Inject public RdapDomainAction() {
+    super("domain name", EndpointType.DOMAIN);
   }
 
   @Override

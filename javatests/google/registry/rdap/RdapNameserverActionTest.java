@@ -45,7 +45,7 @@ import org.junit.runners.JUnit4;
 public class RdapNameserverActionTest extends RdapActionBaseTestCase<RdapNameserverAction> {
 
   public RdapNameserverActionTest() {
-    super(RdapNameserverAction.class, RdapNameserverAction.PATH);
+    super(RdapNameserverAction.class);
   }
 
   @Before

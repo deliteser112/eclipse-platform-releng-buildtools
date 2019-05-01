@@ -19,6 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;
 import google.registry.request.RequestUrl;
@@ -43,6 +44,10 @@ public abstract class RdapSearchActionBase extends RdapActionBase {
   @Inject @Parameter("cursor") Optional<String> cursorTokenParam;
 
   protected Optional<String> cursorString;
+
+  RdapSearchActionBase(String humanReadableObjectTypeName, EndpointType endpointType) {
+    super(humanReadableObjectTypeName, endpointType);
+  }
 
   /**
    * Decodes the cursor token passed in the HTTP request.

@@ -18,6 +18,7 @@ import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.request.Actions.getPathForAction;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -106,14 +107,25 @@ public abstract class RdapActionBase implements Runnable {
   final RdapMetrics.RdapMetricInformation.Builder metricInformationBuilder =
       RdapMetrics.RdapMetricInformation.builder();
 
-  /** Returns a string like "domain name" or "nameserver", used for error strings. */
-  abstract String getHumanReadableObjectTypeName();
+  private final String humanReadableObjectTypeName;
 
-  /** Returns the endpoint type used for recording metrics. */
-  abstract EndpointType getEndpointType();
+  /** Returns a string like "domain name" or "nameserver", used for error strings. */
+  final String getHumanReadableObjectTypeName() {
+    return humanReadableObjectTypeName;
+  }
+
+  /** The endpoint type used for recording metrics. */
+  private final EndpointType endpointType;
 
   /** Returns the servlet action path; used to extract the search string from the incoming path. */
-  abstract String getActionPath();
+  final String getActionPath() {
+    return getPathForAction(getClass());
+  }
+
+  RdapActionBase(String humanReadableObjectTypeName, EndpointType endpointType) {
+    this.humanReadableObjectTypeName = humanReadableObjectTypeName;
+    this.endpointType = endpointType;
+  }
 
   /**
    * Does the actual search and returns an RDAP JSON object.
@@ -135,7 +147,7 @@ public abstract class RdapActionBase implements Runnable {
     metricInformationBuilder.setRegistrarSpecified(registrarParam.isPresent());
     metricInformationBuilder.setRole(getAuthorization().role());
     metricInformationBuilder.setRequestMethod(requestMethod);
-    metricInformationBuilder.setEndpointType(getEndpointType());
+    metricInformationBuilder.setEndpointType(endpointType);
     try {
       // Extract what we're searching for from the request path. Some RDAP commands use trailing
       // data in the path itself (e.g. /rdap/domain/mydomain.com), and some use the query string

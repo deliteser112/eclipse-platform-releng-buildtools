@@ -47,31 +47,16 @@ import org.joda.time.DateTime;
  */
 @Action(
     service = Action.Service.PUBAPI,
-    path = RdapEntityAction.PATH,
+    path = "/rdap/entity/",
     method = {GET, HEAD},
     isPrefix = true,
     auth = Auth.AUTH_PUBLIC)
 public class RdapEntityAction extends RdapActionBase {
 
-  public static final String PATH = "/rdap/entity/";
-
   private static final Pattern ROID_PATTERN = Pattern.compile("[-_.a-zA-Z0-9]+");
 
-  @Inject public RdapEntityAction() {}
-
-  @Override
-  public String getHumanReadableObjectTypeName() {
-    return "entity";
-  }
-
-  @Override
-  public EndpointType getEndpointType() {
-    return EndpointType.ENTITY;
-  }
-
-  @Override
-  public String getActionPath() {
-    return PATH;
+  @Inject public RdapEntityAction() {
+    super("entity", EndpointType.ENTITY);
   }
 
   @Override

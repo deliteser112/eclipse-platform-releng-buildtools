@@ -52,7 +52,7 @@ import org.junit.runners.JUnit4;
 public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityAction> {
 
   public RdapEntityActionTest() {
-    super(RdapEntityAction.class, RdapEntityAction.PATH);
+    super(RdapEntityAction.class);
   }
 
   private Registrar registrarLol;

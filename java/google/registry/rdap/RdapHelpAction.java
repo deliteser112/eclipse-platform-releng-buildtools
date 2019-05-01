@@ -28,29 +28,14 @@ import javax.inject.Inject;
 /** RDAP (new WHOIS) action for help requests. */
 @Action(
     service = Action.Service.PUBAPI,
-    path = RdapHelpAction.PATH,
+    path = "/rdap/help",
     method = {GET, HEAD},
     isPrefix = true,
     auth = Auth.AUTH_PUBLIC_ANONYMOUS)
 public class RdapHelpAction extends RdapActionBase {
 
-  public static final String PATH = "/rdap/help";
-
-  @Inject public RdapHelpAction() {}
-
-  @Override
-  public String getHumanReadableObjectTypeName() {
-    return "help";
-  }
-
-  @Override
-  public EndpointType getEndpointType() {
-    return EndpointType.HELP;
-  }
-
-  @Override
-  public String getActionPath() {
-    return PATH;
+  @Inject public RdapHelpAction() {
+    super("help", EndpointType.HELP);
   }
 
   @Override

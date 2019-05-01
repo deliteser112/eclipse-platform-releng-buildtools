@@ -27,6 +27,7 @@ import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableSetMultimap;
 import google.registry.model.ofy.Ofy;
 import google.registry.request.Action;
+import google.registry.request.Actions;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.AuthenticatedRegistrarAccessor;
@@ -79,9 +80,9 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
   protected final String actionPath;
   protected final Class<A> rdapActionClass;
 
-  protected RdapActionBaseTestCase(Class<A> rdapActionClass, String actionPath) {
+  protected RdapActionBaseTestCase(Class<A> rdapActionClass) {
     this.rdapActionClass = rdapActionClass;
-    this.actionPath = actionPath;
+    this.actionPath = Actions.getPathForAction(rdapActionClass);
   }
 
   @Before

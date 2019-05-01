@@ -76,17 +76,17 @@ import org.joda.time.DateTime;
  */
 @Action(
     service = Action.Service.PUBAPI,
-    path = RdapEntitySearchAction.PATH,
+    path = "/rdap/entities",
     method = {GET, HEAD},
     auth = Auth.AUTH_PUBLIC)
 public class RdapEntitySearchAction extends RdapSearchActionBase {
 
-  public static final String PATH = "/rdap/entities";
-
   @Inject @Parameter("fn") Optional<String> fnParam;
   @Inject @Parameter("handle") Optional<String> handleParam;
   @Inject @Parameter("subtype") Optional<String> subtypeParam;
-  @Inject public RdapEntitySearchAction() {}
+  @Inject public RdapEntitySearchAction() {
+    super("entity search", EndpointType.ENTITIES);
+  }
 
   private enum QueryType {
     FULL_NAME,
@@ -107,21 +107,6 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
 
   private static final String CONTACT_CURSOR_PREFIX = "c:";
   private static final String REGISTRAR_CURSOR_PREFIX = "r:";
-
-  @Override
-  public String getHumanReadableObjectTypeName() {
-    return "entity search";
-  }
-
-  @Override
-  public EndpointType getEndpointType() {
-    return EndpointType.ENTITIES;
-  }
-
-  @Override
-  public String getActionPath() {
-    return PATH;
-  }
 
   /** Parses the parameters and calls the appropriate search function. */
   @Override

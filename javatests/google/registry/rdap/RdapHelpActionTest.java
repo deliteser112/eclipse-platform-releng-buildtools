@@ -31,7 +31,7 @@ import org.junit.Test;
 public class RdapHelpActionTest extends RdapActionBaseTestCase<RdapHelpAction> {
 
   public RdapHelpActionTest() {
-    super(RdapHelpAction.class, RdapHelpAction.PATH);
+    super(RdapHelpAction.class);
   }
 
   private Object generateExpectedJson(String name, String expectedOutputFile) {
