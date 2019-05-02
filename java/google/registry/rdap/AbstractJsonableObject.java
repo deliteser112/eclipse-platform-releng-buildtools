@@ -35,6 +35,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -468,8 +469,10 @@ abstract class AbstractJsonableObject implements Jsonable {
     }
 
     private void mergeWith(JsonObject otherJsonObject, Member member) {
-      for (String name : otherJsonObject.keySet()) {
-        JsonElement otherElement = otherJsonObject.get(name);
+      for (Map.Entry<String, JsonElement> entry : otherJsonObject.entrySet()) {
+        String name = entry.getKey();
+        JsonElement otherElement = entry.getValue();
+
         JsonElement ourElement = jsonObject.get(name);
         if (ourElement == null) {
           jsonObject.add(name, otherElement);
