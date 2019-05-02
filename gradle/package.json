@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/google/nomulus#readme",
   "dependencies": {
-    "google-closure-library": "20190121.0.0"
+    "google-closure-library": "20190325.0.0"
   }
 }
