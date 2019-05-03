@@ -61,16 +61,12 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
   }
 
   public void hasNoLogsAtLevel(Level level) {
-    check()
-        .withMessage("Logs at level %s", level)
-        .that(getMessagesAtLevel(level))
-        .isEmpty();
+    check("atLevel(%s)", level).that(getMessagesAtLevel(level)).isEmpty();
   }
 
   public Which<StringSubject> hasLogAtLevelWithMessage(Level level, String message) {
     List<String> messagesAtLevel = getMessagesAtLevel(level);
-    check()
-        .withMessage("Logs at level %s", level)
+    check("atLevel(%s)", level)
         .that(messagesAtLevel)
         .comparingElementsUsing(CONTAINS_CORRESPONDENCE)
         .contains(message);
