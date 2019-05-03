@@ -74,6 +74,8 @@ def domain_registry_repositories(
         omit_com_google_gdata_core = False,
         omit_com_google_googlejavaformat_google_java_format = False,
         omit_com_google_guava = False,
+        omit_com_google_guava_failureaccess = False,
+        omit_com_google_guava_listenablefuture = False,
         omit_com_google_guava_testlib = False,
         omit_com_google_gwt_user = False,
         omit_com_google_http_client = False,
@@ -275,6 +277,10 @@ def domain_registry_repositories(
         com_google_googlejavaformat_google_java_format()
     if not omit_com_google_guava:
         com_google_guava()
+    if not omit_com_google_guava_failureaccess:
+        com_google_guava_failureaccess()
+    if not omit_com_google_guava_listenablefuture:
+        com_google_guava_listenablefuture()
     if not omit_com_google_guava_testlib:
         com_google_guava_testlib()
     if not omit_com_google_gwt_user:
@@ -1366,15 +1372,39 @@ def com_google_googlejavaformat_google_java_format():
 def com_google_guava():
     java_import_external(
         name = "com_google_guava",
-        jar_sha256 = "6db0c3a244c397429c2e362ea2837c3622d5b68bb95105d37c21c36e5bc70abf",
+        jar_sha256 = "4a5aa70cc968a4d137e599ad37553e5cfeed2265e8c193476d7119036c536fe7",
         jar_urls = [
-            "http://repo1.maven.org/maven2/com/google/guava/guava/25.1-jre/guava-25.1-jre.jar",
-            "http://maven.ibiblio.org/maven2/com/google/guava/guava/25.1-jre/guava-25.1-jre.jar",
+            "http://repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar",
+            "http://maven.ibiblio.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         exports = [
             "@com_google_code_findbugs_jsr305",
             "@com_google_errorprone_error_prone_annotations",
+            "@com_google_guava_failureaccess",
+            "@com_google_guava_listenablefuture",
+        ],
+    )
+
+def com_google_guava_failureaccess():
+    java_import_external(
+        name = "com_google_guava_failureaccess",
+        licenses = ["notice"],  # The Apache Software License, Version 2.0
+        jar_sha256 = "a171ee4c734dd2da837e4b16be9df4661afab72a41adaf31eb84dfdaf936ca26",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
+            "http://maven.ibiblio.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
+        ],
+    )
+
+def com_google_guava_listenablefuture():
+    java_import_external(
+        name = "com_google_guava_listenablefuture",
+        licenses = ["notice"],  # The Apache Software License, Version 2.0
+        jar_sha256 = "b372a037d4230aa57fbeffdef30fd6123f9c0c2db85d0aced00c91b974f33f99",
+        jar_urls = [
+            "http://repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+            "http://maven.ibiblio.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
         ],
     )
 
@@ -1617,10 +1647,10 @@ def com_google_template_soy():
 def com_google_truth():
     java_import_external(
         name = "com_google_truth",
-        jar_sha256 = "dd652bdf0c4427c59848ac0340fd6b6d20c2cbfaa3c569a8366604dbcda5214c",
+        jar_sha256 = "a9e6796786c9c77a5fe19b08e72fe0a620d53166df423d8861af9ebef4dc4247",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/truth/truth/0.42/truth-0.42.jar",
-            "http://repo1.maven.org/maven2/com/google/truth/truth/0.42/truth-0.42.jar",
+            "http://maven.ibiblio.org/maven2/com/google/truth/truth/0.44/truth-0.44.jar",
+            "http://repo1.maven.org/maven2/com/google/truth/truth/0.44/truth-0.44.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         testonly_ = True,
@@ -1636,10 +1666,10 @@ def com_google_truth():
 def com_google_truth_extensions_truth_java8_extension():
     java_import_external(
         name = "com_google_truth_extensions_truth_java8_extension",
-        jar_sha256 = "47d3a91a3accbe062fbae59f95cc0e02f0483c60d1340ff82c89bc6ab82fa10a",
+        jar_sha256 = "da4d94dc952c65914bf9e3c0b4f4a05f5aea536aa5de9a4660b859409dda4bad",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/truth/extensions/truth-java8-extension/0.39/truth-java8-extension-0.39.jar",
-            "http://central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.39/truth-java8-extension-0.39.jar",
+            "http://maven.ibiblio.org/maven2/com/google/truth/extensions/truth-java8-extension/0.44/truth-java8-extension-0.44.jar",
+            "http://central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.44/truth-java8-extension-0.44.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         testonly_ = True,
