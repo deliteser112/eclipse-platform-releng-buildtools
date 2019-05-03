@@ -17,6 +17,7 @@ package google.registry.tools;
 import com.google.common.collect.ImmutableMap;
 import google.registry.tools.javascrap.PopulateNullRegistrarFieldsCommand;
 import google.registry.tools.javascrap.RemoveIpAddressCommand;
+import google.registry.tools.javascrap.ResaveAllocationTokensCommand;
 
 /** Container class to create and run remote commands against a Datastore instance. */
 public final class RegistryTool {
@@ -96,6 +97,7 @@ public final class RegistryTool {
           .put("registrar_contact", RegistrarContactCommand.class)
           .put("remove_ip_address", RemoveIpAddressCommand.class)
           .put("renew_domain", RenewDomainCommand.class)
+          .put("resave_allocation_tokens", ResaveAllocationTokensCommand.class)
           .put("resave_entities", ResaveEntitiesCommand.class)
           .put("resave_environment_entities", ResaveEnvironmentEntitiesCommand.class)
           .put("resave_epp_resource", ResaveEppResourceCommand.class)
