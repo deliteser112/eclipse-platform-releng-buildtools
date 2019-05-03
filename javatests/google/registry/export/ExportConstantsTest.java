@@ -64,7 +64,7 @@ public class ExportConstantsTest {
 
   @Test
   public void testReportingKinds_areSubsetOfBackupKinds() {
-    assertThat(getBackupKinds()).containsAllIn(getReportingKinds());
+    assertThat(getBackupKinds()).containsAtLeastElementsIn(getReportingKinds());
   }
 
   private static void checkKindsMatchGoldenFile(

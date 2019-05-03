@@ -67,7 +67,9 @@ public class EntityClassesTest {
             .filter(hasAnnotation(EntitySubclass.class))
             .map(Key::getKind)
             .collect(toImmutableSet());
-    assertWithMessage("base entity kinds").that(baseEntityKinds).containsAllIn(entitySubclassKinds);
+    assertWithMessage("base entity kinds")
+        .that(baseEntityKinds)
+        .containsAtLeastElementsIn(entitySubclassKinds);
   }
 
   @Test

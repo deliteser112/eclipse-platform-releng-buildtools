@@ -130,7 +130,7 @@ public class KillAllEppResourcesActionTest extends MapreduceTestCase<KillAllEppR
       }
     }
     ImmutableMultimap<String, Object> beforeContents = getDatastoreContents();
-    assertThat(beforeContents.keySet()).containsAllIn(AFFECTED_KINDS);
+    assertThat(beforeContents.keySet()).containsAtLeastElementsIn(AFFECTED_KINDS);
     assertThat(difference(beforeContents.keySet(), AFFECTED_KINDS)).isNotEmpty();
     runMapreduce();
     ofy().clearSessionCache();
