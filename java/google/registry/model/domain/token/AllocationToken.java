@@ -182,6 +182,10 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
     return tokenType;
   }
 
+  public TimedTransitionProperty<TokenStatus, TokenStatusTransition> getTokenStatusTransitions() {
+    return tokenStatusTransitions;
+  }
+
   @Override
   public Builder asBuilder() {
     return new Builder(clone(this));

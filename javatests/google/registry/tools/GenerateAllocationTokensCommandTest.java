@@ -16,18 +16,25 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
+import static google.registry.model.domain.token.AllocationToken.TokenType.UNLIMITED_USE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
+import com.beust.jcommander.ParameterException;
 import com.google.appengine.tools.remoteapi.RemoteApiException;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.io.Files;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.domain.token.AllocationToken.TokenStatus;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.DeterministicStringGenerator;
 import google.registry.testing.DeterministicStringGenerator.Rule;
@@ -136,6 +143,36 @@ public class GenerateAllocationTokensCommandTest
   }
 
   @Test
+  public void testSuccess_promotionToken() throws Exception {
+    DateTime promoStart = DateTime.now(UTC);
+    DateTime promoEnd = promoStart.plusMonths(1);
+    runCommand(
+        "--number", "1",
+        "--prefix", "promo",
+        "--type", "UNLIMITED_USE",
+        "--allowed_client_ids", "TheRegistrar,NewRegistrar",
+        "--allowed_tlds", "tld,example",
+        "--discount_fraction", "0.5",
+        "--token_status_transitions",
+            String.format(
+                "\"%s=NOT_STARTED,%s=VALID,%s=ENDED\"", START_OF_TIME, promoStart, promoEnd));
+    assertAllocationTokens(
+        new AllocationToken.Builder()
+            .setToken("promo123456789ABCDEFG")
+            .setTokenType(UNLIMITED_USE)
+            .setAllowedClientIds(ImmutableSet.of("TheRegistrar", "NewRegistrar"))
+            .setAllowedTlds(ImmutableSet.of("tld", "example"))
+            .setDiscountFraction(0.5)
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                    .put(promoStart, TokenStatus.VALID)
+                    .put(promoEnd, TokenStatus.ENDED)
+                    .build())
+            .build());
+  }
+
+  @Test
   public void testFailure_mustSpecifyNumberOfTokensOrDomainsFile() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommand("--prefix", "FEET"));
@@ -159,15 +196,47 @@ public class GenerateAllocationTokensCommandTest
         .isEqualTo("Must specify either --number or --domain_names_file, but not both");
   }
 
+  @Test
+  public void testFailure_invalidTokenType() {
+    ParameterException thrown =
+        assertThrows(
+            ParameterException.class,
+            () -> runCommand("--number", "999", "--type", "INVALID_TYPE"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Invalid value for -t parameter. Allowed values:[SINGLE_USE, UNLIMITED_USE]");
+  }
+
+  @Test
+  public void testFailure_invalidTokenStatusTransition() {
+    assertThat(
+            assertThrows(
+                ParameterException.class,
+                () ->
+                    runCommand(
+                        "--number",
+                        "999",
+                        String.format(
+                            "--token_status_transitions=\"%s=INVALID_STATUS\"", START_OF_TIME))))
+        .hasCauseThat()
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void testFailure_unlimitedUseMustHaveTransitions() {
+    assertThat(
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> runCommand("--number", "999", "--type", "UNLIMITED_USE")))
+        .hasMessageThat()
+        .isEqualTo("For UNLIMITED_USE tokens, must specify --token_status_transitions");
+  }
+
   private void assertAllocationTokens(AllocationToken... expectedTokens) {
     // Using ImmutableObject comparison here is tricky because the creation/updated timestamps are
     // neither easy nor valuable to test here.
     ImmutableMap<String, AllocationToken> actualTokens =
-        ofy()
-            .load()
-            .type(AllocationToken.class)
-            .list()
-            .stream()
+        ofy().load().type(AllocationToken.class).list().stream()
             .collect(ImmutableMap.toImmutableMap(AllocationToken::getToken, Function.identity()));
     assertThat(actualTokens).hasSize(expectedTokens.length);
     for (AllocationToken expectedToken : expectedTokens) {
@@ -175,6 +244,12 @@ public class GenerateAllocationTokensCommandTest
       assertThat(match).isNotNull();
       assertThat(match.getRedemptionHistoryEntry())
           .isEqualTo(expectedToken.getRedemptionHistoryEntry());
+      assertThat(match.getAllowedClientIds()).isEqualTo(expectedToken.getAllowedClientIds());
+      assertThat(match.getAllowedTlds()).isEqualTo(expectedToken.getAllowedTlds());
+      assertThat(match.getDiscountFraction()).isEqualTo(expectedToken.getDiscountFraction());
+      assertThat(match.getTokenStatusTransitions())
+          .isEqualTo(expectedToken.getTokenStatusTransitions());
+      assertThat(match.getTokenType()).isEqualTo(expectedToken.getTokenType());
     }
   }
 

@@ -19,7 +19,9 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Queues.newArrayDeque;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
+import static google.registry.model.domain.token.AllocationToken.TokenType.UNLIMITED_USE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.StringGenerator.DEFAULT_PASSWORD_LENGTH;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -29,10 +31,16 @@ import com.google.appengine.tools.remoteapi.RemoteApiException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.io.Files;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.domain.token.AllocationToken.TokenStatus;
+import google.registry.model.domain.token.AllocationToken.TokenType;
+import google.registry.tools.params.TransitionListParameter.TokenStatusTransitions;
+import google.registry.util.CollectionUtils;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.Retrier;
 import google.registry.util.StringGenerator;
@@ -40,8 +48,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.List;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.joda.time.DateTime;
 
 /** Command to generate and persist {@link AllocationToken}s. */
 @Parameters(
@@ -53,28 +64,56 @@ import javax.inject.Named;
 class GenerateAllocationTokensCommand implements CommandWithRemoteApi {
 
   @Parameter(
-    names = {"-p", "--prefix"},
-    description = "Allocation token prefix; defaults to blank"
-  )
+      names = {"-p", "--prefix"},
+      description = "Allocation token prefix; defaults to blank")
   private String prefix = "";
 
   @Parameter(
-    names = {"-n", "--number"},
-    description = "The number of tokens to generate"
-  )
+      names = {"-n", "--number"},
+      description = "The number of tokens to generate")
   private long numTokens;
 
   @Parameter(
       names = {"-d", "--domain_names_file"},
-      description = "A file with a list of newline-delimited domain names to create tokens for"
-  )
+      description = "A file with a list of newline-delimited domain names to create tokens for")
   private String domainNamesFile;
 
   @Parameter(
-    names = {"-l", "--length"},
-    description = "The length of each token, exclusive of the prefix (if specified); defaults to 16"
-  )
+      names = {"-l", "--length"},
+      description =
+          "The length of each token, exclusive of the prefix (if specified); defaults to 16")
   private int tokenLength = DEFAULT_PASSWORD_LENGTH;
+
+  @Parameter(
+      names = {"-t", "--type"},
+      description = "Type of type token, either SINGLE_USE (default) or UNLIMITED_USE")
+  private TokenType tokenType;
+
+  @Parameter(
+      names = {"--allowed_client_ids"},
+      description = "Comma-separated list of allowed client IDs, or null if all are allowed")
+  private List<String> allowedClientIds;
+
+  @Parameter(
+      names = {"--allowed_tlds"},
+      description = "Comma-separated list of allowed TLDs, or null if all are allowed")
+  private List<String> allowedTlds;
+
+  @Parameter(
+      names = {"--discount_fraction"},
+      description =
+          "A discount off the base price for the first year between 0.0 and 1.0. Default is 0.0,"
+              + " i.e. no discount.")
+  private double discountFraction;
+
+  @Parameter(
+      names = "--token_status_transitions",
+      converter = TokenStatusTransitions.class,
+      validateWith = TokenStatusTransitions.class,
+      description =
+          "Comma-delimited list of token status transitions effective on specific dates, of the"
+              + " form <time>=<status>[,<time>=<status>]* where each status represents the status.")
+  private ImmutableSortedMap<DateTime, TokenStatus> tokenStatusTransitions;
 
   @Parameter(
       names = {"--dry_run"},
@@ -96,6 +135,20 @@ class GenerateAllocationTokensCommand implements CommandWithRemoteApi {
         (numTokens > 0) ^ (domainNamesFile != null),
         "Must specify either --number or --domain_names_file, but not both");
 
+    checkArgument(
+        !(UNLIMITED_USE.equals(tokenType) && CollectionUtils.isNullOrEmpty(tokenStatusTransitions)),
+        "For UNLIMITED_USE tokens, must specify --token_status_transitions");
+
+    // A list consisting solely of the empty string means user error when formatting parameters
+    checkArgument(
+        !ImmutableList.of("").equals(allowedClientIds),
+        "Either omit --allowed_client_ids if all registrars are allowed, or include a"
+            + " comma-separated list");
+
+    checkArgument(
+        !ImmutableList.of("").equals(allowedTlds),
+        "Either omit --allowed_tlds if all TLDs are allowed, or include a comma-separated list");
+
     Deque<String> domainNames;
     if (domainNamesFile == null) {
       domainNames = null;
@@ -112,17 +165,21 @@ class GenerateAllocationTokensCommand implements CommandWithRemoteApi {
     int tokensSaved = 0;
     do {
       ImmutableSet<AllocationToken> tokens =
-          generateTokens(BATCH_SIZE)
-              .stream()
+          generateTokens(BATCH_SIZE).stream()
               .limit(numTokens - tokensSaved)
               .map(
                   t -> {
-                    AllocationToken.Builder token = new AllocationToken.Builder().setToken(t);
-                    // TODO(b/129471448): allow this to be unlimited-use as well
-                    token.setTokenType(SINGLE_USE);
-                    if (domainNames != null) {
-                      token.setDomainName(domainNames.removeFirst());
-                    }
+                    AllocationToken.Builder token =
+                        new AllocationToken.Builder()
+                            .setToken(t)
+                            .setTokenType(tokenType == null ? SINGLE_USE : tokenType)
+                            .setAllowedClientIds(ImmutableSet.copyOf(nullToEmpty(allowedClientIds)))
+                            .setAllowedTlds(ImmutableSet.copyOf(nullToEmpty(allowedTlds)))
+                            .setDiscountFraction(discountFraction);
+                    Optional.ofNullable(tokenStatusTransitions)
+                        .ifPresent(token::setTokenStatusTransitions);
+                    Optional.ofNullable(domainNames)
+                        .ifPresent(d -> token.setDomainName(d.removeFirst()));
                     return token.build();
                   })
               .collect(toImmutableSet());
@@ -149,22 +206,15 @@ class GenerateAllocationTokensCommand implements CommandWithRemoteApi {
    */
   private ImmutableSet<String> generateTokens(int count) {
     ImmutableSet<String> candidates =
-        stringGenerator
-            .createStrings(tokenLength, count)
-            .stream()
+        stringGenerator.createStrings(tokenLength, count).stream()
             .map(s -> prefix + s)
             .collect(toImmutableSet());
     ImmutableSet<Key<AllocationToken>> existingTokenKeys =
-        candidates
-            .stream()
+        candidates.stream()
             .map(input -> Key.create(AllocationToken.class, input))
             .collect(toImmutableSet());
     ImmutableSet<String> existingTokenStrings =
-        ofy()
-            .load()
-            .keys(existingTokenKeys)
-            .values()
-            .stream()
+        ofy().load().keys(existingTokenKeys).values().stream()
             .map(AllocationToken::getToken)
             .collect(toImmutableSet());
     return ImmutableSet.copyOf(difference(candidates, existingTokenStrings));

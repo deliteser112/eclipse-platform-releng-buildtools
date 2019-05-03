@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
+import google.registry.model.domain.token.AllocationToken.TokenStatus;
 import google.registry.model.registry.Registry.TldState;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -61,6 +62,14 @@ public abstract class TransitionListParameter<V> extends KeyValueMapParameter<Da
     @Override
     protected Money parseValue(String value) {
       return MONEY_CONVERTER.convert(value);
+    }
+  }
+
+  /** Converter-validator for token status transitions. */
+  public static class TokenStatusTransitions extends TransitionListParameter<TokenStatus> {
+    @Override
+    protected TokenStatus parseValue(String value) {
+      return TokenStatus.valueOf(value);
     }
   }
 }
