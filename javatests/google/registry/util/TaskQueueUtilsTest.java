@@ -74,7 +74,7 @@ public final class TaskQueueUtilsTest {
   @Test
   public void testEnqueue_worksOnFirstTry_doesntSleep() {
     when(queue.add(ImmutableList.of(task))).thenReturn(ImmutableList.of(handle));
-    assertThat(taskQueueUtils.enqueue(queue, task)).isSameAs(handle);
+    assertThat(taskQueueUtils.enqueue(queue, task)).isSameInstanceAs(handle);
     verify(queue).add(ImmutableList.of(task));
     assertThat(clock.nowUtc()).isEqualTo(DateTime.parse("2000-01-01TZ"));
   }
@@ -85,7 +85,7 @@ public final class TaskQueueUtilsTest {
         .thenThrow(new TransientFailureException(""))
         .thenThrow(new TransientFailureException(""))
         .thenReturn(ImmutableList.of(handle));
-    assertThat(taskQueueUtils.enqueue(queue, task)).isSameAs(handle);
+    assertThat(taskQueueUtils.enqueue(queue, task)).isSameInstanceAs(handle);
     verify(queue, times(3)).add(ImmutableList.of(task));
     assertThat(clock.nowUtc()).isEqualTo(DateTime.parse("2000-01-01T00:00:00.6Z"));  // 200 + 400ms
   }
@@ -97,7 +97,8 @@ public final class TaskQueueUtilsTest {
     ImmutableList<TaskHandle> handles =
         ImmutableList.of(new TaskHandle(taskA, "a"), new TaskHandle(taskB, "b"));
     when(queue.add(ImmutableList.of(taskA, taskB))).thenReturn(handles);
-    assertThat(taskQueueUtils.enqueue(queue, ImmutableList.of(taskA, taskB))).isSameAs(handles);
+    assertThat(taskQueueUtils.enqueue(queue, ImmutableList.of(taskA, taskB)))
+        .isSameInstanceAs(handles);
     assertThat(clock.nowUtc()).isEqualTo(DateTime.parse("2000-01-01TZ"));
   }
 

@@ -148,7 +148,7 @@ public class RdeReportActionTest {
     assertThat(response.getPayload()).isEqualTo("OK test 2006-06-06T00:00:00.000Z\n");
 
     // Verify the HTTP request was correct.
-    assertThat(request.getValue().getMethod()).isSameAs(PUT);
+    assertThat(request.getValue().getMethod()).isSameInstanceAs(PUT);
     assertThat(request.getValue().getURL().getProtocol()).isEqualTo("https");
     assertThat(request.getValue().getURL().getPath()).endsWith("/test/20101017001");
     Map<String, String> headers = mapifyHeaders(request.getValue().getHeaders());

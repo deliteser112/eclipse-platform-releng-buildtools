@@ -263,7 +263,7 @@ public class ComparatorKeyringTest {
     when(secondKeyring.getRdeSigningKey()).thenThrow(new KeyringException("message"));
     Keyring comparatorKeyring = ComparatorKeyring.create(actualKeyring, secondKeyring);
 
-    assertThat(comparatorKeyring.getRdeSigningKey()).isSameAs(keyPair);
+    assertThat(comparatorKeyring.getRdeSigningKey()).isSameInstanceAs(keyPair);
 
     assertAboutLogs()
         .that(testLogHandler)
@@ -300,7 +300,7 @@ public class ComparatorKeyringTest {
     when(secondKeyring.getRdeSigningKey()).thenReturn(keyPairCopy);
     Keyring comparatorKeyring = ComparatorKeyring.create(actualKeyring, secondKeyring);
 
-    assertThat(comparatorKeyring.getRdeSigningKey()).isSameAs(keyPair);
+    assertThat(comparatorKeyring.getRdeSigningKey()).isSameInstanceAs(keyPair);
 
     assertAboutLogs().that(testLogHandler).hasNoLogsAtLevel(Level.SEVERE);
   }
@@ -321,7 +321,7 @@ public class ComparatorKeyringTest {
     when(secondKeyring.getRdeSigningKey()).thenReturn(keyPairDifferent);
     Keyring comparatorKeyring = ComparatorKeyring.create(actualKeyring, secondKeyring);
 
-    assertThat(comparatorKeyring.getRdeSigningKey()).isSameAs(keyPair);
+    assertThat(comparatorKeyring.getRdeSigningKey()).isSameInstanceAs(keyPair);
 
     String alternateKeyPairString = String.format(
         "PGPKeyPair{%s, %s}", PUBLIC_KEY_TO_STRING, "PGPPrivateKey{keyId=2}");

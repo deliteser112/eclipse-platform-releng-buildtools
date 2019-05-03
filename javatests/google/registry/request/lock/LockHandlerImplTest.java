@@ -107,7 +107,7 @@ public final class LockHandlerImplTest {
         assertThrows(
             RuntimeException.class,
             () -> executeWithLocks(new ThrowingCallable(expectedException, clock), lock));
-    assertThat(exception).isSameAs(expectedException);
+    assertThat(exception).isSameInstanceAs(expectedException);
     verify(lock, times(1)).release();
   }
 
@@ -119,7 +119,7 @@ public final class LockHandlerImplTest {
         assertThrows(
             RuntimeException.class,
             () -> executeWithLocks(new ThrowingCallable(expectedException, clock), lock));
-    assertThat(thrown).hasCauseThat().isSameAs(expectedException);
+    assertThat(thrown).hasCauseThat().isSameInstanceAs(expectedException);
     assertThat(thrown)
         .hasMessageThat()
         .isEqualTo(
@@ -136,7 +136,7 @@ public final class LockHandlerImplTest {
         assertThrows(
             RuntimeException.class,
             () -> executeWithLocks(new ThrowingCallable(expectedException, clock), lock));
-    assertThat(exception).hasCauseThat().isSameAs(expectedException);
+    assertThat(exception).hasCauseThat().isSameInstanceAs(expectedException);
     verify(lock, times(1)).release();
   }
 
