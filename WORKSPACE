@@ -31,25 +31,26 @@ domain_registry_repositories()
 # Setup docker bazel rules
 http_archive(
     name = "io_bazel_rules_docker",
-    sha256 = "29d109605e0d6f9c892584f07275b8c9260803bf0c6fcb7de2623b2bedc910bd",
-    strip_prefix = "rules_docker-0.5.1",
-    urls = ["https://github.com/bazelbuild/rules_docker/archive/v0.5.1.tar.gz"],
+    sha256 = "aed1c249d4ec8f703edddf35cbe9dfaca0b5f5ea6e4cd9e83e99f3b0d1136c3d",
+    strip_prefix = "rules_docker-0.7.0",
+    urls = ["https://github.com/bazelbuild/rules_docker/archive/v0.7.0.tar.gz"],
 )
+
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
+)
+container_repositories()
 
 load(
     "@io_bazel_rules_docker//container:container.bzl",
     "container_pull",
-    container_repositories = "repositories",
 )
-
-# This is NOT needed when going through the language lang_image
-# "repositories" function(s).
-container_repositories()
 
 container_pull(
   name = "java_base",
   registry = "gcr.io",
   repository = "distroless/java",
   # 'tag' is also supported, but digest is encouraged for reproducibility.
-  digest = "sha256:8c1769cb253bdecc257470f7fba05446a55b70805fa686f227a11655a90dfe9e",
+  digest = "sha256:84a63da5da6aba0f021213872de21a4f9829e4bd2801aef051cf40b6f8952e68",
 )
