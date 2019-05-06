@@ -1,0 +1,42 @@
+apply plugin: 'java'
+apply plugin: 'nebula.lint'
+apply plugin: 'net.ltgt.apt'
+apply plugin: 'net.ltgt.errorprone'
+apply plugin: 'checkstyle'
+
+// Checkstyle should run as part of the testing task
+tasks.test.dependsOn tasks.checkstyleMain
+tasks.test.dependsOn tasks.checkstyleTest
+
+dependencies {
+    // compatibility with Java 8
+    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
+    errorprone("com.google.errorprone:error_prone_core:2.3.3")
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << "-Werror"
+    options.errorprone.disableWarningsInGeneratedCode = true
+    options.errorprone.errorproneArgumentProviders.add([
+            asArguments: {
+                return ['-XepExcludedPaths:.*/build/generated/.*']
+            }] as CommandLineArgumentProvider)
+}
+
+version = '1.0'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+compileJava { options.encoding = "UTF-8" }
+compileTestJava { options.encoding = "UTF-8" }
+
+
+gradleLint.rules = [
+        // Checks if Gradle wrapper is up-to-date
+        'archaic-wrapper',
+        // Checks for indirect dependencies with dynamic version spec. Best
+        // practice calls for declaring them with specific versions.
+        'undeclared-dependency',
+        'unused-dependency'
+        // TODO(weiminyu): enable more dependency checks
+]

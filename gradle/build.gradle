@@ -13,12 +13,16 @@ buildscript {
 }
 
 plugins {
+  // Java static analysis plugins. Keep versions consistent with
+  // ./buildSrc/build.gradle
   id 'nebula.lint' version '10.4.2'
-  // Config helper for annotation processors such as AutoValue and Dagger.
-  // Ensures that source code is generated at an appropriate location.
+  // TODO(weiminyu): consider remove net.ltgt.apt. Gradle 5.2+
+  //  has similar functionalities.
   id 'net.ltgt.apt' version '0.19' apply false
   id 'net.ltgt.errorprone' version '0.6.1'
   id 'checkstyle'
+
+  // NodeJs plugin
   id "com.moowork.node" version "1.2.0"
 }
 
@@ -155,128 +159,16 @@ subprojects {
                   ':services:tools',
                   ':services:pubapi']
 
-  def environments = ['production', 'sandbox', 'alpha', 'crash']
-
-  def projects = ['production': 'domain-registry',
-                  'sandbox'   : 'domain-registry-sandbox',
-                  'alpha'     : 'domain-registry-alpha',
-                  'crash'     : 'domain-registry-crash']
-
   // Set up all of the deployment projects.
   if (services.contains(project.path)) {
 
-    def environment = rootProject.findProperty("environment")
-    if (environment == null) {
-      environment = 'alpha'
-    }
-    def gcpProject = projects[environment]
-    if (gcpProject == null) {
-      throw new GradleException("-Penvironment must be one of ${environments}.")
-    }
-
-    apply plugin: 'war'
-
-    // Set this directory before applying the appengine plugin so that the
-    // plugin will recognize this as an app-engine standard app (and also
-    // obtains the appengine-web.xml from the correct location)
-    project.convention.plugins['war'].webAppDirName =
-        "../../../java/google/registry/env/${environment}/${project.name}"
-
-    apply plugin: 'com.google.cloud.tools.appengine'
-
-    // Get the web.xml file for the service.
-    war {
-      webInf {
-        from "../../../java/google/registry/env/common/${project.name}/WEB-INF"
-      }
-    }
-
-    def coreResourcesDir = "${rootDir}/core/build/resources/main"
-    war {
-      from("${coreResourcesDir}/google/registry/ui/html") {
-        include "*.html"
-      }
-    }
-
-    if (project.path == ":services:default") {
-      war {
-        from("${coreResourcesDir}/google/registry/ui") {
-          include "registrar_bin.js"
-          if (environment != "production") {
-            include "registrar_bin.js.map"
-          }
-          into("assets/js")
-        }
-        from("${coreResourcesDir}/google/registry/ui/css") {
-          include "registrar*"
-          into("assets/css")
-        }
-        from("${coreResourcesDir}/google/registry/ui/assets/images") {
-          include "**/*"
-          into("assets/images")
-        }
-      }
-    }
-
-    appengine {
-      deploy {
-        project = gcpProject
-      }
-    }
-
-    dependencies {
-      compile project(':core')
-    }
-
-    rootProject.deploy.dependsOn appengineDeploy
-    rootProject.stage.dependsOn appengineStage
+    apply from: "${rootDir.path}/appengine_war.gradle"
 
     // Return early, do not apply the settings below.
     return
   }
 
-  apply plugin: 'java'
-  apply plugin: 'nebula.lint'
-  apply plugin: 'net.ltgt.apt'
-  apply plugin: 'net.ltgt.errorprone'
-  apply plugin: 'checkstyle'
-
-  // Checkstyle should run as part of the testing task
-  tasks.test.dependsOn tasks.checkstyleMain
-  tasks.test.dependsOn tasks.checkstyleTest
-
-  dependencies {
-    // compatibility with Java 8
-    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
-    errorprone("com.google.errorprone:error_prone_core:2.3.3")
-  }
-
-  tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << "-Werror"
-    options.errorprone.disableWarningsInGeneratedCode = true
-    options.errorprone.errorproneArgumentProviders.add([
-        asArguments: {
-          return ['-XepExcludedPaths:.*/build/generated/.*']
-        }] as CommandLineArgumentProvider)
-  }
-
-  version = '1.0'
-  sourceCompatibility = '1.8'
-  targetCompatibility = '1.8'
-
-  compileJava { options.encoding = "UTF-8" }
-  compileTestJava { options.encoding = "UTF-8" }
-
-
-  gradleLint.rules = [
-      // Checks if Gradle wrapper is up-to-date
-      'archaic-wrapper',
-      // Checks for indirect dependencies with dynamic version spec. Best
-      // practice calls for declaring them with specific versions.
-      'undeclared-dependency',
-      'unused-dependency'
-      // TODO(weiminyu): enable more dependency checks
-  ]
+  apply from: "${rootDir.path}/java_common.gradle"
 
   if (project.name == 'third_party') return
 

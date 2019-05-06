@@ -29,12 +29,18 @@ import org.gradle.api.Project;
  */
 public class ReportUploaderPlugin implements Plugin<Project> {
 
+  @Override
   public void apply(Project project) {
     ReportUploader reportUploader =
-        project.getTasks().create("reportUploader", ReportUploader.class, task -> {
-          task.setDescription("Uploads the reports to GCS bucket");
-          task.setGroup("uploads");
-        });
+        project
+            .getTasks()
+            .create(
+                "reportUploader",
+                ReportUploader.class,
+                task -> {
+                  task.setDescription("Uploads the reports to GCS bucket");
+                  task.setGroup("uploads");
+                });
 
     reportUploader.setProject(project);
   }
