@@ -26,7 +26,7 @@ steps:
   args: ['mkdir', 'nomulus']
 # Run tests
 - name: 'gcr.io/${PROJECT_ID}/builder:latest'
-  args: ['./gradlew', 'test']
+  args: ['./gradlew', 'test', '-PskipDockerIncompatibleTests=true']
   dir: 'gradle'
 # Build and package the deployment files for alpha.
 - name: 'gcr.io/${PROJECT_ID}/builder:latest'

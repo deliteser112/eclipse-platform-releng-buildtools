@@ -41,6 +41,19 @@ def fragileTestPatterns = [
     "google/registry/model/server/KmsSecretRevisionTest.*"
 ]
 
+// Tests that fail when running Gradle in a docker container, e. g. when
+// building the release artifacts in Google Cloud Build.
+def dockerIncompatibleTestPatterns = [
+    // The webdriver tests start headless Chrome in a Docker container,
+    // resulting in Docker-in-Docker complications.
+    "google/registry/webdriver/*",
+    // PathParameterTest includes tests which validate that file permissions are
+    // respected. However when running in Docker the user is root by default, so
+    // every file is read/write-able. There is no way to exclude specific test
+    // methods, so we exclude the whole test class.
+    "google/registry/tools/params/PathParameterTest.*"
+]
+
 sourceSets {
   main {
     java {
@@ -635,6 +648,10 @@ test {
   exclude "**/*TestCase.*", "**/*TestSuite.*"
   exclude fragileTestPatterns
   exclude outcastTestPatterns
+
+  if (rootProject.findProperty("skipDockerIncompatibleTests") == "true") {
+    exclude dockerIncompatibleTestPatterns
+  }
 
   // Run every test class in its own process.
   // Uncomment to unblock build while troubleshooting inexplicable test errors.
