@@ -54,8 +54,11 @@ public final class TestServerRule extends ExternalResource {
   private final ImmutableList<Fixture> fixtures;
   private final AppEngineRule appEngineRule;
   private final BlockingQueue<FutureTask<?>> jobs = new LinkedBlockingDeque<>();
-  private final TestServer testServer;
+  private final ImmutableMap<String, Path> runfiles;
+  private final ImmutableList<Route> routes;
+  private final ImmutableList<Class<? extends Filter>> filters;
 
+  private TestServer testServer;
   private Thread serverThread;
 
   private TestServerRule(
@@ -64,6 +67,9 @@ public final class TestServerRule extends ExternalResource {
       ImmutableList<Class<? extends Filter>> filters,
       ImmutableList<Fixture> fixtures,
       String email) {
+    this.runfiles = runfiles;
+    this.routes = routes;
+    this.filters = filters;
     this.fixtures = fixtures;
     // We create an GAE-Admin user, and then use AuthenticatedRegistrarAccessor.bypassAdminCheck to
     // choose whether the user is an admin or not.
@@ -74,8 +80,12 @@ public final class TestServerRule extends ExternalResource {
         .withTaskQueue()
         .withUserService(UserInfo.createAdmin(email, THE_REGISTRAR_GAE_USER_ID))
         .build();
+  }
+
+  @Override
+  protected void before() throws InterruptedException {
     try {
-      this.testServer =
+      testServer =
           new TestServer(
               HostAndPort.fromParts(
                   // Use external IP address here so the browser running inside Docker container
@@ -87,15 +97,14 @@ public final class TestServerRule extends ExternalResource {
     } catch (UnknownHostException e) {
       throw new IllegalStateException(e);
     }
-  }
-
-  @Override
-  protected void before() throws InterruptedException {
     setIsAdmin(false);
-    serverThread = new Thread(new Server());
-    synchronized (testServer) {
+    Server server = new Server();
+    serverThread = new Thread(server);
+    synchronized (this) {
       serverThread.start();
-      testServer.wait();
+      while (!server.isRunning) {
+        this.wait();
+      }
     }
   }
 
@@ -112,6 +121,7 @@ public final class TestServerRule extends ExternalResource {
     } finally {
       serverThread = null;
       jobs.clear();
+      testServer = null;
     }
   }
 
@@ -149,6 +159,8 @@ public final class TestServerRule extends ExternalResource {
   }
 
   private final class Server extends Statement implements Runnable {
+    private volatile boolean isRunning = false;
+
     @Override
     public void run() {
       try {
@@ -169,8 +181,9 @@ public final class TestServerRule extends ExternalResource {
       }
       testServer.start();
       System.out.printf("TestServerRule is listening on: %s\n", testServer.getUrl("/"));
-      synchronized (testServer) {
-        testServer.notify();
+      synchronized (TestServerRule.this) {
+        isRunning = true;
+        TestServerRule.this.notify();
       }
       try {
         while (true) {

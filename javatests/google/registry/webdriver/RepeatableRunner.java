@@ -153,7 +153,7 @@ public class RepeatableRunner extends BlockJUnit4ClassRunner {
         } catch (Throwable e) {
           numFailure++;
           lastException = e;
-          logger.atWarning().log(
+          logger.atWarning().withCause(e).log(
               "[%s] Attempt %d of %d failed!\n", method.getName(), attempt, MAX_ATTEMPTS);
         }
       }
