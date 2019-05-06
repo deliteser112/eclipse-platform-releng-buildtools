@@ -277,7 +277,7 @@ public class RequestAuthenticatorTest {
     assertThat(authResult.get().userAuthInfo().get().isUserAdmin()).isFalse();
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo()).isPresent();
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo().get().authorizedScopes())
-      .containsAllOf("test-scope1", "test-scope2");
+        .containsAtLeast("test-scope1", "test-scope2");
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo().get().oauthClientId())
       .isEqualTo("test-client-id");
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo().get().rawAccessToken())
@@ -300,7 +300,7 @@ public class RequestAuthenticatorTest {
     assertThat(authResult.get().userAuthInfo().get().isUserAdmin()).isTrue();
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo()).isPresent();
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo().get().authorizedScopes())
-      .containsAllOf("test-scope1", "test-scope2");
+        .containsAtLeast("test-scope1", "test-scope2");
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo().get().oauthClientId())
       .isEqualTo("test-client-id");
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo().get().rawAccessToken())
@@ -369,7 +369,7 @@ public class RequestAuthenticatorTest {
     assertThat(authResult.get().userAuthInfo().get().isUserAdmin()).isFalse();
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo()).isPresent();
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo().get().authorizedScopes())
-      .containsAllOf("test-scope1", "test-scope2", "test-scope3");
+        .containsAtLeast("test-scope1", "test-scope2", "test-scope3");
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo().get().oauthClientId())
       .isEqualTo("test-client-id");
     assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo().get().rawAccessToken())

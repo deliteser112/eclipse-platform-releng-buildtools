@@ -768,7 +768,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
         ImmutableList.copyOf(listResult).stream().map(ListItem::getName).collect(toImmutableSet());
     for (String tld : tlds) {
       assertThat(filenames)
-          .containsAllOf(
+          .containsAtLeast(
               "manual/test/" + tld + "_2000-01-01_full_S1_R" + revision + "-report.xml.ghostryde",
               "manual/test/" + tld + "_2000-01-01_full_S1_R" + revision + ".xml.ghostryde",
               "manual/test/" + tld + "_2000-01-01_full_S1_R" + revision + ".xml.length",

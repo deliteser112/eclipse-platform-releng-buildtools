@@ -162,7 +162,7 @@ public class GenerateDnsReportCommandTest extends CommandTestCase<GenerateDnsRep
     runCommand("--output=" + output, "--tld=xn--q9jyb4c");
     Iterable<?> output = (Iterable<?>) getOutputAsJson();
     assertThat(output).containsAnyOf(DOMAIN1_OUTPUT, DOMAIN1_OUTPUT_ALT);
-    assertThat(output).containsAllOf(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT);
+    assertThat(output).containsAtLeast(DOMAIN2_OUTPUT, NAMESERVER1_OUTPUT, NAMESERVER2_OUTPUT);
   }
 
   @Test
@@ -179,7 +179,7 @@ public class GenerateDnsReportCommandTest extends CommandTestCase<GenerateDnsRep
     runCommand("--output=" + output, "--tld=xn--q9jyb4c");
     Iterable<?> output = (Iterable<?>) getOutputAsJson();
     assertThat(output).containsAnyOf(DOMAIN1_OUTPUT, DOMAIN1_OUTPUT_ALT);
-    assertThat(output).containsAllOf(DOMAIN2_OUTPUT, NAMESERVER2_OUTPUT);
+    assertThat(output).containsAtLeast(DOMAIN2_OUTPUT, NAMESERVER2_OUTPUT);
   }
 
   @Test
