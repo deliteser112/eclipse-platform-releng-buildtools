@@ -46,7 +46,6 @@ java_library(
 
 GenTestRules(
     name = "GeneratedTestRules",
-    timeout = "moderate",
     medium_tests = ["registry/label/PremiumListTest"],
     test_files = glob([
         "*Test.java",
