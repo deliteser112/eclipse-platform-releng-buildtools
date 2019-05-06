@@ -4,7 +4,7 @@
       <domain:check
           xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
         <domain:name>example1.tld</domain:name>
-        <domain:name>example2.tld</domain:name>
+        <domain:name>example2.example</domain:name>
         <domain:name>reserved.tld</domain:name>
       </domain:check>
     </check>
@@ -23,7 +23,7 @@
           <fee:period unit="y">1</fee:period>
         </fee:domain>
         <fee:domain>
-          <fee:name>example2.tld</fee:name>
+          <fee:name>example2.example</fee:name>
           <fee:currency>USD</fee:currency>
           <fee:command>create</fee:command>
           <fee:period unit="y">1</fee:period>

@@ -114,6 +114,9 @@ import org.joda.time.Duration;
 /**
  * An EPP flow that creates a new domain resource.
  *
+ * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotInPromotionException}
+ * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotValidForRegistrarException}
+ * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotValidForTldException}
  * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.AlreadyRedeemedAllocationTokenException}
  * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.InvalidAllocationTokenException}
  * @error {@link google.registry.flows.exceptions.OnlyToolCanPassMetadataException}
@@ -445,7 +448,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         eppInput.getSingleExtension(AllocationTokenExtension.class);
     return Optional.ofNullable(
         extension.isPresent()
-            ? allocationTokenFlowUtils.loadAndVerifyToken(
+            ? allocationTokenFlowUtils.loadTokenAndValidateDomainCreate(
                 command, extension.get().getAllocationToken(), registry, clientId, now)
             : null);
   }

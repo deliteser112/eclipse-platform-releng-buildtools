@@ -25,8 +25,10 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AssociationProhibitsOperationException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
+import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.model.domain.DomainCommand;
 import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.domain.token.AllocationToken.TokenStatus;
 import google.registry.model.domain.token.AllocationToken.TokenType;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
@@ -46,16 +48,19 @@ public class AllocationTokenFlowUtils {
   }
 
   /**
-   * Verifies that a given allocation token string is valid.
+   * Loads an allocation token given a string and verifies that the token is valid for the domain
+   * create request.
    *
    * @return the loaded {@link AllocationToken} for that string.
-   * @throws InvalidAllocationTokenException if the token doesn't exist.
+   * @throws EppException if the token doesn't exist, is already redeemed, or is otherwise invalid
+   *     for this request.
    */
-  public AllocationToken loadAndVerifyToken(
+  public AllocationToken loadTokenAndValidateDomainCreate(
       DomainCommand.Create command, String token, Registry registry, String clientId, DateTime now)
       throws EppException {
     AllocationToken tokenEntity = loadToken(token);
-    return tokenCustomLogic.verifyToken(command, tokenEntity, registry, clientId, now);
+    validateToken(tokenEntity, clientId, registry.getTldStr(), now);
+    return tokenCustomLogic.validateToken(command, tokenEntity, registry, clientId, now);
   }
 
   /**
@@ -67,24 +72,38 @@ public class AllocationTokenFlowUtils {
    */
   public AllocationTokenDomainCheckResults checkDomainsWithToken(
       List<InternetDomainName> domainNames, String token, String clientId, DateTime now) {
+    // If the token is completely invalid, return the error message for all domain names
+    AllocationToken tokenEntity;
     try {
-      AllocationToken tokenEntity = loadToken(token);
-      // Only call custom logic if there wasn't a global allocation token error that applies to all
-      // check results. The custom logic can only add errors, not override existing errors.
-      return AllocationTokenDomainCheckResults.create(
-          Optional.of(tokenEntity),
-          tokenCustomLogic.checkDomainsWithToken(
-              ImmutableList.copyOf(domainNames), tokenEntity, clientId, now));
+      tokenEntity = loadToken(token);
     } catch (EppException e) {
       return AllocationTokenDomainCheckResults.create(
           Optional.empty(),
           ImmutableMap.copyOf(Maps.toMap(domainNames, ignored -> e.getMessage())));
     }
+
+    // If the token is only invalid for some domain names (e.g. an invalid TLD), include those error
+    // results for only those domain names
+    ImmutableList.Builder<InternetDomainName> validDomainNames = new ImmutableList.Builder<>();
+    ImmutableMap.Builder<InternetDomainName, String> resultsBuilder = new ImmutableMap.Builder<>();
+    for (InternetDomainName domainName : domainNames) {
+      try {
+        validateToken(tokenEntity, clientId, domainName.parent().toString(), now);
+        validDomainNames.add(domainName);
+      } catch (EppException e) {
+        resultsBuilder.put(domainName, e.getMessage());
+      }
+    }
+
+    // For all valid domain names, run the custom logic and include the results
+    resultsBuilder.putAll(
+        tokenCustomLogic.checkDomainsWithToken(
+            validDomainNames.build(), tokenEntity, clientId, now));
+    return AllocationTokenDomainCheckResults.create(
+        Optional.of(tokenEntity), resultsBuilder.build());
   }
 
-  /**
-   * Redeems a SINGLE_USE {@link AllocationToken}, returning the redeemed copy.
-   */
+  /** Redeems a SINGLE_USE {@link AllocationToken}, returning the redeemed copy. */
   public AllocationToken redeemToken(
       AllocationToken token, Key<HistoryEntry> redemptionHistoryEntry) {
     checkArgument(
@@ -93,6 +112,30 @@ public class AllocationTokenFlowUtils {
     return token.asBuilder().setRedemptionHistoryEntry(redemptionHistoryEntry).build();
   }
 
+  /**
+   * Validates a given token. The token could be invalid if it has allowed client IDs or TLDs that
+   * do not include this client ID / TLD, or if the token has a promotion that is not currently
+   * running.
+   *
+   * @throws EppException if the token is invalid in any way
+   */
+  private void validateToken(AllocationToken token, String clientId, String tld, DateTime now)
+      throws EppException {
+    if (!token.getAllowedClientIds().isEmpty() && !token.getAllowedClientIds().contains(clientId)) {
+      throw new AllocationTokenNotValidForRegistrarException();
+    }
+    if (!token.getAllowedTlds().isEmpty() && !token.getAllowedTlds().contains(tld)) {
+      throw new AllocationTokenNotValidForTldException();
+    }
+    // Tokens without status transitions will just have a single-entry NOT_STARTED map, so only
+    // check the status transitions map if it's non-trivial.
+    if (token.getTokenStatusTransitions().size() > 1
+        && !TokenStatus.VALID.equals(token.getTokenStatusTransitions().getValueAtTime(now))) {
+      throw new AllocationTokenNotInPromotionException();
+    }
+  }
+
+  /** Loads a given token and validates that it is not redeemed */
   private AllocationToken loadToken(String token) throws EppException {
     AllocationToken tokenEntity = ofy().load().key(Key.create(AllocationToken.class, token)).now();
     if (tokenEntity == null) {
@@ -102,6 +145,31 @@ public class AllocationTokenFlowUtils {
       throw new AlreadyRedeemedAllocationTokenException();
     }
     return tokenEntity;
+  }
+
+  // Note: exception messages should be <= 32 characters long for domain check results
+
+  /** The allocation token is not currently valid. */
+  public static class AllocationTokenNotInPromotionException
+      extends StatusProhibitsOperationException {
+    public AllocationTokenNotInPromotionException() {
+      super("Alloc token not in promo period");
+    }
+  }
+  /** The allocation token is not valid for this TLD. */
+  public static class AllocationTokenNotValidForTldException
+      extends AssociationProhibitsOperationException {
+    public AllocationTokenNotValidForTldException() {
+      super("Alloc token invalid for TLD");
+    }
+  }
+
+  /** The allocation token is not valid for this registrar. */
+  public static class AllocationTokenNotValidForRegistrarException
+      extends AssociationProhibitsOperationException {
+    public AllocationTokenNotValidForRegistrarException() {
+      super("Alloc token invalid for client");
+    }
   }
 
   /** The allocation token was already redeemed. */

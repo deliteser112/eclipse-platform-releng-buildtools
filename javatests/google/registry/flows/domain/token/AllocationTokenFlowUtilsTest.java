@@ -15,23 +15,35 @@
 package google.registry.flows.domain.token;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.CANCELLED;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.ENDED;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.NOT_STARTED;
+import static google.registry.model.domain.token.AllocationToken.TokenStatus.VALID;
 import static google.registry.model.domain.token.AllocationToken.TokenType.SINGLE_USE;
+import static google.registry.model.domain.token.AllocationToken.TokenType.UNLIMITED_USE;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotInPromotionException;
+import google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotValidForRegistrarException;
+import google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotValidForTldException;
 import google.registry.flows.domain.token.AllocationTokenFlowUtils.InvalidAllocationTokenException;
 import google.registry.model.domain.DomainCommand;
 import google.registry.model.domain.token.AllocationToken;
+import google.registry.model.domain.token.AllocationToken.TokenStatus;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.AppEngineRule;
@@ -48,6 +60,9 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
 
+  private final AllocationTokenFlowUtils flowUtils =
+      new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
+
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Before
@@ -56,14 +71,12 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   }
 
   @Test
-  public void test_verifyToken_successfullyVerifiesValidToken() throws Exception {
+  public void test_validateToken_successfullyVerifiesValidToken() throws Exception {
     AllocationToken token =
         persistResource(
             new AllocationToken.Builder().setToken("tokeN").setTokenType(SINGLE_USE).build());
-    AllocationTokenFlowUtils flowUtils =
-        new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
-            flowUtils.loadAndVerifyToken(
+            flowUtils.loadTokenAndValidateDomainCreate(
                 createCommand("blah.tld"),
                 "tokeN",
                 Registry.get("tld"),
@@ -73,33 +86,21 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   }
 
   @Test
-  public void test_verifyToken_failsOnNonexistentToken() {
-    AllocationTokenFlowUtils flowUtils =
-        new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
-    EppException thrown =
-        assertThrows(
-            InvalidAllocationTokenException.class,
-            () ->
-                flowUtils.loadAndVerifyToken(
-                    createCommand("blah.tld"),
-                    "tokeN",
-                    Registry.get("tld"),
-                    "TheRegistrar",
-                    DateTime.now(UTC)));
-    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  public void test_validateToken_failsOnNonexistentToken() {
+    assertValidateThrowsEppException(InvalidAllocationTokenException.class);
   }
 
   @Test
-  public void test_verifyToken_callsCustomLogic() {
+  public void test_validateToken_callsCustomLogic() {
+    AllocationTokenFlowUtils failingFlowUtils =
+        new AllocationTokenFlowUtils(new FailingAllocationTokenCustomLogic());
     persistResource(
         new AllocationToken.Builder().setToken("tokeN").setTokenType(SINGLE_USE).build());
-    AllocationTokenFlowUtils flowUtils =
-        new AllocationTokenFlowUtils(new FailingAllocationTokenCustomLogic());
     Exception thrown =
         assertThrows(
             IllegalStateException.class,
             () ->
-                flowUtils.loadAndVerifyToken(
+                failingFlowUtils.loadTokenAndValidateDomainCreate(
                     createCommand("blah.tld"),
                     "tokeN",
                     Registry.get("tld"),
@@ -109,11 +110,54 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   }
 
   @Test
+  public void test_validateToken_invalidForClientId() {
+    persistResource(
+        createOneMonthPromoTokenBuilder(DateTime.now(UTC).minusDays(1))
+            .setAllowedClientIds(ImmutableSet.of("NewRegistrar"))
+            .build());
+    assertValidateThrowsEppException(AllocationTokenNotValidForRegistrarException.class);
+  }
+
+  @Test
+  public void test_validateToken_invalidForTld() {
+    persistResource(
+        createOneMonthPromoTokenBuilder(DateTime.now(UTC).minusDays(1))
+            .setAllowedTlds(ImmutableSet.of("nottld"))
+            .build());
+    assertValidateThrowsEppException(AllocationTokenNotValidForTldException.class);
+  }
+
+  @Test
+  public void test_validateToken_beforePromoStart() {
+    persistResource(createOneMonthPromoTokenBuilder(DateTime.now(UTC).plusDays(1)).build());
+    assertValidateThrowsEppException(AllocationTokenNotInPromotionException.class);
+  }
+
+  @Test
+  public void test_validateToken_afterPromoEnd() {
+    persistResource(createOneMonthPromoTokenBuilder(DateTime.now(UTC).minusMonths(2)).build());
+    assertValidateThrowsEppException(AllocationTokenNotInPromotionException.class);
+  }
+
+  @Test
+  public void test_validateToken_promoCancelled() {
+    // the promo would be valid but it was cancelled 12 hours ago
+    persistResource(
+        createOneMonthPromoTokenBuilder(DateTime.now(UTC).minusDays(1))
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, NOT_STARTED)
+                    .put(DateTime.now(UTC).minusMonths(1), VALID)
+                    .put(DateTime.now(UTC).minusHours(12), CANCELLED)
+                    .build())
+            .build());
+    assertValidateThrowsEppException(AllocationTokenNotInPromotionException.class);
+  }
+
+  @Test
   public void test_checkDomainsWithToken_successfullyVerifiesValidToken() {
     persistResource(
         new AllocationToken.Builder().setToken("tokeN").setTokenType(SINGLE_USE).build());
-    AllocationTokenFlowUtils flowUtils =
-        new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
             flowUtils
                 .checkDomainsWithToken(
@@ -137,8 +181,6 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
             .setTokenType(SINGLE_USE)
             .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, 101L))
             .build());
-    AllocationTokenFlowUtils flowUtils =
-        new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
             flowUtils
                 .checkDomainsWithToken(
@@ -161,13 +203,13 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   public void test_checkDomainsWithToken_callsCustomLogic() {
     persistResource(
         new AllocationToken.Builder().setToken("tokeN").setTokenType(SINGLE_USE).build());
-    AllocationTokenFlowUtils flowUtils =
+    AllocationTokenFlowUtils failingFlowUtils =
         new AllocationTokenFlowUtils(new FailingAllocationTokenCustomLogic());
     Exception thrown =
         assertThrows(
             IllegalStateException.class,
             () ->
-                flowUtils.checkDomainsWithToken(
+                failingFlowUtils.checkDomainsWithToken(
                     ImmutableList.of(
                         InternetDomainName.from("blah.tld"), InternetDomainName.from("blah2.tld")),
                     "tokeN",
@@ -180,10 +222,10 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   public void test_checkDomainsWithToken_resultsFromCustomLogicAreIntegrated() {
     persistResource(
         new AllocationToken.Builder().setToken("tokeN").setTokenType(SINGLE_USE).build());
-    AllocationTokenFlowUtils flowUtils =
+    AllocationTokenFlowUtils customResultFlowUtils =
         new AllocationTokenFlowUtils(new CustomResultAllocationTokenCustomLogic());
     assertThat(
-            flowUtils
+            customResultFlowUtils
                 .checkDomainsWithToken(
                     ImmutableList.of(
                         InternetDomainName.from("blah.tld"), InternetDomainName.from("bunny.tld")),
@@ -200,17 +242,44 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
         .inOrder();
   }
 
+  private void assertValidateThrowsEppException(Class<? extends EppException> clazz) {
+    assertAboutEppExceptions()
+        .that(
+            assertThrows(
+                clazz,
+                () ->
+                    flowUtils.loadTokenAndValidateDomainCreate(
+                        createCommand("blah.tld"),
+                        "tokeN",
+                        Registry.get("tld"),
+                        "TheRegistrar",
+                        DateTime.now(UTC))))
+        .marshalsToXml();
+  }
+
   private static DomainCommand.Create createCommand(String domainName) {
     DomainCommand.Create command = mock(DomainCommand.Create.class);
     when(command.getFullyQualifiedDomainName()).thenReturn(domainName);
     return command;
   }
 
+  private static AllocationToken.Builder createOneMonthPromoTokenBuilder(DateTime promoStart) {
+    return new AllocationToken.Builder()
+        .setToken("tokeN")
+        .setTokenType(UNLIMITED_USE)
+        .setTokenStatusTransitions(
+            ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                .put(START_OF_TIME, NOT_STARTED)
+                .put(promoStart, VALID)
+                .put(promoStart.plusMonths(1), ENDED)
+                .build());
+  }
+
   /** An {@link AllocationTokenCustomLogic} class that throws exceptions on every method. */
   private static class FailingAllocationTokenCustomLogic extends AllocationTokenCustomLogic {
 
     @Override
-    public AllocationToken verifyToken(
+    public AllocationToken validateToken(
         DomainCommand.Create command,
         AllocationToken token,
         Registry registry,

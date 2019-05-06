@@ -10,7 +10,7 @@
           <domain:name avail="true">example1.tld</domain:name>
         </domain:cd>
         <domain:cd>
-          <domain:name avail="true">example2.tld</domain:name>
+          <domain:name avail="true">example2.example</domain:name>
         </domain:cd>
         <domain:cd>
           <domain:name avail="false">reserved.tld</domain:name>
@@ -21,7 +21,7 @@
     <extension>
       <fee:chkData>
         <fee:cd>
-          <fee:name>example2.tld</fee:name>
+          <fee:name>example2.example</fee:name>
           <fee:currency>USD</fee:currency>
           <fee:command>create</fee:command>
           <fee:period unit="y">1</fee:period>

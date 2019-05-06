@@ -186,6 +186,7 @@ public class DomainCheckFlowTest
 
   @Test
   public void testSuccess_allocationTokenPromotion() throws Exception {
+    createTld("example");
     persistResource(
         new AllocationToken.Builder()
             .setToken("abc123")
@@ -194,12 +195,80 @@ public class DomainCheckFlowTest
             .setTokenStatusTransitions(
                 ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
                     .put(START_OF_TIME, TokenStatus.NOT_STARTED)
-                    .put(clock.nowUtc().plusMillis(1), TokenStatus.VALID)
-                    .put(clock.nowUtc().plusSeconds(1), TokenStatus.ENDED)
+                    .put(clock.nowUtc().minusDays(1), TokenStatus.VALID)
+                    .put(clock.nowUtc().plusDays(1), TokenStatus.ENDED)
                     .build())
             .build());
     setEppInput("domain_check_allocationtoken_fee.xml");
     runFlowAssertResponse(loadFile("domain_check_allocationtoken_fee_response.xml"));
+  }
+
+  @Test
+  public void testSuccess_promotionNotActive() throws Exception {
+    createTld("example");
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setTokenType(UNLIMITED_USE)
+            .setDiscountFraction(0.5)
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                    .put(clock.nowUtc().plusDays(1), TokenStatus.VALID)
+                    .put(clock.nowUtc().plusDays(60), TokenStatus.ENDED)
+                    .build())
+            .build());
+    setEppInput("domain_check_allocationtoken_fee.xml");
+    doCheckTest(
+        create(false, "example1.tld", "Alloc token not in promo period"),
+        create(false, "example2.example", "Alloc token not in promo period"),
+        create(false, "reserved.tld", "Reserved"));
+  }
+
+  @Test
+  public void testSuccess_promoTokenNotValidForTld() throws Exception {
+    createTld("example");
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setTokenType(UNLIMITED_USE)
+            .setDiscountFraction(0.5)
+            .setAllowedTlds(ImmutableSet.of("example"))
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                    .put(clock.nowUtc().minusDays(1), TokenStatus.VALID)
+                    .put(clock.nowUtc().plusDays(1), TokenStatus.ENDED)
+                    .build())
+            .build());
+    setEppInput("domain_check_allocationtoken_fee.xml");
+    doCheckTest(
+        create(false, "example1.tld", "Alloc token invalid for TLD"),
+        create(true, "example2.example", null),
+        create(false, "reserved.tld", "Reserved"));
+  }
+
+  @Test
+  public void testSuccess_promoTokenNotValidForRegistrar() throws Exception {
+    createTld("example");
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setTokenType(UNLIMITED_USE)
+            .setDiscountFraction(0.5)
+            .setAllowedClientIds(ImmutableSet.of("someOtherClient"))
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                    .put(clock.nowUtc().minusDays(1), TokenStatus.VALID)
+                    .put(clock.nowUtc().plusDays(1), TokenStatus.ENDED)
+                    .build())
+            .build());
+    setEppInput("domain_check_allocationtoken_fee.xml");
+    doCheckTest(
+        create(false, "example1.tld", "Alloc token invalid for client"),
+        create(false, "example2.example", "Alloc token invalid for client"),
+        create(false, "reserved.tld", "Reserved"));
   }
 
   @Test

@@ -344,6 +344,7 @@ An EPP flow that creates a new domain resource.
 *   2303
     *   Resource linked to this domain does not exist.
 *   2304
+    *   The allocation token is not currently valid.
     *   The claims period for this TLD has ended.
     *   Requested domain is reserved.
     *   Linked resource in pending delete prohibits operation.
@@ -355,6 +356,8 @@ An EPP flow that creates a new domain resource.
     *   Registrant is not whitelisted for this TLD.
     *   Requested domain does not require a claims notice.
 *   2305
+    *   The allocation token is not valid for this registrar.
+    *   The allocation token is not valid for this TLD.
     *   The allocation token was already redeemed.
 *   2306
     *   Anchor tenant domain create is for the wrong number of years.

@@ -31,8 +31,8 @@ import org.joda.time.DateTime;
  */
 public class AllocationTokenCustomLogic {
 
-  /** Performs additional custom logic for verifying a token. */
-  public AllocationToken verifyToken(
+  /** Performs additional custom logic for validating a token. */
+  public AllocationToken validateToken(
       DomainCommand.Create command,
       AllocationToken token,
       Registry registry,

@@ -128,6 +128,9 @@ import google.registry.flows.domain.DomainFlowUtils.TrailingDashException;
 import google.registry.flows.domain.DomainFlowUtils.UnexpectedClaimsNoticeException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedMarkTypeException;
+import google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotInPromotionException;
+import google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotValidForRegistrarException;
+import google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotValidForTldException;
 import google.registry.flows.domain.token.AllocationTokenFlowUtils.AlreadyRedeemedAllocationTokenException;
 import google.registry.flows.domain.token.AllocationTokenFlowUtils.InvalidAllocationTokenException;
 import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
@@ -472,7 +475,16 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     allocationToken =
         persistResource(
-            new AllocationToken.Builder().setTokenType(UNLIMITED_USE).setToken("abc123").build());
+            new AllocationToken.Builder()
+                .setTokenType(UNLIMITED_USE)
+                .setToken("abc123")
+                .setTokenStatusTransitions(
+                    ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                        .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                        .put(clock.nowUtc().minusDays(1), TokenStatus.VALID)
+                        .put(clock.nowUtc().plusDays(1), TokenStatus.ENDED)
+                        .build())
+                .build());
     clock.advanceOneMilli();
     runFlow();
     assertSuccessfulCreate("tld", ImmutableSet.of(), allocationToken);
@@ -1154,6 +1166,71 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertThat(assertThrows(IllegalArgumentException.class, this::runFlow))
         .hasMessageThat()
         .isEqualTo("A nonzero discount code cannot be applied to premium domains");
+  }
+
+  @Test
+  public void testFailure_promotionNotActive() {
+    persistContactsAndHosts();
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setTokenType(TokenType.UNLIMITED_USE)
+            .setDiscountFraction(0.5)
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                    .put(clock.nowUtc().plusDays(1), TokenStatus.VALID)
+                    .put(clock.nowUtc().plusDays(60), TokenStatus.ENDED)
+                    .build())
+            .build());
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "example.tld"));
+    assertAboutEppExceptions()
+        .that(assertThrows(AllocationTokenNotInPromotionException.class, this::runFlow))
+        .marshalsToXml();
+  }
+
+  @Test
+  public void testSuccess_promoTokenNotValidForTld() {
+    persistContactsAndHosts();
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setTokenType(TokenType.UNLIMITED_USE)
+            .setAllowedTlds(ImmutableSet.of("example"))
+            .setDiscountFraction(0.5)
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                    .put(clock.nowUtc().minusDays(1), TokenStatus.VALID)
+                    .put(clock.nowUtc().plusDays(1), TokenStatus.ENDED)
+                    .build())
+            .build());
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "example.tld"));
+    assertAboutEppExceptions()
+        .that(assertThrows(AllocationTokenNotValidForTldException.class, this::runFlow))
+        .marshalsToXml();
+  }
+
+  @Test
+  public void testSuccess_promoTokenNotValidForRegistrar() {
+    persistContactsAndHosts();
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setTokenType(TokenType.UNLIMITED_USE)
+            .setAllowedClientIds(ImmutableSet.of("someClientId"))
+            .setDiscountFraction(0.5)
+            .setTokenStatusTransitions(
+                ImmutableSortedMap.<DateTime, TokenStatus>naturalOrder()
+                    .put(START_OF_TIME, TokenStatus.NOT_STARTED)
+                    .put(clock.nowUtc().minusDays(1), TokenStatus.VALID)
+                    .put(clock.nowUtc().plusDays(1), TokenStatus.ENDED)
+                    .build())
+            .build());
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "example.tld"));
+    assertAboutEppExceptions()
+        .that(assertThrows(AllocationTokenNotValidForRegistrarException.class, this::runFlow))
+        .marshalsToXml();
   }
 
   @Test
