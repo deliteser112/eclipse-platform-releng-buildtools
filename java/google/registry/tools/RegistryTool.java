@@ -107,6 +107,7 @@ public final class RegistryTool {
           .put("uniform_rapid_suspension", UniformRapidSuspensionCommand.class)
           .put("unlock_domain", UnlockDomainCommand.class)
           .put("unrenew_domain", UnrenewDomainCommand.class)
+          .put("update_allocation_tokens", UpdateAllocationTokensCommand.class)
           .put("update_cursors", UpdateCursorsCommand.class)
           .put("update_domain", UpdateDomainCommand.class)
           .put("update_kms_keyring", UpdateKmsKeyringCommand.class)
