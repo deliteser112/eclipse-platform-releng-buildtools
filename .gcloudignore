@@ -5,3 +5,4 @@ gradle/**/build/**
 gradle/**/WEB-INF/**
 gradle/.*/**
 repos/**
+**/.idea/**
