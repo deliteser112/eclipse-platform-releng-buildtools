@@ -91,6 +91,7 @@ public class RdapJsonFormatter {
   @Inject @Config("rdapTos") ImmutableList<String> rdapTos;
   @Inject @Config("rdapTosStaticUrl") @Nullable String rdapTosStaticUrl;
   @Inject @FullServletPath String fullServletPath;
+  @Inject RdapAuthorization rdapAuthorization;
   @Inject RdapJsonFormatter() {}
 
   /**
@@ -216,15 +217,12 @@ public class RdapJsonFormatter {
    *        port43 field; if null, port43 is not added to the object
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
-   * @param authorization the authorization level of the request; if not authorized for the
-   *        registrar owning the domain, no contact information is included
    */
   RdapDomain makeRdapJsonForDomain(
       DomainBase domainBase,
       @Nullable String whoisServer,
       DateTime now,
-      OutputDataType outputDataType,
-      RdapAuthorization authorization) {
+      OutputDataType outputDataType) {
     RdapDomain.Builder builder = RdapDomain.builder();
     // RDAP Response Profile 15feb19 section 2.2:
     // The domain handle MUST be the ROID
@@ -238,7 +236,7 @@ public class RdapJsonFormatter {
     builder.linksBuilder().add(
         makeSelfLink("domain", domainBase.getFullyQualifiedDomainName()));
     boolean displayContacts =
-        authorization.isAuthorizedForClientId(domainBase.getCurrentSponsorClientId());
+        rdapAuthorization.isAuthorizedForClientId(domainBase.getCurrentSponsorClientId());
     // If we are outputting all data (not just summary data), also add information about hosts,
     // contacts and events (history entries). If we are outputting summary data, instead add a
     // remark indicating that fact.
@@ -271,8 +269,7 @@ public class RdapJsonFormatter {
                     Optional.of(designatedContact.getType()),
                     null,
                     now,
-                    outputDataType,
-                    authorization))
+                    outputDataType))
             .forEach(builder.entitiesBuilder()::add);
       }
       builder
@@ -394,18 +391,15 @@ public class RdapJsonFormatter {
    *        port43 field; if null, port43 is not added to the object
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
-   * @param authorization the authorization level of the request; personal contact data is only
-   *        shown if the contact is owned by a registrar for which the request is authorized
    */
   RdapEntity makeRdapJsonForContact(
       ContactResource contactResource,
       Optional<DesignatedContact.Type> contactType,
       @Nullable String whoisServer,
       DateTime now,
-      OutputDataType outputDataType,
-      RdapAuthorization authorization) {
+      OutputDataType outputDataType) {
     boolean isAuthorized =
-        authorization.isAuthorizedForClientId(contactResource.getCurrentSponsorClientId());
+        rdapAuthorization.isAuthorizedForClientId(contactResource.getCurrentSponsorClientId());
 
     RdapEntity.Builder entityBuilder =
         RdapEntity.builder()

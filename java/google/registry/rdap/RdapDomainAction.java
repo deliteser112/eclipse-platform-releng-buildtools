@@ -69,7 +69,6 @@ public class RdapDomainAction extends RdapActionBase {
         domainBase.get(),
         rdapWhoisServer,
         now,
-        OutputDataType.FULL,
-        getAuthorization());
+        OutputDataType.FULL);
   }
 }

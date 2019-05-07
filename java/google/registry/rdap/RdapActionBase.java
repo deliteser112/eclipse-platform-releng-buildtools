@@ -25,7 +25,6 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import com.google.gson.Gson;
@@ -50,9 +49,6 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestMethod;
 import google.registry.request.RequestPath;
 import google.registry.request.Response;
-import google.registry.request.auth.AuthResult;
-import google.registry.request.auth.AuthenticatedRegistrarAccessor;
-import google.registry.request.auth.UserAuthInfo;
 import google.registry.util.Clock;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -93,8 +89,7 @@ public abstract class RdapActionBase implements Runnable {
   @Inject Clock clock;
   @Inject @RequestMethod Action.Method requestMethod;
   @Inject @RequestPath String requestPath;
-  @Inject AuthResult authResult;
-  @Inject AuthenticatedRegistrarAccessor registrarAccessor;
+  @Inject RdapAuthorization rdapAuthorization;
   @Inject RdapJsonFormatter rdapJsonFormatter;
   @Inject @Parameter("registrar") Optional<String> registrarParam;
   @Inject @Parameter("includeDeleted") Optional<Boolean> includeDeletedParam;
@@ -145,7 +140,7 @@ public abstract class RdapActionBase implements Runnable {
   public void run() {
     metricInformationBuilder.setIncludeDeleted(includeDeletedParam.orElse(false));
     metricInformationBuilder.setRegistrarSpecified(registrarParam.isPresent());
-    metricInformationBuilder.setRole(getAuthorization().role());
+    metricInformationBuilder.setRole(rdapAuthorization.role());
     metricInformationBuilder.setRequestMethod(requestMethod);
     metricInformationBuilder.setEndpointType(endpointType);
     try {
@@ -211,22 +206,6 @@ public abstract class RdapActionBase implements Runnable {
     response.setPayload(gson.toJson(topLevelObject.toJson()));
   }
 
-  RdapAuthorization getAuthorization() {
-    if (!authResult.userAuthInfo().isPresent()) {
-      return RdapAuthorization.PUBLIC_AUTHORIZATION;
-    }
-    UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
-    if (userAuthInfo.isUserAdmin()) {
-      return RdapAuthorization.ADMINISTRATOR_AUTHORIZATION;
-    }
-    ImmutableSet<String> clientIds = registrarAccessor.getAllClientIdWithRoles().keySet();
-    if (clientIds.isEmpty()) {
-      logger.atWarning().log("Couldn't find registrar for User %s.", authResult.userIdForLogging());
-      return RdapAuthorization.PUBLIC_AUTHORIZATION;
-    }
-    return RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, clientIds);
-  }
-
   /** Returns the registrar on which results should be filtered, or absent(). */
   Optional<String> getDesiredRegistrar() {
     return registrarParam;
@@ -247,14 +226,10 @@ public abstract class RdapActionBase implements Runnable {
     if (!includeDeletedParam.orElse(false)) {
       return false;
     }
-    if (!authResult.userAuthInfo().isPresent()) {
-      return false;
-    }
-    UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
-    if (userAuthInfo.isUserAdmin()) {
-      return true;
-    }
-    return !registrarAccessor.getAllClientIdWithRoles().isEmpty();
+    // Return true if we *might* be allowed to view any deleted info, meaning we're either an admin
+    // or have access to at least one registrar's data
+    return rdapAuthorization.role() == RdapAuthorization.Role.ADMINISTRATOR
+        || !rdapAuthorization.clientIds().isEmpty();
   }
 
   DeletedItemHandling getDeletedItemHandling() {
@@ -270,7 +245,7 @@ public abstract class RdapActionBase implements Runnable {
   boolean isAuthorized(EppResource eppResource, DateTime now) {
     return now.isBefore(eppResource.getDeletionTime())
             || (shouldIncludeDeleted()
-                && getAuthorization()
+                && rdapAuthorization
                     .isAuthorizedForClientId(eppResource.getPersistedCurrentSponsorClientId()));
   }
 
@@ -311,7 +286,7 @@ public abstract class RdapActionBase implements Runnable {
   boolean shouldBeVisible(Registrar registrar) {
     return (registrar.isLiveAndPubliclyVisible()
             || (shouldIncludeDeleted()
-                && getAuthorization().isAuthorizedForClientId(registrar.getClientId())))
+                && rdapAuthorization.isAuthorizedForClientId(registrar.getClientId())))
         && (!registrarParam.isPresent() || registrarParam.get().equals(registrar.getClientId()));
   }
 

@@ -14,16 +14,23 @@
 
 package google.registry.rdap;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.flogger.FluentLogger;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.AuthenticatedRegistrarAccessor;
+import google.registry.request.auth.UserAuthInfo;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 /** Dagger module for the RDAP package. */
 @Module
 public final class RdapModule {
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Provides
   @Parameter("name")
@@ -89,5 +96,23 @@ public final class RdapModule {
   @Parameter("cursor")
   static Optional<String> provideCursor(HttpServletRequest req) {
     return RequestParameters.extractOptionalParameter(req, "cursor");
+  }
+
+  @Provides
+  static RdapAuthorization provideRdapAuthorization(
+      AuthResult authResult, AuthenticatedRegistrarAccessor registrarAccessor) {
+    if (!authResult.userAuthInfo().isPresent()) {
+      return RdapAuthorization.PUBLIC_AUTHORIZATION;
+    }
+    UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
+    if (userAuthInfo.isUserAdmin()) {
+      return RdapAuthorization.ADMINISTRATOR_AUTHORIZATION;
+    }
+    ImmutableSet<String> clientIds = registrarAccessor.getAllClientIdWithRoles().keySet();
+    if (clientIds.isEmpty()) {
+      logger.atWarning().log("Couldn't find registrar for User %s.", authResult.userIdForLogging());
+      return RdapAuthorization.PUBLIC_AUTHORIZATION;
+    }
+    return RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, clientIds);
   }
 }

@@ -502,13 +502,11 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     DomainSearchResponse.Builder builder =
         DomainSearchResponse.builder()
             .setIncompletenessWarningType(incompletenessWarningType);
-    RdapAuthorization authorization = getAuthorization();
     Optional<String> newCursor = Optional.empty();
     for (DomainBase domain : Iterables.limit(domains, rdapResultSetMaxSize)) {
       newCursor = Optional.of(domain.getFullyQualifiedDomainName());
       builder.domainSearchResultsBuilder().add(
-          rdapJsonFormatter.makeRdapJsonForDomain(
-              domain, rdapWhoisServer, now, outputDataType, authorization));
+          rdapJsonFormatter.makeRdapJsonForDomain(domain, rdapWhoisServer, now, outputDataType));
     }
     if (rdapResultSetMaxSize < domains.size()) {
       builder.setNextPageUri(createNavigationUri(newCursor.get()));

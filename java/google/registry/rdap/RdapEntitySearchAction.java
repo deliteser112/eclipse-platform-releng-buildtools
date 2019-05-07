@@ -267,8 +267,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
     if (subtype == Subtype.REGISTRARS) {
       resultSet = RdapResultSet.create(ImmutableList.of());
     } else {
-      RdapAuthorization authorization = getAuthorization();
-      if ((authorization.role() == RdapAuthorization.Role.PUBLIC)
+      if ((rdapAuthorization.role() == RdapAuthorization.Role.PUBLIC)
           || (cursorType == CursorType.REGISTRAR)) {
         resultSet = RdapResultSet.create(ImmutableList.of());
       } else {
@@ -280,8 +279,8 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
                 cursorQueryString, // if we get this far, and there's a cursor, it must be a contact
                 DeletedItemHandling.EXCLUDE,
                 rdapResultSetMaxSize + 1);
-        if (authorization.role() != RdapAuthorization.Role.ADMINISTRATOR) {
-          query = query.filter("currentSponsorClientId in", authorization.clientIds());
+        if (rdapAuthorization.role() != RdapAuthorization.Role.ADMINISTRATOR) {
+          query = query.filter("currentSponsorClientId in", rdapAuthorization.clientIds());
         }
         resultSet = getMatchingResources(query, false, now, rdapResultSetMaxSize + 1);
       }
@@ -463,7 +462,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
     // There can be more results than our max size, partially because we have two pools to draw from
     // (contacts and registrars), and partially because we try to fetch one more than the max size,
     // so we can tell whether to display the truncation notification.
-    RdapAuthorization authorization = getAuthorization();
+    //
     // Each time we add a contact or registrar to the output data set, remember what the appropriate
     // cursor would be if it were the last item returned. When we stop adding items, the last cursor
     // value we remembered will be the right one to pass back.
@@ -479,8 +478,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
           Optional.empty(),
           rdapWhoisServer,
           now,
-          outputDataType,
-          authorization));
+          outputDataType));
       newCursor =
           Optional.of(
               CONTACT_CURSOR_PREFIX

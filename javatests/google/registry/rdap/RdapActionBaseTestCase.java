@@ -20,20 +20,16 @@ import static google.registry.rdap.RdapAuthorization.Role.PUBLIC;
 import static google.registry.rdap.RdapAuthorization.Role.REGISTRAR;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
-import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.OWNER;
 import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSetMultimap;
 import google.registry.model.ofy.Ofy;
 import google.registry.request.Action;
 import google.registry.request.Actions;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
-import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -72,9 +68,6 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
           AuthLevel.USER,
           UserAuthInfo.create(new User("rdap.admin@google.com", "gmail.com", "12345"), true));
 
-  protected final AuthenticatedRegistrarAccessor registrarAccessor =
-      mock(AuthenticatedRegistrarAccessor.class);
-
   protected FakeResponse response = new FakeResponse();
   protected final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
   protected final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
@@ -94,9 +87,7 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
   public void baseSetUp() {
     inject.setStaticField(Ofy.class, "clock", clock);
     action = TypeUtils.instantiate(rdapActionClass);
-    action.registrarAccessor = registrarAccessor;
     action.clock = clock;
-    action.authResult = AUTH_RESULT;
     action.includeDeletedParam = Optional.empty();
     action.registrarParam = Optional.empty();
     action.formatOutputParam = Optional.empty();
@@ -109,24 +100,20 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
   }
 
   protected void login(String clientId) {
-    when(registrarAccessor.getAllClientIdWithRoles())
-        .thenReturn(ImmutableSetMultimap.of(clientId, OWNER));
-    action.authResult = AUTH_RESULT;
+    action.rdapAuthorization = RdapAuthorization.create(REGISTRAR, clientId);
+    action.rdapJsonFormatter.rdapAuthorization = action.rdapAuthorization;
     metricRole = REGISTRAR;
   }
 
   protected void logout() {
-    when(registrarAccessor.getAllClientIdWithRoles()).thenReturn(ImmutableSetMultimap.of());
-    action.authResult = AUTH_RESULT;
+    action.rdapAuthorization = RdapAuthorization.PUBLIC_AUTHORIZATION;
+    action.rdapJsonFormatter.rdapAuthorization = action.rdapAuthorization;
     metricRole = PUBLIC;
   }
 
   protected void loginAsAdmin() {
-    // when admin, we don't actually check what they have access to - so it doesn't matter what we
-    // return.
-    // null isn't actually a legal value, we just want to make sure it's never actually used.
-    when(registrarAccessor.getAllClientIdWithRoles()).thenReturn(null);
-    action.authResult = AUTH_RESULT_ADMIN;
+    action.rdapAuthorization = RdapAuthorization.ADMINISTRATOR_AUTHORIZATION;
+    action.rdapJsonFormatter.rdapAuthorization = action.rdapAuthorization;
     metricRole = ADMINISTRATOR;
   }
 

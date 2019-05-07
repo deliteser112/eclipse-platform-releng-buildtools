@@ -94,6 +94,8 @@ public class RdapJsonFormatterTest {
     inject.setStaticField(Ofy.class, "clock", clock);
 
     rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
+    rdapJsonFormatter.rdapAuthorization =
+        RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar");
 
     // Create the registrar in 1999, then update it in 2000.
     clock.setTo(DateTime.parse("1999-01-01T00:00:00Z"));
@@ -413,8 +415,7 @@ public class RdapJsonFormatterTest {
                     Optional.of(DesignatedContact.Type.REGISTRANT),
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.FULL,
-                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                    OutputDataType.FULL)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_registrant.json"));
   }
@@ -428,14 +429,14 @@ public class RdapJsonFormatterTest {
                     Optional.of(DesignatedContact.Type.REGISTRANT),
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.SUMMARY,
-                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                    OutputDataType.SUMMARY)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_registrant_summary.json"));
   }
 
   @Test
   public void testRegistrant_loggedOut() {
+    rdapJsonFormatter.rdapAuthorization = RdapAuthorization.PUBLIC_AUTHORIZATION;
     assertThat(
             rdapJsonFormatter
                 .makeRdapJsonForContact(
@@ -443,8 +444,7 @@ public class RdapJsonFormatterTest {
                     Optional.of(DesignatedContact.Type.REGISTRANT),
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.FULL,
-                    RdapAuthorization.PUBLIC_AUTHORIZATION)
+                    OutputDataType.FULL)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_registrant_logged_out.json"));
   }
@@ -465,8 +465,7 @@ public class RdapJsonFormatterTest {
                     Optional.of(DesignatedContact.Type.REGISTRANT),
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.FULL,
-                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                    OutputDataType.FULL)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_registrant.json"));
   }
@@ -480,8 +479,7 @@ public class RdapJsonFormatterTest {
                     Optional.of(DesignatedContact.Type.ADMIN),
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.FULL,
-                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                    OutputDataType.FULL)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_admincontact.json"));
   }
@@ -495,8 +493,7 @@ public class RdapJsonFormatterTest {
                     Optional.of(DesignatedContact.Type.TECH),
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.FULL,
-                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                    OutputDataType.FULL)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_techcontact.json"));
   }
@@ -510,8 +507,7 @@ public class RdapJsonFormatterTest {
                     Optional.empty(),
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.FULL,
-                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                    OutputDataType.FULL)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_rolelesscontact.json"));
   }
@@ -525,8 +521,7 @@ public class RdapJsonFormatterTest {
                     Optional.empty(),
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.FULL,
-                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                    OutputDataType.FULL)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_unlinkedcontact.json"));
   }
@@ -539,8 +534,7 @@ public class RdapJsonFormatterTest {
                     domainBaseFull,
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.FULL,
-                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                    OutputDataType.FULL)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_domain_full.json"));
   }
@@ -553,22 +547,21 @@ public class RdapJsonFormatterTest {
                     domainBaseFull,
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.SUMMARY,
-                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                    OutputDataType.SUMMARY)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_domain_summary.json"));
   }
 
   @Test
   public void testDomain_logged_out() {
+    rdapJsonFormatter.rdapAuthorization = RdapAuthorization.PUBLIC_AUTHORIZATION;
     assertThat(
             rdapJsonFormatter
                 .makeRdapJsonForDomain(
                     domainBaseFull,
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.FULL,
-                    RdapAuthorization.PUBLIC_AUTHORIZATION)
+                    OutputDataType.FULL)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_domain_logged_out.json"));
   }
@@ -581,8 +574,7 @@ public class RdapJsonFormatterTest {
                     domainBaseNoNameserversNoTransfers,
                     WHOIS_SERVER,
                     clock.nowUtc(),
-                    OutputDataType.FULL,
-                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                    OutputDataType.FULL)
                 .toJson())
         .isEqualTo(loadJson("rdapjson_domain_no_nameservers.json"));
   }

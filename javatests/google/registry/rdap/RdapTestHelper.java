@@ -173,6 +173,7 @@ public class RdapTestHelper {
 
   static RdapJsonFormatter getTestRdapJsonFormatter() {
     RdapJsonFormatter rdapJsonFormatter = new RdapJsonFormatter();
+    rdapJsonFormatter.rdapAuthorization = RdapAuthorization.PUBLIC_AUTHORIZATION;
     rdapJsonFormatter.fullServletPath = "https://example.tld/rdap/";
     rdapJsonFormatter.rdapTos =
         ImmutableList.of(

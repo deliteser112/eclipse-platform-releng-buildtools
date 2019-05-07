@@ -79,8 +79,7 @@ public class RdapEntityAction extends RdapActionBase {
             Optional.empty(),
             rdapWhoisServer,
             now,
-            OutputDataType.FULL,
-            getAuthorization());
+            OutputDataType.FULL);
       }
     }
     Long ianaIdentifier = Longs.tryParse(pathSearchString);
