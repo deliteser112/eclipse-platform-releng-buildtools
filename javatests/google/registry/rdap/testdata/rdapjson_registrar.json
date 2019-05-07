@@ -6,9 +6,9 @@
   "links" :
   [
     {
-      "value" : "http://myserver.example.com/entity/1",
+      "value" : "https://example.tld/rdap/entity/1",
       "rel" : "self",
-      "href" : "http://myserver.example.com/entity/1",
+      "href" : "https://example.tld/rdap/entity/1",
       "type" : "application/rdap+json"
     }
   ],
@@ -68,7 +68,7 @@
           ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551215"],
           ["email", {}, "text", "janedoe@example.com"]
         ]
-      ],
+      ]
     },
     {
       "objectClassName" : "entity",
@@ -83,7 +83,7 @@
           ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
           ["email", {}, "text", "johndoe@example.com"]
         ]
-      ],
+      ]
     },
     {
       "objectClassName" : "entity",
@@ -99,7 +99,7 @@
           ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551218"],
           ["email", {}, "text", "playdoe@example.com"]
         ]
-      ],
+      ]
     }
   ]
 }

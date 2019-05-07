@@ -19,7 +19,6 @@ import static google.registry.rdap.RdapUtils.getRegistrarByIanaIdentifier;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Longs;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
@@ -27,6 +26,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapObjectClasses.RdapEntity;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
@@ -60,7 +60,7 @@ public class RdapEntityAction extends RdapActionBase {
   }
 
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(
+  public RdapEntity getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     // The query string is not used; the RDAP syntax is /rdap/entity/handle (the handle is the roid
@@ -76,9 +76,7 @@ public class RdapEntityAction extends RdapActionBase {
       if ((contactResource != null) && shouldBeVisible(contactResource, now)) {
         return rdapJsonFormatter.makeRdapJsonForContact(
             contactResource,
-            true,
             Optional.empty(),
-            fullServletPath,
             rdapWhoisServer,
             now,
             OutputDataType.FULL,
@@ -91,7 +89,7 @@ public class RdapEntityAction extends RdapActionBase {
       Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
       if (registrar.isPresent() && shouldBeVisible(registrar.get())) {
         return rdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar.get(), true, fullServletPath, rdapWhoisServer, now, OutputDataType.FULL);
+            registrar.get(), rdapWhoisServer, now, OutputDataType.FULL);
       }
     }
     // At this point, we have failed to find either a contact or a registrar.

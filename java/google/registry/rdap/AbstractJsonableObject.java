@@ -360,8 +360,6 @@ abstract class AbstractJsonableObject implements Jsonable {
    *
    * <p>If not empty - the resulting list is the allowed names. If the name ends with [], it means
    * the class is an element in a array with this name.
-   *
-   * <p>A name of "*" means this is allowed to merge.
    */
   static Optional<ImmutableSet<String>> getNameRestriction(Class<?> clazz) {
     // Find the first superclass that has an RestrictJsonNames annotation.

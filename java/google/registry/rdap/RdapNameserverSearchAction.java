@@ -18,8 +18,6 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.net.InetAddresses;
@@ -27,11 +25,11 @@ import com.google.common.primitives.Booleans;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
-import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
+import google.registry.rdap.RdapSearchResults.NameserverSearchResponse;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
@@ -82,7 +80,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
    * <p>The RDAP spec allows nameserver search by either name or IP address.
    */
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(
+  public NameserverSearchResponse getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/nameservers?name=ns*.example.com.
@@ -94,7 +92,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
       throw new BadRequestException("You must specify either name=XXXX or ip=YYYY");
     }
     decodeCursorToken();
-    RdapSearchResults results;
+    NameserverSearchResponse results;
     if (nameParam.isPresent()) {
       // syntax: /rdap/nameservers?name=exam*.com
       metricInformationBuilder.setSearchType(SearchType.BY_NAMESERVER_NAME);
@@ -118,19 +116,10 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
       }
       results = searchByIp(inetAddress, now);
     }
-    if (results.jsonList().isEmpty()) {
+    if (results.nameserverSearchResults().isEmpty()) {
       throw new NotFoundException("No nameservers found");
     }
-    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    jsonBuilder.put("nameserverSearchResults", results.jsonList());
-
-    rdapJsonFormatter.addTopLevelEntries(
-        jsonBuilder,
-        BoilerplateType.NAMESERVER,
-        getNotices(results),
-        ImmutableList.of(),
-        fullServletPath);
-    return jsonBuilder.build();
+    return results;
   }
 
   /**
@@ -139,7 +128,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
    * <p>When deleted nameservers are included in the search, the search is treated as if it has a
    * wildcard, because multiple results can be returned.
    */
-  private RdapSearchResults searchByName(
+  private NameserverSearchResponse searchByName(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     // Handle queries without a wildcard -- just load by foreign key. We can't do this if deleted
     // nameservers are desired, because there may be multiple nameservers with the same name.
@@ -168,7 +157,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
    *
    * <p>In this case, we can load by foreign key.
    */
-  private RdapSearchResults searchByNameUsingForeignKey(
+  private NameserverSearchResponse searchByNameUsingForeignKey(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     Optional<HostResource> hostResource =
         loadByForeignKey(HostResource.class, partialStringQuery.getInitialString(), now);
@@ -177,19 +166,21 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
       throw new NotFoundException("No nameservers found");
     }
     metricInformationBuilder.setNumHostsRetrieved(1);
-    return RdapSearchResults.create(
-        ImmutableList.of(
+
+    NameserverSearchResponse.Builder builder =
+        NameserverSearchResponse.builder()
+            .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE);
+    builder.nameserverSearchResultsBuilder().add(
             rdapJsonFormatter.makeRdapJsonForHost(
                 hostResource.get(),
-                false,
-                fullServletPath,
                 rdapWhoisServer,
                 now,
-                OutputDataType.FULL)));
+                OutputDataType.FULL));
+    return builder.build();
   }
 
   /** Searches for nameservers by name using the superordinate domain as a suffix. */
-  private RdapSearchResults searchByNameUsingSuperordinateDomain(
+  private NameserverSearchResponse searchByNameUsingSuperordinateDomain(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     Optional<DomainBase> domainBase =
         loadByForeignKey(DomainBase.class, partialStringQuery.getSuffix(), now);
@@ -232,7 +223,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
    *
    * <p>There are no pending deletes for hosts, so we can call {@link RdapActionBase#queryItems}.
    */
-  private RdapSearchResults searchByNameUsingPrefix(
+  private NameserverSearchResponse searchByNameUsingPrefix(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     // Add 1 so we can detect truncation.
     int querySizeLimit = getStandardQuerySizeLimit();
@@ -251,7 +242,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
   }
 
   /** Searches for nameservers by IP address, returning a JSON array of nameserver info maps. */
-  private RdapSearchResults searchByIp(final InetAddress inetAddress, DateTime now) {
+  private NameserverSearchResponse searchByIp(final InetAddress inetAddress, DateTime now) {
     // Add 1 so we can detect truncation.
     int querySizeLimit = getStandardQuerySizeLimit();
     Query<HostResource> query =
@@ -270,7 +261,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
   }
 
   /** Output JSON for a lists of hosts contained in an {@link RdapResultSet}. */
-  private RdapSearchResults makeSearchResults(
+  private NameserverSearchResponse makeSearchResults(
       RdapResultSet<HostResource> resultSet, CursorType cursorType, DateTime now) {
     return makeSearchResults(
         resultSet.resources(),
@@ -281,7 +272,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
   }
 
   /** Output JSON for a list of hosts. */
-  private RdapSearchResults makeSearchResults(
+  private NameserverSearchResponse makeSearchResults(
       List<HostResource> hosts,
       IncompletenessWarningType incompletenessWarningType,
       int numHostsRetrieved,
@@ -290,8 +281,8 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
     metricInformationBuilder.setNumHostsRetrieved(numHostsRetrieved);
     OutputDataType outputDataType =
         (hosts.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
-    ImmutableList.Builder<ImmutableMap<String, Object>> jsonListBuilder =
-        new ImmutableList.Builder<>();
+    NameserverSearchResponse.Builder builder =
+        NameserverSearchResponse.builder().setIncompletenessWarningType(incompletenessWarningType);
     Optional<String> newCursor = Optional.empty();
     for (HostResource host : Iterables.limit(hosts, rdapResultSetMaxSize)) {
       newCursor =
@@ -299,15 +290,14 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
               (cursorType == CursorType.NAME)
                   ? host.getFullyQualifiedHostName()
                   : host.getRepoId());
-      jsonListBuilder.add(
+      builder.nameserverSearchResultsBuilder().add(
           rdapJsonFormatter.makeRdapJsonForHost(
-              host, false, fullServletPath, rdapWhoisServer, now, outputDataType));
+              host, rdapWhoisServer, now, outputDataType));
     }
-    ImmutableList<ImmutableMap<String, Object>> jsonList = jsonListBuilder.build();
-    if (jsonList.size() < hosts.size()) {
-      return RdapSearchResults.create(jsonList, IncompletenessWarningType.TRUNCATED, newCursor);
-    } else {
-      return RdapSearchResults.create(jsonList, incompletenessWarningType, Optional.empty());
+    if (rdapResultSetMaxSize < hosts.size()) {
+      builder.setNextPageUri(createNavigationUri(newCursor.get()));
+      builder.setIncompletenessWarningType(IncompletenessWarningType.TRUNCATED);
     }
+    return builder.build();
   }
 }

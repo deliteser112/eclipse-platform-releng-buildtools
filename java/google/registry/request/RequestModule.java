@@ -96,6 +96,12 @@ public final class RequestModule {
     return req.getRequestURI();
   }
 
+  /**
+   * Returns the part of this request's URL that calls the servlet.
+   *
+   * <p>This includes the path to the servlet, but does not include any extra path information or a
+   * query string.
+   */
   @Provides
   @FullServletPath
   static String provideFullServletPath(HttpServletRequest req) {

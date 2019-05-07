@@ -9,10 +9,10 @@
   "links" :
   [
     {
-      "value" : "http://myserver.example.com/help/index",
+      "value" : "https://example.tld/rdap/help/index",
       "rel" : "alternate",
       "type" : "text/html",
-      "href" : "http://myserver.example.com/about/rdap/index.html"
+      "href" : "https://example.tld/rdap/about/rdap/index.html"
     }
   ]
 }

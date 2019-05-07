@@ -18,12 +18,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMap;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;
 import google.registry.request.RequestUrl;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Base64;
 import java.util.List;
@@ -119,19 +119,8 @@ public abstract class RdapSearchActionBase extends RdapActionBase {
     }
   }
 
-  ImmutableList<ImmutableMap<String, Object>> getNotices(RdapSearchResults results) {
-    ImmutableList<ImmutableMap<String, Object>> notices = results.getIncompletenessWarnings();
-    if (results.nextCursor().isPresent()) {
-      ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
-          new ImmutableList.Builder<>();
-      noticesBuilder.addAll(notices);
-      noticesBuilder.add(
-          RdapJsonFormatter.makeRdapJsonNavigationLinkNotice(
-              Optional.of(
-                  getRequestUrlWithExtraParameter(
-                      "cursor", encodeCursorToken(results.nextCursor().get())))));
-      notices = noticesBuilder.build();
-    }
-    return notices;
+  /** Creates the URL for this same search with a different starting point cursor. */
+  URI createNavigationUri(String cursor) {
+    return URI.create(getRequestUrlWithExtraParameter("cursor", encodeCursorToken(cursor)));
   }
 }

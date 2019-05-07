@@ -20,6 +20,14 @@ import static google.registry.rdap.RdapIcannStandardInformation.TRUNCATION_NOTIC
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import google.registry.rdap.RdapDataStructures.Link;
+import google.registry.rdap.RdapDataStructures.Notice;
+import google.registry.rdap.RdapObjectClasses.BoilerplateType;
+import google.registry.rdap.RdapObjectClasses.RdapDomain;
+import google.registry.rdap.RdapObjectClasses.RdapEntity;
+import google.registry.rdap.RdapObjectClasses.RdapNameserver;
+import google.registry.rdap.RdapObjectClasses.ReplyPayloadBase;
+import java.net.URI;
 import java.util.Optional;
 
 /**
@@ -30,6 +38,130 @@ import java.util.Optional;
  */
 @AutoValue
 abstract class RdapSearchResults {
+
+  /**
+   * Responding To Searches defined in 8 of RFC7483.
+   */
+  abstract static class BaseSearchResponse extends ReplyPayloadBase {
+    abstract IncompletenessWarningType incompletenessWarningType();
+    abstract ImmutableMap<String, URI> navigationLinks();
+
+    @JsonableElement("notices") ImmutableList<Notice> getIncompletenessWarnings() {
+      switch (incompletenessWarningType()) {
+        case TRUNCATED:
+          return TRUNCATION_NOTICES;
+        case MIGHT_BE_INCOMPLETE:
+          return POSSIBLY_INCOMPLETE_NOTICES;
+        case COMPLETE:
+          break;
+      }
+      return ImmutableList.of();
+    }
+
+    /**
+     * Creates a JSON object containing a notice with page navigation links.
+     *
+     * <p>At the moment, only a next page link is supported. Other types of links (e.g. previous
+     * page) could be added in the future, but it's not clear how to generate such links, given the
+     * way we are querying the database.
+     *
+     * <p>This isn't part of the spec.
+     */
+    @JsonableElement("notices[]")
+    Optional<Notice> getNavigationNotice() {
+      if (navigationLinks().isEmpty()) {
+        return Optional.empty();
+      }
+      Notice.Builder builder =
+          Notice.builder().setTitle("Navigation Links").setDescription("Links to related pages.");
+      navigationLinks().forEach((name, uri) ->
+          builder.linksBuilder()
+              .add(Link.builder()
+                  .setRel(name)
+                  .setHref(uri.toString())
+                  .setType("application/rdap+json")
+                  .build()));
+      return Optional.of(builder.build());
+    }
+
+    BaseSearchResponse(BoilerplateType boilerplateType) {
+      super(boilerplateType);
+    }
+
+    abstract static class Builder<B extends Builder<?>> {
+      abstract ImmutableMap.Builder<String, URI> navigationLinksBuilder();
+      abstract B setIncompletenessWarningType(IncompletenessWarningType type);
+
+      @SuppressWarnings("unchecked")
+      B setNextPageUri(URI uri) {
+        navigationLinksBuilder().put("next", uri);
+        return (B) this;
+      }
+    }
+  }
+
+  @AutoValue
+  abstract static class DomainSearchResponse extends BaseSearchResponse {
+
+    @JsonableElement abstract ImmutableList<RdapDomain> domainSearchResults();
+
+    DomainSearchResponse() {
+      super(BoilerplateType.DOMAIN);
+    }
+
+    static Builder builder() {
+      return new AutoValue_RdapSearchResults_DomainSearchResponse.Builder();
+    }
+
+    @AutoValue.Builder
+    abstract static class Builder extends BaseSearchResponse.Builder<Builder> {
+      abstract ImmutableList.Builder<RdapDomain> domainSearchResultsBuilder();
+
+      abstract DomainSearchResponse build();
+    }
+  }
+
+  @AutoValue
+  abstract static class EntitySearchResponse extends BaseSearchResponse {
+
+    @JsonableElement public abstract ImmutableList<RdapEntity> entitySearchResults();
+
+    EntitySearchResponse() {
+      super(BoilerplateType.ENTITY);
+    }
+
+    static Builder builder() {
+      return new AutoValue_RdapSearchResults_EntitySearchResponse.Builder();
+    }
+
+    @AutoValue.Builder
+    abstract static class Builder extends BaseSearchResponse.Builder<Builder> {
+      abstract ImmutableList.Builder<RdapEntity> entitySearchResultsBuilder();
+
+      abstract EntitySearchResponse build();
+    }
+  }
+
+  @AutoValue
+  abstract static class NameserverSearchResponse extends BaseSearchResponse {
+
+    @JsonableElement public abstract ImmutableList<RdapNameserver> nameserverSearchResults();
+
+    NameserverSearchResponse() {
+      super(BoilerplateType.NAMESERVER);
+    }
+
+    static Builder builder() {
+      return new AutoValue_RdapSearchResults_NameserverSearchResponse.Builder();
+    }
+
+    @AutoValue.Builder
+    abstract static class Builder extends BaseSearchResponse.Builder<Builder> {
+      abstract ImmutableList.Builder<RdapNameserver> nameserverSearchResultsBuilder();
+
+      abstract NameserverSearchResponse build();
+    }
+  }
 
   enum IncompletenessWarningType {
 
@@ -44,36 +176,5 @@ abstract class RdapSearchResults {
      * set that was limited in size.
      */
     MIGHT_BE_INCOMPLETE
-  }
-
-  static RdapSearchResults create(ImmutableList<ImmutableMap<String, Object>> jsonList) {
-    return create(jsonList, IncompletenessWarningType.COMPLETE, Optional.empty());
-  }
-
-  static RdapSearchResults create(
-      ImmutableList<ImmutableMap<String, Object>> jsonList,
-      IncompletenessWarningType incompletenessWarningType,
-      Optional<String> nextCursor) {
-    return new AutoValue_RdapSearchResults(jsonList, incompletenessWarningType, nextCursor);
-  }
-
-  /** List of JSON result object representations. */
-  abstract ImmutableList<ImmutableMap<String, Object>> jsonList();
-
-  /** Type of warning to display regarding possible incomplete data. */
-  abstract IncompletenessWarningType incompletenessWarningType();
-
-  /** Cursor for fetching the next page of results, or empty() if there are no more. */
-  abstract Optional<String> nextCursor();
-
-  /** Convenience method to get the appropriate warnings for the incompleteness warning type. */
-  ImmutableList<ImmutableMap<String, Object>> getIncompletenessWarnings() {
-    if (incompletenessWarningType() == IncompletenessWarningType.TRUNCATED) {
-      return TRUNCATION_NOTICES;
-    }
-    if (incompletenessWarningType() == IncompletenessWarningType.MIGHT_BE_INCOMPLETE) {
-      return POSSIBLY_INCOMPLETE_NOTICES;
-    }
-    return ImmutableList.of();
   }
 }

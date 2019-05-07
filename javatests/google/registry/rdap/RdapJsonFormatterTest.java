@@ -27,10 +27,10 @@ import static google.registry.testing.TestDataHelper.loadFile;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.googlecode.objectify.Key;
-import google.registry.config.RdapNoticeDescriptor;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainBase;
@@ -44,12 +44,14 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
+import google.registry.rdap.RdapObjectClasses.BoilerplateType;
+import google.registry.rdap.RdapObjectClasses.ReplyPayloadBase;
+import google.registry.rdap.RdapObjectClasses.TopLevelReplyObject;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import java.util.Optional;
 import org.joda.time.DateTime;
-import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -84,8 +86,6 @@ public class RdapJsonFormatterTest {
   private ContactResource contactResourceTech;
   private ContactResource contactResourceNotLinked;
 
-  private static final String LINK_BASE = "http://myserver.example.com/";
-  private static final String LINK_BASE_NO_TRAILING_SLASH = "http://myserver.example.com";
   // Do not set a port43 whois server, as per Gustavo Lozano.
   private static final String WHOIS_SERVER = null;
 
@@ -307,415 +307,316 @@ public class RdapJsonFormatterTest {
             .build());
   }
 
-  private Object loadJson(String expectedFileName) {
-    return JSONValue.parse(loadFile(this.getClass(), expectedFileName));
+  private JsonElement loadJson(String expectedFileName) {
+    return new Gson().fromJson(loadFile(this.getClass(), expectedFileName), JsonElement.class);
   }
 
   @Test
   public void testRegistrar() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar, false, LINK_BASE, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForRegistrar(
+                    registrar, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL)
+                .toJson())
         .isEqualTo(loadJson("rdapjson_registrar.json"));
   }
 
   @Test
   public void testRegistrar_summary() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar, false, LINK_BASE, WHOIS_SERVER, clock.nowUtc(), OutputDataType.SUMMARY))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForRegistrar(
+                    registrar, WHOIS_SERVER, clock.nowUtc(), OutputDataType.SUMMARY)
+                .toJson())
         .isEqualTo(loadJson("rdapjson_registrar_summary.json"));
   }
 
   @Test
   public void testHost_ipv4() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForHost(
-            hostResourceIpv4,
-            false,
-            LINK_BASE,
-            WHOIS_SERVER,
-            clock.nowUtc(),
-            OutputDataType.FULL))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForHost(
+                    hostResourceIpv4, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL)
+                .toJson())
         .isEqualTo(loadJson("rdapjson_host_ipv4.json"));
   }
 
   @Test
   public void testHost_ipv6() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForHost(
-            hostResourceIpv6,
-            false,
-            LINK_BASE,
-            WHOIS_SERVER,
-            clock.nowUtc(),
-            OutputDataType.FULL))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForHost(
+                    hostResourceIpv6, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL)
+                .toJson())
         .isEqualTo(loadJson("rdapjson_host_ipv6.json"));
   }
 
   @Test
   public void testHost_both() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForHost(
-            hostResourceBoth,
-            false,
-            LINK_BASE,
-            WHOIS_SERVER,
-            clock.nowUtc(),
-            OutputDataType.FULL))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForHost(
+                    hostResourceBoth, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL)
+                .toJson())
         .isEqualTo(loadJson("rdapjson_host_both.json"));
   }
 
   @Test
   public void testHost_both_summary() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForHost(
-            hostResourceBoth,
-            false,
-            LINK_BASE,
-            WHOIS_SERVER,
-            clock.nowUtc(),
-            OutputDataType.SUMMARY))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForHost(
+                    hostResourceBoth, WHOIS_SERVER, clock.nowUtc(), OutputDataType.SUMMARY)
+                .toJson())
         .isEqualTo(loadJson("rdapjson_host_both_summary.json"));
   }
 
   @Test
   public void testHost_noAddresses() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForHost(
-            hostResourceNoAddresses,
-            false,
-            LINK_BASE,
-            WHOIS_SERVER,
-            clock.nowUtc(),
-            OutputDataType.FULL))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForHost(
+                    hostResourceNoAddresses, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL)
+                .toJson())
         .isEqualTo(loadJson("rdapjson_host_no_addresses.json"));
   }
 
   @Test
   public void testHost_notLinked() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForHost(
-            hostResourceNotLinked,
-            false,
-            LINK_BASE,
-            WHOIS_SERVER,
-            clock.nowUtc(),
-            OutputDataType.FULL))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForHost(
+                    hostResourceNotLinked, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL)
+                .toJson())
         .isEqualTo(loadJson("rdapjson_host_not_linked.json"));
   }
 
   @Test
   public void testHost_superordinateHasPendingTransfer() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForHost(
-        hostResourceSuperordinatePendingTransfer,
-        false,
-        LINK_BASE,
-        WHOIS_SERVER,
-        clock.nowUtc(),
-        OutputDataType.FULL))
-    .isEqualTo(loadJson("rdapjson_host_pending_transfer.json"));
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForHost(
+                    hostResourceSuperordinatePendingTransfer,
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL)
+                .toJson())
+        .isEqualTo(loadJson("rdapjson_host_pending_transfer.json"));
   }
 
   @Test
   public void testRegistrant() {
     assertThat(
-            rdapJsonFormatter.makeRdapJsonForContact(
-                contactResourceRegistrant,
-                false,
-                Optional.of(DesignatedContact.Type.REGISTRANT),
-                LINK_BASE,
-                WHOIS_SERVER,
-                clock.nowUtc(),
-                OutputDataType.FULL,
-                RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
+            rdapJsonFormatter
+                .makeRdapJsonForContact(
+                    contactResourceRegistrant,
+                    Optional.of(DesignatedContact.Type.REGISTRANT),
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL,
+                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                .toJson())
         .isEqualTo(loadJson("rdapjson_registrant.json"));
   }
 
   @Test
   public void testRegistrant_summary() {
     assertThat(
-            rdapJsonFormatter.makeRdapJsonForContact(
-                contactResourceRegistrant,
-                false,
-                Optional.of(DesignatedContact.Type.REGISTRANT),
-                LINK_BASE,
-                WHOIS_SERVER,
-                clock.nowUtc(),
-                OutputDataType.SUMMARY,
-                RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
+            rdapJsonFormatter
+                .makeRdapJsonForContact(
+                    contactResourceRegistrant,
+                    Optional.of(DesignatedContact.Type.REGISTRANT),
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.SUMMARY,
+                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                .toJson())
         .isEqualTo(loadJson("rdapjson_registrant_summary.json"));
   }
 
   @Test
   public void testRegistrant_loggedOut() {
     assertThat(
-            rdapJsonFormatter.makeRdapJsonForContact(
-                contactResourceRegistrant,
-                false,
-                Optional.of(DesignatedContact.Type.REGISTRANT),
-                LINK_BASE,
-                WHOIS_SERVER,
-                clock.nowUtc(),
-                OutputDataType.FULL,
-                RdapAuthorization.PUBLIC_AUTHORIZATION))
+            rdapJsonFormatter
+                .makeRdapJsonForContact(
+                    contactResourceRegistrant,
+                    Optional.of(DesignatedContact.Type.REGISTRANT),
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL,
+                    RdapAuthorization.PUBLIC_AUTHORIZATION)
+                .toJson())
         .isEqualTo(loadJson("rdapjson_registrant_logged_out.json"));
   }
 
   @Test
   public void testRegistrant_baseHasNoTrailingSlash() {
+    // First, make sure we have a trailing slash at the end by default!
+    // This test tries to change the default state, if the default doesn't have a /, then this test
+    // doesn't help.
+    assertThat(rdapJsonFormatter.fullServletPath).endsWith("/");
+    rdapJsonFormatter.fullServletPath =
+        rdapJsonFormatter.fullServletPath.substring(
+            0, rdapJsonFormatter.fullServletPath.length() - 1);
     assertThat(
-            rdapJsonFormatter.makeRdapJsonForContact(
-                contactResourceRegistrant,
-                false,
-                Optional.of(DesignatedContact.Type.REGISTRANT),
-                LINK_BASE_NO_TRAILING_SLASH,
-                WHOIS_SERVER,
-                clock.nowUtc(),
-                OutputDataType.FULL,
-                RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
+            rdapJsonFormatter
+                .makeRdapJsonForContact(
+                    contactResourceRegistrant,
+                    Optional.of(DesignatedContact.Type.REGISTRANT),
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL,
+                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                .toJson())
         .isEqualTo(loadJson("rdapjson_registrant.json"));
-  }
-
-  @Test
-  public void testRegistrant_noBase() {
-    assertThat(
-            rdapJsonFormatter.makeRdapJsonForContact(
-                contactResourceRegistrant,
-                false,
-                Optional.of(DesignatedContact.Type.REGISTRANT),
-                null,
-                WHOIS_SERVER,
-                clock.nowUtc(),
-                OutputDataType.FULL,
-                RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
-        .isEqualTo(loadJson("rdapjson_registrant_nobase.json"));
   }
 
   @Test
   public void testAdmin() {
     assertThat(
-            rdapJsonFormatter.makeRdapJsonForContact(
-                contactResourceAdmin,
-                false,
-                Optional.of(DesignatedContact.Type.ADMIN),
-                LINK_BASE,
-                WHOIS_SERVER,
-                clock.nowUtc(),
-                OutputDataType.FULL,
-                RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
+            rdapJsonFormatter
+                .makeRdapJsonForContact(
+                    contactResourceAdmin,
+                    Optional.of(DesignatedContact.Type.ADMIN),
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL,
+                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                .toJson())
         .isEqualTo(loadJson("rdapjson_admincontact.json"));
   }
 
   @Test
   public void testTech() {
     assertThat(
-            rdapJsonFormatter.makeRdapJsonForContact(
-                contactResourceTech,
-                false,
-                Optional.of(DesignatedContact.Type.TECH),
-                LINK_BASE,
-                WHOIS_SERVER,
-                clock.nowUtc(),
-                OutputDataType.FULL,
-                RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
+            rdapJsonFormatter
+                .makeRdapJsonForContact(
+                    contactResourceTech,
+                    Optional.of(DesignatedContact.Type.TECH),
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL,
+                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                .toJson())
         .isEqualTo(loadJson("rdapjson_techcontact.json"));
   }
 
   @Test
   public void testRolelessContact() {
     assertThat(
-            rdapJsonFormatter.makeRdapJsonForContact(
-                contactResourceTech,
-                false,
-                Optional.empty(),
-                LINK_BASE,
-                WHOIS_SERVER,
-                clock.nowUtc(),
-                OutputDataType.FULL,
-                RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
+            rdapJsonFormatter
+                .makeRdapJsonForContact(
+                    contactResourceTech,
+                    Optional.empty(),
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL,
+                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                .toJson())
         .isEqualTo(loadJson("rdapjson_rolelesscontact.json"));
   }
 
   @Test
   public void testUnlinkedContact() {
     assertThat(
-            rdapJsonFormatter.makeRdapJsonForContact(
-                contactResourceNotLinked,
-                false,
-                Optional.empty(),
-                LINK_BASE,
-                WHOIS_SERVER,
-                clock.nowUtc(),
-                OutputDataType.FULL,
-                RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
+            rdapJsonFormatter
+                .makeRdapJsonForContact(
+                    contactResourceNotLinked,
+                    Optional.empty(),
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL,
+                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                .toJson())
         .isEqualTo(loadJson("rdapjson_unlinkedcontact.json"));
   }
 
   @Test
   public void testDomain_full() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
-            domainBaseFull,
-            false,
-            LINK_BASE,
-            WHOIS_SERVER,
-            clock.nowUtc(),
-            OutputDataType.FULL,
-            RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForDomain(
+                    domainBaseFull,
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL,
+                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                .toJson())
         .isEqualTo(loadJson("rdapjson_domain_full.json"));
   }
 
   @Test
   public void testDomain_summary() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
-            domainBaseFull,
-            false,
-            LINK_BASE,
-            WHOIS_SERVER,
-            clock.nowUtc(),
-            OutputDataType.SUMMARY,
-            RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForDomain(
+                    domainBaseFull,
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.SUMMARY,
+                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                .toJson())
         .isEqualTo(loadJson("rdapjson_domain_summary.json"));
   }
 
   @Test
   public void testDomain_logged_out() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
-            domainBaseFull,
-            false,
-            LINK_BASE,
-            WHOIS_SERVER,
-            clock.nowUtc(),
-            OutputDataType.FULL,
-            RdapAuthorization.PUBLIC_AUTHORIZATION))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForDomain(
+                    domainBaseFull,
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL,
+                    RdapAuthorization.PUBLIC_AUTHORIZATION)
+                .toJson())
         .isEqualTo(loadJson("rdapjson_domain_logged_out.json"));
   }
 
   @Test
   public void testDomain_noNameserversNoTransfers() {
-    assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
-            domainBaseNoNameserversNoTransfers,
-            false,
-            LINK_BASE,
-            WHOIS_SERVER,
-            clock.nowUtc(),
-            OutputDataType.FULL,
-            RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar")))
+    assertThat(
+            rdapJsonFormatter
+                .makeRdapJsonForDomain(
+                    domainBaseNoNameserversNoTransfers,
+                    WHOIS_SERVER,
+                    clock.nowUtc(),
+                    OutputDataType.FULL,
+                    RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, "unicoderegistrar"))
+                .toJson())
         .isEqualTo(loadJson("rdapjson_domain_no_nameservers.json"));
   }
 
   @Test
   public void testError() {
     assertThat(
-            rdapJsonFormatter
-                .makeError(SC_BAD_REQUEST, "Invalid Domain Name", "Not a valid domain name"))
+            RdapObjectClasses.ErrorResponse.create(
+                    SC_BAD_REQUEST, "Invalid Domain Name", "Not a valid domain name")
+                .toJson())
         .isEqualTo(loadJson("rdapjson_error.json"));
   }
 
   @Test
-  public void testHelp_absoluteHtmlUrl() {
-    assertThat(RdapJsonFormatter.makeRdapJsonNotice(
-            RdapNoticeDescriptor.builder()
-                .setTitle("RDAP Help")
-                .setDescription(ImmutableList.of(
-                    "RDAP Help Topics (use /help/topic for information)",
-                    "syntax",
-                    "tos (Terms of Service)"))
-                .setLinkValueSuffix("help/index")
-                .setLinkHrefUrlString(LINK_BASE + "about/rdap/index.html")
-                .build(),
-            LINK_BASE))
-        .isEqualTo(loadJson("rdapjson_notice_alternate_link.json"));
-  }
-
-  @Test
-  public void testHelp_relativeHtmlUrlWithStartingSlash() {
-    assertThat(RdapJsonFormatter.makeRdapJsonNotice(
-            RdapNoticeDescriptor.builder()
-                .setTitle("RDAP Help")
-                .setDescription(ImmutableList.of(
-                    "RDAP Help Topics (use /help/topic for information)",
-                    "syntax",
-                    "tos (Terms of Service)"))
-                .setLinkValueSuffix("help/index")
-                .setLinkHrefUrlString("/about/rdap/index.html")
-                .build(),
-            LINK_BASE))
-        .isEqualTo(loadJson("rdapjson_notice_alternate_link.json"));
-  }
-
-  @Test
-  public void testHelp_relativeHtmlUrlWithoutStartingSlash() {
-    assertThat(RdapJsonFormatter.makeRdapJsonNotice(
-            RdapNoticeDescriptor.builder()
-                .setTitle("RDAP Help")
-                .setDescription(ImmutableList.of(
-                    "RDAP Help Topics (use /help/topic for information)",
-                    "syntax",
-                    "tos (Terms of Service)"))
-                .setLinkValueSuffix("help/index")
-                .setLinkHrefUrlString("about/rdap/index.html")
-                .build(),
-            LINK_BASE))
-        .isEqualTo(loadJson("rdapjson_notice_alternate_link.json"));
-  }
-
-  @Test
-  public void testHelp_noHtmlUrl() {
-    assertThat(RdapJsonFormatter.makeRdapJsonNotice(
-            RdapNoticeDescriptor.builder()
-                .setTitle("RDAP Help")
-                .setDescription(ImmutableList.of(
-                    "RDAP Help Topics (use /help/topic for information)",
-                    "syntax",
-                    "tos (Terms of Service)"))
-                .setLinkValueSuffix("help/index")
-                .build(),
-            LINK_BASE))
-        .isEqualTo(loadJson("rdapjson_notice_self_link.json"));
-  }
-
-  @Test
   public void testTopLevel() {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("key", "value");
-    rdapJsonFormatter.addTopLevelEntries(
-        builder,
-        RdapJsonFormatter.BoilerplateType.OTHER,
-        ImmutableList.of(),
-        ImmutableList.of(),
-        LINK_BASE);
-    assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel.json"));
-  }
-
-  @Test
-  public void testTopLevel_withTermsOfService() {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("key", "value");
-    rdapJsonFormatter.addTopLevelEntries(
-        builder,
-        RdapJsonFormatter.BoilerplateType.OTHER,
-        ImmutableList.of(rdapJsonFormatter.getJsonHelpNotice("/tos", LINK_BASE)),
-        ImmutableList.of(),
-        LINK_BASE);
-    assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel.json"));
+    assertThat(
+            TopLevelReplyObject.create(
+                    new ReplyPayloadBase(BoilerplateType.OTHER) {
+                      @JsonableElement public String key = "value";
+                    },
+                    rdapJsonFormatter.createTosNotice())
+                .toJson())
+        .isEqualTo(loadJson("rdapjson_toplevel.json"));
   }
 
   @Test
   public void testTopLevel_domain() {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("key", "value");
-    rdapJsonFormatter.addTopLevelEntries(
-        builder,
-        RdapJsonFormatter.BoilerplateType.DOMAIN,
-        ImmutableList.of(),
-        ImmutableList.of(),
-        LINK_BASE);
-    assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel_domain.json"));
-  }
-
-  @Test
-  public void testTopLevel_domainWithTermsOfService() {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("key", "value");
-    rdapJsonFormatter.addTopLevelEntries(
-        builder,
-        RdapJsonFormatter.BoilerplateType.DOMAIN,
-        ImmutableList.of(rdapJsonFormatter.getJsonHelpNotice("/tos", LINK_BASE)),
-        ImmutableList.of(),
-        LINK_BASE);
-    assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel_domain.json"));
+    assertThat(
+            TopLevelReplyObject.create(
+                    new ReplyPayloadBase(BoilerplateType.DOMAIN) {
+                      @JsonableElement public String key = "value";
+                    },
+                    rdapJsonFormatter.createTosNotice())
+                .toJson())
+        .isEqualTo(loadJson("rdapjson_toplevel_domain.json"));
   }
 }

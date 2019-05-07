@@ -17,8 +17,8 @@ package google.registry.rdap;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
-import com.google.common.collect.ImmutableMap;
 import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapObjectClasses.ReplyPayloadBase;
 import google.registry.request.Action;
 import google.registry.request.HttpException.NotImplementedException;
 import google.registry.request.auth.Auth;
@@ -43,8 +43,7 @@ public class RdapIpAction extends RdapActionBase {
   }
 
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest) {
+  public ReplyPayloadBase getJsonObjectForResource(String pathSearchString, boolean isHeadRequest) {
     throw new NotImplementedException("Domain Name Registry information only");
   }
 }

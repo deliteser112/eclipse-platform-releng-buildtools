@@ -17,11 +17,9 @@ package google.registry.rdap;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static google.registry.model.EppResourceUtils.isLinked;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.union;
-import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -30,8 +28,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Streams;
 import com.google.common.net.InetAddresses;
+import com.google.gson.JsonArray;
 import com.googlecode.objectify.Key;
-import google.registry.config.RdapNoticeDescriptor;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -47,22 +45,32 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.rdap.RdapDataStructures.Event;
+import google.registry.rdap.RdapDataStructures.EventAction;
+import google.registry.rdap.RdapDataStructures.Link;
+import google.registry.rdap.RdapDataStructures.Notice;
+import google.registry.rdap.RdapDataStructures.Port43WhoisServer;
+import google.registry.rdap.RdapDataStructures.PublicId;
+import google.registry.rdap.RdapDataStructures.RdapStatus;
+import google.registry.rdap.RdapObjectClasses.RdapDomain;
+import google.registry.rdap.RdapObjectClasses.RdapEntity;
+import google.registry.rdap.RdapObjectClasses.RdapNameserver;
+import google.registry.rdap.RdapObjectClasses.Vcard;
+import google.registry.rdap.RdapObjectClasses.VcardArray;
+import google.registry.request.FullServletPath;
 import google.registry.request.HttpException.InternalServerErrorException;
-import google.registry.request.HttpException.NotFoundException;
-import google.registry.util.Idn;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 
@@ -77,11 +85,12 @@ import org.joda.time.DateTimeComparator;
  * @see <a href="https://tools.ietf.org/html/rfc7483">
  *        RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
  */
-@Singleton
 public class RdapJsonFormatter {
 
-  @Inject @Config("rdapTosPath") String rdapTosPath;
-  @Inject @Config("rdapHelpMap") ImmutableMap<String, RdapNoticeDescriptor> rdapHelpMap;
+
+  @Inject @Config("rdapTos") ImmutableList<String> rdapTos;
+  @Inject @Config("rdapTosStaticUrl") @Nullable String rdapTosStaticUrl;
+  @Inject @FullServletPath String fullServletPath;
   @Inject RdapJsonFormatter() {}
 
   /**
@@ -98,78 +107,6 @@ public class RdapJsonFormatter {
   public enum OutputDataType {
     FULL,
     SUMMARY
-  }
-
-  /**
-   * Indication of what type of boilerplate notices are required for the RDAP JSON messages. The
-   * ICANN RDAP Profile specifies that, for instance, domain name responses should include a remark
-   * about domain status codes. So we need to know when to include such boilerplate. On the other
-   * hand, remarks are not allowed except in domain, nameserver and entity objects, so we need to
-   * suppress them for other types of responses (e.g. help).
-   */
-  public enum BoilerplateType {
-    DOMAIN,
-    NAMESERVER,
-    ENTITY,
-    OTHER
-  }
-
-  private static final String RDAP_CONFORMANCE_LEVEL = "icann_rdap_response_profile_0";
-  private static final String VCARD_VERSION_NUMBER = "4.0";
-  static final String NOTICES = "notices";
-  private static final String REMARKS = "remarks";
-
-  private enum RdapStatus {
-
-    // Status values specified in RFC 7483 § 10.2.2.
-    VALIDATED("validated"),
-    RENEW_PROHIBITED("renew prohibited"),
-    UPDATE_PROHIBITED("update prohibited"),
-    TRANSFER_PROHIBITED("transfer prohibited"),
-    DELETE_PROHIBITED("delete prohibited"),
-    PROXY("proxy"),
-    PRIVATE("private"),
-    REMOVED("removed"),
-    OBSCURED("obscured"),
-    ASSOCIATED("associated"),
-    ACTIVE("active"),
-    INACTIVE("inactive"),
-    LOCKED("locked"),
-    PENDING_CREATE("pending create"),
-    PENDING_RENEW("pending renew"),
-    PENDING_TRANSFER("pending transfer"),
-    PENDING_UPDATE("pending update"),
-    PENDING_DELETE("pending delete"),
-
-    // Additional status values defined in
-    // https://tools.ietf.org/html/draft-ietf-regext-epp-rdap-status-mapping-01.
-    ADD_PERIOD("add period"),
-    AUTO_RENEW_PERIOD("auto renew period"),
-    CLIENT_DELETE_PROHIBITED("client delete prohibited"),
-    CLIENT_HOLD("client hold"),
-    CLIENT_RENEW_PROHIBITED("client renew prohibited"),
-    CLIENT_TRANSFER_PROHIBITED("client transfer prohibited"),
-    CLIENT_UPDATE_PROHIBITED("client update prohibited"),
-    PENDING_RESTORE("pending restore"),
-    REDEMPTION_PERIOD("redemption period"),
-    RENEW_PERIOD("renew period"),
-    SERVER_DELETE_PROHIBITED("server deleted prohibited"),
-    SERVER_RENEW_PROHIBITED("server renew prohibited"),
-    SERVER_TRANSFER_PROHIBITED("server transfer prohibited"),
-    SERVER_UPDATE_PROHIBITED("server update prohibited"),
-    SERVER_HOLD("server hold"),
-    TRANSFER_PERIOD("transfer period");
-
-    /** Value as it appears in RDAP messages. */
-    private final String rfc7483String;
-
-    RdapStatus(String rfc7483String) {
-      this.rfc7483String = rfc7483String;
-    }
-
-    public String getDisplayName() {
-      return rfc7483String;
-    }
   }
 
   /** Map of EPP status values to the RDAP equivalents. */
@@ -201,83 +138,48 @@ public class RdapJsonFormatter {
           // RdapStatus.TRANSFER_PERIOD not defined in our system
           .build();
 
-  /** Role values specified in RFC 7483 § 10.2.4. */
-  private enum RdapEntityRole {
-    REGISTRANT("registrant"),
-    TECH("technical"),
-    ADMIN("administrative"),
-    ABUSE("abuse"),
-    BILLING("billing"),
-    REGISTRAR("registrar"),
-    RESELLER("reseller"),
-    SPONSOR("sponsor"),
-    PROXY("proxy"),
-    NOTIFICATIONS("notifications"),
-    NOC("noc");
-
-    /** Value as it appears in RDAP messages. */
-    final String rfc7483String;
-
-    RdapEntityRole(String rfc7483String) {
-      this.rfc7483String = rfc7483String;
-    }
-  }
-
-  /** Status values specified in RFC 7483 § 10.2.2. */
-  private enum RdapEventAction {
-    REGISTRATION("registration"),
-    REREGISTRATION("reregistration"),
-    LAST_CHANGED("last changed"),
-    EXPIRATION("expiration"),
-    DELETION("deletion"),
-    REINSTANTIATION("reinstantiation"),
-    TRANSFER("transfer"),
-    LOCKED("locked"),
-    UNLOCKED("unlocked"),
-    LAST_UPDATE_OF_RDAP_DATABASE("last update of RDAP database");
-
-    /** Value as it appears in RDAP messages. */
-    private final String rfc7483String;
-
-    RdapEventAction(String rfc7483String) {
-      this.rfc7483String = rfc7483String;
-    }
-
-    public String getDisplayName() {
-      return rfc7483String;
-    }
-  }
-
-  /** Map of EPP event values to the RDAP equivalents. */
-  private static final ImmutableMap<HistoryEntry.Type, RdapEventAction>
+  /**
+   * Map of EPP event values to the RDAP equivalents.
+   *
+   * <p>Only has entries for the events we care about, according to the RDAP Response Profile
+   * 15feb19.
+   *
+   * There are additional events that don't have HistoryEntry equivalent and are created
+   * differently. They will be in different locations in the code. These values are: EXPIRATION,
+   * LAST_CHANGED, LAST_UPDATE_OF_RDAP_DATABASE.
+   */
+  private static final ImmutableMap<HistoryEntry.Type, EventAction>
       HISTORY_ENTRY_TYPE_TO_RDAP_EVENT_ACTION_MAP =
-          new ImmutableMap.Builder<HistoryEntry.Type, RdapEventAction>()
-              .put(HistoryEntry.Type.CONTACT_CREATE, RdapEventAction.REGISTRATION)
-              .put(HistoryEntry.Type.CONTACT_DELETE, RdapEventAction.DELETION)
-              .put(HistoryEntry.Type.CONTACT_TRANSFER_APPROVE, RdapEventAction.TRANSFER)
-              .put(HistoryEntry.Type.DOMAIN_AUTORENEW, RdapEventAction.REREGISTRATION)
-              .put(HistoryEntry.Type.DOMAIN_CREATE, RdapEventAction.REGISTRATION)
-              .put(HistoryEntry.Type.DOMAIN_DELETE, RdapEventAction.DELETION)
-              .put(HistoryEntry.Type.DOMAIN_RENEW, RdapEventAction.REREGISTRATION)
-              .put(HistoryEntry.Type.DOMAIN_RESTORE, RdapEventAction.REINSTANTIATION)
-              .put(HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE, RdapEventAction.TRANSFER)
-              .put(HistoryEntry.Type.HOST_CREATE, RdapEventAction.REGISTRATION)
-              .put(HistoryEntry.Type.HOST_DELETE, RdapEventAction.DELETION)
+          new ImmutableMap.Builder<HistoryEntry.Type, EventAction>()
+              .put(HistoryEntry.Type.CONTACT_CREATE, EventAction.REGISTRATION)
+              .put(HistoryEntry.Type.CONTACT_DELETE, EventAction.DELETION)
+              .put(HistoryEntry.Type.CONTACT_TRANSFER_APPROVE, EventAction.TRANSFER)
+
+              /** Not in the Response Profile. */
+              .put(HistoryEntry.Type.DOMAIN_AUTORENEW, EventAction.REREGISTRATION)
+              /** Section 2.3.1.1, obligatory. */
+              .put(HistoryEntry.Type.DOMAIN_CREATE, EventAction.REGISTRATION)
+              /** Not in the Response Profile. */
+              .put(HistoryEntry.Type.DOMAIN_DELETE, EventAction.DELETION)
+              /** Not in the Response Profile. */
+              .put(HistoryEntry.Type.DOMAIN_RENEW, EventAction.REREGISTRATION)
+              /** Not in the Response Profile. */
+              .put(HistoryEntry.Type.DOMAIN_RESTORE, EventAction.REINSTANTIATION)
+              /** Section 2.3.2.3, optional. */
+              .put(HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE, EventAction.TRANSFER)
+
+              .put(HistoryEntry.Type.HOST_CREATE, EventAction.REGISTRATION)
+              .put(HistoryEntry.Type.HOST_DELETE, EventAction.DELETION)
               .build();
 
-  private static final ImmutableList<String> CONFORMANCE_LIST =
-      ImmutableList.of(RDAP_CONFORMANCE_LEVEL);
-
-  private static final ImmutableList<String> STATUS_LIST_ACTIVE =
-      ImmutableList.of(RdapStatus.ACTIVE.rfc7483String);
-  private static final ImmutableList<String> STATUS_LIST_INACTIVE =
-      ImmutableList.of(RdapStatus.INACTIVE.rfc7483String);
+  private static final ImmutableList<RdapStatus> STATUS_LIST_ACTIVE =
+      ImmutableList.of(RdapStatus.ACTIVE);
+  private static final ImmutableList<RdapStatus> STATUS_LIST_INACTIVE =
+      ImmutableList.of(RdapStatus.INACTIVE);
   private static final ImmutableMap<String, ImmutableList<String>> PHONE_TYPE_VOICE =
       ImmutableMap.of("type", ImmutableList.of("voice"));
   private static final ImmutableMap<String, ImmutableList<String>> PHONE_TYPE_FAX =
       ImmutableMap.of("type", ImmutableList.of("fax"));
-  private static final ImmutableList<?> VCARD_ENTRY_VERSION =
-      ImmutableList.of("version", ImmutableMap.of(), "text", VCARD_VERSION_NUMBER);
 
   /** Sets the ordering for hosts; just use the fully qualified host name. */
   private static final Ordering<HostResource> HOST_RESOURCE_ORDERING =
@@ -287,182 +189,29 @@ public class RdapJsonFormatter {
   private static final Ordering<DesignatedContact> DESIGNATED_CONTACT_ORDERING =
       Ordering.natural().onResultOf(DesignatedContact::getType);
 
-  ImmutableMap<String, Object> getJsonTosNotice(String rdapLinkBase) {
-    return getJsonHelpNotice(rdapTosPath, rdapLinkBase);
-  }
-
-  ImmutableMap<String, Object> getJsonHelpNotice(
-      String pathSearchString, String rdapLinkBase) {
-    if (pathSearchString.isEmpty()) {
-      pathSearchString = "/";
-    }
-    if (!rdapHelpMap.containsKey(pathSearchString)) {
-      throw new NotFoundException("no help found for " + pathSearchString);
-    }
-    try {
-      return RdapJsonFormatter.makeRdapJsonNotice(rdapHelpMap.get(pathSearchString), rdapLinkBase);
-    } catch (Exception e) {
-      throw new InternalServerErrorException(
-          String.format("Error reading RDAP help file: %s", pathSearchString), e);
-    }
-  }
-
-  /**
-   * Adds the required top-level boilerplate. RFC 7483 specifies that the top-level object should
-   * include an entry indicating the conformance level. The ICANN RDAP Profile document (dated 3
-   * December 2015) mandates several additional entries, in sections 1.4.4, 1.4.10, 1.5.18 and
-   * 1.5.20. Note that this method will only work if there are no object-specific remarks already in
-   * the JSON object being built. If there are, the boilerplate must be merged in.
-   *
-   * @param jsonBuilder a builder for a JSON map object
-   * @param boilerplateType type of boilerplate to be added; the ICANN RDAP Profile document
-   *        mandates extra boilerplate for domain objects
-   * @param notices a list of notices to be inserted before the boilerplate notices. If the TOS
-   *        notice is in this list, the method avoids adding a second copy.
-   * @param remarks a list of remarks to be inserted.
-   * @param rdapLinkBase the base for link URLs
-   */
-  void addTopLevelEntries(
-      ImmutableMap.Builder<String, Object> jsonBuilder,
-      BoilerplateType boilerplateType,
-      List<ImmutableMap<String, Object>> notices,
-      List<ImmutableMap<String, Object>> remarks,
-      String rdapLinkBase) {
-    jsonBuilder.put("rdapConformance", CONFORMANCE_LIST);
-    ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
-        new ImmutableList.Builder<>();
-    ImmutableMap<String, Object> tosNotice = getJsonTosNotice(rdapLinkBase);
-    boolean tosNoticeFound = false;
-    if (!notices.isEmpty()) {
-      noticesBuilder.addAll(notices);
-      for (ImmutableMap<String, Object> notice : notices) {
-        if (notice.equals(tosNotice)) {
-          tosNoticeFound = true;
-          break;
-        }
-      }
-    }
-    if (!tosNoticeFound) {
-      noticesBuilder.add(tosNotice);
-    }
-    switch (boilerplateType) {
-      case DOMAIN:
-        noticesBuilder.addAll(RdapIcannStandardInformation.domainBoilerplateNotices);
-        break;
-      case NAMESERVER:
-      case ENTITY:
-        noticesBuilder.addAll(RdapIcannStandardInformation.nameserverAndEntityBoilerplateNotices);
-        break;
-      default: // things other than domains, nameservers and entities do not yet have boilerplate
-        break;
-    }
-    jsonBuilder.put(NOTICES, noticesBuilder.build());
-    if (!remarks.isEmpty()) {
-      jsonBuilder.put(REMARKS, remarks);
-    }
-  }
-
-  /**
-   * Creates a JSON object containing a notice or remark object, as defined by RFC 7483 § 4.3.
-   * The object should then be inserted into a notices or remarks array. The builder fields are:
-   *
-   * <p>title: the title of the notice; if null, the notice will have no title
-   *
-   * <p>description: objects which will be converted to strings to form the description of the
-   * notice (this is the only required field; all others are optional)
-   *
-   * <p>typeString: the notice or remark type as defined in § 10.2.1; if null, no type
-   *
-   * <p>linkValueSuffix: the path at the end of the URL used in the value field of the link,
-   * without any initial slash (e.g. a suffix of help/toc equates to a URL of
-   * http://example.net/help/toc); if null, no link is created; if it is not null, a single link is
-   * created; this method never creates more than one link)
-   *
-   * <p>htmlUrlString: the path, if any, to be used in the href value of the link; if the URL is
-   * absolute, it is used as is; if it is relative, starting with a slash, it is appended to the
-   * protocol and host of the link base; if it is relative, not starting with a slash, it is
-   * appended to the complete link base; if null, a self link is generated instead, using the link
-   * link value
-   *
-   * <p>linkBase: the base for the link value and href; if null, it is assumed to be the empty
-   * string
-   *
-   * @see <a href="https://tools.ietf.org/html/rfc7483">
-   *     RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
-   */
-  static ImmutableMap<String, Object> makeRdapJsonNotice(
-      RdapNoticeDescriptor parameters, @Nullable String linkBase) {
-    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    if (parameters.getTitle() != null) {
-      jsonBuilder.put("title", parameters.getTitle());
-    }
-    ImmutableList.Builder<String> descriptionBuilder = new ImmutableList.Builder<>();
-    for (String line : parameters.getDescription()) {
-      descriptionBuilder.add(nullToEmpty(line));
-    }
-    jsonBuilder.put("description", descriptionBuilder.build());
-    if (parameters.getTypeString() != null) {
-      jsonBuilder.put("typeString", parameters.getTypeString());
-    }
-    String linkBaseNotNull = nullToEmpty(linkBase);
-    String linkValueSuffixNotNull = nullToEmpty(parameters.getLinkValueSuffix());
-    String linkValueString =
-        String.format(
-            "%s%s%s",
-            linkBaseNotNull,
-            (linkBaseNotNull.endsWith("/") || linkValueSuffixNotNull.startsWith("/")) ? "" : "/",
-            linkValueSuffixNotNull);
-    if (parameters.getLinkHrefUrlString() == null) {
-      jsonBuilder.put("links", ImmutableList.of(ImmutableMap.of(
-          "value", linkValueString,
-          "rel", "self",
-          "href", linkValueString,
-          "type", "application/rdap+json")));
+  /** Creates the TOS notice that is added to every reply. */
+  Notice createTosNotice() {
+    String linkValue = makeRdapServletRelativeUrl("help", RdapHelpAction.TOS_PATH);
+    Link.Builder linkBuilder = Link.builder()
+        .setValue(linkValue);
+    if (rdapTosStaticUrl == null) {
+      linkBuilder.setRel("self").setHref(linkValue).setType("application/rdap+json");
     } else {
-      URI htmlBaseURI = URI.create(nullToEmpty(linkBase));
-      URI htmlUri = htmlBaseURI.resolve(parameters.getLinkHrefUrlString());
-      jsonBuilder.put("links", ImmutableList.of(ImmutableMap.of(
-          "value", linkValueString,
-          "rel", "alternate",
-          "href", htmlUri.toString(),
-          "type", "text/html")));
+      URI htmlBaseURI = URI.create(fullServletPath);
+      URI htmlUri = htmlBaseURI.resolve(rdapTosStaticUrl);
+      linkBuilder.setRel("alternate").setHref(htmlUri.toString()).setType("text/html");
     }
-    return jsonBuilder.build();
-  }
-
-  /**
-   * Creates a JSON object containing a notice with a next page navigation link, which can then be
-   * inserted into a notices array.
-   *
-   * <p>At the moment, only a next page link is supported. Other types of links (e.g. previous page)
-   * could be added in the future, but it's not clear how to generate such links, given the way we
-   * are querying the database.
-   *
-   * @param nextPageUrl URL string used to navigate to next page, or empty if there is no next
-   */
-  static ImmutableMap<String, Object> makeRdapJsonNavigationLinkNotice(
-      Optional<String> nextPageUrl) {
-    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    jsonBuilder.put("title", "Navigation Links");
-    jsonBuilder.put("description", ImmutableList.of("Links to related pages."));
-    if (nextPageUrl.isPresent()) {
-      jsonBuilder.put(
-          "links",
-          ImmutableList.of(
-              ImmutableMap.of(
-                  "rel", "next",
-                  "href", nextPageUrl.get(),
-                  "type", "application/rdap+json")));
-    }
-    return jsonBuilder.build();
+    return Notice.builder()
+        .setTitle("RDAP Terms of Service")
+        .setDescription(rdapTos)
+        .addLink(linkBuilder.build())
+        .build();
   }
 
   /**
    * Creates a JSON object for a {@link DomainBase}.
    *
    * @param domainBase the domain resource object from which the JSON object should be created
-   * @param isTopLevel if true, the top-level boilerplate will be added
-   * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
    * @param now the as-date
@@ -470,174 +219,123 @@ public class RdapJsonFormatter {
    * @param authorization the authorization level of the request; if not authorized for the
    *        registrar owning the domain, no contact information is included
    */
-  ImmutableMap<String, Object> makeRdapJsonForDomain(
+  RdapDomain makeRdapJsonForDomain(
       DomainBase domainBase,
-      boolean isTopLevel,
-      @Nullable String linkBase,
       @Nullable String whoisServer,
       DateTime now,
       OutputDataType outputDataType,
       RdapAuthorization authorization) {
-    // Start with the domain-level information.
-    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    jsonBuilder.put("objectClassName", "domain");
-    jsonBuilder.put("handle", domainBase.getRepoId());
-    jsonBuilder.put("ldhName", domainBase.getFullyQualifiedDomainName());
-    // Only include the unicodeName field if there are unicode characters.
-    if (hasUnicodeComponents(domainBase.getFullyQualifiedDomainName())) {
-      jsonBuilder.put("unicodeName", Idn.toUnicode(domainBase.getFullyQualifiedDomainName()));
-    }
-    jsonBuilder.put(
-        "status",
+    RdapDomain.Builder builder = RdapDomain.builder();
+    // RDAP Response Profile 15feb19 section 2.2:
+    // The domain handle MUST be the ROID
+    builder.setHandle(domainBase.getRepoId());
+    builder.setLdhName(domainBase.getFullyQualifiedDomainName());
+    builder.statusBuilder().addAll(
         makeStatusValueList(
             domainBase.getStatusValues(),
             false, // isRedacted
             domainBase.getDeletionTime().isBefore(now)));
-    jsonBuilder.put("links", ImmutableList.of(
-        makeLink("domain", domainBase.getFullyQualifiedDomainName(), linkBase)));
+    builder.linksBuilder().add(
+        makeSelfLink("domain", domainBase.getFullyQualifiedDomainName()));
     boolean displayContacts =
         authorization.isAuthorizedForClientId(domainBase.getCurrentSponsorClientId());
     // If we are outputting all data (not just summary data), also add information about hosts,
     // contacts and events (history entries). If we are outputting summary data, instead add a
     // remark indicating that fact.
-    List<ImmutableMap<String, Object>> remarks;
     if (outputDataType == OutputDataType.SUMMARY) {
-      remarks = ImmutableList.of(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+      builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
-      remarks = displayContacts
-        ? ImmutableList.of()
-        : ImmutableList.of(RdapIcannStandardInformation.DOMAIN_CONTACTS_HIDDEN_DATA_REMARK);
-      ImmutableList<Object> events = makeEvents(domainBase, now);
-      if (!events.isEmpty()) {
-        jsonBuilder.put("events", events);
-      }
+      ImmutableList<Event> events = makeEvents(domainBase, now);
+      builder.eventsBuilder().addAll(events);
       // Kick off the database loads of the nameservers that we will need, so it can load
       // asynchronously while we load and process the contacts.
       Map<Key<HostResource>, HostResource> loadedHosts =
           ofy().load().keys(domainBase.getNameservers());
       // Load the registrant and other contacts and add them to the data.
-      ImmutableList<ImmutableMap<String, Object>> entities;
       if (!displayContacts) {
-        entities = ImmutableList.of();
+        builder
+            .remarksBuilder()
+            .add(RdapIcannStandardInformation.DOMAIN_CONTACTS_HIDDEN_DATA_REMARK);
       } else {
         Map<Key<ContactResource>, ContactResource> loadedContacts =
             ofy().load().keys(domainBase.getReferencedContacts());
-        entities =
-            Streams.concat(
-                    domainBase.getContacts().stream(),
-                    Stream.of(
-                        DesignatedContact.create(Type.REGISTRANT, domainBase.getRegistrant())))
-                .sorted(DESIGNATED_CONTACT_ORDERING)
-                .map(
-                    designatedContact ->
-                        makeRdapJsonForContact(
-                            loadedContacts.get(designatedContact.getContactKey()),
-                            false,
-                            Optional.of(designatedContact.getType()),
-                            linkBase,
-                            null,
-                            now,
-                            outputDataType,
-                            authorization))
-                .collect(toImmutableList());
+        Streams.concat(
+            domainBase.getContacts().stream(),
+            Stream.of(
+                DesignatedContact.create(Type.REGISTRANT, domainBase.getRegistrant())))
+            .sorted(DESIGNATED_CONTACT_ORDERING)
+            .map(
+                designatedContact ->
+                makeRdapJsonForContact(
+                    loadedContacts.get(designatedContact.getContactKey()),
+                    Optional.of(designatedContact.getType()),
+                    null,
+                    now,
+                    outputDataType,
+                    authorization))
+            .forEach(builder.entitiesBuilder()::add);
       }
-      entities =
-          addRegistrarEntity(
-              entities, domainBase.getCurrentSponsorClientId(), linkBase, whoisServer, now);
-      if (!entities.isEmpty()) {
-        jsonBuilder.put("entities", entities);
-      }
+      builder
+          .entitiesBuilder()
+          .add(
+              createInternalRegistrarEntity(
+                  domainBase.getCurrentSponsorClientId(), whoisServer, now));
       // Add the nameservers to the data; the load was kicked off above for efficiency.
-      ImmutableList.Builder<Object> nsBuilder = new ImmutableList.Builder<>();
       for (HostResource hostResource
           : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
-        nsBuilder.add(makeRdapJsonForHost(
-            hostResource, false, linkBase, null, now, outputDataType));
-      }
-      ImmutableList<Object> ns = nsBuilder.build();
-      if (!ns.isEmpty()) {
-        jsonBuilder.put("nameservers", ns);
+        builder.nameserversBuilder().add(makeRdapJsonForHost(
+            hostResource, null, now, outputDataType));
       }
     }
     if (whoisServer != null) {
-      jsonBuilder.put("port43", whoisServer);
+      builder.setPort43(Port43WhoisServer.create(whoisServer));
     }
-    if (isTopLevel) {
-      addTopLevelEntries(
-          jsonBuilder,
-          BoilerplateType.DOMAIN,
-          remarks,
-          ImmutableList.of(), linkBase);
-    } else if (!remarks.isEmpty()) {
-      jsonBuilder.put(REMARKS, remarks);
-    }
-    return jsonBuilder.build();
+    return builder.build();
   }
 
   /**
-   * Adds a JSON object for the desired registrar to an existing list of JSON objects.
+   * Creates a JSON object for the desired registrar to an existing list of JSON objects.
    *
-   * @param entities list of entities to which the desired registrar should be added
    * @param clientId the registrar client ID
-   * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *     port43 field; if null, port43 is not added to the object
    * @param now the as-date
    */
-  ImmutableList<ImmutableMap<String, Object>> addRegistrarEntity(
-      ImmutableList<ImmutableMap<String, Object>> entities,
-      @Nullable String clientId,
-      @Nullable String linkBase,
+  RdapEntity createInternalRegistrarEntity(
+      String clientId,
       @Nullable String whoisServer,
       DateTime now) {
-    if (clientId == null) {
-      return entities;
-    }
     Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
     if (!registrar.isPresent()) {
-      return entities;
+      throw new InternalServerErrorException(
+          String.format("Coudn't find registrar '%s'", clientId));
     }
-    ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
-    builder.addAll(entities);
     // TODO(b/130150723): we need to display the ABUSE contact for registrar object inside of Domain
-    // responses. Currently, we use summary for any "internal" registrar. 
-    builder.add(
-        makeRdapJsonForRegistrar(
-            registrar.get(),
-            false /* isTopLevel */,
-            linkBase,
-            whoisServer,
-            now,
-            OutputDataType.SUMMARY));
-    return builder.build();
+    // responses. Currently, we use summary for any "internal" registrar.
+    return makeRdapJsonForRegistrar(
+        registrar.get(),
+        whoisServer,
+        now,
+        OutputDataType.SUMMARY);
   }
 
   /**
    * Creates a JSON object for a {@link HostResource}.
    *
    * @param hostResource the host resource object from which the JSON object should be created
-   * @param isTopLevel if true, the top-level boilerplate will be added
-   * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
    */
-  ImmutableMap<String, Object> makeRdapJsonForHost(
+  RdapNameserver makeRdapJsonForHost(
       HostResource hostResource,
-      boolean isTopLevel,
-      @Nullable String linkBase,
       @Nullable String whoisServer,
       DateTime now,
       OutputDataType outputDataType) {
-    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    jsonBuilder.put("objectClassName", "nameserver");
-    jsonBuilder.put("handle", hostResource.getRepoId());
-    jsonBuilder.put("ldhName", hostResource.getFullyQualifiedHostName());
-    // Only include the unicodeName field if there are unicode characters.
-    if (hasUnicodeComponents(hostResource.getFullyQualifiedHostName())) {
-      jsonBuilder.put("unicodeName", Idn.toUnicode(hostResource.getFullyQualifiedHostName()));
-    }
+    RdapNameserver.Builder builder = RdapNameserver.builder()
+        .setHandle(hostResource.getRepoId())
+        .setLdhName(hostResource.getFullyQualifiedHostName());
 
     ImmutableSet.Builder<StatusValue> statuses = new ImmutableSet.Builder<>();
     statuses.addAll(hostResource.getStatusValues());
@@ -650,84 +348,48 @@ public class RdapJsonFormatter {
                 .contains(StatusValue.PENDING_TRANSFER)) {
       statuses.add(StatusValue.PENDING_TRANSFER);
     }
-    jsonBuilder.put(
-        "status",
-        makeStatusValueList(
-            statuses.build(),
-            false, // isRedacted
-            hostResource.getDeletionTime().isBefore(now)));
-    jsonBuilder.put("links", ImmutableList.of(
-        makeLink("nameserver", hostResource.getFullyQualifiedHostName(), linkBase)));
-    List<ImmutableMap<String, Object>> remarks;
+    builder
+        .statusBuilder()
+        .addAll(
+            makeStatusValueList(
+                statuses.build(),
+                false, // isRedacted
+                hostResource.getDeletionTime().isBefore(now)));
+    builder
+        .linksBuilder()
+        .add(makeSelfLink("nameserver", hostResource.getFullyQualifiedHostName()));
+
     // If we are outputting all data (not just summary data), also add events taken from the history
     // entries. If we are outputting summary data, instead add a remark indicating that fact.
     if (outputDataType == OutputDataType.SUMMARY) {
-      remarks = ImmutableList.of(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+      builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
-      remarks = ImmutableList.of();
-      ImmutableList<Object> events = makeEvents(hostResource, now);
-      if (!events.isEmpty()) {
-        jsonBuilder.put("events", events);
+      builder.eventsBuilder().addAll(makeEvents(hostResource, now));
+    }
+
+    // We MUST have the ip addresses: RDAP Response Profile 4.2.
+    for (InetAddress inetAddress : hostResource.getInetAddresses()) {
+      if (inetAddress instanceof Inet4Address) {
+        builder.ipv4Builder().add(InetAddresses.toAddrString(inetAddress));
+      } else if (inetAddress instanceof Inet6Address) {
+        builder.ipv6Builder().add(InetAddresses.toAddrString(inetAddress));
       }
     }
-    ImmutableSet<InetAddress> inetAddresses = hostResource.getInetAddresses();
-    if (!inetAddresses.isEmpty()) {
-      ImmutableList.Builder<String> v4AddressesBuilder = new ImmutableList.Builder<>();
-      ImmutableList.Builder<String> v6AddressesBuilder = new ImmutableList.Builder<>();
-      for (InetAddress inetAddress : inetAddresses) {
-        if (inetAddress instanceof Inet4Address) {
-          v4AddressesBuilder.add(InetAddresses.toAddrString(inetAddress));
-        } else if (inetAddress instanceof Inet6Address) {
-          v6AddressesBuilder.add(InetAddresses.toAddrString(inetAddress));
-        }
-      }
-      ImmutableMap.Builder<String, ImmutableList<String>> ipAddressesBuilder =
-          new ImmutableMap.Builder<>();
-      ImmutableList<String> v4Addresses = v4AddressesBuilder.build();
-      if (!v4Addresses.isEmpty()) {
-        ipAddressesBuilder.put("v4", Ordering.natural().immutableSortedCopy(v4Addresses));
-      }
-      ImmutableList<String> v6Addresses = v6AddressesBuilder.build();
-      if (!v6Addresses.isEmpty()) {
-        ipAddressesBuilder.put("v6", Ordering.natural().immutableSortedCopy(v6Addresses));
-      }
-      ImmutableMap<String, ImmutableList<String>> ipAddresses = ipAddressesBuilder.build();
-      if (!ipAddresses.isEmpty()) {
-        jsonBuilder.put("ipAddresses", ipAddressesBuilder.build());
-      }
-    }
-    ImmutableList<ImmutableMap<String, Object>> entities =
-        addRegistrarEntity(
-            ImmutableList.of(),
-            hostResource.getPersistedCurrentSponsorClientId(),
-            linkBase,
-            whoisServer,
-            now);
-    if (!entities.isEmpty()) {
-      jsonBuilder.put("entities", entities);
-    }
+    builder.entitiesBuilder().add(createInternalRegistrarEntity(
+        hostResource.getPersistedCurrentSponsorClientId(),
+        whoisServer,
+        now));
     if (whoisServer != null) {
-      jsonBuilder.put("port43", whoisServer);
+      builder.setPort43(Port43WhoisServer.create(whoisServer));
     }
-    if (isTopLevel) {
-      addTopLevelEntries(
-          jsonBuilder,
-          BoilerplateType.NAMESERVER,
-          remarks,
-          ImmutableList.of(), linkBase);
-    } else if (!remarks.isEmpty()) {
-      jsonBuilder.put(REMARKS, remarks);
-    }
-    return jsonBuilder.build();
+    return builder.build();
   }
 
   /**
    * Creates a JSON object for a {@link ContactResource} and associated contact type.
    *
    * @param contactResource the contact resource object from which the JSON object should be created
-   * @param isTopLevel if true, the top-level boilerplate will be added
    * @param contactType the contact type to map to an RDAP role; if absent, no role is listed
-   * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
    * @param now the as-date
@@ -735,53 +397,47 @@ public class RdapJsonFormatter {
    * @param authorization the authorization level of the request; personal contact data is only
    *        shown if the contact is owned by a registrar for which the request is authorized
    */
-  ImmutableMap<String, Object> makeRdapJsonForContact(
+  RdapEntity makeRdapJsonForContact(
       ContactResource contactResource,
-      boolean isTopLevel,
       Optional<DesignatedContact.Type> contactType,
-      @Nullable String linkBase,
       @Nullable String whoisServer,
       DateTime now,
       OutputDataType outputDataType,
       RdapAuthorization authorization) {
     boolean isAuthorized =
         authorization.isAuthorizedForClientId(contactResource.getCurrentSponsorClientId());
-    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder
-        = new ImmutableList.Builder<>();
-    jsonBuilder.put("objectClassName", "entity");
-    jsonBuilder.put("handle", contactResource.getRepoId());
-    jsonBuilder.put(
-        "status",
-        makeStatusValueList(
-            isLinked(Key.create(contactResource), now)
-                ? union(contactResource.getStatusValues(), StatusValue.LINKED)
-                : contactResource.getStatusValues(),
-            !isAuthorized,
-            contactResource.getDeletionTime().isBefore(now)));
+
+    RdapEntity.Builder entityBuilder =
+        RdapEntity.builder()
+            .setHandle(contactResource.getRepoId());
+    entityBuilder
+        .statusBuilder()
+        .addAll(
+            makeStatusValueList(
+                isLinked(Key.create(contactResource), now)
+                    ? union(contactResource.getStatusValues(), StatusValue.LINKED)
+                    : contactResource.getStatusValues(),
+                !isAuthorized,
+                contactResource.getDeletionTime().isBefore(now)));
+
     contactType.ifPresent(
-        type -> jsonBuilder.put("roles", ImmutableList.of(convertContactTypeToRdapRole(type))));
-    jsonBuilder.put("links",
-        ImmutableList.of(makeLink("entity", contactResource.getRepoId(), linkBase)));
+        type -> entityBuilder.rolesBuilder().add(convertContactTypeToRdapRole(type)));
+    entityBuilder.linksBuilder().add(makeSelfLink("entity", contactResource.getRepoId()));
     // If we are logged in as the owner of this contact, create the vCard.
     if (isAuthorized) {
-      ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
-      vcardBuilder.add(VCARD_ENTRY_VERSION);
+      VcardArray.Builder vcardBuilder = VcardArray.builder();
       PostalInfo postalInfo = contactResource.getInternationalizedPostalInfo();
       if (postalInfo == null) {
         postalInfo = contactResource.getLocalizedPostalInfo();
       }
       if (postalInfo != null) {
         if (postalInfo.getName() != null) {
-          vcardBuilder.add(ImmutableList.of("fn", ImmutableMap.of(), "text", postalInfo.getName()));
+          vcardBuilder.add(Vcard.create("fn", "text", postalInfo.getName()));
         }
         if (postalInfo.getOrg() != null) {
-          vcardBuilder.add(ImmutableList.of("org", ImmutableMap.of(), "text", postalInfo.getOrg()));
+          vcardBuilder.add(Vcard.create("org", "text", postalInfo.getOrg()));
         }
-        ImmutableList<Object> addressEntry = makeVCardAddressEntry(postalInfo.getAddress());
-        if (addressEntry != null) {
-          vcardBuilder.add(addressEntry);
-        }
+        addVCardAddressEntry(vcardBuilder, postalInfo.getAddress());
       }
       ContactPhoneNumber voicePhoneNumber = contactResource.getVoiceNumber();
       if (voicePhoneNumber != null) {
@@ -793,91 +449,66 @@ public class RdapJsonFormatter {
       }
       String emailAddress = contactResource.getEmailAddress();
       if (emailAddress != null) {
-        vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
+        vcardBuilder.add(Vcard.create("email", "text", emailAddress));
       }
-      jsonBuilder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
+      entityBuilder.setVcardArray(vcardBuilder.build());
     } else {
-      remarksBuilder.add(RdapIcannStandardInformation.CONTACT_PERSONAL_DATA_HIDDEN_DATA_REMARK);
+      entityBuilder
+          .remarksBuilder()
+          .add(RdapIcannStandardInformation.CONTACT_PERSONAL_DATA_HIDDEN_DATA_REMARK);
     }
     // If we are outputting all data (not just summary data), also add events taken from the history
     // entries. If we are outputting summary data, instead add a remark indicating that fact.
     if (outputDataType == OutputDataType.SUMMARY) {
-      remarksBuilder.add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+      entityBuilder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
-      ImmutableList<Object> events = makeEvents(contactResource, now);
-      if (!events.isEmpty()) {
-        jsonBuilder.put("events", events);
-      }
+      entityBuilder.eventsBuilder().addAll(makeEvents(contactResource, now));
     }
     if (whoisServer != null) {
-      jsonBuilder.put("port43", whoisServer);
+      entityBuilder.setPort43(Port43WhoisServer.create(whoisServer));
     }
-    if (isTopLevel) {
-      addTopLevelEntries(
-          jsonBuilder,
-          BoilerplateType.ENTITY,
-          remarksBuilder.build(),
-          ImmutableList.of(),
-          linkBase);
-    } else {
-      ImmutableList<ImmutableMap<String, Object>> remarks = remarksBuilder.build();
-      if (!remarks.isEmpty()) {
-        jsonBuilder.put(REMARKS, remarks);
-      }
-    }
-    return jsonBuilder.build();
+    return entityBuilder.build();
   }
 
   /**
    * Creates a JSON object for a {@link Registrar}.
    *
    * @param registrar the registrar object from which the JSON object should be created
-   * @param isTopLevel if true, the top-level boilerplate will be added
-   * @param linkBase the URL base to be used when creating links
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *        port43 field; if null, port43 is not added to the object
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
    */
-  ImmutableMap<String, Object> makeRdapJsonForRegistrar(
+  RdapEntity makeRdapJsonForRegistrar(
       Registrar registrar,
-      boolean isTopLevel,
-      @Nullable String linkBase,
       @Nullable String whoisServer,
       DateTime now,
       OutputDataType outputDataType) {
-    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    jsonBuilder.put("objectClassName", "entity");
+    RdapEntity.Builder builder = RdapEntity.builder();
     Long ianaIdentifier = registrar.getIanaIdentifier();
-    jsonBuilder.put("handle", (ianaIdentifier == null) ? "(none)" : ianaIdentifier.toString());
-    jsonBuilder.put("status", registrar.isLive() ? STATUS_LIST_ACTIVE : STATUS_LIST_INACTIVE);
-    jsonBuilder.put("roles", ImmutableList.of(RdapEntityRole.REGISTRAR.rfc7483String));
+    // the handle MUST be the ianaIdentifier, RDAP Response Profile 2.4.2.
+    builder.setHandle((ianaIdentifier == null) ? "(none)" : ianaIdentifier.toString());
+    builder.statusBuilder().addAll(registrar.isLive() ? STATUS_LIST_ACTIVE : STATUS_LIST_INACTIVE);
+    builder.rolesBuilder().add(RdapEntity.Role.REGISTRAR);
     if (ianaIdentifier != null) {
-      jsonBuilder.put("links",
-          ImmutableList.of(makeLink("entity", ianaIdentifier.toString(), linkBase)));
-      jsonBuilder.put(
-          "publicIds",
-          ImmutableList.of(
-              ImmutableMap.of(
-                  "type", "IANA Registrar ID", "identifier", ianaIdentifier.toString())));
+      builder.linksBuilder().add(makeSelfLink("entity", ianaIdentifier.toString()));
+      // We MUST have a publicId with the ianaIdentifier, RDAP Response Profile 2.4.3, 4.3
+      builder
+          .publicIdsBuilder()
+          .add(PublicId.create(PublicId.Type.IANA_REGISTRAR_ID, ianaIdentifier.toString()));
     }
     // Create the vCard.
-    ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
-    vcardBuilder.add(VCARD_ENTRY_VERSION);
+    VcardArray.Builder vcardBuilder = VcardArray.builder();
     String registrarName = registrar.getRegistrarName();
     if (registrarName != null) {
-      vcardBuilder.add(ImmutableList.of("fn", ImmutableMap.of(), "text", registrarName));
+      // A valid fn member MUST be present: RDAP Response Profile 2.4.1.
+      vcardBuilder.add(Vcard.create("fn", "text", registrarName));
     }
     RegistrarAddress address = registrar.getInternationalizedAddress();
     if (address == null) {
       address = registrar.getLocalizedAddress();
     }
-    if (address != null) {
-      ImmutableList<Object> addressEntry = makeVCardAddressEntry(address);
-      if (addressEntry != null) {
-        vcardBuilder.add(addressEntry);
-      }
-    }
+    addVCardAddressEntry(vcardBuilder, address);
     String voicePhoneNumber = registrar.getPhoneNumber();
     if (voicePhoneNumber != null) {
       vcardBuilder.add(makePhoneEntry(PHONE_TYPE_VOICE, "tel:" + voicePhoneNumber));
@@ -888,77 +519,55 @@ public class RdapJsonFormatter {
     }
     String emailAddress = registrar.getEmailAddress();
     if (emailAddress != null) {
-      vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
+      vcardBuilder.add(Vcard.create("email", "text", emailAddress));
     }
-    jsonBuilder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
+    builder.setVcardArray(vcardBuilder.build());
     // If we are outputting all data (not just summary data), also add registrar contacts. If we are
     // outputting summary data, instead add a remark indicating that fact.
-    List<ImmutableMap<String, Object>> remarks;
     if (outputDataType == OutputDataType.SUMMARY) {
-      remarks = ImmutableList.of(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+      builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
-      remarks = ImmutableList.of();
-      ImmutableList<Object> events = makeEvents(registrar, now);
-      if (!events.isEmpty()) {
-        jsonBuilder.put("events", events);
-      }
+      builder.eventsBuilder().addAll(makeEvents(registrar, now));
       // include the registrar contacts as subentities
-      ImmutableList<ImmutableMap<String, Object>> registrarContacts =
+      ImmutableList<RdapEntity> registrarContacts =
           registrar.getContacts().stream()
-              .map(registrarContact -> makeRdapJsonForRegistrarContact(registrarContact, null))
-              .filter(entity -> !entity.isEmpty())
-              .collect(toImmutableList());
+          .map(registrarContact -> makeRdapJsonForRegistrarContact(registrarContact, null))
+          .filter(optional -> optional.isPresent())
+          .map(optional -> optional.get())
+          .collect(toImmutableList());
       // TODO(b/117242274): add a warning (severe?) log if registrar has no ABUSE contact, as having
       // one is required by the RDAP response profile
-      if (!registrarContacts.isEmpty()) {
-        jsonBuilder.put("entities", registrarContacts);
-      }
+      builder.entitiesBuilder().addAll(registrarContacts);
     }
     if (whoisServer != null) {
-      jsonBuilder.put("port43", whoisServer);
+      builder.setPort43(Port43WhoisServer.create(whoisServer));
     }
-    if (isTopLevel) {
-      addTopLevelEntries(
-          jsonBuilder,
-          BoilerplateType.ENTITY,
-          remarks,
-          ImmutableList.of(),
-          linkBase);
-    } else if (!remarks.isEmpty()) {
-      jsonBuilder.put(REMARKS, remarks);
-    }
-    return jsonBuilder.build();
+    return builder.build();
   }
 
   /**
    * Creates a JSON object for a {@link RegistrarContact}.
    *
-   * <p>Returns an empty object if this contact shouldn't be visible (doesn't have a role).
+   * <p>Returns empty if this contact shouldn't be visible (doesn't have a role).
    *
    * @param registrarContact the registrar contact for which the JSON object should be created
    * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
    *     port43 field; if null, port43 is not added to the object
    */
-  static ImmutableMap<String, Object> makeRdapJsonForRegistrarContact(
+  static Optional<RdapEntity> makeRdapJsonForRegistrarContact(
       RegistrarContact registrarContact, @Nullable String whoisServer) {
-    ImmutableList<String> roles = makeRdapRoleList(registrarContact);
+    ImmutableList<RdapEntity.Role> roles = makeRdapRoleList(registrarContact);
     if (roles.isEmpty()) {
-      return ImmutableMap.of();
+      return Optional.empty();
     }
-    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    jsonBuilder.put("objectClassName", "entity");
-    String gaeUserId = registrarContact.getGaeUserId();
-    if (gaeUserId != null) {
-      jsonBuilder.put("handle", registrarContact.getGaeUserId());
-    }
-    jsonBuilder.put("status", STATUS_LIST_ACTIVE);
-    jsonBuilder.put("roles", roles);
+    RdapEntity.Builder builder = RdapEntity.builder();
+    builder.statusBuilder().addAll(STATUS_LIST_ACTIVE);
+    builder.rolesBuilder().addAll(roles);
     // Create the vCard.
-    ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
-    vcardBuilder.add(VCARD_ENTRY_VERSION);
+    VcardArray.Builder vcardBuilder = VcardArray.builder();
     String name = registrarContact.getName();
     if (name != null) {
-      vcardBuilder.add(ImmutableList.of("fn", ImmutableMap.of(), "text", name));
+      vcardBuilder.add(Vcard.create("fn", "text", name));
     }
     String voicePhoneNumber = registrarContact.getPhoneNumber();
     if (voicePhoneNumber != null) {
@@ -970,26 +579,26 @@ public class RdapJsonFormatter {
     }
     String emailAddress = registrarContact.getEmailAddress();
     if (emailAddress != null) {
-      vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
+      vcardBuilder.add(Vcard.create("email", "text", emailAddress));
     }
-    jsonBuilder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
+    builder.setVcardArray(vcardBuilder.build());
     if (whoisServer != null) {
-      jsonBuilder.put("port43", whoisServer);
+      builder.setPort43(Port43WhoisServer.create(whoisServer));
     }
-    return jsonBuilder.build();
+    return Optional.of(builder.build());
   }
 
   /** Converts a domain registry contact type into a role as defined by RFC 7483. */
-  private static String convertContactTypeToRdapRole(DesignatedContact.Type contactType) {
+  private static RdapEntity.Role convertContactTypeToRdapRole(DesignatedContact.Type contactType) {
     switch (contactType) {
       case REGISTRANT:
-        return RdapEntityRole.REGISTRANT.rfc7483String;
+        return RdapEntity.Role.REGISTRANT;
       case TECH:
-        return RdapEntityRole.TECH.rfc7483String;
+        return RdapEntity.Role.TECH;
       case BILLING:
-        return RdapEntityRole.BILLING.rfc7483String;
+        return RdapEntity.Role.BILLING;
       case ADMIN:
-        return RdapEntityRole.ADMIN.rfc7483String;
+        return RdapEntity.Role.ADMIN;
       default:
         throw new AssertionError();
     }
@@ -1006,16 +615,17 @@ public class RdapJsonFormatter {
    * *abuse* role within the registrar *entity* which MUST include *tel* and *email*, and MAY
    * include other members
    */
-  private static ImmutableList<String> makeRdapRoleList(RegistrarContact registrarContact) {
-    ImmutableList.Builder<String> rolesBuilder = new ImmutableList.Builder<>();
+  private static ImmutableList<RdapEntity.Role> makeRdapRoleList(
+      RegistrarContact registrarContact) {
+    ImmutableList.Builder<RdapEntity.Role> rolesBuilder = new ImmutableList.Builder<>();
     if (registrarContact.getVisibleInWhoisAsAdmin()) {
-      rolesBuilder.add(RdapEntityRole.ADMIN.rfc7483String);
+      rolesBuilder.add(RdapEntity.Role.ADMIN);
     }
     if (registrarContact.getVisibleInWhoisAsTech()) {
-      rolesBuilder.add(RdapEntityRole.TECH.rfc7483String);
+      rolesBuilder.add(RdapEntity.Role.TECH);
     }
     if (registrarContact.getVisibleInDomainWhoisAsAbuse()) {
-      rolesBuilder.add(RdapEntityRole.ABUSE.rfc7483String);
+      rolesBuilder.add(RdapEntity.Role.ABUSE);
     }
     return rolesBuilder.build();
   }
@@ -1023,8 +633,8 @@ public class RdapJsonFormatter {
   /**
    * Creates an event list for a domain, host or contact resource.
    */
-  private static ImmutableList<Object> makeEvents(EppResource resource, DateTime now) {
-    HashMap<RdapEventAction, HistoryEntry> lastEntryOfType = Maps.newHashMap();
+  private static ImmutableList<Event> makeEvents(EppResource resource, DateTime now) {
+    HashMap<EventAction, HistoryEntry> lastEntryOfType = Maps.newHashMap();
     // Events (such as transfer, but also create) can appear multiple times. We only want the last
     // time they appeared.
     //
@@ -1038,7 +648,7 @@ public class RdapJsonFormatter {
     // domain name has not been transferred since it was created.
     for (HistoryEntry historyEntry :
         ofy().load().type(HistoryEntry.class).ancestor(resource).order("modificationTime")) {
-      RdapEventAction rdapEventAction =
+      EventAction rdapEventAction =
           HISTORY_ENTRY_TYPE_TO_RDAP_EVENT_ACTION_MAP.get(historyEntry.getType());
       // Only save the historyEntries if this is a type we care about.
       if (rdapEventAction == null) {
@@ -1046,7 +656,7 @@ public class RdapJsonFormatter {
       }
       lastEntryOfType.put(rdapEventAction, historyEntry);
     }
-    ImmutableList.Builder<Object> eventsBuilder = new ImmutableList.Builder<>();
+    ImmutableList.Builder<Event> eventsBuilder = new ImmutableList.Builder<>();
     // There are 2 possibly conflicting values for the creation time - either the
     // resource.getCreationTime, or the REGISTRATION event created from a HistoryEntry
     //
@@ -1056,15 +666,15 @@ public class RdapJsonFormatter {
     // This is mostly an issue in the tests as in "reality" these two values should be the same.
     //
     DateTime creationTime =
-        Optional.ofNullable(lastEntryOfType.get(RdapEventAction.REGISTRATION))
+        Optional.ofNullable(lastEntryOfType.get(EventAction.REGISTRATION))
             .map(historyEntry -> historyEntry.getModificationTime())
             .orElse(resource.getCreationTime());
     // TODO(b/129849684) remove this and use the events List defined above once we have Event
     // objects
     ImmutableList.Builder<DateTime> changeTimesBuilder = new ImmutableList.Builder<>();
     // The order of the elements is stable - it's the order in which the enum elements are defined
-    // in RdapEventAction
-    for (RdapEventAction rdapEventAction : RdapEventAction.values()) {
+    // in EventAction
+    for (EventAction rdapEventAction : EventAction.values()) {
       HistoryEntry historyEntry = lastEntryOfType.get(rdapEventAction);
       // Check if there was any entry of this type
       if (historyEntry == null) {
@@ -1077,13 +687,22 @@ public class RdapJsonFormatter {
       if (modificationTime.isBefore(creationTime)) {
         continue;
       }
-      eventsBuilder.add(makeEvent(rdapEventAction, historyEntry.getClientId(), modificationTime));
+      eventsBuilder.add(
+          Event.builder()
+              .setEventAction(rdapEventAction)
+              .setEventActor(historyEntry.getClientId())
+              .setEventDate(modificationTime)
+              .build());
       changeTimesBuilder.add(modificationTime);
     }
     if (resource instanceof DomainBase) {
       DateTime expirationTime = ((DomainBase) resource).getRegistrationExpirationTime();
       if (expirationTime != null) {
-        eventsBuilder.add(makeEvent(RdapEventAction.EXPIRATION, null, expirationTime));
+        eventsBuilder.add(
+            Event.builder()
+                .setEventAction(EventAction.EXPIRATION)
+                .setEventDate(expirationTime)
+                .build());
         changeTimesBuilder.add(expirationTime);
       }
     }
@@ -1098,9 +717,9 @@ public class RdapJsonFormatter {
         .max(DateTimeComparator.getInstance())
         .orElse(null);
     if (lastChangeTime != null && lastChangeTime.isAfter(creationTime)) {
-      eventsBuilder.add(makeEvent(RdapEventAction.LAST_CHANGED, null, lastChangeTime));
+      eventsBuilder.add(makeEvent(EventAction.LAST_CHANGED, null, lastChangeTime));
     }
-    eventsBuilder.add(makeEvent(RdapEventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, now));
+    eventsBuilder.add(makeEvent(EventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, now));
     // TODO(b/129849684): sort events by their time once we return a list of Events instead of JSON
     // objects.
     return eventsBuilder.build();
@@ -1109,34 +728,36 @@ public class RdapJsonFormatter {
   /**
    * Creates an event list for a {@link Registrar}.
    */
-  private static ImmutableList<Object> makeEvents(Registrar registrar, DateTime now) {
-    ImmutableList.Builder<Object> eventsBuilder = new ImmutableList.Builder<>();
+  private static ImmutableList<Event> makeEvents(Registrar registrar, DateTime now) {
+    ImmutableList.Builder<Event> eventsBuilder = new ImmutableList.Builder<>();
     Long ianaIdentifier = registrar.getIanaIdentifier();
     eventsBuilder.add(makeEvent(
-        RdapEventAction.REGISTRATION,
+        EventAction.REGISTRATION,
         (ianaIdentifier == null) ? "(none)" : ianaIdentifier.toString(),
         registrar.getCreationTime()));
     if ((registrar.getLastUpdateTime() != null)
         && registrar.getLastUpdateTime().isAfter(registrar.getCreationTime())) {
       eventsBuilder.add(makeEvent(
-          RdapEventAction.LAST_CHANGED, null, registrar.getLastUpdateTime()));
+          EventAction.LAST_CHANGED, null, registrar.getLastUpdateTime()));
     }
-    eventsBuilder.add(makeEvent(RdapEventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, now));
+    eventsBuilder.add(makeEvent(EventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, now));
     return eventsBuilder.build();
   }
 
   /**
    * Creates an RDAP event object as defined by RFC 7483.
    */
-  private static ImmutableMap<String, Object> makeEvent(
-      RdapEventAction eventAction, @Nullable String eventActor, DateTime eventDate) {
-    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    jsonBuilder.put("eventAction", eventAction.getDisplayName());
+  private static Event makeEvent(
+      EventAction eventAction,
+      @Nullable String eventActor,
+      DateTime eventDate) {
+    Event.Builder builder = Event.builder()
+        .setEventAction(eventAction)
+        .setEventDate(eventDate);
     if (eventActor != null) {
-      jsonBuilder.put("eventActor", eventActor);
+      builder.setEventActor(eventActor);
     }
-    jsonBuilder.put("eventDate", eventDate.toString());
-    return jsonBuilder.build();
+    return builder.build();
   }
 
   /**
@@ -1145,13 +766,13 @@ public class RdapJsonFormatter {
    * @see <a href="https://tools.ietf.org/html/rfc7095">
    *        RFC 7095: jCard: The JSON Format for vCard</a>
    */
-  private static ImmutableList<Object> makeVCardAddressEntry(Address address) {
+  private static void addVCardAddressEntry(VcardArray.Builder vcardArrayBuilder, Address address) {
     if (address == null) {
-      return null;
+      return;
     }
-    ImmutableList.Builder<Object> jsonBuilder = new ImmutableList.Builder<>();
-    jsonBuilder.add(""); // PO box
-    jsonBuilder.add(""); // extended address
+    JsonArray addressArray = new JsonArray();
+    addressArray.add(""); // PO box
+    addressArray.add(""); // extended address
 
     // The vCard spec allows several different ways to handle multiline street addresses. Per
     // Gustavo Lozano of ICANN, the one we should use is an embedded array of street address lines
@@ -1181,27 +802,30 @@ public class RdapJsonFormatter {
     //   according to RFC 7095.
     ImmutableList<String> street = address.getStreet();
     if (street.isEmpty()) {
-      jsonBuilder.add("");
+      addressArray.add("");
     } else if (street.size() == 1) {
-      jsonBuilder.add(street.get(0));
+      addressArray.add(street.get(0));
     } else {
-      jsonBuilder.add(street);
+      JsonArray streetArray = new JsonArray();
+      street.forEach(streetArray::add);
+      addressArray.add(streetArray);
     }
-    jsonBuilder.add(nullToEmpty(address.getCity()));
-    jsonBuilder.add(nullToEmpty(address.getState()));
-    jsonBuilder.add(nullToEmpty(address.getZip()));
-    jsonBuilder.add(new Locale("en", address.getCountryCode()).getDisplayCountry(new Locale("en")));
-    return ImmutableList.of(
+    addressArray.add(nullToEmpty(address.getCity()));
+    addressArray.add(nullToEmpty(address.getState()));
+    addressArray.add(nullToEmpty(address.getZip()));
+    addressArray.add(
+        new Locale("en", address.getCountryCode()).getDisplayCountry(new Locale("en")));
+    vcardArrayBuilder.add(Vcard.create(
         "adr",
-        ImmutableMap.of(),
         "text",
-        jsonBuilder.build());
+        addressArray));
   }
 
   /** Creates a vCard phone number entry. */
-  private static ImmutableList<Object> makePhoneEntry(
+  private static Vcard makePhoneEntry(
       ImmutableMap<String, ImmutableList<String>> type, String phoneNumber) {
-    return ImmutableList.of("tel", type, "uri", phoneNumber);
+
+    return Vcard.create("tel", type, "uri", phoneNumber);
   }
 
   /** Creates a phone string in URI format, as per the vCard spec. */
@@ -1220,7 +844,7 @@ public class RdapJsonFormatter {
    * indicate deleted objects, and as directed by the profile, the "removed" status to indicate
    * redacted objects.
    */
-  private static ImmutableList<String> makeStatusValueList(
+  private static ImmutableList<RdapStatus> makeStatusValueList(
       ImmutableSet<StatusValue> statusValues, boolean isRedacted, boolean isDeleted) {
     Stream<RdapStatus> stream =
         statusValues
@@ -1236,51 +860,34 @@ public class RdapJsonFormatter {
               Stream.of(RdapStatus.INACTIVE));
     }
     return stream
-        .map(RdapStatus::getDisplayName)
-        .collect(toImmutableSortedSet(Ordering.natural()))
-        .asList();
+        .sorted(Ordering.natural().onResultOf(RdapStatus::getDisplayName))
+        .collect(toImmutableList());
+  }
+
+  /**
+   * Create a link relative to the RDAP server endpoint.
+   */
+  String makeRdapServletRelativeUrl(String part, String... moreParts) {
+    String relativePath = Paths.get(part, moreParts).toString();
+    if (fullServletPath.endsWith("/")) {
+      return fullServletPath + relativePath;
+    }
+    return fullServletPath + "/" + relativePath;
   }
 
   /**
    * Creates a self link as directed by the spec.
    *
-   * @see <a href="https://tools.ietf.org/html/rfc7483">
-   *        RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
+   * @see <a href="https://tools.ietf.org/html/rfc7483">RFC 7483: JSON Responses for the
+   *     Registration Data Access Protocol (RDAP)</a>
    */
-  private static ImmutableMap<String, String> makeLink(
-      String type, String name, @Nullable String linkBase) {
-    String url;
-    if (linkBase == null) {
-      url = type + '/' + name;
-    } else if (linkBase.endsWith("/")) {
-      url = linkBase + type + '/' + name;
-    } else {
-      url = linkBase + '/' + type + '/' + name;
-    }
-    return ImmutableMap.of(
-        "value", url,
-        "rel", "self",
-        "href", url,
-        "type", "application/rdap+json");
-  }
-
-  /**
-   * Creates a JSON error indication.
-   *
-   * @see <a href="https://tools.ietf.org/html/rfc7483">
-   *        RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
-   */
-  ImmutableMap<String, Object> makeError(int status, String title, String description) {
-    return ImmutableMap.of(
-        "rdapConformance", CONFORMANCE_LIST,
-        "lang", "en",
-        "errorCode", (long) status,
-        "title", title,
-        "description", ImmutableList.of(description));
-  }
-
-  private static boolean hasUnicodeComponents(String fullyQualifiedName) {
-    return fullyQualifiedName.startsWith(ACE_PREFIX)
-        || fullyQualifiedName.contains("." + ACE_PREFIX);
+  private Link makeSelfLink(String type, String name) {
+    String url = makeRdapServletRelativeUrl(type, name);
+    return Link.builder()
+        .setValue(url)
+        .setRel("self")
+        .setHref(url)
+        .setType("application/rdap+json")
+        .build();
   }
 }

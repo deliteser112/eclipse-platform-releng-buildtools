@@ -26,7 +26,6 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
@@ -1267,19 +1266,6 @@ public final class RegistryConfig {
       return ImmutableList.copyOf(config.credentialOAuth.localCredentialOauthScopes);
     }
 
-    /**
-     * Returns the help path for the RDAP terms of service.
-     *
-     * <p>Make sure that this path is equal to the key of the entry in the RDAP help map containing
-     * the terms of service. The ICANN operational profile requires that the TOS be included in all
-     * responses, and this string is used to find the TOS in the help map.
-     */
-    @Provides
-    @Config("rdapTosPath")
-    public static String provideRdapTosPath() {
-      return "/tos";
-    }
-
     /** OAuth client ID used by the nomulus tool. */
     @Provides
     @Config("toolsClientId")
@@ -1310,51 +1296,6 @@ public final class RegistryConfig {
     @Nullable
     public static String provideRdapTosStaticUrl(RegistryConfigSettings config) {
       return config.registryPolicy.rdapTosStaticUrl;
-    }
-
-    /**
-     * Returns the help text to be used by RDAP.
-     *
-     * <p>Make sure that the map entry for the terms of service use the same key as specified in
-     * rdapTosPath above.
-     */
-    @Singleton
-    @Provides
-    @Config("rdapHelpMap")
-    public static ImmutableMap<String, RdapNoticeDescriptor> provideRdapHelpMap(
-        @Config("rdapTos") ImmutableList<String> rdapTos,
-        @Config("rdapTosStaticUrl") @Nullable String rdapTosStaticUrl) {
-      return new ImmutableMap.Builder<String, RdapNoticeDescriptor>()
-          .put(
-              "/",
-              RdapNoticeDescriptor.builder()
-                  .setTitle("RDAP Help")
-                  .setDescription(
-                      ImmutableList.of(
-                          "domain/XXXX",
-                          "nameserver/XXXX",
-                          "entity/XXXX",
-                          "domains?name=XXXX",
-                          "domains?nsLdhName=XXXX",
-                          "domains?nsIp=XXXX",
-                          "nameservers?name=XXXX",
-                          "nameservers?ip=XXXX",
-                          "entities?fn=XXXX",
-                          "entities?handle=XXXX",
-                          "help/XXXX"))
-                  .setLinkValueSuffix("help/")
-                  .setLinkHrefUrlString(
-                      "https://github.com/google/nomulus/blob/master/docs/rdap.md")
-                  .build())
-          .put(
-              "/tos",
-              RdapNoticeDescriptor.builder()
-                  .setTitle("RDAP Terms of Service")
-                  .setDescription(rdapTos)
-                  .setLinkValueSuffix("help/tos")
-                  .setLinkHrefUrlString(rdapTosStaticUrl)
-                  .build())
-          .build();
     }
   }
 

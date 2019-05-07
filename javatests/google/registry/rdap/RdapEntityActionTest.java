@@ -24,7 +24,6 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainBase;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableList;
@@ -41,7 +40,7 @@ import google.registry.request.Action;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import org.json.simple.JSONValue;
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -132,51 +131,27 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
             clock.nowUtc().minusMonths(6));
   }
 
-  private Object generateExpectedJson(String handle, String expectedOutputFile) {
-    return generateExpectedJson(handle, "(◕‿◕)", "", expectedOutputFile);
-  }
-
-  private Object generateExpectedJson(
-      String handle,
-      String status,
-      String expectedOutputFile) {
-    return generateExpectedJson(handle, "(◕‿◕)", status, expectedOutputFile);
-  }
-
-  private Object generateExpectedJson(
-      String handle,
-      String fullName,
-      String status,
-      String expectedOutputFile) {
-    return generateExpectedJson(
-        handle, fullName, status, null, expectedOutputFile);
-  }
-
   private Object generateExpectedJson(
       String handle,
       String fullName,
       String status,
       @Nullable String address,
       String expectedOutputFile) {
-    return JSONValue.parse(
-        loadFile(
-            this.getClass(),
-            expectedOutputFile,
-            new ImmutableMap.Builder<String, String>()
-                .put("NAME", handle)
-                .put("FULLNAME", fullName)
-                .put("ADDRESS", (address == null) ? "\"1 Smiley Row\", \"Suite みんな\"" : address)
-                .put("EMAIL", "lol@cat.みんな")
-                .put("TYPE", "entity")
-                .put("STATUS", status)
-                .build()));
+    return loadJsonFile(
+        expectedOutputFile,
+        "NAME", handle,
+        "FULLNAME", fullName,
+        "ADDRESS", (address == null) ? "\"1 Smiley Row\", \"Suite みんな\"" : address,
+        "EMAIL", "lol@cat.みんな",
+        "TYPE", "entity",
+        "STATUS", status);
   }
 
   private Object generateExpectedJsonWithTopLevelEntries(
       String handle,
       String expectedOutputFile) {
     return generateExpectedJsonWithTopLevelEntries(
-        handle, "(◕‿◕)", "active", null, false, expectedOutputFile);
+        handle, "(◕‿◕)", "active", null, expectedOutputFile);
   }
 
   private Object generateExpectedJsonWithTopLevelEntries(
@@ -184,35 +159,26 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
       String fullName,
       String status,
       String address,
-      boolean addNoPersonalDataRemark,
       String expectedOutputFile) {
     Object obj = generateExpectedJson(handle, fullName, status, address, expectedOutputFile);
     if (obj instanceof Map) {
       @SuppressWarnings("unchecked")
       Map<String, Object> map = (Map<String, Object>) obj;
       ImmutableMap.Builder<String, Object> builder =
-          RdapTestHelper.getBuilderExcluding(
-              map, ImmutableSet.of("rdapConformance", "notices", "remarks"));
-      builder.put("rdapConformance", ImmutableList.of("icann_rdap_response_profile_0"));
+          RdapTestHelper.getBuilderExcluding(map, ImmutableSet.of("notices"));
       RdapTestHelper.addNonDomainBoilerplateNotices(
-          builder,
-          RdapTestHelper.createNotices(
-              "https://example.tld/rdap/",
-              addNoPersonalDataRemark
-                  ? RdapTestHelper.ContactNoticeType.CONTACT
-                  : RdapTestHelper.ContactNoticeType.NONE,
-              map.get("notices")));
-      obj = builder.build();
+          builder, RdapTestHelper.createNotices("https://example.tld/rdap/", map.get("notices")));
+      obj = new JSONObject(builder.build());
     }
     return obj;
   }
 
   private void runSuccessfulTest(String queryString, String fileName) {
-    runSuccessfulTest(queryString, "(◕‿◕)", "active", null, false, fileName);
+    runSuccessfulTest(queryString, "(◕‿◕)", "active", null, fileName);
   }
 
   private void runSuccessfulTest(String queryString, String fullName, String fileName) {
-    runSuccessfulTest(queryString, fullName, "active", null, false, fileName);
+    runSuccessfulTest(queryString, fullName, "active", null, fileName);
   }
 
   private void runSuccessfulTest(
@@ -220,27 +186,26 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
       String fullName,
       String rdapStatus,
       String address,
-      boolean addNoPersonalDataRemark,
       String fileName) {
     assertThat(generateActualJson(queryString))
         .isEqualTo(
             generateExpectedJsonWithTopLevelEntries(
-                queryString, fullName, rdapStatus, address, addNoPersonalDataRemark, fileName));
+                queryString, fullName, rdapStatus, address, fileName));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   private void runNotFoundTest(String queryString) {
     assertThat(generateActualJson(queryString))
-        .isEqualTo(generateExpectedJson(queryString + " not found", "", "rdap_error_404.json"));
+        .isEqualTo(generateExpectedJsonError(queryString + " not found", 404));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
   public void testInvalidEntity_returns400() {
     assertThat(generateActualJson("invalid/entity/handle")).isEqualTo(
-        generateExpectedJson(
+        generateExpectedJsonError(
             "invalid/entity/handle is not a valid entity handle",
-            "rdap_error_400.json"));
+            400));
     assertThat(response.getStatus()).isEqualTo(400);
   }
 
@@ -282,7 +247,6 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
         "(◕‿◕)",
         "active",
         null,
-        true,
         "rdap_associated_contact_no_personal_data.json");
   }
 
@@ -294,7 +258,6 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
         "(◕‿◕)",
         "active",
         null,
-        true,
         "rdap_associated_contact_no_personal_data.json");
   }
 
@@ -349,7 +312,6 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
         "",
         "inactive",
         "",
-        false,
         "rdap_contact_deleted.json");
   }
 
@@ -362,7 +324,6 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
         "",
         "inactive",
         "",
-        false,
         "rdap_contact_deleted.json");
   }
 
@@ -409,7 +370,7 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
     login("deletedregistrar");
     action.includeDeletedParam = Optional.of(true);
     runSuccessfulTest(
-        "104", "Yes Virginia <script>", "inactive", null, false, "rdap_registrar.json");
+        "104", "Yes Virginia <script>", "inactive", null, "rdap_registrar.json");
   }
 
   @Test
@@ -424,7 +385,7 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
     loginAsAdmin();
     action.includeDeletedParam = Optional.of(true);
     runSuccessfulTest(
-        "104", "Yes Virginia <script>", "inactive", null, false, "rdap_registrar.json");
+        "104", "Yes Virginia <script>", "inactive", null, "rdap_registrar.json");
   }
 
   @Test

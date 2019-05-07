@@ -22,7 +22,6 @@ import static google.registry.request.Action.Method.HEAD;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
@@ -33,11 +32,11 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
-import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapMetrics.WildcardType;
+import google.registry.rdap.RdapSearchResults.DomainSearchResponse;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -48,7 +47,6 @@ import google.registry.request.auth.Auth;
 import google.registry.util.Idn;
 import google.registry.util.NonFinalForTesting;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -93,7 +91,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * <p>The RDAP spec allows for domain search by domain name, nameserver name or nameserver IP.
    */
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(
+  public DomainSearchResponse getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/domains?name=exam*.com.
@@ -107,7 +105,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
           "You must specify either name=XXXX, nsLdhName=YYYY or nsIp=ZZZZ");
     }
     decodeCursorToken();
-    RdapSearchResults results;
+    DomainSearchResponse results;
     if (nameParam.isPresent()) {
       metricInformationBuilder.setSearchType(SearchType.BY_DOMAIN_NAME);
       // syntax: /rdap/domains?name=exam*.com
@@ -142,18 +140,10 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
       }
       results = searchByNameserverIp(inetAddress, now);
     }
-    if (results.jsonList().isEmpty()) {
+    if (results.domainSearchResults().isEmpty()) {
       throw new NotFoundException("No domains found");
     }
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("domainSearchResults", results.jsonList());
-    rdapJsonFormatter.addTopLevelEntries(
-        builder,
-        BoilerplateType.DOMAIN,
-        getNotices(results),
-        ImmutableList.of(),
-        fullServletPath);
-    return builder.build();
+    return results;
   }
 
   /**
@@ -168,7 +158,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * <p>Searches which include deleted entries are effectively treated as if they have a wildcard,
    * since the same name can return multiple results.
    */
-  private RdapSearchResults searchByDomainName(
+  private DomainSearchResponse searchByDomainName(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     // Handle queries without a wildcard -- just load by foreign key. We can't do this if deleted
     // entries are included, because there may be multiple nameservers with the same name.
@@ -199,7 +189,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
   /**
    * Searches for domains by domain name without a wildcard or interest in deleted entries.
    */
-  private RdapSearchResults searchByDomainNameWithoutWildcard(
+  private DomainSearchResponse searchByDomainNameWithoutWildcard(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     Optional<DomainBase> domainBase =
         loadByForeignKey(DomainBase.class, partialStringQuery.getInitialString(), now);
@@ -211,7 +201,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
   }
 
   /** Searches for domains by domain name with an initial string, wildcard and possible suffix. */
-  private RdapSearchResults searchByDomainNameWithInitialString(
+  private DomainSearchResponse searchByDomainNameWithInitialString(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     // We can't query for undeleted domains as part of the query itself; that would require an
     // inequality query on deletion time, and we are already using inequality queries on
@@ -241,7 +231,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
   }
 
   /** Searches for domains by domain name with a TLD suffix. */
-  private RdapSearchResults searchByDomainNameByTld(String tld, DateTime now) {
+  private DomainSearchResponse searchByDomainNameByTld(String tld, DateTime now) {
     // Even though we are not searching on fullyQualifiedDomainName, we want the results to come
     // back ordered by name, so we are still in the same boat as
     // searchByDomainNameWithInitialString, unable to perform an inequality query on deletion time.
@@ -268,7 +258,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * <p>The includeDeleted parameter does NOT cause deleted nameservers to be searched, only deleted
    * domains which used to be connected to an undeleted nameserver.
    */
-  private RdapSearchResults searchByNameserverLdhName(
+  private DomainSearchResponse searchByNameserverLdhName(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     Iterable<Key<HostResource>> hostKeys = getNameserverRefsByLdhName(partialStringQuery, now);
     if (Iterables.isEmpty(hostKeys)) {
@@ -407,7 +397,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * <p>The includeDeleted parameter does NOT cause deleted nameservers to be searched, only deleted
    * domains which used to be connected to an undeleted nameserver.
    */
-  private RdapSearchResults searchByNameserverIp(
+  private DomainSearchResponse searchByNameserverIp(
       final InetAddress inetAddress, final DateTime now) {
     Query<HostResource> query =
         queryItems(
@@ -431,7 +421,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * <p>This method is called by {@link #searchByNameserverLdhName} and {@link
    * #searchByNameserverIp} after they assemble the relevant host keys.
    */
-  private RdapSearchResults searchByNameserverRefs(
+  private DomainSearchResponse searchByNameserverRefs(
       final Iterable<Key<HostResource>> hostKeys, final DateTime now) {
     // We must break the query up into chunks, because the in operator is limited to 30 subqueries.
     // Since it is possible for the same domain to show up more than once in our result list (if
@@ -466,34 +456,26 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     }
     List<DomainBase> domains = domainSetBuilder.build().asList();
     metricInformationBuilder.setNumHostsRetrieved(numHostKeysSearched);
-    if (domains.size() > rdapResultSetMaxSize) {
-      return makeSearchResults(
-          domains.subList(0, rdapResultSetMaxSize),
-          IncompletenessWarningType.TRUNCATED,
-          Optional.of((long) domains.size()),
-          now);
-    } else {
-      // If everything that we found will fit in the result, check whether there might have been
-      // more results that got dropped because the first stage limit on number of nameservers. If
-      // so, indicate the result might be incomplete.
-      return makeSearchResults(
-          domains,
-          (numHostKeysSearched >= maxNameserversInFirstStage)
-              ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
-              : IncompletenessWarningType.COMPLETE,
-          (numHostKeysSearched > 0) ? Optional.of((long) domains.size()) : Optional.empty(),
-          now);
-    }
+    // If everything that we found will fit in the result, check whether there might have been
+    // more results that got dropped because the first stage limit on number of nameservers. If
+    // so, indicate the result might be incomplete.
+    return makeSearchResults(
+        domains,
+        (numHostKeysSearched >= maxNameserversInFirstStage)
+        ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
+        : IncompletenessWarningType.COMPLETE,
+        (numHostKeysSearched > 0) ? Optional.of((long) domains.size()) : Optional.empty(),
+        now);
   }
 
   /** Output JSON for a list of domains, with no incompleteness warnings. */
-  private RdapSearchResults makeSearchResults(List<DomainBase> domains, DateTime now) {
+  private DomainSearchResponse makeSearchResults(List<DomainBase> domains, DateTime now) {
     return makeSearchResults(
         domains, IncompletenessWarningType.COMPLETE, Optional.of((long) domains.size()), now);
   }
 
   /** Output JSON from data in an {@link RdapResultSet} object. */
-  private RdapSearchResults makeSearchResults(
+  private DomainSearchResponse makeSearchResults(
       RdapResultSet<DomainBase> resultSet, DateTime now) {
     return makeSearchResults(
         resultSet.resources(),
@@ -509,7 +491,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * than are in the list, or MIGHT_BE_INCOMPLETE if a search for domains by nameserver returned the
    * maximum number of nameservers in the first stage query.
    */
-  private RdapSearchResults makeSearchResults(
+  private DomainSearchResponse makeSearchResults(
       List<DomainBase> domains,
       IncompletenessWarningType incompletenessWarningType,
       Optional<Long> numDomainsRetrieved,
@@ -517,28 +499,21 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     numDomainsRetrieved.ifPresent(metricInformationBuilder::setNumDomainsRetrieved);
     OutputDataType outputDataType =
         (domains.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
+    DomainSearchResponse.Builder builder =
+        DomainSearchResponse.builder()
+            .setIncompletenessWarningType(incompletenessWarningType);
     RdapAuthorization authorization = getAuthorization();
-    List<ImmutableMap<String, Object>> jsonList = new ArrayList<>();
     Optional<String> newCursor = Optional.empty();
-    for (DomainBase domain : domains) {
+    for (DomainBase domain : Iterables.limit(domains, rdapResultSetMaxSize)) {
       newCursor = Optional.of(domain.getFullyQualifiedDomainName());
-      jsonList.add(
+      builder.domainSearchResultsBuilder().add(
           rdapJsonFormatter.makeRdapJsonForDomain(
-              domain, false, fullServletPath, rdapWhoisServer, now, outputDataType, authorization));
-      if (jsonList.size() >= rdapResultSetMaxSize) {
-        break;
-      }
+              domain, rdapWhoisServer, now, outputDataType, authorization));
     }
-    IncompletenessWarningType finalIncompletenessWarningType =
-        (jsonList.size() < domains.size())
-            ? IncompletenessWarningType.TRUNCATED
-            : incompletenessWarningType;
-    metricInformationBuilder.setIncompletenessWarningType(finalIncompletenessWarningType);
-    return RdapSearchResults.create(
-        ImmutableList.copyOf(jsonList),
-        finalIncompletenessWarningType,
-        (finalIncompletenessWarningType == IncompletenessWarningType.TRUNCATED)
-            ? newCursor
-            : Optional.empty());
+    if (rdapResultSetMaxSize < domains.size()) {
+      builder.setNextPageUri(createNavigationUri(newCursor.get()));
+      builder.setIncompletenessWarningType(IncompletenessWarningType.TRUNCATED);
+    }
+    return builder.build();
   }
 }

@@ -24,7 +24,6 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainBase;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableList;
@@ -47,7 +46,6 @@ import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -230,24 +228,15 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
             clock.nowUtc().minusMonths(6)));
   }
 
-  private Object generateExpectedJson(
-      String name,
-      String punycodeName,
-      String handle,
-      String expectedOutputFile) {
-    return generateExpectedJson(
-        name, punycodeName, handle, null, null, null, null, expectedOutputFile);
-  }
-
-  private Object generateExpectedJson(
+  private JSONObject generateExpectedJson(
+      String expectedOutputFile,
       String name,
       String punycodeName,
       String handle,
       @Nullable List<String> contactRoids,
       @Nullable List<String> nameserverRoids,
       @Nullable List<String> nameserverNames,
-      @Nullable String registrarName,
-      String expectedOutputFile) {
+      @Nullable String registrarName) {
     ImmutableMap.Builder<String, String> substitutionsBuilder = new ImmutableMap.Builder<>();
     substitutionsBuilder.put("NAME", name);
     substitutionsBuilder.put("PUNYCODENAME", (punycodeName == null) ? name : punycodeName);
@@ -282,11 +271,10 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
       substitutionsBuilder.put("NAMESERVER2NAME", "ns2.cat.lol");
       substitutionsBuilder.put("NAMESERVER2PUNYCODENAME", "ns2.cat.lol");
     }
-    return JSONValue.parse(
-        loadFile(this.getClass(), expectedOutputFile, substitutionsBuilder.build()));
+    return loadJsonFile(expectedOutputFile, substitutionsBuilder.build());
   }
 
-  private Object generateExpectedJsonWithTopLevelEntries(
+  private JSONObject generateExpectedJsonWithTopLevelEntries(
       String name,
       String punycodeName,
       String handle,
@@ -304,7 +292,7 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
         registrarName,
         expectedOutputFile);
   }
-  private Object generateExpectedJsonWithTopLevelEntries(
+  private JSONObject generateExpectedJsonWithTopLevelEntries(
       String name,
       String punycodeName,
       String handle,
@@ -313,34 +301,23 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
       @Nullable List<String> nameserverNames,
       @Nullable String registrarName,
       String expectedOutputFile) {
-    Object obj =
+    JSONObject obj =
         generateExpectedJson(
+            expectedOutputFile,
             name,
             punycodeName,
             handle,
             contactRoids,
             nameserverRoids,
             nameserverNames,
-            registrarName,
-            expectedOutputFile);
-    if (obj instanceof Map) {
+            registrarName);
       @SuppressWarnings("unchecked")
       Map<String, Object> map = (Map<String, Object>) obj;
       ImmutableMap.Builder<String, Object> builder =
-          RdapTestHelper.getBuilderExcluding(
-              map, ImmutableSet.of("rdapConformance", "notices", "remarks"));
-      builder.put("rdapConformance", ImmutableList.of("icann_rdap_response_profile_0"));
+          RdapTestHelper.getBuilderExcluding(map, ImmutableSet.of("notices"));
       RdapTestHelper.addDomainBoilerplateNotices(
-          builder,
-          false,
-          RdapTestHelper.createNotices(
-              "https://example.tld/rdap/",
-              (contactRoids == null)
-                  ? RdapTestHelper.ContactNoticeType.DOMAIN
-                  : RdapTestHelper.ContactNoticeType.NONE,
-              map.get("notices")));
+          builder, RdapTestHelper.createNotices("https://example.tld/rdap/", map.get("notices")));
       obj = new JSONObject(builder.build());
-    }
     return obj;
   }
 
@@ -361,9 +338,7 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
             "cat.lol",
             null,
             "C-LOL",
-            expectedOutputFile.equals("rdap_domain.json")
-                ? ImmutableList.of("4-ROID", "6-ROID", "2-ROID")
-                : null,
+            ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
             ImmutableList.of("8-ROID", "A-ROID"),
             "Yes Virginia <script>",
             expectedOutputFile));
@@ -374,12 +349,10 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
   public void testInvalidDomain_returns400() {
     assertJsonEqual(
         generateActualJson("invalid/domain/name"),
-        generateExpectedJson(
+        generateExpectedJsonError(
             "invalid/domain/name is not a valid domain name: Domain names can only contain a-z,"
                 + " 0-9, '.' and '-'",
-            null,
-            "1",
-            "rdap_error_400.json"));
+            400));
     assertThat(response.getStatus()).isEqualTo(400);
   }
 
@@ -387,12 +360,10 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
   public void testUnknownDomain_returns400() {
     assertJsonEqual(
         generateActualJson("missingdomain.com"),
-        generateExpectedJson(
+        generateExpectedJsonError(
             "missingdomain.com is not a valid domain name: Domain name is under tld com which"
                 + " doesn't exist",
-            null,
-            "1",
-            "rdap_error_400.json"));
+            400));
     assertThat(response.getStatus()).isEqualTo(400);
   }
 
@@ -424,28 +395,28 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
 
   @Test
   public void testValidDomain_notLoggedIn_noContacts() {
-    assertProperResponseForCatLol("cat.lol", "rdap_domain_no_contacts.json");
+    assertProperResponseForCatLol("cat.lol", "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
   public void testValidDomain_loggedInAsOtherRegistrar_noContacts() {
     login("idnregistrar");
-    assertProperResponseForCatLol("cat.lol", "rdap_domain_no_contacts.json");
+    assertProperResponseForCatLol("cat.lol", "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
   public void testUpperCase_ignored() {
-    assertProperResponseForCatLol("CaT.lOl", "rdap_domain_no_contacts.json");
+    assertProperResponseForCatLol("CaT.lOl", "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
   public void testTrailingDot_ignored() {
-    assertProperResponseForCatLol("cat.lol.", "rdap_domain_no_contacts.json");
+    assertProperResponseForCatLol("cat.lol.", "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
   public void testQueryParameter_ignored() {
-    assertProperResponseForCatLol("cat.lol?key=value", "rdap_domain_no_contacts.json");
+    assertProperResponseForCatLol("cat.lol?key=value", "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
@@ -525,7 +496,7 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
   public void testDeletedDomain_notFound() {
     assertJsonEqual(
         generateActualJson("dodo.lol"),
-        generateExpectedJson("dodo.lol not found", null, "1", "rdap_error_404.json"));
+        generateExpectedJsonError("dodo.lol not found", 404));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 

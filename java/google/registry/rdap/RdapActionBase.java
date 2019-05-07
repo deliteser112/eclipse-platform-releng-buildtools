@@ -25,11 +25,11 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
@@ -38,9 +38,12 @@ import google.registry.model.EppResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.WildcardType;
+import google.registry.rdap.RdapObjectClasses.ErrorResponse;
+import google.registry.rdap.RdapObjectClasses.ReplyPayloadBase;
+import google.registry.rdap.RdapObjectClasses.TopLevelReplyObject;
+import google.registry.rdap.RdapSearchResults.BaseSearchResponse;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
-import google.registry.request.FullServletPath;
 import google.registry.request.HttpException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
@@ -51,7 +54,6 @@ import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.util.Clock;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -60,7 +62,6 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
-import org.json.simple.JSONValue;
 
 /**
  * Base RDAP (new WHOIS) action for all requests.
@@ -92,7 +93,6 @@ public abstract class RdapActionBase implements Runnable {
   @Inject Clock clock;
   @Inject @RequestMethod Action.Method requestMethod;
   @Inject @RequestPath String requestPath;
-  @Inject @FullServletPath String fullServletPath;
   @Inject AuthResult authResult;
   @Inject AuthenticatedRegistrarAccessor registrarAccessor;
   @Inject RdapJsonFormatter rdapJsonFormatter;
@@ -138,7 +138,7 @@ public abstract class RdapActionBase implements Runnable {
    *        expensive task required to create the map which will never result in a request failure.
    * @return A map (probably containing nested maps and lists) with the final JSON response data.
    */
-  abstract ImmutableMap<String, Object> getJsonObjectForResource(
+  abstract ReplyPayloadBase getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest);
 
   @Override
@@ -159,12 +159,16 @@ public abstract class RdapActionBase implements Runnable {
       checkArgument(
           pathProper.startsWith(getActionPath()),
           "%s doesn't start with %s", pathProper, getActionPath());
-      ImmutableMap<String, Object> rdapJson =
+      ReplyPayloadBase replyObject =
           getJsonObjectForResource(
               pathProper.substring(getActionPath().length()), requestMethod == Action.Method.HEAD);
+      if (replyObject instanceof BaseSearchResponse) {
+        metricInformationBuilder.setIncompletenessWarningType(
+            ((BaseSearchResponse) replyObject).incompletenessWarningType());
+      }
       response.setStatus(SC_OK);
       response.setContentType(RESPONSE_MEDIA_TYPE);
-      setPayload(rdapJson);
+      setPayload(replyObject);
       metricInformationBuilder.setStatusCode(SC_OK);
     } catch (HttpException e) {
       setError(e.getResponseCode(), e.getResponseCodeString(), e.getMessage());
@@ -182,26 +186,29 @@ public abstract class RdapActionBase implements Runnable {
     response.setStatus(status);
     response.setContentType(RESPONSE_MEDIA_TYPE);
     try {
-      setPayload(rdapJsonFormatter.makeError(status, title, description));
+      setPayload(ErrorResponse.create(status, title, description));
     } catch (Exception ex) {
+      logger.atSevere().withCause(ex).log("Failed to create an error response.");
       response.setPayload("");
     }
   }
 
-  void setPayload(ImmutableMap<String, Object> rdapJson) {
+  void setPayload(ReplyPayloadBase replyObject) {
     if (requestMethod == Action.Method.HEAD) {
       return;
     }
+
+    GsonBuilder gsonBuilder = new GsonBuilder();
+    gsonBuilder.disableHtmlEscaping();
     if (formatOutputParam.orElse(false)) {
-      try {
-        response.setPayload(new JacksonFactory().toPrettyString(rdapJson));
-        return;
-      } catch (IOException e) {
-        logger.atWarning().withCause(e).log(
-            "Unable to pretty-print RDAP JSON response; falling back to unformatted output.");
-      }
+      gsonBuilder.setPrettyPrinting();
     }
-    response.setPayload(JSONValue.toJSONString(rdapJson));
+    Gson gson = gsonBuilder.create();
+
+    TopLevelReplyObject topLevelObject =
+        TopLevelReplyObject.create(replyObject, rdapJsonFormatter.createTosNotice());
+
+    response.setPayload(gson.toJson(topLevelObject.toJson()));
   }
 
   RdapAuthorization getAuthorization() {

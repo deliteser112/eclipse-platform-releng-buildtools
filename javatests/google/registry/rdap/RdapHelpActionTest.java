@@ -15,16 +15,13 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.verify;
 
-import com.google.common.collect.ImmutableMap;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
-import org.json.simple.JSONValue;
 import org.junit.Test;
 
 /** Unit tests for {@link RdapHelpAction}. */
@@ -34,44 +31,38 @@ public class RdapHelpActionTest extends RdapActionBaseTestCase<RdapHelpAction> {
     super(RdapHelpAction.class);
   }
 
-  private Object generateExpectedJson(String name, String expectedOutputFile) {
-    return JSONValue.parse(
-        loadFile(this.getClass(), expectedOutputFile, ImmutableMap.of("NAME", name)));
-  }
-
   @Test
   public void testHelpActionMaliciousPath_notFound() {
-    assertThat(generateActualJson("../passwd")).isEqualTo(
-        generateExpectedJson(
-            "no help found for ../passwd", "rdap_error_404.json"));
+    assertThat(generateActualJson("../passwd"))
+        .isEqualTo(generateExpectedJsonError("no help found for ../passwd", 404));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
   public void testHelpActionUnknownPath_notFound() {
     assertThat(generateActualJson("hlarg")).isEqualTo(
-        generateExpectedJson("no help found for hlarg", "rdap_error_404.json"));
+        generateExpectedJsonError("no help found for hlarg", 404));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
   public void testHelpActionDefault_getsIndex() {
     assertThat(generateActualJson(""))
-        .isEqualTo(generateExpectedJson("", "rdap_help_index.json"));
+        .isEqualTo(loadJsonFile("rdap_help_index.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testHelpActionSlash_getsIndex() {
     assertThat(generateActualJson("/"))
-        .isEqualTo(generateExpectedJson("", "rdap_help_index.json"));
+        .isEqualTo(loadJsonFile("rdap_help_index.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testHelpActionTos_works() {
     assertThat(generateActualJson("/tos"))
-        .isEqualTo(generateExpectedJson("", "rdap_help_tos.json"));
+        .isEqualTo(loadJsonFile("rdap_help_tos.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

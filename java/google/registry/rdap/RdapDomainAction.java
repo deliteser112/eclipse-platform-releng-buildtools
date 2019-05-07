@@ -20,11 +20,11 @@ import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
-import com.google.common.collect.ImmutableMap;
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainBase;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapObjectClasses.RdapDomain;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
@@ -47,8 +47,7 @@ public class RdapDomainAction extends RdapActionBase {
   }
 
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest) {
+  public RdapDomain getJsonObjectForResource(String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     pathSearchString = canonicalizeName(pathSearchString);
     try {
@@ -68,8 +67,6 @@ public class RdapDomainAction extends RdapActionBase {
     }
     return rdapJsonFormatter.makeRdapJsonForDomain(
         domainBase.get(),
-        true,
-        fullServletPath,
         rdapWhoisServer,
         now,
         OutputDataType.FULL,

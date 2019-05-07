@@ -14,16 +14,19 @@
 
 package google.registry.rdap;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.rdap.RdapAuthorization.Role.ADMINISTRATOR;
 import static google.registry.rdap.RdapAuthorization.Role.PUBLIC;
 import static google.registry.rdap.RdapAuthorization.Role.REGISTRAR;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.request.auth.AuthenticatedRegistrarAccessor.Role.OWNER;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import google.registry.model.ofy.Ofy;
 import google.registry.request.Action;
@@ -37,8 +40,10 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.util.TypeUtils;
+import java.util.Map;
 import java.util.Optional;
 import org.joda.time.DateTime;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Rule;
@@ -99,7 +104,6 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapMetrics = rdapMetrics;
     action.requestMethod = Action.Method.GET;
-    action.fullServletPath = "https://example.tld/rdap";
     action.rdapWhoisServer = null;
     logout();
   }
@@ -126,18 +130,80 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
     metricRole = ADMINISTRATOR;
   }
 
-  protected Object generateActualJson(String domainName) {
+  protected JSONObject generateActualJson(String domainName) {
     action.requestPath = actionPath + domainName;
     action.requestMethod = GET;
     action.run();
-    return JSONValue.parse(response.getPayload());
+    return (JSONObject) JSONValue.parse(response.getPayload());
   }
 
   protected String generateHeadPayload(String domainName) {
     action.requestPath = actionPath + domainName;
-    action.fullServletPath = "http://myserver.example.com" + actionPath;
     action.requestMethod = HEAD;
     action.run();
     return response.getPayload();
+  }
+
+  /**
+   * Loads a resource testdata JSON file, and applies substitutions.
+   *
+   * <p>{@code loadJsonFile("filename.json", "NANE", "something", "ID", "other")} is the same as
+   * {@code loadJsonFile("filename.json", ImmutableMap.of("NANE", "something", "ID", "other"))}.
+   *
+   * @param filename the name of the file from the testdata directory
+   * @param keysAndValues alternating substitution key and value. The substitutions are applied to
+   *     the file before parsing it to JSON.
+   */
+  protected JSONObject loadJsonFile(String filename, String... keysAndValues) {
+    checkArgument(keysAndValues.length % 2 == 0);
+    ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
+    for (int i = 0; i < keysAndValues.length; i += 2) {
+      if (keysAndValues[i + 1] != null) {
+        builder.put(keysAndValues[i], keysAndValues[i + 1]);
+      }
+    }
+    return loadJsonFile(filename, builder.build());
+  }
+
+  /**
+   * Loads a resource testdata JSON file, and applies substitutions.
+   *
+   * @param filename the name of the file from the testdata directory
+   * @param substitutions map of substitutions to apply to the file. The substitutions are applied
+   *     to the file before parsing it to JSON.
+   */
+  protected JSONObject loadJsonFile(String filename, Map<String, String> substitutions) {
+    return (JSONObject) JSONValue.parse(loadFile(this.getClass(), filename, substitutions));
+  }
+
+  protected JSONObject generateExpectedJsonError(
+      String description,
+      int code) {
+    String title;
+    switch (code) {
+      case 404:
+        title = "Not Found";
+        break;
+      case 500:
+        title = "Internal Server Error";
+        break;
+      case 501:
+        title = "Not Implemented";
+        break;
+      case 400:
+        title = "Bad Request";
+        break;
+      case 422:
+        title = "Unprocessable Entity";
+        break;
+      default:
+        title = "ERR";
+        break;
+    }
+    return loadJsonFile(
+        "rdap_error.json",
+        "DESCRIPTION", description,
+        "TITLE", title,
+        "CODE", String.valueOf(code));
   }
 }

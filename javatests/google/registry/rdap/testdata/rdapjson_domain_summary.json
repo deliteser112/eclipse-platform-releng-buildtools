@@ -13,9 +13,9 @@
   "links" :
   [
     {
-      "value" : "http://myserver.example.com/domain/cat.xn--q9jyb4c",
+      "value" : "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
       "rel" : "self",
-      "href" : "http://myserver.example.com/domain/cat.xn--q9jyb4c",
+      "href" : "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
       "type" : "application/rdap+json"
     }
   ],

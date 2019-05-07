@@ -21,17 +21,17 @@ import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Longs;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.registrar.Registrar;
-import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
+import google.registry.rdap.RdapSearchResults.EntitySearchResponse;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -39,7 +39,6 @@ import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -110,7 +109,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
 
   /** Parses the parameters and calls the appropriate search function. */
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(
+  public EntitySearchResponse getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
 
@@ -157,7 +156,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
     }
 
     // Search by name.
-    RdapSearchResults results;
+    EntitySearchResponse results;
     if (fnParam.isPresent()) {
       metricInformationBuilder.setSearchType(SearchType.BY_FULL_NAME);
       // syntax: /rdap/entities?fn=Bobby%20Joe*
@@ -185,18 +184,10 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
     }
 
     // Build the result object and return it.
-    if (results.jsonList().isEmpty()) {
+    if (results.entitySearchResults().isEmpty()) {
       throw new NotFoundException("No entities found");
     }
-    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
-    jsonBuilder.put("entitySearchResults", results.jsonList());
-    rdapJsonFormatter.addTopLevelEntries(
-        jsonBuilder,
-        BoilerplateType.ENTITY,
-        getNotices(results),
-        ImmutableList.of(),
-        fullServletPath);
-    return jsonBuilder.build();
+    return results;
   }
 
   /**
@@ -223,7 +214,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    *     href="https://newgtlds.icann.org/sites/default/files/agreements/agreement-approved-09jan14-en.htm">1.6
    *     of Section 4 of the Base Registry Agreement</a>
    */
-  private RdapSearchResults searchByName(
+  private EntitySearchResponse searchByName(
       final RdapSearchPattern partialStringQuery,
       CursorType cursorType,
       Optional<String> cursorQueryString,
@@ -308,7 +299,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    * In both cases, the suffix can be turned into an additional query filter field. For contacts,
    * there is no equivalent string suffix that can be used as a query filter, so we disallow use.
    */
-  private RdapSearchResults searchByHandle(
+  private EntitySearchResponse searchByHandle(
       final RdapSearchPattern partialStringQuery,
       CursorType cursorType,
       Optional<String> cursorQueryString,
@@ -424,7 +415,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    * <p>This is a convenience wrapper for the four-argument makeSearchResults; it unpacks the
    * properties of the {@link RdapResultSet} structure and passes them as separate arguments.
    */
-  private RdapSearchResults makeSearchResults(
+  private EntitySearchResponse makeSearchResults(
       RdapResultSet<ContactResource> resultSet,
       List<Registrar> registrars,
       QueryType queryType,
@@ -454,7 +445,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    * @param now the current date and time
    * @return an {@link RdapSearchResults} object
    */
-  private RdapSearchResults makeSearchResults(
+  private EntitySearchResponse makeSearchResults(
       List<ContactResource> contacts,
       IncompletenessWarningType incompletenessWarningType,
       int numContactsRetrieved,
@@ -473,25 +464,19 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
     // (contacts and registrars), and partially because we try to fetch one more than the max size,
     // so we can tell whether to display the truncation notification.
     RdapAuthorization authorization = getAuthorization();
-    List<ImmutableMap<String, Object>> jsonOutputList = new ArrayList<>();
     // Each time we add a contact or registrar to the output data set, remember what the appropriate
     // cursor would be if it were the last item returned. When we stop adding items, the last cursor
     // value we remembered will be the right one to pass back.
+    EntitySearchResponse.Builder builder =
+        EntitySearchResponse.builder()
+            .setIncompletenessWarningType(incompletenessWarningType);
     Optional<String> newCursor = Optional.empty();
-    for (ContactResource contact : contacts) {
-      if (jsonOutputList.size() >= rdapResultSetMaxSize) {
-        return RdapSearchResults.create(
-            ImmutableList.copyOf(jsonOutputList),
-            IncompletenessWarningType.TRUNCATED,
-            newCursor);
-      }
+    for (ContactResource contact : Iterables.limit(contacts, rdapResultSetMaxSize)) {
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
-      jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForContact(
+      builder.entitySearchResultsBuilder().add(rdapJsonFormatter.makeRdapJsonForContact(
           contact,
-          false,
           Optional.empty(),
-          fullServletPath,
           rdapWhoisServer,
           now,
           outputDataType,
@@ -503,22 +488,22 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
                       ? contact.getSearchName()
                       : contact.getRepoId()));
     }
-    for (Registrar registrar : registrars) {
-      if (jsonOutputList.size() >= rdapResultSetMaxSize) {
-        return RdapSearchResults.create(
-            ImmutableList.copyOf(jsonOutputList),
-            IncompletenessWarningType.TRUNCATED,
-            newCursor);
+    if (rdapResultSetMaxSize > contacts.size()) {
+      for (Registrar registrar :
+          Iterables.limit(registrars, rdapResultSetMaxSize - contacts.size())) {
+        builder
+            .entitySearchResultsBuilder()
+            .add(
+                rdapJsonFormatter.makeRdapJsonForRegistrar(
+                    registrar, rdapWhoisServer, now, outputDataType));
+        newCursor = Optional.of(REGISTRAR_CURSOR_PREFIX + registrar.getRegistrarName());
       }
-      jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForRegistrar(
-          registrar, false, fullServletPath, rdapWhoisServer, now, outputDataType));
-      newCursor = Optional.of(REGISTRAR_CURSOR_PREFIX + registrar.getRegistrarName());
     }
-    return RdapSearchResults.create(
-        ImmutableList.copyOf(jsonOutputList),
-        (jsonOutputList.size() < rdapResultSetMaxSize)
-            ? incompletenessWarningType
-            : IncompletenessWarningType.COMPLETE,
-        Optional.empty());
+    if (rdapResultSetMaxSize < contacts.size() + registrars.size()) {
+      builder.setNextPageUri(createNavigationUri(newCursor.get()));
+      builder.setIncompletenessWarningType(IncompletenessWarningType.TRUNCATED);
+      return builder.build();
+    }
+    return builder.build();
   }
 }

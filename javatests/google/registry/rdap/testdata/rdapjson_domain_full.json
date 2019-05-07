@@ -13,9 +13,9 @@
   "links" :
   [
     {
-      "value" : "http://myserver.example.com/domain/cat.xn--q9jyb4c",
+      "value" : "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
       "rel" : "self",
-      "href" : "http://myserver.example.com/domain/cat.xn--q9jyb4c",
+      "href" : "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
       "type" : "application/rdap+json"
     }
   ],
@@ -54,9 +54,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.example.com/nameserver/ns1.cat.xn--q9jyb4c",
+          "value" : "https://example.tld/rdap/nameserver/ns1.cat.xn--q9jyb4c",
           "rel" : "self",
-          "href" : "http://myserver.example.com/nameserver/ns1.cat.xn--q9jyb4c",
+          "href" : "https://example.tld/rdap/nameserver/ns1.cat.xn--q9jyb4c",
           "type" : "application/rdap+json"
         }
       ],
@@ -84,9 +84,9 @@
           "links" :
           [
             {
-              "value" : "http://myserver.example.com/entity/1",
+              "value" : "https://example.tld/rdap/entity/1",
               "rel" : "self",
-              "href" : "http://myserver.example.com/entity/1",
+              "href" : "https://example.tld/rdap/entity/1",
               "type" : "application/rdap+json"
             }
           ],
@@ -137,9 +137,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.example.com/nameserver/ns2.cat.xn--q9jyb4c",
+          "value" : "https://example.tld/rdap/nameserver/ns2.cat.xn--q9jyb4c",
           "rel" : "self",
-          "href" : "http://myserver.example.com/nameserver/ns2.cat.xn--q9jyb4c",
+          "href" : "https://example.tld/rdap/nameserver/ns2.cat.xn--q9jyb4c",
           "type" : "application/rdap+json"
         }
       ],
@@ -167,9 +167,9 @@
           "links" :
           [
             {
-              "value" : "http://myserver.example.com/entity/1",
+              "value" : "https://example.tld/rdap/entity/1",
               "rel" : "self",
-              "href" : "http://myserver.example.com/entity/1",
+              "href" : "https://example.tld/rdap/entity/1",
               "type" : "application/rdap+json"
             }
           ],
@@ -222,9 +222,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.example.com/entity/4-ROID",
+          "value" : "https://example.tld/rdap/entity/4-ROID",
           "rel" : "self",
-          "href" : "http://myserver.example.com/entity/4-ROID",
+          "href" : "https://example.tld/rdap/entity/4-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -271,9 +271,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.example.com/entity/6-ROID",
+          "value" : "https://example.tld/rdap/entity/6-ROID",
           "rel" : "self",
-          "href" : "http://myserver.example.com/entity/6-ROID",
+          "href" : "https://example.tld/rdap/entity/6-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -320,9 +320,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.example.com/entity/2-ROID",
+          "value" : "https://example.tld/rdap/entity/2-ROID",
           "rel" : "self",
-          "href" : "http://myserver.example.com/entity/2-ROID",
+          "href" : "https://example.tld/rdap/entity/2-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -345,7 +345,7 @@
           ["fn", {}, "text", "(◕‿◕)"],
           ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
           ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"]
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
           ["email", {}, "text", "lol@cat.みんな"]
         ]
       ]
@@ -358,9 +358,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.example.com/entity/1",
+          "value" : "https://example.tld/rdap/entity/1",
           "rel" : "self",
-          "href" : "http://myserver.example.com/entity/1",
+          "href" : "https://example.tld/rdap/entity/1",
           "type" : "application/rdap+json"
         }
       ],

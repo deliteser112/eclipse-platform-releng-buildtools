@@ -20,11 +20,11 @@ import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
-import com.google.common.collect.ImmutableMap;
 import google.registry.flows.EppException;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapObjectClasses.RdapNameserver;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
@@ -47,8 +47,7 @@ public class RdapNameserverAction extends RdapActionBase {
   }
 
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest) {
+  public RdapNameserver getJsonObjectForResource(String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     pathSearchString = canonicalizeName(pathSearchString);
     // The RDAP syntax is /rdap/nameserver/ns1.mydomain.com.
@@ -69,6 +68,6 @@ public class RdapNameserverAction extends RdapActionBase {
       throw new NotFoundException(pathSearchString + " not found");
     }
     return rdapJsonFormatter.makeRdapJsonForHost(
-        hostResource.get(), true, fullServletPath, rdapWhoisServer, now, OutputDataType.FULL);
+        hostResource.get(), rdapWhoisServer, now, OutputDataType.FULL);
   }
 }

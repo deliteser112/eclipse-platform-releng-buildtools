@@ -15,145 +15,143 @@
 package google.registry.rdap;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import google.registry.rdap.RdapDataStructures.Link;
+import google.registry.rdap.RdapDataStructures.Notice;
+import google.registry.rdap.RdapDataStructures.Remark;
 
 /**
  * This file contains boilerplate required by the ICANN RDAP Profile.
  *
- * @see <a href="https://www.icann.org/resources/pages/rdap-operational-profile-2016-07-26-en">RDAP Operational Profile for gTLD Registries and Registrars</a>
+ * @see <a href="https://www.icann.org/resources/pages/rdap-operational-profile-2016-07-26-en">RDAP
+ *     Operational Profile for gTLD Registries and Registrars</a>
  */
-
 public class RdapIcannStandardInformation {
 
   /** Required by ICANN RDAP Profile section 1.4.10. */
-  private static final ImmutableMap<String, Object> CONFORMANCE_NOTICE =
-      ImmutableMap.of(
-          "description",
-          ImmutableList.of(
+  private static final Notice CONFORMANCE_NOTICE =
+      Notice.builder()
+          .setDescription(
               "This response conforms to the RDAP Operational Profile for gTLD Registries and"
-                  + " Registrars version 1.0"));
+                  + " Registrars version 1.0")
+          .build();
 
   /** Required by ICANN RDAP Profile section 1.5.18. */
-  private static final ImmutableMap<String, Object> DOMAIN_STATUS_CODES_NOTICE =
-      ImmutableMap.of(
-          "title",
-          "Status Codes",
-          "description",
-          ImmutableList.of(
-              "For more information on domain status codes, please visit https://icann.org/epp"),
-          "links",
-          ImmutableList.of(
-              ImmutableMap.of(
-                  "value", "https://icann.org/epp",
-                  "rel", "alternate",
-                  "href", "https://icann.org/epp",
-                  "type", "text/html")));
+  private static final Notice DOMAIN_STATUS_CODES_NOTICE =
+      Notice.builder()
+          .setTitle("Status Codes")
+          .setDescription(
+              "For more information on domain status codes, please visit"
+                  + " https://icann.org/epp")
+          .addLink(
+              Link.builder()
+                  .setValue("https://icann.org/epp")
+                  .setRel("alternate")
+                  .setHref("https://icann.org/epp")
+                  .setType("text/html")
+                  .build())
+          .build();
 
   /** Required by ICANN RDAP Profile section 1.5.20. */
-  private static final ImmutableMap<String, Object> INACCURACY_COMPLAINT_FORM_NOTICE =
-      ImmutableMap.of(
-          "description",
-          ImmutableList.of(
-              "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"),
-          "links",
-          ImmutableList.of(
-              ImmutableMap.of(
-                  "value", "https://www.icann.org/wicf",
-                  "rel", "alternate",
-                  "href", "https://www.icann.org/wicf",
-                  "type", "text/html")));
+  private static final Notice INACCURACY_COMPLAINT_FORM_NOTICE =
+      Notice.builder()
+          .setDescription(
+              "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf")
+          .addLink(
+              Link.builder()
+                  .setValue("https://www.icann.org/wicf")
+                  .setRel("alternate")
+                  .setHref("https://www.icann.org/wicf")
+                  .setType("text/html")
+                  .build())
+          .build();
 
   /** Boilerplate notices required by domain responses. */
-  static final ImmutableList<ImmutableMap<String, Object>> domainBoilerplateNotices =
+  static final ImmutableList<Notice> domainBoilerplateNotices =
       ImmutableList.of(
-          CONFORMANCE_NOTICE, DOMAIN_STATUS_CODES_NOTICE, INACCURACY_COMPLAINT_FORM_NOTICE);
+          CONFORMANCE_NOTICE,
+          // RDAP Response Profile 2.6.3
+          DOMAIN_STATUS_CODES_NOTICE,
+          INACCURACY_COMPLAINT_FORM_NOTICE);
 
   /** Boilerplate remarks required by nameserver and entity responses. */
-  static final ImmutableList<ImmutableMap<String, Object>> nameserverAndEntityBoilerplateNotices =
+  static final ImmutableList<Notice> nameserverAndEntityBoilerplateNotices =
       ImmutableList.of(CONFORMANCE_NOTICE);
 
   /**
    * Required by ICANN RDAP Profile section 1.4.9, as corrected by Gustavo Lozano of ICANN.
    *
-   * @see <a href="http://mm.icann.org/pipermail/gtld-tech/2016-October/000822.html">Questions about the ICANN RDAP Profile</a>
+   * @see <a href="http://mm.icann.org/pipermail/gtld-tech/2016-October/000822.html">Questions about
+   *     the ICANN RDAP Profile</a>
    */
-  static final ImmutableMap<String, Object> SUMMARY_DATA_REMARK =
-      ImmutableMap.of(
-          "title",
-          "Incomplete Data",
-          "description",
-          ImmutableList.of(
-              "Summary data only. For complete data, send a specific query for the object."),
-          "type",
-          "object truncated due to unexplainable reasons");
+  static final Remark SUMMARY_DATA_REMARK =
+      Remark.builder()
+          .setTitle("Incomplete Data")
+          .setDescription(
+              "Summary data only. For complete data, send a specific query for the object.")
+          .setType(Remark.Type.OBJECT_TRUNCATED_UNEXPLAINABLE)
+          .build();
 
   /**
    * Required by ICANN RDAP Profile section 1.4.8, as corrected by Gustavo Lozano of ICANN.
    *
-   * @see <a href="http://mm.icann.org/pipermail/gtld-tech/2016-October/000822.html">Questions about the ICANN RDAP Profile</a>
+   * @see <a href="http://mm.icann.org/pipermail/gtld-tech/2016-October/000822.html">Questions about
+   *     the ICANN RDAP Profile</a>
    */
-  static final ImmutableMap<String, Object> TRUNCATED_RESULT_SET_NOTICE =
-      ImmutableMap.of(
-          "title",
-          "Search Policy",
-          "description",
-          ImmutableList.of("Search results per query are limited."),
-          "type",
-          "result set truncated due to unexplainable reasons");
+  static final Notice TRUNCATED_RESULT_SET_NOTICE =
+      Notice.builder()
+          .setTitle("Search Policy")
+          .setDescription("Search results per query are limited.")
+          .setType(Notice.Type.RESULT_TRUNCATED_UNEXPLAINABLE)
+          .build();
 
   /** Truncation notice as a singleton list, for easy use. */
-  static final ImmutableList<ImmutableMap<String, Object>> TRUNCATION_NOTICES =
+  static final ImmutableList<Notice> TRUNCATION_NOTICES =
       ImmutableList.of(TRUNCATED_RESULT_SET_NOTICE);
 
   /**
    * Used when a search for domains by nameserver may have returned incomplete information because
    * there were too many nameservers in the first stage results.
    */
-  static final ImmutableMap<String, Object> POSSIBLY_INCOMPLETE_RESULT_SET_NOTICE =
-      ImmutableMap.of(
-          "title",
-          "Search Policy",
-          "description",
-          ImmutableList.of(
-              "Search results may contain incomplete information due to first-stage query limits."),
-          "type",
-          "result set truncated due to unexplainable reasons");
+  static final Notice POSSIBLY_INCOMPLETE_RESULT_SET_NOTICE =
+      Notice.builder()
+          .setTitle("Search Policy")
+          .setDescription(
+                  "Search results may contain incomplete information due to first-stage query"
+                      + " limits.")
+          .setType(Notice.Type.RESULT_TRUNCATED_UNEXPLAINABLE)
+          .build();
 
   /** Possibly incomplete notice as a singleton list, for easy use. */
-  static final ImmutableList<ImmutableMap<String, Object>> POSSIBLY_INCOMPLETE_NOTICES =
+  static final ImmutableList<Notice> POSSIBLY_INCOMPLETE_NOTICES =
       ImmutableList.of(POSSIBLY_INCOMPLETE_RESULT_SET_NOTICE);
 
   /** Included when the requester is not logged in as the owner of the domain being returned. */
-  static final ImmutableMap<String, Object> DOMAIN_CONTACTS_HIDDEN_DATA_REMARK =
-      ImmutableMap.of(
-          "title",
-          "Contacts Hidden",
-          "description",
-          ImmutableList.of("Domain contacts are visible only to the owning registrar."),
-          "type",
-          "object truncated due to unexplainable reasons");
+  static final Remark DOMAIN_CONTACTS_HIDDEN_DATA_REMARK =
+      Remark.builder()
+          .setTitle("Contacts Hidden")
+          .setDescription("Domain contacts are visible only to the owning registrar.")
+          .setType(Remark.Type.OBJECT_TRUNCATED_UNEXPLAINABLE)
+          .build();
 
   /**
    * Included when requester is not logged in as the owner of the contact being returned. Format
-   * required by ICANN RDAP Pilot Profile draft section 1.4.11.
+   * required by ICANN RDAP Response Profile 15feb19 section 2.7.4.3.
    */
-  static final ImmutableMap<String, Object> CONTACT_PERSONAL_DATA_HIDDEN_DATA_REMARK =
-      ImmutableMap.of(
-          "title",
-          "Data Policy",
-          "description",
-          ImmutableList.of(
+  static final Remark CONTACT_PERSONAL_DATA_HIDDEN_DATA_REMARK =
+      Remark.builder()
+          .setTitle("Redacted for Privacy")
+          .setDescription(
               "Some of the data in this object has been removed.",
-              "Contact personal data is visible only to the owning registrar."),
-          "type",
-          "object truncated due to authorization",
-          "links",
-          ImmutableList.of(
-              ImmutableMap.of(
-                  "value",
-                      "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
-                  "rel", "alternate",
-                  "href",
-                      "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
-                  "type", "text/html")));
+              "Contact personal data is visible only to the owning registrar.")
+          .setType(Remark.Type.OBJECT_REDACTED_AUTHORIZATION)
+          .addLink(
+              Link.builder()
+                  .setValue(
+                      "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication")
+                  .setRel("alternate")
+                  .setHref(
+                      "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication")
+                  .setType("text/html")
+                  .build())
+          .build();
 }

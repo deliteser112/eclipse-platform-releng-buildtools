@@ -337,7 +337,7 @@
         {
           "type" : "application/rdap+json",
           "rel" : "next",
-          "href" : "https://example.tld/rdap/nameservers?%NAME%"
+          "href" : "https://example.tld/rdap/nameservers?%QUERY%"
         }
       ]
     },

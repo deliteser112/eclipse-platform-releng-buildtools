@@ -1,9 +1,5 @@
 {
-  "rdapConformance" :
-  [
-    "icann_rdap_response_profile_0"
-  ],
-  "lang" : "en"
+  "lang" : "en",
   "errorCode" : 400,
   "title" : "Invalid Domain Name",
   "description" :

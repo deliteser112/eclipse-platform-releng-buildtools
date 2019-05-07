@@ -1,4 +1,7 @@
 {
+  "rdapConformance": [
+    "icann_rdap_response_profile_0"
+  ],
   "objectClassName" : "entity",
   "handle" : "%NAME%",
   "status" : ["%STATUS%"],

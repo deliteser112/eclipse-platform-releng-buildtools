@@ -17,12 +17,14 @@ package google.registry.rdap;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
+import google.registry.rdap.RdapDataStructures.Link;
+import google.registry.rdap.RdapDataStructures.Notice;
 import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapObjectClasses.HelpResponse;
 import google.registry.request.Action;
+import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
+import java.util.Optional;
 import javax.inject.Inject;
 
 /** RDAP (new WHOIS) action for help requests. */
@@ -34,22 +36,53 @@ import javax.inject.Inject;
     auth = Auth.AUTH_PUBLIC_ANONYMOUS)
 public class RdapHelpAction extends RdapActionBase {
 
+  /** The help path for the RDAP terms of service. */
+  public static final String TOS_PATH = "/tos";
+
+  private static final String RDAP_HELP_LINK =
+      "https://github.com/google/nomulus/blob/master/docs/rdap.md";
+
   @Inject public RdapHelpAction() {
     super("help", EndpointType.HELP);
   }
 
+  private Notice createHelpNotice() {
+    String linkValue = rdapJsonFormatter.makeRdapServletRelativeUrl("help");
+    Link.Builder linkBuilder =
+        Link.builder()
+            .setValue(linkValue)
+            .setRel("alternate")
+            .setHref(RDAP_HELP_LINK)
+            .setType("text/html");
+    return Notice.builder()
+        .setTitle("RDAP Help")
+        .setDescription(
+            "domain/XXXX",
+            "nameserver/XXXX",
+            "entity/XXXX",
+            "domains?name=XXXX",
+            "domains?nsLdhName=XXXX",
+            "domains?nsIp=XXXX",
+            "nameservers?name=XXXX",
+            "nameservers?ip=XXXX",
+            "entities?fn=XXXX",
+            "entities?handle=XXXX",
+            "help/XXXX")
+        .addLink(linkBuilder.build())
+        .build();
+  }
+
   @Override
-  public ImmutableMap<String, Object> getJsonObjectForResource(
+  public HelpResponse getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest) {
-    // We rely on addTopLevelEntries to notice if we are sending the TOS notice, and not add a
-    // duplicate boilerplate entry.
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    rdapJsonFormatter.addTopLevelEntries(
-        builder,
-        BoilerplateType.OTHER,
-        ImmutableList.of(rdapJsonFormatter.getJsonHelpNotice(pathSearchString, fullServletPath)),
-        ImmutableList.of(),
-        fullServletPath);
-    return builder.build();
+    if (pathSearchString.isEmpty() || pathSearchString.equals("/")) {
+      return HelpResponse.create(Optional.of(createHelpNotice()));
+    }
+    if (pathSearchString.equals(TOS_PATH)) {
+      // A TOS notice is added to every reply automatically, so we don't want to add another one
+      // here
+      return HelpResponse.create(Optional.empty());
+    }
+    throw new NotFoundException("no help found for " + pathSearchString);
   }
 }

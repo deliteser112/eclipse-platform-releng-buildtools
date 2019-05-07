@@ -28,7 +28,6 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainBase;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.testing.TestDataHelper.loadFile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
@@ -90,11 +89,11 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
 
   enum RequestType { NONE, NAME, NS_LDH_NAME, NS_IP }
 
-  private Object generateActualJson(RequestType requestType, String paramValue) {
+  private JSONObject generateActualJson(RequestType requestType, String paramValue) {
     return generateActualJson(requestType, paramValue, null);
   }
 
-  private Object generateActualJson(
+  private JSONObject generateActualJson(
       RequestType requestType, String paramValue, String cursor) {
     action.requestPath = actionPath;
     action.requestMethod = POST;
@@ -136,7 +135,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
       }
     }
     action.run();
-    return JSONValue.parse(response.getPayload());
+    return (JSONObject) JSONValue.parse(response.getPayload());
   }
 
   private HostResource addHostToMap(HostResource host) {
@@ -363,27 +362,25 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     action.requestMethod = POST;
   }
 
-  private Object generateExpectedJsonForTwoDomains() {
+  private JSONObject generateExpectedJsonForTwoDomains() {
     return generateExpectedJsonForTwoDomains("cat.example", "21-EXAMPLE", "cat.lol", "C-LOL");
   }
 
-  private Object generateExpectedJsonForTwoDomains(
+  private JSONObject generateExpectedJsonForTwoDomains(
       String domain1Name,
       String domain1Handle,
       String domain2Name,
       String domain2Handle) {
-    return JSONValue.parse(loadFile(
-        this.getClass(),
+    return loadJsonFile(
         "rdap_domains_two.json",
-        ImmutableMap.of(
-            "TYPE", "domain name",
-            "DOMAINNAME1", domain1Name,
-            "DOMAINHANDLE1", domain1Handle,
-            "DOMAINNAME2", domain2Name,
-            "DOMAINHANDLE2", domain2Handle)));
+        "TYPE", "domain name",
+        "DOMAINNAME1", domain1Name,
+        "DOMAINHANDLE1", domain1Handle,
+        "DOMAINNAME2", domain2Name,
+        "DOMAINHANDLE2", domain2Handle);
   }
 
-  private Object generateExpectedJsonForFourDomains(
+  private JSONObject generateExpectedJsonForFourDomains(
       String domain1Name,
       String domain1Handle,
       String domain2Name,
@@ -406,7 +403,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
         expectedOutputFile);
   }
 
-  private Object generateExpectedJsonForFourDomains(
+  private JSONObject generateExpectedJsonForFourDomains(
       String domain1Name,
       String domain1Handle,
       String domain2Name,
@@ -417,33 +414,25 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
       String domain4Handle,
       String nextQuery,
       String expectedOutputFile) {
-    return JSONValue.parse(
-        loadFile(
-            this.getClass(),
-            expectedOutputFile,
-            new ImmutableMap.Builder<String, String>()
-                .put("TYPE", "domain name")
-                .put("DOMAINPUNYCODENAME1", domain1Name)
-                .put("DOMAINNAME1", IDN.toUnicode(domain1Name))
-                .put("DOMAINHANDLE1", domain1Handle)
-                .put("DOMAINPUNYCODENAME2", domain2Name)
-                .put("DOMAINNAME2", IDN.toUnicode(domain2Name))
-                .put("DOMAINHANDLE2", domain2Handle)
-                .put("DOMAINPUNYCODENAME3", domain3Name)
-                .put("DOMAINNAME3", IDN.toUnicode(domain3Name))
-                .put("DOMAINHANDLE3", domain3Handle)
-                .put("DOMAINPUNYCODENAME4", domain4Name)
-                .put("DOMAINNAME4", IDN.toUnicode(domain4Name))
-                .put("DOMAINHANDLE4", domain4Handle)
-                .put("NEXT_QUERY", nextQuery)
-                .build()));
+    return loadJsonFile(
+        expectedOutputFile,
+        "TYPE", "domain name",
+        "DOMAINPUNYCODENAME1", domain1Name,
+        "DOMAINNAME1", IDN.toUnicode(domain1Name),
+        "DOMAINHANDLE1", domain1Handle,
+        "DOMAINPUNYCODENAME2", domain2Name,
+        "DOMAINNAME2", IDN.toUnicode(domain2Name),
+        "DOMAINHANDLE2", domain2Handle,
+        "DOMAINPUNYCODENAME3", domain3Name,
+        "DOMAINNAME3", IDN.toUnicode(domain3Name),
+        "DOMAINHANDLE3", domain3Handle,
+        "DOMAINPUNYCODENAME4", domain4Name,
+        "DOMAINNAME4", IDN.toUnicode(domain4Name),
+        "DOMAINHANDLE4", domain4Handle,
+        "NEXT_QUERY", nextQuery);
   }
 
-  private Object generateExpectedJson(String name, String expectedOutputFile) {
-    return generateExpectedJson(name, null, null, null, null, null, expectedOutputFile);
-  }
-
-  private Object generateExpectedJson(
+  private JSONObject generateExpectedJson(
       String name,
       String punycodeName,
       String handle,
@@ -476,11 +465,10 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     if (registrarName != null) {
       substitutionsBuilder.put("REGISTRARNAME", registrarName);
     }
-    return JSONValue.parse(
-        loadFile(this.getClass(), expectedOutputFile, substitutionsBuilder.build()));
+    return loadJsonFile(expectedOutputFile, substitutionsBuilder.build());
   }
 
-  private Object generateExpectedJsonForDomain(
+  private JSONObject generateExpectedJsonForDomain(
       String name,
       String punycodeName,
       String handle,
@@ -488,7 +476,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
       @Nullable List<String> nameservers,
       @Nullable String registrarName,
       String expectedOutputFile) {
-    Object obj =
+    JSONObject obj =
         generateExpectedJson(
             name,
             punycodeName,
@@ -497,6 +485,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
             nameservers,
             registrarName,
             expectedOutputFile);
+    obj.remove("rdapConformance");
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("domainSearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("icann_rdap_response_profile_0"));
@@ -560,7 +549,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     persistResources(domainsBuilder.build());
   }
 
-  private Object readMultiDomainFile(
+  private JSONObject readMultiDomainFile(
       String fileName,
       String domainName1,
       String domainHandle1,
@@ -583,7 +572,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
         "none");
   }
 
-  private Object readMultiDomainFile(
+  private JSONObject readMultiDomainFile(
       String fileName,
       String domainName1,
       String domainHandle1,
@@ -594,30 +583,24 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
       String domainName4,
       String domainHandle4,
       String nextQuery) {
-    return JSONValue.parse(loadFile(
-        this.getClass(),
+    return loadJsonFile(
         fileName,
-        new ImmutableMap.Builder<String, String>()
-            .put("DOMAINNAME1", domainName1)
-            .put("DOMAINHANDLE1", domainHandle1)
-            .put("DOMAINNAME2", domainName2)
-            .put("DOMAINHANDLE2", domainHandle2)
-            .put("DOMAINNAME3", domainName3)
-            .put("DOMAINHANDLE3", domainHandle3)
-            .put("DOMAINNAME4", domainName4)
-            .put("DOMAINHANDLE4", domainHandle4)
-            .put("NEXT_QUERY", nextQuery)
-            .build()));
+        "DOMAINNAME1", domainName1,
+        "DOMAINHANDLE1", domainHandle1,
+        "DOMAINNAME2", domainName2,
+        "DOMAINHANDLE2", domainHandle2,
+        "DOMAINNAME3", domainName3,
+        "DOMAINHANDLE3", domainHandle3,
+        "DOMAINNAME4", domainName4,
+        "DOMAINHANDLE4", domainHandle4,
+        "NEXT_QUERY", nextQuery);
   }
 
-  private void checkNumberOfDomainsInResult(Object obj, int expected) {
+  private void checkNumberOfDomainsInResult(JSONObject obj, int expected) {
     assertThat(obj).isInstanceOf(Map.class);
 
     @SuppressWarnings("unchecked")
-    Map<String, Object> map = (Map<String, Object>) obj;
-
-    @SuppressWarnings("unchecked")
-    List<Object> domains = (List<Object>) map.get("domainSearchResults");
+    List<Object> domains = (List<Object>) obj.get("domainSearchResults");
 
     assertThat(domains).hasSize(expected);
   }
@@ -717,7 +700,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
       RequestType requestType, String queryString, String errorMessage) {
     rememberWildcardType(queryString);
     assertThat(generateActualJson(requestType, queryString))
-        .isEqualTo(generateExpectedJson(errorMessage, "rdap_error_404.json"));
+        .isEqualTo(generateExpectedJsonError(errorMessage, 404));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
@@ -801,7 +784,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     int expectedPageCount =
         (expectedNames.size() + action.rdapResultSetMaxSize - 1) / action.rdapResultSetMaxSize;
     for (int pageNum = 0; pageNum < expectedPageCount; pageNum++) {
-      Object results = generateActualJson(requestType, paramValue, cursor);
+      JSONObject results = generateActualJson(requestType, paramValue, cursor);
       assertThat(response.getStatus()).isEqualTo(200);
       String linkToNext = RdapTestHelper.getLinkToNext(results);
       if (pageNum == expectedPageCount - 1) {
@@ -811,7 +794,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
         int pos = linkToNext.indexOf("cursor=");
         assertThat(pos).isAtLeast(0);
         cursor = URLDecoder.decode(linkToNext.substring(pos + 7), "UTF-8");
-        Object searchResults = ((JSONObject) results).get("domainSearchResults");
+        Object searchResults = results.get("domainSearchResults");
         assertThat(searchResults).isInstanceOf(JSONArray.class);
         assertThat(((JSONArray) searchResults)).hasSize(action.rdapResultSetMaxSize);
         for (Object item : ((JSONArray) searchResults)) {
@@ -838,9 +821,9 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
   @Test
   public void testInvalidRequest_rejected() {
     assertThat(generateActualJson(RequestType.NONE, null))
-        .isEqualTo(generateExpectedJson(
+        .isEqualTo(generateExpectedJsonError(
             "You must specify either name=XXXX, nsLdhName=YYYY or nsIp=ZZZZ",
-            "rdap_error_400.json"));
+            400));
     assertThat(response.getStatus()).isEqualTo(400);
     verifyErrorMetrics(SearchType.NONE, Optional.empty(), 400);
   }
@@ -848,10 +831,10 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
   @Test
   public void testInvalidWildcard_rejected() {
     assertThat(generateActualJson(RequestType.NAME, "exam*ple"))
-        .isEqualTo(generateExpectedJson(
+        .isEqualTo(generateExpectedJsonError(
             "Suffix after wildcard must be one or more domain"
                 + " name labels, e.g. exam*.tld, ns*.example.tld",
-            "rdap_error_422.json"));
+            422));
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(SearchType.BY_DOMAIN_NAME, Optional.empty(), 422);
   }
@@ -859,7 +842,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
   @Test
   public void testMultipleWildcards_rejected() {
     assertThat(generateActualJson(RequestType.NAME, "*.*"))
-        .isEqualTo(generateExpectedJson("Only one wildcard allowed", "rdap_error_422.json"));
+        .isEqualTo(generateExpectedJsonError("Only one wildcard allowed", 422));
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(SearchType.BY_DOMAIN_NAME, Optional.empty(), 422);
   }
@@ -869,10 +852,10 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     rememberWildcardType("*");
     assertThat(generateActualJson(RequestType.NAME, "*"))
         .isEqualTo(
-            generateExpectedJson(
+            generateExpectedJsonError(
                 "Initial search string is required for wildcard domain searches without a TLD"
                     + " suffix",
-                "rdap_error_422.json"));
+                422));
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(SearchType.BY_DOMAIN_NAME, Optional.empty(), 422);
   }
@@ -882,10 +865,10 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     rememberWildcardType("a*");
     assertThat(generateActualJson(RequestType.NAME, "a*"))
         .isEqualTo(
-            generateExpectedJson(
+            generateExpectedJsonError(
                 "Initial search string must be at least 2 characters for wildcard domain searches"
                     + " without a TLD suffix",
-                "rdap_error_422.json"));
+                422));
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(SearchType.BY_DOMAIN_NAME, Optional.empty(), 422);
   }
@@ -1226,7 +1209,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     // There are enough domains to fill a full result set; deleted domains are ignored.
     createManyDomainsAndHosts(4, 4, 2);
     rememberWildcardType("domain*.lol");
-    Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
+    JSONObject obj = generateActualJson(RequestType.NAME, "domain*.lol");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfDomainsInResult(obj, 4);
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(16L));
@@ -1237,7 +1220,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     // There are not enough domains to fill a full result set.
     createManyDomainsAndHosts(3, 20, 2);
     rememberWildcardType("domain*.lol");
-    Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
+    JSONObject obj = generateActualJson(RequestType.NAME, "domain*.lol");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfDomainsInResult(obj, 3);
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(60L));
@@ -1682,7 +1665,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     // each one references the nameserver.
     createManyDomainsAndHosts(3, 1, 40);
     rememberWildcardType("ns1.domain1.lol");
-    Object obj = generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.lol");
+    JSONObject obj = generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.lol");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfDomainsInResult(obj, 3);
     verifyMetrics(SearchType.BY_NAMESERVER_NAME, Optional.of(3L), Optional.of(1L));
@@ -1693,7 +1676,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     // Same as above, except with a wildcard (that still only finds one nameserver).
     createManyDomainsAndHosts(3, 1, 40);
     rememberWildcardType("ns1.domain1.l*");
-    Object obj = generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.l*");
+    JSONObject obj = generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.l*");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfDomainsInResult(obj, 3);
     verifyMetrics(SearchType.BY_NAMESERVER_NAME, Optional.of(3L), Optional.of(1L));
@@ -1707,7 +1690,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     // have more than that number of nameservers for an effective test.
     createManyDomainsAndHosts(3, 1, 39);
     rememberWildcardType("ns*.domain1.lol");
-    Object obj = generateActualJson(RequestType.NS_LDH_NAME, "ns*.domain1.lol");
+    JSONObject obj = generateActualJson(RequestType.NS_LDH_NAME, "ns*.domain1.lol");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfDomainsInResult(obj, 3);
     verifyMetrics(SearchType.BY_NAMESERVER_NAME, Optional.of(3L), Optional.of(39L));

@@ -19,7 +19,6 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
-import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableList;
@@ -34,7 +33,7 @@ import google.registry.request.Action;
 import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import org.json.simple.JSONValue;
+import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -92,10 +91,9 @@ public class RdapNameserverActionTest extends RdapActionBaseTestCase<RdapNameser
     if (!punycodeSet) {
       builder.put("PUNYCODENAME", name);
     }
-    return JSONValue.parse(loadFile(
-        this.getClass(),
+    return loadJsonFile(
         expectedOutputFile,
-        builder.build()));
+        builder.build());
   }
 
   private Object generateExpectedJsonWithTopLevelEntries(
@@ -114,9 +112,8 @@ public class RdapNameserverActionTest extends RdapActionBaseTestCase<RdapNameser
           builder,
           RdapTestHelper.createNotices(
               "https://example.tld/rdap/",
-              RdapTestHelper.ContactNoticeType.NONE,
               map.get("notices")));
-      obj = builder.build();
+      obj = new JSONObject(builder.build());
     }
     return obj;
   }
@@ -125,17 +122,16 @@ public class RdapNameserverActionTest extends RdapActionBaseTestCase<RdapNameser
   public void testInvalidNameserver_returns400() {
     assertThat(generateActualJson("invalid/host/name"))
         .isEqualTo(
-            generateExpectedJson(
+            generateExpectedJsonError(
                 "invalid/host/name is not a valid nameserver: Invalid host name",
-                null,
-                "rdap_error_400.json"));
+                400));
     assertThat(response.getStatus()).isEqualTo(400);
   }
 
   @Test
   public void testUnknownNameserver_returns404() {
     assertThat(generateActualJson("ns1.missing.com")).isEqualTo(
-        generateExpectedJson("ns1.missing.com not found", null, "rdap_error_404.json"));
+        generateExpectedJsonError("ns1.missing.com not found", 404));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 

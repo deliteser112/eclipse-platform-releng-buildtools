@@ -13,9 +13,9 @@
   "links" :
   [
     {
-      "value" : "http://myserver.example.com/domain/cat.xn--q9jyb4c",
+      "value" : "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
       "rel" : "self",
-      "href" : "http://myserver.example.com/domain/cat.xn--q9jyb4c",
+      "href" : "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
       "type" : "application/rdap+json"
     }
   ],
@@ -54,9 +54,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.example.com/nameserver/ns1.cat.xn--q9jyb4c",
+          "value" : "https://example.tld/rdap/nameserver/ns1.cat.xn--q9jyb4c",
           "rel" : "self",
-          "href" : "http://myserver.example.com/nameserver/ns1.cat.xn--q9jyb4c",
+          "href" : "https://example.tld/rdap/nameserver/ns1.cat.xn--q9jyb4c",
           "type" : "application/rdap+json"
         }
       ],
@@ -84,9 +84,9 @@
           "links" :
           [
             {
-              "value" : "http://myserver.example.com/entity/1",
+              "value" : "https://example.tld/rdap/entity/1",
               "rel" : "self",
-              "href" : "http://myserver.example.com/entity/1",
+              "href" : "https://example.tld/rdap/entity/1",
               "type" : "application/rdap+json"
             }
           ],
@@ -137,9 +137,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.example.com/nameserver/ns2.cat.xn--q9jyb4c",
+          "value" : "https://example.tld/rdap/nameserver/ns2.cat.xn--q9jyb4c",
           "rel" : "self",
-          "href" : "http://myserver.example.com/nameserver/ns2.cat.xn--q9jyb4c",
+          "href" : "https://example.tld/rdap/nameserver/ns2.cat.xn--q9jyb4c",
           "type" : "application/rdap+json"
         }
       ],
@@ -167,9 +167,9 @@
           "links" :
           [
             {
-              "value" : "http://myserver.example.com/entity/1",
+              "value" : "https://example.tld/rdap/entity/1",
               "rel" : "self",
-              "href" : "http://myserver.example.com/entity/1",
+              "href" : "https://example.tld/rdap/entity/1",
               "type" : "application/rdap+json"
             }
           ],
@@ -221,9 +221,9 @@
       "links" :
       [
         {
-          "value" : "http://myserver.example.com/entity/1",
+          "value" : "https://example.tld/rdap/entity/1",
           "rel" : "self",
-          "href" : "http://myserver.example.com/entity/1",
+          "href" : "https://example.tld/rdap/entity/1",
           "type" : "application/rdap+json"
         }
       ],

@@ -6,9 +6,9 @@
   "links" :
   [
     {
-      "value" : "http://myserver.example.com/entity/2-ROID",
+      "value" : "https://example.tld/rdap/entity/2-ROID",
       "rel" : "self",
-      "href" : "http://myserver.example.com/entity/2-ROID",
+      "href" : "https://example.tld/rdap/entity/2-ROID",
       "type" : "application/rdap+json"
     }
   ],
@@ -33,12 +33,12 @@
       "type": "object truncated due to unexplainable reasons"
     },
     {
-      "title": "Data Policy",
+      "title": "Redacted for Privacy",
       "description": [
         "Some of the data in this object has been removed.",
         "Contact personal data is visible only to the owning registrar."
       ],
-      "type": "object truncated due to authorization",
+      "type": "object redacted due to authorization",
       "links" :
       [
         {

@@ -19,15 +19,13 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.verify;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapMetrics.WildcardType;
+import google.registry.rdap.RdapObjectClasses.BoilerplateType;
+import google.registry.rdap.RdapObjectClasses.ReplyPayloadBase;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
@@ -59,7 +57,7 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
     }
 
     @Override
-    public ImmutableMap<String, Object> getJsonObjectForResource(
+    public ReplyPayloadBase getJsonObjectForResource(
         String pathSearchString, boolean isHeadRequest) {
       if (pathSearchString.equals("IllegalArgumentException")) {
         throw new IllegalArgumentException();
@@ -67,46 +65,36 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
       if (pathSearchString.equals("RuntimeException")) {
         throw new RuntimeException();
       }
-      ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-      builder.put("key", "value");
-      rdapJsonFormatter.addTopLevelEntries(
-          builder,
-          BoilerplateType.OTHER,
-          ImmutableList.of(),
-          ImmutableList.of(),
-          "http://myserver.example.com/");
-      return builder.build();
+      return new ReplyPayloadBase(BoilerplateType.OTHER) {
+        @JsonableElement public String key = "value";
+      };
     }
   }
 
   @Before
   public void setUp() {
     createTld("thing");
-    action.fullServletPath = "http://myserver.example.com" + actionPath;
+    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
   }
 
   @Test
   public void testIllegalValue_showsReadableTypeName() {
-    assertThat(generateActualJson("IllegalArgumentException")).isEqualTo(JSONValue.parse(
-        "{\"lang\":\"en\", \"errorCode\":400, \"title\":\"Bad Request\","
-        + "\"rdapConformance\":[\"icann_rdap_response_profile_0\"],"
-        + "\"description\":[\"Not a valid human-readable string\"]}"));
+    assertThat(generateActualJson("IllegalArgumentException")).isEqualTo(generateExpectedJsonError(
+        "Not a valid human-readable string",
+        400));
     assertThat(response.getStatus()).isEqualTo(400);
   }
 
   @Test
   public void testRuntimeException_returns500Error() {
-    assertThat(generateActualJson("RuntimeException")).isEqualTo(JSONValue.parse(
-        "{\"lang\":\"en\", \"errorCode\":500, \"title\":\"Internal Server Error\","
-        + "\"rdapConformance\":[\"icann_rdap_response_profile_0\"],"
-        + "\"description\":[\"An error was encountered\"]}"));
+    assertThat(generateActualJson("RuntimeException"))
+        .isEqualTo(generateExpectedJsonError("An error was encountered", 500));
     assertThat(response.getStatus()).isEqualTo(500);
   }
 
   @Test
   public void testValidName_works() {
-    assertThat(generateActualJson("no.thing")).isEqualTo(JSONValue.parse(
-        loadFile(this.getClass(), "rdapjson_toplevel.json")));
+    assertThat(generateActualJson("no.thing")).isEqualTo(loadJsonFile("rdapjson_toplevel.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -173,18 +161,14 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
                 .build());
   }
 
-  private String loadFileWithoutTrailingNewline(String fileName) {
-    String contents = loadFile(this.getClass(), fileName);
-    return contents.endsWith("\n") ? contents.substring(0, contents.length() - 1) : contents;
-  }
-
   @Test
   public void testUnformatted() {
     action.requestPath = actionPath + "no.thing";
     action.requestMethod = GET;
     action.run();
-    assertThat(response.getPayload())
-        .isEqualTo(loadFileWithoutTrailingNewline("rdap_unformatted_output.json"));
+    String payload = response.getPayload();
+    assertThat(payload).doesNotContain("\n");
+    assertThat(JSONValue.parse(payload)).isEqualTo(loadJsonFile("rdapjson_toplevel.json"));
   }
 
   @Test
@@ -193,7 +177,8 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
     action.requestMethod = GET;
     action.formatOutputParam = Optional.of(true);
     action.run();
-    assertThat(response.getPayload())
-        .isEqualTo(loadFileWithoutTrailingNewline("rdap_formatted_output.json"));
+    String payload = response.getPayload();
+    assertThat(payload).contains("\n");
+    assertThat(JSONValue.parse(payload)).isEqualTo(loadJsonFile("rdapjson_toplevel.json"));
   }
 }

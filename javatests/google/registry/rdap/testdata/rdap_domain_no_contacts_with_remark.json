@@ -2,6 +2,9 @@
   "objectClassName": "domain",
   "handle": "%HANDLE%",
   "ldhName": "%NAME%",
+  "rdapConformance": [
+    "icann_rdap_response_profile_0"
+  ],
   "status": [
     "client delete prohibited",
     "client renew prohibited",
