@@ -21,19 +21,16 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistH
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static org.mockito.Mockito.verify;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonObject;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
-import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +71,7 @@ public class RdapNameserverActionTest extends RdapActionBaseTestCase<RdapNameser
     makeAndPersistHostResource("ns1.domain.external", "9.10.11.12", clock.nowUtc().minusYears(1));
   }
 
-  private Object generateExpectedJson(
+  private JsonObject generateExpectedJson(
       String name,
       @Nullable ImmutableMap<String, String> otherSubstitutions,
       String expectedOutputFile) {
@@ -96,25 +93,12 @@ public class RdapNameserverActionTest extends RdapActionBaseTestCase<RdapNameser
         builder.build());
   }
 
-  private Object generateExpectedJsonWithTopLevelEntries(
+  private JsonObject generateExpectedJsonWithTopLevelEntries(
       String name,
       @Nullable ImmutableMap<String, String> otherSubstitutions,
       String expectedOutputFile) {
-    Object obj = generateExpectedJson(name, otherSubstitutions, expectedOutputFile);
-    if (obj instanceof Map) {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> map = (Map<String, Object>) obj;
-      ImmutableMap.Builder<String, Object> builder =
-          RdapTestHelper.getBuilderExcluding(
-              map, ImmutableSet.of("rdapConformance", "notices", "remarks"));
-      builder.put("rdapConformance", ImmutableList.of("icann_rdap_response_profile_0"));
-      RdapTestHelper.addNonDomainBoilerplateNotices(
-          builder,
-          RdapTestHelper.createNotices(
-              "https://example.tld/rdap/",
-              map.get("notices")));
-      obj = new JSONObject(builder.build());
-    }
+    JsonObject obj = generateExpectedJson(name, otherSubstitutions, expectedOutputFile);
+    RdapTestHelper.addNonDomainBoilerplateNotices(obj, "https://example.tld/rdap/");
     return obj;
   }
 

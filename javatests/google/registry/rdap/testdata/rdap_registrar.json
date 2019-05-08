@@ -43,7 +43,7 @@
         [
           "",
           "",
-          "123 Example Boulevard <script>"
+          "123 Example Boulevard <script>",
           "Williamsburg <script>",
           "NY",
           "11211",
@@ -71,7 +71,7 @@
           ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551216"],
           ["email", {}, "text", "jakedoe@example.com"]
         ]
-      ],
+      ]
     },
     {
       "objectClassName" : "entity",
@@ -87,7 +87,7 @@
           ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551216"],
           ["email", {}, "text", "janedoe@example.com"]
         ]
-      ],
+      ]
     },
     {
       "objectClassName" : "entity",
@@ -103,7 +103,7 @@
           ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
           ["email", {}, "text", "johndoe@example.com"]
         ]
-      ],
+      ]
     }
   ]
 }

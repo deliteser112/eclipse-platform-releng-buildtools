@@ -19,15 +19,12 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Streams;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import javax.annotation.Nullable;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import com.google.gson.JsonObject;
 
 public class RdapTestHelper {
 
@@ -43,26 +40,8 @@ public class RdapTestHelper {
     CONTACT
   }
 
-  static ImmutableMap.Builder<String, Object> getBuilderExcluding(
-      Map<String, Object> map, Set<String> keysToExclude) {
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    for (Entry<String, Object> entry : map.entrySet()) {
-      if (!keysToExclude.contains(entry.getKey())) {
-        builder.put(entry);
-      }
-    }
-    return builder;
-  }
-
-  static ImmutableList<ImmutableMap<String, Object>> createNotices(String linkBase) {
-    return createNotices(linkBase, null);
-  }
-
-  static ImmutableList<ImmutableMap<String, Object>> createNotices(
-      String linkBase, @Nullable Object otherNotices) {
-    ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
-        getBuilderWithOthersAdded(otherNotices);
-    noticesBuilder.add(
+  private static JsonObject createTosNotice(String linkBase) {
+    return new Gson().toJsonTree(
         ImmutableMap.of(
             "title", "RDAP Terms of Service",
             "description",
@@ -94,81 +73,73 @@ public class RdapTestHelper {
                         "value", linkBase + "help/tos",
                         "rel", "alternate",
                         "href", "https://www.registry.tld/about/rdap/tos.html",
-                        "type", "text/html"))));
-    return noticesBuilder.build();
+                        "type", "text/html")))).getAsJsonObject();
   }
 
-  static void addNonDomainBoilerplateNotices(ImmutableMap.Builder<String, Object> builder) {
-    addNonDomainBoilerplateNotices(builder, null);
-  }
-
-  static void addNonDomainBoilerplateNotices(
-      ImmutableMap.Builder<String, Object> builder, @Nullable Object otherNotices) {
-    ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
-        getBuilderWithOthersAdded(otherNotices);
-    noticesBuilder.add(
-        ImmutableMap.of(
-            "description",
-            ImmutableList.of(
-                "This response conforms to the RDAP Operational Profile for gTLD Registries and"
-                    + " Registrars version 1.0")));
-    builder.put("notices", noticesBuilder.build());
-  }
-
-  static void addDomainBoilerplateNotices(ImmutableMap.Builder<String, Object> builder) {
-    addDomainBoilerplateNotices(builder, null);
-  }
-
-  static void addDomainBoilerplateNotices(
-      ImmutableMap.Builder<String, Object> builder, @Nullable Object otherNotices) {
-    ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
-        getBuilderWithOthersAdded(otherNotices);
-    noticesBuilder.add(
-        ImmutableMap.of(
-            "description",
-            ImmutableList.of(
-                "This response conforms to the RDAP Operational Profile for gTLD Registries and"
-                    + " Registrars version 1.0")));
-    noticesBuilder.add(
-        ImmutableMap.of(
-            "title",
-            "Status Codes",
-            "description",
-            ImmutableList.of(
-                "For more information on domain status codes, please visit"
-                    + " https://icann.org/epp"),
-            "links",
-            ImmutableList.of(
-                ImmutableMap.of(
-                    "value", "https://icann.org/epp",
-                    "rel", "alternate",
-                    "href", "https://icann.org/epp",
-                    "type", "text/html"))));
-    noticesBuilder.add(
-        ImmutableMap.of(
-            "description",
-            ImmutableList.of(
-                "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"),
-            "links",
-            ImmutableList.of(
-                ImmutableMap.of(
-                    "value", "https://www.icann.org/wicf",
-                    "rel", "alternate",
-                    "href", "https://www.icann.org/wicf",
-                    "type", "text/html"))));
-    builder.put("notices", noticesBuilder.build());
-  }
-
-  private static ImmutableList.Builder<ImmutableMap<String, Object>> getBuilderWithOthersAdded(
-      @Nullable Object others) {
-    ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
-    if ((others != null) && (others instanceof ImmutableList<?>)) {
-      @SuppressWarnings("unchecked")
-      ImmutableList<ImmutableMap<String, Object>> othersList =
-          (ImmutableList<ImmutableMap<String, Object>>) others;
-      builder.addAll(othersList);
+  static void addNonDomainBoilerplateNotices(JsonObject jsonObject, String linkBase) {
+    if (!jsonObject.has("notices")) {
+      jsonObject.add("notices", new JsonArray());
     }
-    return builder;
+    JsonArray notices = jsonObject.getAsJsonArray("notices");
+
+    notices.add(createTosNotice(linkBase));
+    notices.add(
+        new Gson()
+            .toJsonTree(
+                ImmutableMap.of(
+                    "description",
+                    ImmutableList.of(
+                        "This response conforms to the RDAP Operational Profile for gTLD"
+                            + " Registries and Registrars version 1.0"))));
+  }
+
+  static void addDomainBoilerplateNotices(JsonObject jsonObject, String linkBase) {
+    if (!jsonObject.has("notices")) {
+      jsonObject.add("notices", new JsonArray());
+    }
+    JsonArray notices = jsonObject.getAsJsonArray("notices");
+
+    notices.add(createTosNotice(linkBase));
+    notices.add(
+        new Gson()
+            .toJsonTree(
+                ImmutableMap.of(
+                    "description",
+                    ImmutableList.of(
+                        "This response conforms to the RDAP Operational Profile for gTLD"
+                            + " Registries and Registrars version 1.0"))));
+    notices.add(
+        new Gson()
+            .toJsonTree(
+                ImmutableMap.of(
+                    "title",
+                    "Status Codes",
+                    "description",
+                    ImmutableList.of(
+                        "For more information on domain status codes, please visit"
+                            + " https://icann.org/epp"),
+                    "links",
+                    ImmutableList.of(
+                        ImmutableMap.of(
+                            "value", "https://icann.org/epp",
+                            "rel", "alternate",
+                            "href", "https://icann.org/epp",
+                            "type", "text/html")))));
+    notices.add(
+        new Gson()
+            .toJsonTree(
+                ImmutableMap.of(
+                    "description",
+                    ImmutableList.of(
+                        "URL of the ICANN Whois Inaccuracy Complaint Form:"
+                            + " https://www.icann.org/wicf"),
+                    "links",
+                    ImmutableList.of(
+                        ImmutableMap.of(
+                            "value", "https://www.icann.org/wicf",
+                            "rel", "alternate",
+                            "href", "https://www.icann.org/wicf",
+                            "type", "text/html")))));
   }
 
   static RdapJsonFormatter getTestRdapJsonFormatter() {
@@ -202,34 +173,28 @@ public class RdapTestHelper {
     return rdapJsonFormatter;
   }
 
-  static String getLinkToNext(Object results) {
-    assertThat(results).isInstanceOf(JSONObject.class);
-    Object notices = ((JSONObject) results).get("notices");
-    assertThat(notices).isInstanceOf(JSONArray.class);
-    for (Object notice : (JSONArray) notices) {
-      assertThat(notice).isInstanceOf(JSONObject.class);
-      Object title = ((JSONObject) notice).get("title");
-      if (title == null) {
-        continue;
-      }
-      assertThat(title).isInstanceOf(String.class);
-      if (!title.equals("Navigation Links")) {
-        continue;
-      }
-      Object links = ((JSONObject) notice).get("links");
-      assertThat(links).isInstanceOf(JSONArray.class);
-      for (Object link : (JSONArray) links) {
-        assertThat(link).isInstanceOf(JSONObject.class);
-        Object rel = ((JSONObject) link).get("rel");
-        assertThat(rel).isInstanceOf(String.class);
-        if (!rel.equals("next")) {
-          continue;
-        }
-        Object href = ((JSONObject) link).get("href");
-        assertThat(href).isInstanceOf(String.class);
-        return (String) href;
-      }
-    }
-    return null;
+  static String getLinkToNext(JsonObject results) {
+    JsonArray notices = results.getAsJsonArray("notices");
+    assertThat(notices).isNotNull();
+    return Streams.stream(notices)
+        .map(notice -> notice.getAsJsonObject())
+        .filter(notice -> notice.has("title"))
+        .filter(notice -> notice.get("title").getAsString().equals("Navigation Links"))
+        .flatMap(notice -> Streams.stream(notice.getAsJsonArray("links")))
+        .map(link -> link.getAsJsonObject())
+        .filter(link -> link.get("rel").getAsString().equals("next"))
+        .map(link -> link.get("href").getAsString())
+        .findAny().orElse(null);
+  }
+
+  static JsonObject wrapInSearchReply(String searchResultsName, JsonObject obj) {
+    JsonArray searchResults = new JsonArray();
+    searchResults.add(obj);
+    JsonObject reply = new JsonObject();
+
+    reply.add(searchResultsName, searchResults);
+    reply.add("rdapConformance", obj.getAsJsonArray("rdapConformance"));
+    obj.remove("rdapConformance");
+    return reply;
   }
 }

@@ -30,6 +30,9 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarCo
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.registrar.Registrar;
@@ -39,13 +42,8 @@ import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.testing.FakeResponse;
 import java.net.URLDecoder;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,11 +66,11 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   private Registrar registrarInactive;
   private Registrar registrarTest;
 
-  private JSONObject generateActualJsonWithFullName(String fn) {
+  private JsonObject generateActualJsonWithFullName(String fn) {
     return generateActualJsonWithFullName(fn, null);
   }
 
-  private JSONObject generateActualJsonWithFullName(String fn, String cursor) {
+  private JsonObject generateActualJsonWithFullName(String fn, String cursor) {
     metricSearchType = SearchType.BY_FULL_NAME;
     action.fnParam = Optional.of(fn);
     if (cursor == null) {
@@ -83,14 +81,14 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
       action.cursorTokenParam = Optional.of(cursor);
     }
     action.run();
-    return (JSONObject) JSONValue.parse(response.getPayload());
+    return parseJsonObject(response.getPayload());
   }
 
-  private JSONObject generateActualJsonWithHandle(String handle) {
+  private JsonObject generateActualJsonWithHandle(String handle) {
     return generateActualJsonWithHandle(handle, null);
   }
 
-  private JSONObject generateActualJsonWithHandle(String handle, String cursor) {
+  private JsonObject generateActualJsonWithHandle(String handle, String cursor) {
     metricSearchType = SearchType.BY_HANDLE;
     action.handleParam = Optional.of(handle);
     if (cursor == null) {
@@ -101,7 +99,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
       action.cursorTokenParam = Optional.of(cursor);
     }
     action.run();
-    return (JSONObject) JSONValue.parse(response.getPayload());
+    return parseJsonObject(response.getPayload());
   }
 
   @Before
@@ -156,17 +154,17 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
     action.subtypeParam = Optional.empty();
   }
 
-  private JSONObject generateExpectedJson(String expectedOutputFile) {
+  private JsonObject generateExpectedJson(String expectedOutputFile) {
     return loadJsonFile(expectedOutputFile, "TYPE", "entity");
   }
 
-  private JSONObject generateExpectedJson(
+  private JsonObject generateExpectedJson(
       String handle,
       String expectedOutputFile) {
         return generateExpectedJson(handle, null, "active", null, null, expectedOutputFile);
   }
 
-  private JSONObject generateExpectedJson(
+  private JsonObject generateExpectedJson(
       String handle,
       @Nullable String fullName,
       String status,
@@ -189,22 +187,18 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
     return loadJsonFile(expectedOutputFile, builder.build());
   }
 
-  private JSONObject generateExpectedJsonForEntity(
+  private JsonObject generateExpectedJsonForEntity(
       String handle,
       String fullName,
       String status,
       @Nullable String email,
       @Nullable String address,
       String expectedOutputFile) {
-    JSONObject obj =
+    JsonObject obj =
         generateExpectedJson(handle, fullName, status, email, address, expectedOutputFile);
-    obj.remove("rdapConformance");
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("entitySearchResults", ImmutableList.of(obj));
-    builder.put("rdapConformance", ImmutableList.of("icann_rdap_response_profile_0"));
-    RdapTestHelper.addNonDomainBoilerplateNotices(
-        builder, RdapTestHelper.createNotices("https://example.tld/rdap/"));
-    return new JSONObject(builder.build());
+    obj = RdapTestHelper.wrapInSearchReply("entitySearchResults", obj);
+    RdapTestHelper.addNonDomainBoilerplateNotices(obj, "https://example.tld/rdap/");
+    return obj;
   }
 
   private void createManyContactsAndRegistrars(
@@ -273,15 +267,6 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   private void verifyErrorMetrics(Optional<Long> numContactsRetrieved, int statusCode) {
     metricStatusCode = statusCode;
     verifyMetrics(numContactsRetrieved);
-  }
-
-  private void checkNumberOfEntitiesInResult(JSONObject obj, int expected) {
-    assertThat(obj).isInstanceOf(Map.class);
-
-    @SuppressWarnings("unchecked")
-    List<Object> entities = (List<Object>) obj.get("entitySearchResults");
-
-    assertThat(entities).hasSize(expected);
   }
 
   private void runSuccessfulNameTestWithBlinky(String queryString, String fileName) {
@@ -384,7 +369,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
     int expectedPageCount =
         (expectedNames.size() + action.rdapResultSetMaxSize - 1) / action.rdapResultSetMaxSize;
     for (int pageNum = 0; pageNum < expectedPageCount; pageNum++) {
-      JSONObject results =
+      JsonObject results =
           (queryType == QueryType.FULL_NAME)
               ? generateActualJsonWithFullName(paramValue, cursor)
               : generateActualJsonWithHandle(paramValue, cursor);
@@ -397,20 +382,14 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
         int pos = linkToNext.indexOf("cursor=");
         assertThat(pos).isAtLeast(0);
         cursor = URLDecoder.decode(linkToNext.substring(pos + 7), "UTF-8");
-        Object searchResults = results.get("entitySearchResults");
-        assertThat(searchResults).isInstanceOf(JSONArray.class);
-        assertThat(((JSONArray) searchResults)).hasSize(action.rdapResultSetMaxSize);
-        for (Object item : ((JSONArray) searchResults)) {
-          assertThat(item).isInstanceOf(JSONObject.class);
-          Object vcardArray = ((JSONObject) item).get("vcardArray");
-          assertThat(vcardArray).isInstanceOf(JSONArray.class);
-          Object vcardData = ((JSONArray) vcardArray).get(1);
-          assertThat(vcardData).isInstanceOf(JSONArray.class);
-          Object vcardFn = ((JSONArray) vcardData).get(1);
-          assertThat(vcardFn).isInstanceOf(JSONArray.class);
-          Object name = ((JSONArray) vcardFn).get(3);
-          assertThat(name).isNotNull();
-          assertThat(name).isInstanceOf(String.class);
+        JsonArray searchResults = results.getAsJsonArray("entitySearchResults");
+        assertThat(searchResults).hasSize(action.rdapResultSetMaxSize);
+        for (JsonElement item : searchResults) {
+          JsonArray vcardArray = item.getAsJsonObject().getAsJsonArray("vcardArray");
+          // vcardArray is an array with 2 elements, the first is just a string, the second is an
+          // array with all the vcards, starting with a "version" (so we want the second one).
+          JsonArray vcardFn = vcardArray.get(1).getAsJsonArray().get(1).getAsJsonArray();
+          String name = vcardFn.get(3).getAsString();
           assertThat(name).isEqualTo(expectedNames.get(expectedNameOffset++));
         }
         response = new FakeResponse();
@@ -430,7 +409,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   @Test
   public void testInvalidRequest_rejected() {
     action.run();
-    assertThat(JSONValue.parse(response.getPayload()))
+    assertThat(parseJsonObject(response.getPayload()))
         .isEqualTo(
             generateExpectedJsonError(
                 "You must specify either fn=XXXX or handle=YYYY", 400));
@@ -1237,9 +1216,9 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   public void testHandleMatchMix_found_truncated() {
     createManyContactsAndRegistrars(30, 0, registrarTest);
     rememberWildcardType("00*");
-    JSONObject obj = generateActualJsonWithHandle("00*");
+    JsonObject obj = generateActualJsonWithHandle("00*");
     assertThat(response.getStatus()).isEqualTo(200);
-    checkNumberOfEntitiesInResult(obj, 4);
+    assertThat(obj.getAsJsonArray("entitySearchResults")).hasSize(4);
     verifyMetrics(5, IncompletenessWarningType.TRUNCATED);
   }
 

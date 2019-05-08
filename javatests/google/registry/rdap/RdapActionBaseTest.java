@@ -30,7 +30,6 @@ import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
 import java.util.Optional;
-import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -168,7 +167,7 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
     action.run();
     String payload = response.getPayload();
     assertThat(payload).doesNotContain("\n");
-    assertThat(JSONValue.parse(payload)).isEqualTo(loadJsonFile("rdapjson_toplevel.json"));
+    assertThat(parseJsonObject(payload)).isEqualTo(loadJsonFile("rdapjson_toplevel.json"));
   }
 
   @Test
@@ -179,6 +178,6 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
     action.run();
     String payload = response.getPayload();
     assertThat(payload).contains("\n");
-    assertThat(JSONValue.parse(payload)).isEqualTo(loadJsonFile("rdapjson_toplevel.json"));
+    assertThat(parseJsonObject(payload)).isEqualTo(loadJsonFile("rdapjson_toplevel.json"));
   }
 }

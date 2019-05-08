@@ -20,7 +20,6 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import google.registry.rdap.AbstractJsonableObject.JsonableException;
@@ -34,7 +33,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public final class AbstractJsonableObjectTest {
 
-  private final Gson gson = new GsonBuilder().create();
+  private final Gson gson = new Gson();
 
   private JsonElement createJson(String... lines) {
     return gson.fromJson(Joiner.on("\n").join(lines), JsonElement.class);

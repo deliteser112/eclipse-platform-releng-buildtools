@@ -25,6 +25,8 @@ import static org.mockito.Mockito.mock;
 
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import google.registry.model.ofy.Ofy;
 import google.registry.request.Action;
 import google.registry.request.Actions;
@@ -39,8 +41,6 @@ import google.registry.util.TypeUtils;
 import java.util.Map;
 import java.util.Optional;
 import org.joda.time.DateTime;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -77,6 +77,8 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
 
   protected final String actionPath;
   protected final Class<A> rdapActionClass;
+
+  private static final Gson GSON = new Gson();
 
   protected RdapActionBaseTestCase(Class<A> rdapActionClass) {
     this.rdapActionClass = rdapActionClass;
@@ -117,11 +119,15 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
     metricRole = ADMINISTRATOR;
   }
 
-  protected JSONObject generateActualJson(String domainName) {
+  protected static JsonObject parseJsonObject(String jsonString) {
+    return GSON.fromJson(jsonString, JsonObject.class);
+  }
+
+  protected JsonObject generateActualJson(String domainName) {
     action.requestPath = actionPath + domainName;
     action.requestMethod = GET;
     action.run();
-    return (JSONObject) JSONValue.parse(response.getPayload());
+    return parseJsonObject(response.getPayload());
   }
 
   protected String generateHeadPayload(String domainName) {
@@ -141,7 +147,7 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
    * @param keysAndValues alternating substitution key and value. The substitutions are applied to
    *     the file before parsing it to JSON.
    */
-  protected JSONObject loadJsonFile(String filename, String... keysAndValues) {
+  protected static JsonObject loadJsonFile(String filename, String... keysAndValues) {
     checkArgument(keysAndValues.length % 2 == 0);
     ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
     for (int i = 0; i < keysAndValues.length; i += 2) {
@@ -159,11 +165,11 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
    * @param substitutions map of substitutions to apply to the file. The substitutions are applied
    *     to the file before parsing it to JSON.
    */
-  protected JSONObject loadJsonFile(String filename, Map<String, String> substitutions) {
-    return (JSONObject) JSONValue.parse(loadFile(this.getClass(), filename, substitutions));
+  protected static JsonObject loadJsonFile(String filename, Map<String, String> substitutions) {
+    return parseJsonObject(loadFile(RdapActionBaseTestCase.class, filename, substitutions));
   }
 
-  protected JSONObject generateExpectedJsonError(
+  protected JsonObject generateExpectedJsonError(
       String description,
       int code) {
     String title;

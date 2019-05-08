@@ -29,8 +29,10 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarCo
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.host.HostResource;
@@ -42,9 +44,6 @@ import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.testing.FakeResponse;
 import java.net.URLDecoder;
 import java.util.Optional;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,11 +62,11 @@ public class RdapNameserverSearchActionTest
   private HostResource hostNs1CatLol;
   private HostResource hostNs2CatLol;
 
-  private JSONObject generateActualJsonWithName(String name) {
+  private JsonObject generateActualJsonWithName(String name) {
     return generateActualJsonWithName(name, null);
   }
 
-  private JSONObject generateActualJsonWithName(String name, String cursor) {
+  private JsonObject generateActualJsonWithName(String name, String cursor) {
     metricSearchType = SearchType.BY_NAMESERVER_NAME;
     rememberWildcardType(name);
     action.nameParam = Optional.of(name);
@@ -79,14 +78,14 @@ public class RdapNameserverSearchActionTest
       action.cursorTokenParam = Optional.of(cursor);
     }
     action.run();
-    return (JSONObject) JSONValue.parse(response.getPayload());
+    return parseJsonObject(response.getPayload());
   }
 
-  private JSONObject generateActualJsonWithIp(String ipString) {
+  private JsonObject generateActualJsonWithIp(String ipString) {
     return generateActualJsonWithIp(ipString, null);
   }
 
-  private JSONObject generateActualJsonWithIp(String ipString, String cursor) {
+  private JsonObject generateActualJsonWithIp(String ipString, String cursor) {
     metricSearchType = SearchType.BY_NAMESERVER_ADDRESS;
     action.parameterMap = ImmutableListMultimap.of("ip", ipString);
     action.ipParam = Optional.of(ipString);
@@ -98,7 +97,7 @@ public class RdapNameserverSearchActionTest
       action.cursorTokenParam = Optional.of(cursor);
     }
     action.run();
-    return (JSONObject) JSONValue.parse(response.getPayload());
+    return parseJsonObject(response.getPayload());
   }
 
   @Before
@@ -154,14 +153,14 @@ public class RdapNameserverSearchActionTest
     action.nameParam = Optional.empty();
   }
 
-  private JSONObject generateExpectedJsonForNameserver(
+  private JsonObject generateExpectedJsonForNameserver(
       String name,
       String punycodeName,
       String handle,
       String ipAddressType,
       String ipAddress,
       String expectedOutputFile) {
-    JSONObject obj =
+    JsonObject obj =
         loadJsonFile(
             expectedOutputFile,
             "NAME", name,
@@ -171,13 +170,9 @@ public class RdapNameserverSearchActionTest
             "ADDRESS", ipAddress,
             "STATUS", "active",
             "TYPE", "nameserver");
-    obj.remove("rdapConformance");
-    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-    builder.put("nameserverSearchResults", ImmutableList.of(obj));
-    builder.put("rdapConformance", ImmutableList.of("icann_rdap_response_profile_0"));
-    RdapTestHelper.addNonDomainBoilerplateNotices(
-        builder, RdapTestHelper.createNotices("https://example.tld/rdap/"));
-    return new JSONObject(builder.build());
+    obj = RdapTestHelper.wrapInSearchReply("nameserverSearchResults", obj);
+    RdapTestHelper.addNonDomainBoilerplateNotices(obj, "https://example.tld/rdap/");
+    return obj;
   }
 
   private void createManyHosts(int numHosts) {
@@ -246,7 +241,7 @@ public class RdapNameserverSearchActionTest
   @Test
   public void testInvalidRequest_rejected() {
     action.run();
-    assertThat(JSONValue.parse(response.getPayload()))
+    assertThat(parseJsonObject(response.getPayload()))
         .isEqualTo(
             generateExpectedJsonError(
                 "You must specify either name=XXXX or ip=YYYY",
@@ -644,7 +639,7 @@ public class RdapNameserverSearchActionTest
     int expectedPageCount =
         (expectedNames.size() + action.rdapResultSetMaxSize - 1) / action.rdapResultSetMaxSize;
     for (int pageNum = 0; pageNum < expectedPageCount; pageNum++) {
-      JSONObject results =
+      JsonObject results =
           byName
               ? generateActualJsonWithName(paramValue, cursor)
               : generateActualJsonWithIp(paramValue, cursor);
@@ -657,15 +652,11 @@ public class RdapNameserverSearchActionTest
         int pos = linkToNext.indexOf("cursor=");
         assertThat(pos).isAtLeast(0);
         cursor = URLDecoder.decode(linkToNext.substring(pos + 7), "UTF-8");
-        Object searchResults = results.get("nameserverSearchResults");
-        assertThat(searchResults).isInstanceOf(JSONArray.class);
-        assertThat(((JSONArray) searchResults)).hasSize(action.rdapResultSetMaxSize);
-        for (Object item : ((JSONArray) searchResults)) {
-          assertThat(item).isInstanceOf(JSONObject.class);
-          Object name = ((JSONObject) item).get("ldhName");
-          assertThat(name).isNotNull();
-          assertThat(name).isInstanceOf(String.class);
-          assertThat(name).isEqualTo(expectedNames.get(expectedNameOffset++));
+        JsonArray searchResults = results.getAsJsonArray("nameserverSearchResults");
+        assertThat(searchResults).hasSize(action.rdapResultSetMaxSize);
+        for (JsonElement item : searchResults) {
+          assertThat(item.getAsJsonObject().get("ldhName").getAsString())
+              .isEqualTo(expectedNames.get(expectedNameOffset++));
         }
         response = new FakeResponse();
         action.response = response;

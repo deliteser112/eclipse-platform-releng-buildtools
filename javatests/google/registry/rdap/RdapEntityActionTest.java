@@ -27,8 +27,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarCo
 import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonObject;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
@@ -37,10 +36,8 @@ import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
-import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -131,7 +128,7 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
             clock.nowUtc().minusMonths(6));
   }
 
-  private Object generateExpectedJson(
+  private JsonObject generateExpectedJson(
       String handle,
       String fullName,
       String status,
@@ -147,29 +144,21 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
         "STATUS", status);
   }
 
-  private Object generateExpectedJsonWithTopLevelEntries(
+  private JsonObject generateExpectedJsonWithTopLevelEntries(
       String handle,
       String expectedOutputFile) {
     return generateExpectedJsonWithTopLevelEntries(
         handle, "(◕‿◕)", "active", null, expectedOutputFile);
   }
 
-  private Object generateExpectedJsonWithTopLevelEntries(
+  private JsonObject generateExpectedJsonWithTopLevelEntries(
       String handle,
       String fullName,
       String status,
       String address,
       String expectedOutputFile) {
-    Object obj = generateExpectedJson(handle, fullName, status, address, expectedOutputFile);
-    if (obj instanceof Map) {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> map = (Map<String, Object>) obj;
-      ImmutableMap.Builder<String, Object> builder =
-          RdapTestHelper.getBuilderExcluding(map, ImmutableSet.of("notices"));
-      RdapTestHelper.addNonDomainBoilerplateNotices(
-          builder, RdapTestHelper.createNotices("https://example.tld/rdap/", map.get("notices")));
-      obj = new JSONObject(builder.build());
-    }
+    JsonObject obj = generateExpectedJson(handle, fullName, status, address, expectedOutputFile);
+    RdapTestHelper.addNonDomainBoilerplateNotices(obj, "https://example.tld/rdap/");
     return obj;
   }
 

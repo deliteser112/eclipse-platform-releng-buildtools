@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonObject;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.Period;
@@ -42,10 +42,8 @@ import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import org.json.simple.JSONObject;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -228,7 +226,7 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
             clock.nowUtc().minusMonths(6)));
   }
 
-  private JSONObject generateExpectedJson(
+  private JsonObject generateExpectedJson(
       String expectedOutputFile,
       String name,
       String punycodeName,
@@ -274,7 +272,7 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
     return loadJsonFile(expectedOutputFile, substitutionsBuilder.build());
   }
 
-  private JSONObject generateExpectedJsonWithTopLevelEntries(
+  private JsonObject generateExpectedJsonWithTopLevelEntries(
       String name,
       String punycodeName,
       String handle,
@@ -292,7 +290,7 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
         registrarName,
         expectedOutputFile);
   }
-  private JSONObject generateExpectedJsonWithTopLevelEntries(
+  private JsonObject generateExpectedJsonWithTopLevelEntries(
       String name,
       String punycodeName,
       String handle,
@@ -301,7 +299,7 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
       @Nullable List<String> nameserverNames,
       @Nullable String registrarName,
       String expectedOutputFile) {
-    JSONObject obj =
+    JsonObject obj =
         generateExpectedJson(
             expectedOutputFile,
             name,
@@ -311,59 +309,43 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
             nameserverRoids,
             nameserverNames,
             registrarName);
-      @SuppressWarnings("unchecked")
-      Map<String, Object> map = (Map<String, Object>) obj;
-      ImmutableMap.Builder<String, Object> builder =
-          RdapTestHelper.getBuilderExcluding(map, ImmutableSet.of("notices"));
-      RdapTestHelper.addDomainBoilerplateNotices(
-          builder, RdapTestHelper.createNotices("https://example.tld/rdap/", map.get("notices")));
-      obj = new JSONObject(builder.build());
+    RdapTestHelper.addDomainBoilerplateNotices(obj, "https://example.tld/rdap/");
     return obj;
   }
 
-  private void assertJsonEqual(Object json1, Object json2) {
-    if (json1 instanceof Map) {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> map = (Map<String, Object>) json1;
-      assertThat(map).isEqualTo(json2);
-    } else {
-      assertThat(json1).isEqualTo(json2);
-    }
-  }
-
   private void assertProperResponseForCatLol(String queryString, String expectedOutputFile) {
-    assertJsonEqual(
-        generateActualJson(queryString),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.lol",
-            null,
-            "C-LOL",
-            ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
-            ImmutableList.of("8-ROID", "A-ROID"),
-            "Yes Virginia <script>",
-            expectedOutputFile));
+    assertThat(generateActualJson(queryString))
+        .isEqualTo(
+            generateExpectedJsonWithTopLevelEntries(
+                "cat.lol",
+                null,
+                "C-LOL",
+                ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+                ImmutableList.of("8-ROID", "A-ROID"),
+                "Yes Virginia <script>",
+                expectedOutputFile));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testInvalidDomain_returns400() {
-    assertJsonEqual(
-        generateActualJson("invalid/domain/name"),
-        generateExpectedJsonError(
-            "invalid/domain/name is not a valid domain name: Domain names can only contain a-z,"
-                + " 0-9, '.' and '-'",
-            400));
+    assertThat(generateActualJson("invalid/domain/name"))
+        .isEqualTo(
+            generateExpectedJsonError(
+                "invalid/domain/name is not a valid domain name: Domain names can only contain a-z,"
+                    + " 0-9, '.' and '-'",
+                400));
     assertThat(response.getStatus()).isEqualTo(400);
   }
 
   @Test
   public void testUnknownDomain_returns400() {
-    assertJsonEqual(
-        generateActualJson("missingdomain.com"),
-        generateExpectedJsonError(
-            "missingdomain.com is not a valid domain name: Domain name is under tld com which"
-                + " doesn't exist",
-            400));
+    assertThat(generateActualJson("missingdomain.com"))
+        .isEqualTo(
+            generateExpectedJsonError(
+                "missingdomain.com is not a valid domain name: Domain name is under tld com which"
+                    + " doesn't exist",
+                400));
     assertThat(response.getStatus()).isEqualTo(400);
   }
 
@@ -422,64 +404,64 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
   @Test
   public void testIdnDomain_works() {
     login("idnregistrar");
-    assertJsonEqual(
-        generateActualJson("cat.みんな"),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.みんな",
-            "cat.xn--q9jyb4c",
-            "1D-Q9JYB4C",
-            ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
-            ImmutableList.of("8-ROID", "A-ROID"),
-            "IDN Registrar",
-            "rdap_domain_unicode.json"));
+    assertThat(generateActualJson("cat.みんな"))
+        .isEqualTo(
+            generateExpectedJsonWithTopLevelEntries(
+                "cat.みんな",
+                "cat.xn--q9jyb4c",
+                "1D-Q9JYB4C",
+                ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
+                ImmutableList.of("8-ROID", "A-ROID"),
+                "IDN Registrar",
+                "rdap_domain_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testIdnDomainWithPercentEncoding_works() {
     login("idnregistrar");
-    assertJsonEqual(
-        generateActualJson("cat.%E3%81%BF%E3%82%93%E3%81%AA"),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.みんな",
-            "cat.xn--q9jyb4c",
-            "1D-Q9JYB4C",
-            ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
-            ImmutableList.of("8-ROID", "A-ROID"),
-            "IDN Registrar",
-            "rdap_domain_unicode.json"));
+    assertThat(generateActualJson("cat.%E3%81%BF%E3%82%93%E3%81%AA"))
+        .isEqualTo(
+            generateExpectedJsonWithTopLevelEntries(
+                "cat.みんな",
+                "cat.xn--q9jyb4c",
+                "1D-Q9JYB4C",
+                ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
+                ImmutableList.of("8-ROID", "A-ROID"),
+                "IDN Registrar",
+                "rdap_domain_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testPunycodeDomain_works() {
     login("idnregistrar");
-    assertJsonEqual(
-        generateActualJson("cat.xn--q9jyb4c"),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.みんな",
-            "cat.xn--q9jyb4c",
-            "1D-Q9JYB4C",
-            ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
-            ImmutableList.of("8-ROID", "A-ROID"),
-            "IDN Registrar",
-            "rdap_domain_unicode.json"));
+    assertThat(generateActualJson("cat.xn--q9jyb4c"))
+        .isEqualTo(
+            generateExpectedJsonWithTopLevelEntries(
+                "cat.みんな",
+                "cat.xn--q9jyb4c",
+                "1D-Q9JYB4C",
+                ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
+                ImmutableList.of("8-ROID", "A-ROID"),
+                "IDN Registrar",
+                "rdap_domain_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testMultilevelDomain_works() {
     login("1tldregistrar");
-    assertJsonEqual(
-        generateActualJson("cat.1.tld"),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.1.tld",
-            null,
-            "25-1_TLD",
-            ImmutableList.of("21-ROID", "23-ROID", "1F-ROID"),
-            ImmutableList.of("8-ROID", "A-ROID"),
-            "Multilevel Registrar",
-            "rdap_domain.json"));
+    assertThat(generateActualJson("cat.1.tld"))
+        .isEqualTo(
+            generateExpectedJsonWithTopLevelEntries(
+                "cat.1.tld",
+                null,
+                "25-1_TLD",
+                ImmutableList.of("21-ROID", "23-ROID", "1F-ROID"),
+                ImmutableList.of("8-ROID", "A-ROID"),
+                "Multilevel Registrar",
+                "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -494,9 +476,8 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
 
   @Test
   public void testDeletedDomain_notFound() {
-    assertJsonEqual(
-        generateActualJson("dodo.lol"),
-        generateExpectedJsonError("dodo.lol not found", 404));
+    assertThat(generateActualJson("dodo.lol"))
+        .isEqualTo(generateExpectedJsonError("dodo.lol not found", 404));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
@@ -526,17 +507,17 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
   public void testDeletedDomain_works_loggedInAsCorrectRegistrar() {
     login("evilregistrar");
     action.includeDeletedParam = Optional.of(true);
-    assertJsonEqual(
-        generateActualJson("dodo.lol"),
-        generateExpectedJsonWithTopLevelEntries(
-            "dodo.lol",
-            null,
-            "15-LOL",
-            ImmutableList.of("11-ROID", "13-ROID", "F-ROID"),
-            ImmutableList.of("8-ROID", "D-ROID"),
-            ImmutableList.of("ns1.cat.lol", "ns2.dodo.lol"),
-            "Yes Virginia <script>",
-            "rdap_domain_deleted.json"));
+    assertThat(generateActualJson("dodo.lol"))
+        .isEqualTo(
+            generateExpectedJsonWithTopLevelEntries(
+                "dodo.lol",
+                null,
+                "15-LOL",
+                ImmutableList.of("11-ROID", "13-ROID", "F-ROID"),
+                ImmutableList.of("8-ROID", "D-ROID"),
+                ImmutableList.of("ns1.cat.lol", "ns2.dodo.lol"),
+                "Yes Virginia <script>",
+                "rdap_domain_deleted.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -544,17 +525,17 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
   public void testDeletedDomain_works_loggedInAsAdmin() {
     loginAsAdmin();
     action.includeDeletedParam = Optional.of(true);
-    assertJsonEqual(
-        generateActualJson("dodo.lol"),
-        generateExpectedJsonWithTopLevelEntries(
-            "dodo.lol",
-            null,
-            "15-LOL",
-            ImmutableList.of("11-ROID", "13-ROID", "F-ROID"),
-            ImmutableList.of("8-ROID", "D-ROID"),
-            ImmutableList.of("ns1.cat.lol", "ns2.dodo.lol"),
-            "Yes Virginia <script>",
-            "rdap_domain_deleted.json"));
+    assertThat(generateActualJson("dodo.lol"))
+        .isEqualTo(
+            generateExpectedJsonWithTopLevelEntries(
+                "dodo.lol",
+                null,
+                "15-LOL",
+                ImmutableList.of("11-ROID", "13-ROID", "F-ROID"),
+                ImmutableList.of("8-ROID", "D-ROID"),
+                ImmutableList.of("ns1.cat.lol", "ns2.dodo.lol"),
+                "Yes Virginia <script>",
+                "rdap_domain_deleted.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

@@ -96,7 +96,7 @@
       ],
       "ipAddresses" :
       {
-        "v4" : ["1.2.3.3"]
+        "v4" : ["1.2.3.3"],
         "v6" : ["bad:f00d:cafe::15:beef"]
       },
       "remarks": [
