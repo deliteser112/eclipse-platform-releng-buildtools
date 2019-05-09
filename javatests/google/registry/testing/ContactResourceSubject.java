@@ -30,23 +30,26 @@ import org.joda.time.DateTime;
 public final class ContactResourceSubject
     extends AbstractEppResourceSubject<ContactResource, ContactResourceSubject> {
 
+  private final ContactResource actual;
+
   public ContactResourceSubject(FailureMetadata failureMetadata, ContactResource subject) {
     super(failureMetadata, checkNotNull(subject));
+    this.actual = subject;
   }
 
   public And<ContactResourceSubject> hasLocalizedPostalInfo(PostalInfo postalInfo) {
-    return hasValue(postalInfo, actual().getLocalizedPostalInfo(), "has localizedPostalInfo");
+    return hasValue(postalInfo, actual.getLocalizedPostalInfo(), "has localizedPostalInfo");
   }
 
   public And<ContactResourceSubject> hasNullLocalizedPostalInfo() {
-    if (actual().getLocalizedPostalInfo() != null) {
+    if (actual.getLocalizedPostalInfo() != null) {
       failWithActual(simpleFact("expected to have null localized postal info"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullLocalizedPostalInfo() {
-    if (actual().getLocalizedPostalInfo() == null) {
+    if (actual.getLocalizedPostalInfo() == null) {
       failWithActual(simpleFact("expected to have non-null localized postal info"));
     }
     return andChainer();
@@ -55,13 +58,11 @@ public final class ContactResourceSubject
   public And<ContactResourceSubject> hasInternationalizedPostalInfo(
       PostalInfo postalInfo) {
     return hasValue(
-        postalInfo,
-        actual().getInternationalizedPostalInfo(),
-        "has internationalizedPostalInfo");
+        postalInfo, actual.getInternationalizedPostalInfo(), "has internationalizedPostalInfo");
   }
 
   public And<ContactResourceSubject> hasNullInternationalizedPostalInfo() {
-    if (actual().getInternationalizedPostalInfo() != null) {
+    if (actual.getInternationalizedPostalInfo() != null) {
       failWithActual(simpleFact("expected to have null internationalized postal info"));
     }
     return andChainer();
@@ -69,78 +70,69 @@ public final class ContactResourceSubject
 
 
   public And<ContactResourceSubject> hasNonNullInternationalizedPostalInfo() {
-    if (actual().getInternationalizedPostalInfo() == null) {
+    if (actual.getInternationalizedPostalInfo() == null) {
       failWithActual(simpleFact("expected to have non-null internationalized postal info"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNullEmailAddress() {
-    if (actual().getEmailAddress() != null) {
+    if (actual.getEmailAddress() != null) {
       failWithActual(simpleFact("expected to have null email address"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullEmailAddress() {
-    if (actual().getEmailAddress() == null) {
+    if (actual.getEmailAddress() == null) {
       failWithActual(simpleFact("expected to have non-null email address"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNullVoiceNumber() {
-    if (actual().getVoiceNumber() != null) {
+    if (actual.getVoiceNumber() != null) {
       failWithActual(simpleFact("expected to have null voice number"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullVoiceNumber() {
-    if (actual().getVoiceNumber() == null) {
+    if (actual.getVoiceNumber() == null) {
       failWithActual(simpleFact("expected to have non-null voice number"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNullFaxNumber() {
-    if (actual().getFaxNumber() != null) {
+    if (actual.getFaxNumber() != null) {
       failWithActual(simpleFact("expected to have null fax number"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasNonNullFaxNumber() {
-    if (actual().getFaxNumber() == null) {
+    if (actual.getFaxNumber() == null) {
       failWithActual(simpleFact("expected to have non-null fax number"));
     }
     return andChainer();
   }
 
   public And<ContactResourceSubject> hasAuthInfoPwd(String pw) {
-    AuthInfo authInfo = actual().getAuthInfo();
+    AuthInfo authInfo = actual.getAuthInfo();
     return hasValue(pw, authInfo == null ? null : authInfo.getPw().getValue(), "has auth info pw");
   }
 
   public And<ContactResourceSubject> hasLastTransferTime(DateTime lastTransferTime) {
-    return hasValue(
-        lastTransferTime,
-        actual().getLastTransferTime(),
-        "has lastTransferTime");
+    return hasValue(lastTransferTime, actual.getLastTransferTime(), "has lastTransferTime");
   }
 
   public And<ContactResourceSubject> hasLastTransferTimeNotEqualTo(DateTime lastTransferTime) {
-    return doesNotHaveValue(
-        lastTransferTime,
-        actual().getLastTransferTime(),
-        "lastTransferTime");
+    return doesNotHaveValue(lastTransferTime, actual.getLastTransferTime(), "lastTransferTime");
   }
 
   public And<ContactResourceSubject> hasCurrentSponsorClientId(String clientId) {
-    return hasValue(
-        clientId,
-        actual().getCurrentSponsorClientId(),
-        "has currentSponsorClientId");
+    return hasValue(clientId, actual.getCurrentSponsorClientId(), "has currentSponsorClientId");
   }
 
   public static SimpleSubjectBuilder<ContactResourceSubject, ContactResource>

@@ -40,12 +40,15 @@ import org.joda.time.DateTime;
 abstract class AbstractEppResourceSubject
     <T extends EppResource, S extends AbstractEppResourceSubject<T, S>> extends Subject<S, T> {
 
+  private final T actual;
+
   public AbstractEppResourceSubject(FailureMetadata failureMetadata, T subject) {
     super(failureMetadata, checkNotNull(subject));
+    this.actual = subject;
   }
 
   private List<HistoryEntry> getHistoryEntries() {
-    return DatastoreHelper.getHistoryEntries(actual());
+    return DatastoreHelper.getHistoryEntries(actual);
   }
 
   @SuppressWarnings("unchecked")
@@ -56,17 +59,16 @@ abstract class AbstractEppResourceSubject
   @Override
   protected String actualCustomStringRepresentation() {
     return String.format(
-        "%s with foreign key '%s'",
-        actual().getClass().getSimpleName(),
-        actual().getForeignKey());
+        "%s with foreign key '%s'", actual.getClass().getSimpleName(), actual.getForeignKey());
   }
 
   @Override
   public void isEqualTo(@Nullable Object other) {
     // If the objects differ and we can show an interesting ImmutableObject diff, do so.
-    if (actual() != null && other instanceof ImmutableObject && !actual().equals(other)) {
-      String diffText = prettyPrintEntityDeepDiff(
-          ((ImmutableObject) other).toDiffableFieldMap(), actual().toDiffableFieldMap());
+    if (actual != null && other instanceof ImmutableObject && !actual.equals(other)) {
+      String diffText =
+          prettyPrintEntityDeepDiff(
+              ((ImmutableObject) other).toDiffableFieldMap(), actual.toDiffableFieldMap());
       fail(String.format("is equal to %s\n\nIt differs as follows:\n%s", other, diffText));
     }
     // Otherwise, fall back to regular behavior.
@@ -74,7 +76,7 @@ abstract class AbstractEppResourceSubject
   }
 
   public And<S> hasRepoId(long roid) {
-    return hasValue(roid, actual().getRepoId(), "has repoId");
+    return hasValue(roid, actual.getRepoId(), "has repoId");
   }
 
   public And<S> hasNoHistoryEntries() {
@@ -92,7 +94,7 @@ abstract class AbstractEppResourceSubject
   }
 
   public And<S> hasNumHistoryEntriesOfType(HistoryEntry.Type type, int num) {
-    List<HistoryEntry> entries = getHistoryEntriesOfType(actual(), type);
+    List<HistoryEntry> entries = getHistoryEntriesOfType(actual, type);
     if (entries.size() != num) {
       failWithBadResults(
           String.format("has this number of history entries of type %s", type.toString()),
@@ -136,7 +138,7 @@ abstract class AbstractEppResourceSubject
   }
 
   public And<S> hasStatusValue(StatusValue statusValue) {
-    if (!actual().getStatusValues().contains(statusValue)) {
+    if (!actual.getStatusValues().contains(statusValue)) {
       failWithoutActual(
           simpleFact(
               lenientFormat("%s should have had status value %s", actualAsString(), statusValue)));
@@ -145,7 +147,7 @@ abstract class AbstractEppResourceSubject
   }
 
   public And<S> doesNotHaveStatusValue(StatusValue statusValue) {
-    if (actual().getStatusValues().contains(statusValue)) {
+    if (actual.getStatusValues().contains(statusValue)) {
       failWithoutActual(
           simpleFact(
               lenientFormat(
@@ -155,31 +157,24 @@ abstract class AbstractEppResourceSubject
   }
 
   public And<S> hasExactlyStatusValues(StatusValue... statusValues) {
-    if (!ImmutableSet.copyOf(actual().getStatusValues())
-        .equals(ImmutableSet.copyOf(statusValues))) {
+    if (!ImmutableSet.copyOf(actual.getStatusValues()).equals(ImmutableSet.copyOf(statusValues))) {
       check("getStatusValues()")
-          .that(actual().getStatusValues())
+          .that(actual.getStatusValues())
           .containsExactly((Object[]) statusValues);
     }
     return andChainer();
   }
 
   public And<S> hasDeletionTime(DateTime deletionTime) {
-    return hasValue(
-        deletionTime,
-        actual().getDeletionTime(),
-        "has deletionTime");
+    return hasValue(deletionTime, actual.getDeletionTime(), "has deletionTime");
   }
 
   public And<S> hasLastEppUpdateTime(DateTime lastUpdateTime) {
-    return hasValue(
-        lastUpdateTime,
-        actual().getLastEppUpdateTime(),
-        "has lastEppUpdateTime");
+    return hasValue(lastUpdateTime, actual.getLastEppUpdateTime(), "has lastEppUpdateTime");
   }
 
   public And<S> hasLastEppUpdateTimeAtLeast(DateTime before) {
-    DateTime lastEppUpdateTime = actual().getLastEppUpdateTime();
+    DateTime lastEppUpdateTime = actual.getLastEppUpdateTime();
     if (lastEppUpdateTime == null || before.isAfter(lastEppUpdateTime)) {
       failWithBadResults("has lastEppUpdateTime at least", before, lastEppUpdateTime);
     }
@@ -187,29 +182,26 @@ abstract class AbstractEppResourceSubject
   }
 
   public And<S> hasLastEppUpdateClientId(String clientId) {
-    return hasValue(
-        clientId,
-        actual().getLastEppUpdateClientId(),
-        "has lastEppUpdateClientId");
+    return hasValue(clientId, actual.getLastEppUpdateClientId(), "has lastEppUpdateClientId");
   }
 
 
   public And<S> hasPersistedCurrentSponsorClientId(String clientId) {
     return hasValue(
         clientId,
-        actual().getPersistedCurrentSponsorClientId(),
+        actual.getPersistedCurrentSponsorClientId(),
         "has persisted currentSponsorClientId");
   }
 
   public And<S> isActiveAt(DateTime time) {
-    if (!isActive(actual(), time)) {
+    if (!isActive(actual, time)) {
       fail("is active at " + time);
     }
     return andChainer();
   }
 
   public And<S> isNotActiveAt(DateTime time) {
-    if (isActive(actual(), time)) {
+    if (isActive(actual, time)) {
       fail("is not active at " + time);
     }
     return andChainer();

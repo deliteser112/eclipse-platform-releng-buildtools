@@ -29,8 +29,11 @@ import java.util.Optional;
 /** Utility methods for asserting things about {@link EppMetric} instances. */
 public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
 
+  private final EppMetric actual;
+
   public EppMetricSubject(FailureMetadata failureMetadata, EppMetric subject) {
     super(failureMetadata, subject);
+    this.actual = subject;
   }
 
   public static EppMetricSubject assertThat(EppMetric subject) {
@@ -38,30 +41,30 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
   }
 
   public And<EppMetricSubject> hasClientId(String clientId) {
-    return hasValue(clientId, actual().getClientId(), "has clientId");
+    return hasValue(clientId, actual.getClientId(), "has clientId");
   }
 
   public And<EppMetricSubject> hasCommandName(String commandName) {
-    return hasValue(commandName, actual().getCommandName(), "has commandName");
+    return hasValue(commandName, actual.getCommandName(), "has commandName");
   }
 
   public And<EppMetricSubject> hasStatus(Code status) {
-    return hasValue(status, actual().getStatus(), "has status");
+    return hasValue(status, actual.getStatus(), "has status");
   }
 
   public And<EppMetricSubject> hasNoStatus() {
-    if (actual().getStatus().isPresent()) {
+    if (actual.getStatus().isPresent()) {
       failWithActual(simpleFact("expected to have no status"));
     }
     return new And<>(this);
   }
 
   public And<EppMetricSubject> hasTld(String tld) {
-    return hasValue(tld, actual().getTld(), "has tld");
+    return hasValue(tld, actual.getTld(), "has tld");
   }
 
   public And<EppMetricSubject> hasNoTld() {
-    if (actual().getTld().isPresent()) {
+    if (actual.getTld().isPresent()) {
       failWithActual(simpleFact("expected to have no tld"));
     }
     return new And<>(this);

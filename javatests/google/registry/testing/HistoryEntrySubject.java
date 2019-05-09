@@ -30,15 +30,17 @@ import org.joda.time.DateTime;
 /** Utility methods for asserting things about {@link HistoryEntry} instances. */
 public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEntry> {
 
+  private final HistoryEntry actual;
   private String customDisplaySubject;
 
   public HistoryEntrySubject(FailureMetadata failureMetadata, HistoryEntry subject) {
     super(failureMetadata, subject);
+    this.actual = subject;
   }
 
   @Override
   protected String actualCustomStringRepresentation() {
-    return Optional.ofNullable(customDisplaySubject).orElse(String.valueOf(actual()));
+    return Optional.ofNullable(customDisplaySubject).orElse(String.valueOf(actual));
   }
 
   public HistoryEntrySubject withCustomDisplaySubject(String customDisplaySubject) {
@@ -47,52 +49,54 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
   }
 
   public And<HistoryEntrySubject> hasType(HistoryEntry.Type type) {
-    return hasValue(type, actual().getType(), "has type");
+    return hasValue(type, actual.getType(), "has type");
   }
 
   public And<HistoryEntrySubject> hasClientId(String clientId) {
-    return hasValue(clientId, actual().getClientId(), "has client ID");
+    return hasValue(clientId, actual.getClientId(), "has client ID");
   }
 
   public And<HistoryEntrySubject> hasOtherClientId(String otherClientId) {
-    return hasValue(otherClientId, actual().getOtherClientId(), "has other client ID");
+    return hasValue(otherClientId, actual.getOtherClientId(), "has other client ID");
   }
 
   public And<HistoryEntrySubject> hasModificationTime(DateTime modificationTime) {
-    return hasValue(modificationTime, actual().getModificationTime(), "has modification time");
+    return hasValue(modificationTime, actual.getModificationTime(), "has modification time");
   }
 
   public And<HistoryEntrySubject> bySuperuser(boolean superuser) {
-    return hasValue(superuser, actual().getBySuperuser(), "has modification time");
+    return hasValue(superuser, actual.getBySuperuser(), "has modification time");
   }
 
   public And<HistoryEntrySubject> hasPeriod() {
-    if (actual().getPeriod() == null) {
+    if (actual.getPeriod() == null) {
       failWithActual(simpleFact("expected to have a period"));
     }
     return new And<>(this);
   }
 
   public And<HistoryEntrySubject> hasPeriodYears(int years) {
-    return hasPeriod().and()
-        .hasValue(Period.Unit.YEARS, actual().getPeriod().getUnit(), "has period in").and()
-        .hasValue(years, actual().getPeriod().getValue(), "has period length");
+    return hasPeriod()
+        .and()
+        .hasValue(Period.Unit.YEARS, actual.getPeriod().getUnit(), "has period in")
+        .and()
+        .hasValue(years, actual.getPeriod().getValue(), "has period length");
   }
 
   public And<HistoryEntrySubject> hasNoXml() {
-    if (actual().getXmlBytes() != null) {
+    if (actual.getXmlBytes() != null) {
       failWithActual(simpleFact("expected to have no xml"));
     }
     return new And<>(this);
   }
 
   public And<HistoryEntrySubject> hasMetadataReason(String reason) {
-    return hasValue(reason, actual().getReason(), "has metadata reason");
+    return hasValue(reason, actual.getReason(), "has metadata reason");
   }
 
   public And<HistoryEntrySubject> hasMetadataRequestedByRegistrar(
         boolean requestedByRegistrar) {
-    if (actual().getRequestedByRegistrar() != requestedByRegistrar) {
+    if (actual.getRequestedByRegistrar() != requestedByRegistrar) {
       failWithActual(
           "expected to have metadata requestedByRegistrar with value", requestedByRegistrar);
     }

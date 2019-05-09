@@ -30,49 +30,44 @@ public final class DomainBaseSubject
     extends AbstractDomainBaseSubject<DomainBase, DomainBaseSubject> {
 
   public And<DomainBaseSubject> hasRegistrationExpirationTime(DateTime expiration) {
-    if (!Objects.equals(actual().getRegistrationExpirationTime(), expiration)) {
+    if (!Objects.equals(actual.getRegistrationExpirationTime(), expiration)) {
       failWithBadResults(
-          "has registrationExpirationTime",
-          expiration,
-          actual().getRegistrationExpirationTime());
+          "has registrationExpirationTime", expiration, actual.getRegistrationExpirationTime());
     }
     return andChainer();
   }
 
   public And<DomainBaseSubject> hasLastTransferTime(DateTime lastTransferTime) {
-    return hasValue(
-        lastTransferTime,
-        actual().getLastTransferTime(),
-        "has lastTransferTime");
+    return hasValue(lastTransferTime, actual.getLastTransferTime(), "has lastTransferTime");
   }
 
   public And<DomainBaseSubject> hasLastTransferTimeNotEqualTo(DateTime lastTransferTime) {
-    return doesNotHaveValue(
-        lastTransferTime,
-        actual().getLastTransferTime(),
-        "lastTransferTime");
+    return doesNotHaveValue(lastTransferTime, actual.getLastTransferTime(), "lastTransferTime");
   }
 
   public And<DomainBaseSubject> hasDeletePollMessage() {
-    if (actual().getDeletePollMessage() == null) {
+    if (actual.getDeletePollMessage() == null) {
       failWithActual(simpleFact("expected to have a delete poll message"));
     }
     return andChainer();
   }
 
   public And<DomainBaseSubject> hasNoDeletePollMessage() {
-    if (actual().getDeletePollMessage() != null) {
+    if (actual.getDeletePollMessage() != null) {
       failWithActual(simpleFact("expected to have no delete poll message"));
     }
     return andChainer();
   }
 
   public And<DomainBaseSubject> hasSmdId(String smdId) {
-    return hasValue(smdId, actual().getSmdId(), "has smdId");
+    return hasValue(smdId, actual.getSmdId(), "has smdId");
   }
+
+  private final DomainBase actual;
 
   public DomainBaseSubject(FailureMetadata failureMetadata, DomainBase subject) {
     super(failureMetadata, checkNotNull(subject));
+    this.actual = subject;
   }
 
   public static SimpleSubjectBuilder<DomainBaseSubject, DomainBase> assertAboutDomains() {

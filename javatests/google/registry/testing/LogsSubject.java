@@ -33,8 +33,11 @@ import java.util.logging.LogRecord;
 /** Utility methods for asserting things about logging {@link Handler} instances. */
 public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
 
+  private final TestLogHandler actual;
+
   public LogsSubject(FailureMetadata failureMetadata, TestLogHandler subject) {
     super(failureMetadata, subject);
+    this.actual = subject;
   }
 
   private static final Correspondence<String, String> CONTAINS_CORRESPONDENCE =
@@ -52,7 +55,7 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
 
   private List<String> getMessagesAtLevel(Level level) {
     ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
-    for (LogRecord log : actual().getStoredLogRecords()) {
+    for (LogRecord log : actual.getStoredLogRecords()) {
       if (log.getLevel().equals(level)) {
         builder.add(log.getMessage());
       }

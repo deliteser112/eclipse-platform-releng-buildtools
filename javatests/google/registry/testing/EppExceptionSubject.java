@@ -32,17 +32,20 @@ import google.registry.xml.XmlException;
 /** Utility methods for asserting things about {@link EppException} instances. */
 public class EppExceptionSubject extends Subject<EppExceptionSubject, EppException> {
 
+  private final EppException actual;
+
   public EppExceptionSubject(FailureMetadata failureMetadata, EppException subject) {
     super(failureMetadata, subject);
+    this.actual = subject;
   }
 
   public And<EppExceptionSubject> hasMessage(String expected) {
-    assertThat(actual()).hasMessageThat().isEqualTo(expected);
+    assertThat(actual).hasMessageThat().isEqualTo(expected);
     return new And<>(this);
   }
 
   public And<EppExceptionSubject> hasMessageThatContains(String expected) {
-    assertThat(actual()).hasMessageThat().contains(expected);
+    assertThat(actual).hasMessageThat().contains(expected);
     return new And<>(this);
   }
 
@@ -50,10 +53,11 @@ public class EppExceptionSubject extends Subject<EppExceptionSubject, EppExcepti
     // Attempt to marshal the exception to EPP. If it doesn't work, this will throw.
     try {
       marshal(
-          EppOutput.create(new EppResponse.Builder()
-              .setTrid(Trid.create(null, "server-trid"))
-              .setResult(actual().getResult())
-              .build()),
+          EppOutput.create(
+              new EppResponse.Builder()
+                  .setTrid(Trid.create(null, "server-trid"))
+                  .setResult(actual.getResult())
+                  .build()),
           ValidationMode.STRICT);
     } catch (XmlException e) {
       fail("fails to marshal to XML: " + e.getMessage());

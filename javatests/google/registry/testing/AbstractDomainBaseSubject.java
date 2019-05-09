@@ -28,14 +28,17 @@ public abstract class AbstractDomainBaseSubject
     <T extends DomainBase, S extends AbstractDomainBaseSubject<T, S>>
     extends AbstractEppResourceSubject<T, S> {
 
+  private final T actual;
+
   public AbstractDomainBaseSubject(FailureMetadata failureMetadata, T subject) {
     super(failureMetadata, subject);
+    this.actual = subject;
   }
 
   public And<S> hasFullyQualifiedDomainName(String fullyQualifiedDomainName) {
     return hasValue(
         fullyQualifiedDomainName,
-        actual().getFullyQualifiedDomainName(),
+        actual.getFullyQualifiedDomainName(),
         "has fullyQualifiedDomainName");
   }
 
@@ -44,26 +47,23 @@ public abstract class AbstractDomainBaseSubject
   }
 
   public And<S> hasExactlyDsData(Set<DelegationSignerData> dsData) {
-    return hasValue(dsData, actual().getDsData(), "has dsData");
+    return hasValue(dsData, actual.getDsData(), "has dsData");
   }
 
   public And<S> hasNumDsData(int num) {
-    return hasValue(num, actual().getDsData().size(), "has num dsData");
+    return hasValue(num, actual.getDsData().size(), "has num dsData");
   }
 
   public And<S> hasLaunchNotice(LaunchNotice launchNotice) {
-    return hasValue(launchNotice, actual().getLaunchNotice(), "has launchNotice");
+    return hasValue(launchNotice, actual.getLaunchNotice(), "has launchNotice");
   }
 
   public And<S> hasAuthInfoPwd(String pw) {
-    AuthInfo authInfo = actual().getAuthInfo();
+    AuthInfo authInfo = actual.getAuthInfo();
     return hasValue(pw, authInfo == null ? null : authInfo.getPw().getValue(), "has auth info pw");
   }
 
   public And<S> hasCurrentSponsorClientId(String clientId) {
-    return hasValue(
-        clientId,
-        actual().getCurrentSponsorClientId(),
-        "has currentSponsorClientId");
+    return hasValue(clientId, actual.getCurrentSponsorClientId(), "has currentSponsorClientId");
   }
 }

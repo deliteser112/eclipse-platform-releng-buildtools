@@ -29,8 +29,11 @@ import org.joda.time.DateTime;
 public final class HostResourceSubject
     extends AbstractEppResourceSubject<HostResource, HostResourceSubject> {
 
+  private final HostResource actual;
+
   public HostResourceSubject(FailureMetadata failureMetadata, HostResource subject) {
     super(failureMetadata, checkNotNull(subject));
+    this.actual = subject;
   }
 
   public static SimpleSubjectBuilder<HostResourceSubject, HostResource> assertAboutHosts() {
@@ -38,30 +41,22 @@ public final class HostResourceSubject
   }
 
   public And<HostResourceSubject> hasLastTransferTime(DateTime lastTransferTime) {
-    return hasValue(
-        lastTransferTime,
-        actual().getLastTransferTime(),
-        "has lastTransferTime");
+    return hasValue(lastTransferTime, actual.getLastTransferTime(), "has lastTransferTime");
   }
 
   public And<HostResourceSubject> hasLastTransferTimeNotEqualTo(DateTime lastTransferTime) {
-    return doesNotHaveValue(
-        lastTransferTime,
-        actual().getLastTransferTime(),
-        "lastTransferTime");
+    return doesNotHaveValue(lastTransferTime, actual.getLastTransferTime(), "lastTransferTime");
   }
 
   public And<HostResourceSubject> hasLastSuperordinateChange(DateTime lastSuperordinateChange) {
     return hasValue(
         lastSuperordinateChange,
-        actual().getLastSuperordinateChange(),
+        actual.getLastSuperordinateChange(),
         "has lastSuperordinateChange");
   }
 
   public And<HostResourceSubject> hasSuperordinateDomain(Key<DomainBase> superordinateDomain) {
     return hasValue(
-        superordinateDomain,
-        actual().getSuperordinateDomain(),
-        "has superordinateDomain");
+        superordinateDomain, actual.getSuperordinateDomain(), "has superordinateDomain");
   }
 }
