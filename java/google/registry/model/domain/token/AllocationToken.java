@@ -35,7 +35,6 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Mapify;
-import com.googlecode.objectify.annotation.OnLoad;
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.Buildable;
 import google.registry.model.CreateAutoTimestamp;
@@ -117,14 +116,6 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
   @Mapify(TimeMapper.class)
   TimedTransitionProperty<TokenStatus, TokenStatusTransition> tokenStatusTransitions =
       TimedTransitionProperty.forMapify(NOT_STARTED, TokenStatusTransition.class);
-
-  // TODO(b/130301183): Remove this after loading/saving all token entities
-  @OnLoad
-  void onLoad() {
-    if (tokenType == null) {
-      tokenType = TokenType.SINGLE_USE;
-    }
-  }
 
   /**
    * A transition to a given token status at a specific time, for use in a TimedTransitionProperty.
