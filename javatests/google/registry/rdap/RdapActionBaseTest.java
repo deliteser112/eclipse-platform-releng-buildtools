@@ -73,7 +73,6 @@ public class RdapActionBaseTest extends RdapActionBaseTestCase<RdapActionBaseTes
   @Before
   public void setUp() {
     createTld("thing");
-    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
   }
 
   @Test

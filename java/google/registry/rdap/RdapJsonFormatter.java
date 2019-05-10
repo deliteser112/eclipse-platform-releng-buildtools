@@ -49,7 +49,6 @@ import google.registry.rdap.RdapDataStructures.Event;
 import google.registry.rdap.RdapDataStructures.EventAction;
 import google.registry.rdap.RdapDataStructures.Link;
 import google.registry.rdap.RdapDataStructures.Notice;
-import google.registry.rdap.RdapDataStructures.Port43WhoisServer;
 import google.registry.rdap.RdapDataStructures.PublicId;
 import google.registry.rdap.RdapDataStructures.RdapStatus;
 import google.registry.rdap.RdapObjectClasses.RdapDomain;
@@ -59,6 +58,7 @@ import google.registry.rdap.RdapObjectClasses.Vcard;
 import google.registry.rdap.RdapObjectClasses.VcardArray;
 import google.registry.request.FullServletPath;
 import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.util.Clock;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -87,11 +87,13 @@ import org.joda.time.DateTimeComparator;
  */
 public class RdapJsonFormatter {
 
+  private DateTime requestTime = null;
 
   @Inject @Config("rdapTos") ImmutableList<String> rdapTos;
   @Inject @Config("rdapTosStaticUrl") @Nullable String rdapTosStaticUrl;
   @Inject @FullServletPath String fullServletPath;
   @Inject RdapAuthorization rdapAuthorization;
+  @Inject Clock clock;
   @Inject RdapJsonFormatter() {}
 
   /**
@@ -213,15 +215,10 @@ public class RdapJsonFormatter {
    * Creates a JSON object for a {@link DomainBase}.
    *
    * @param domainBase the domain resource object from which the JSON object should be created
-   * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
-   *        port43 field; if null, port43 is not added to the object
-   * @param now the as-date
    * @param outputDataType whether to generate full or summary data
    */
   RdapDomain makeRdapJsonForDomain(
       DomainBase domainBase,
-      @Nullable String whoisServer,
-      DateTime now,
       OutputDataType outputDataType) {
     RdapDomain.Builder builder = RdapDomain.builder();
     // RDAP Response Profile 15feb19 section 2.2:
@@ -232,7 +229,7 @@ public class RdapJsonFormatter {
         makeStatusValueList(
             domainBase.getStatusValues(),
             false, // isRedacted
-            domainBase.getDeletionTime().isBefore(now)));
+            domainBase.getDeletionTime().isBefore(getRequestTime())));
     builder.linksBuilder().add(
         makeSelfLink("domain", domainBase.getFullyQualifiedDomainName()));
     boolean displayContacts =
@@ -243,7 +240,7 @@ public class RdapJsonFormatter {
     if (outputDataType == OutputDataType.SUMMARY) {
       builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
-      ImmutableList<Event> events = makeEvents(domainBase, now);
+      ImmutableList<Event> events = makeEvents(domainBase);
       builder.eventsBuilder().addAll(events);
       // Kick off the database loads of the nameservers that we will need, so it can load
       // asynchronously while we load and process the contacts.
@@ -267,25 +264,17 @@ public class RdapJsonFormatter {
                 makeRdapJsonForContact(
                     loadedContacts.get(designatedContact.getContactKey()),
                     Optional.of(designatedContact.getType()),
-                    null,
-                    now,
                     outputDataType))
             .forEach(builder.entitiesBuilder()::add);
       }
       builder
           .entitiesBuilder()
-          .add(
-              createInternalRegistrarEntity(
-                  domainBase.getCurrentSponsorClientId(), whoisServer, now));
+          .add(createInternalRegistrarEntity(domainBase.getCurrentSponsorClientId()));
       // Add the nameservers to the data; the load was kicked off above for efficiency.
       for (HostResource hostResource
           : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
-        builder.nameserversBuilder().add(makeRdapJsonForHost(
-            hostResource, null, now, outputDataType));
+        builder.nameserversBuilder().add(makeRdapJsonForHost(hostResource, outputDataType));
       }
-    }
-    if (whoisServer != null) {
-      builder.setPort43(Port43WhoisServer.create(whoisServer));
     }
     return builder.build();
   }
@@ -294,14 +283,8 @@ public class RdapJsonFormatter {
    * Creates a JSON object for the desired registrar to an existing list of JSON objects.
    *
    * @param clientId the registrar client ID
-   * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
-   *     port43 field; if null, port43 is not added to the object
-   * @param now the as-date
    */
-  RdapEntity createInternalRegistrarEntity(
-      String clientId,
-      @Nullable String whoisServer,
-      DateTime now) {
+  RdapEntity createInternalRegistrarEntity(String clientId) {
     Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
     if (!registrar.isPresent()) {
       throw new InternalServerErrorException(
@@ -309,26 +292,17 @@ public class RdapJsonFormatter {
     }
     // TODO(b/130150723): we need to display the ABUSE contact for registrar object inside of Domain
     // responses. Currently, we use summary for any "internal" registrar.
-    return makeRdapJsonForRegistrar(
-        registrar.get(),
-        whoisServer,
-        now,
-        OutputDataType.SUMMARY);
+    return makeRdapJsonForRegistrar(registrar.get(), OutputDataType.SUMMARY);
   }
 
   /**
    * Creates a JSON object for a {@link HostResource}.
    *
    * @param hostResource the host resource object from which the JSON object should be created
-   * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
-   *        port43 field; if null, port43 is not added to the object
-   * @param now the as-date
    * @param outputDataType whether to generate full or summary data
    */
   RdapNameserver makeRdapJsonForHost(
       HostResource hostResource,
-      @Nullable String whoisServer,
-      DateTime now,
       OutputDataType outputDataType) {
     RdapNameserver.Builder builder = RdapNameserver.builder()
         .setHandle(hostResource.getRepoId())
@@ -336,13 +310,17 @@ public class RdapJsonFormatter {
 
     ImmutableSet.Builder<StatusValue> statuses = new ImmutableSet.Builder<>();
     statuses.addAll(hostResource.getStatusValues());
-    if (isLinked(Key.create(hostResource), now)) {
+    if (isLinked(Key.create(hostResource), getRequestTime())) {
       statuses.add(StatusValue.LINKED);
     }
     if (hostResource.isSubordinate()
-        && ofy().load().key(hostResource.getSuperordinateDomain()).now().cloneProjectedAtTime(now)
+        && ofy()
+            .load()
+            .key(hostResource.getSuperordinateDomain())
+            .now()
+            .cloneProjectedAtTime(getRequestTime())
             .getStatusValues()
-                .contains(StatusValue.PENDING_TRANSFER)) {
+            .contains(StatusValue.PENDING_TRANSFER)) {
       statuses.add(StatusValue.PENDING_TRANSFER);
     }
     builder
@@ -351,7 +329,7 @@ public class RdapJsonFormatter {
             makeStatusValueList(
                 statuses.build(),
                 false, // isRedacted
-                hostResource.getDeletionTime().isBefore(now)));
+                hostResource.getDeletionTime().isBefore(getRequestTime())));
     builder
         .linksBuilder()
         .add(makeSelfLink("nameserver", hostResource.getFullyQualifiedHostName()));
@@ -361,7 +339,7 @@ public class RdapJsonFormatter {
     if (outputDataType == OutputDataType.SUMMARY) {
       builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
-      builder.eventsBuilder().addAll(makeEvents(hostResource, now));
+      builder.eventsBuilder().addAll(makeEvents(hostResource));
     }
 
     // We MUST have the ip addresses: RDAP Response Profile 4.2.
@@ -372,13 +350,9 @@ public class RdapJsonFormatter {
         builder.ipv6Builder().add(InetAddresses.toAddrString(inetAddress));
       }
     }
-    builder.entitiesBuilder().add(createInternalRegistrarEntity(
-        hostResource.getPersistedCurrentSponsorClientId(),
-        whoisServer,
-        now));
-    if (whoisServer != null) {
-      builder.setPort43(Port43WhoisServer.create(whoisServer));
-    }
+    builder
+        .entitiesBuilder()
+        .add(createInternalRegistrarEntity(hostResource.getPersistedCurrentSponsorClientId()));
     return builder.build();
   }
 
@@ -387,16 +361,11 @@ public class RdapJsonFormatter {
    *
    * @param contactResource the contact resource object from which the JSON object should be created
    * @param contactType the contact type to map to an RDAP role; if absent, no role is listed
-   * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
-   *        port43 field; if null, port43 is not added to the object
-   * @param now the as-date
    * @param outputDataType whether to generate full or summary data
    */
   RdapEntity makeRdapJsonForContact(
       ContactResource contactResource,
       Optional<DesignatedContact.Type> contactType,
-      @Nullable String whoisServer,
-      DateTime now,
       OutputDataType outputDataType) {
     boolean isAuthorized =
         rdapAuthorization.isAuthorizedForClientId(contactResource.getCurrentSponsorClientId());
@@ -408,11 +377,11 @@ public class RdapJsonFormatter {
         .statusBuilder()
         .addAll(
             makeStatusValueList(
-                isLinked(Key.create(contactResource), now)
+                isLinked(Key.create(contactResource), getRequestTime())
                     ? union(contactResource.getStatusValues(), StatusValue.LINKED)
                     : contactResource.getStatusValues(),
                 !isAuthorized,
-                contactResource.getDeletionTime().isBefore(now)));
+                contactResource.getDeletionTime().isBefore(getRequestTime())));
 
     contactType.ifPresent(
         type -> entityBuilder.rolesBuilder().add(convertContactTypeToRdapRole(type)));
@@ -456,10 +425,7 @@ public class RdapJsonFormatter {
     if (outputDataType == OutputDataType.SUMMARY) {
       entityBuilder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
-      entityBuilder.eventsBuilder().addAll(makeEvents(contactResource, now));
-    }
-    if (whoisServer != null) {
-      entityBuilder.setPort43(Port43WhoisServer.create(whoisServer));
+      entityBuilder.eventsBuilder().addAll(makeEvents(contactResource));
     }
     return entityBuilder.build();
   }
@@ -468,15 +434,10 @@ public class RdapJsonFormatter {
    * Creates a JSON object for a {@link Registrar}.
    *
    * @param registrar the registrar object from which the JSON object should be created
-   * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
-   *        port43 field; if null, port43 is not added to the object
-   * @param now the as-date
    * @param outputDataType whether to generate full or summary data
    */
   RdapEntity makeRdapJsonForRegistrar(
       Registrar registrar,
-      @Nullable String whoisServer,
-      DateTime now,
       OutputDataType outputDataType) {
     RdapEntity.Builder builder = RdapEntity.builder();
     Long ianaIdentifier = registrar.getIanaIdentifier();
@@ -521,20 +482,17 @@ public class RdapJsonFormatter {
     if (outputDataType == OutputDataType.SUMMARY) {
       builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
-      builder.eventsBuilder().addAll(makeEvents(registrar, now));
+      builder.eventsBuilder().addAll(makeEvents(registrar));
       // include the registrar contacts as subentities
       ImmutableList<RdapEntity> registrarContacts =
           registrar.getContacts().stream()
-          .map(registrarContact -> makeRdapJsonForRegistrarContact(registrarContact, null))
-          .filter(optional -> optional.isPresent())
-          .map(optional -> optional.get())
-          .collect(toImmutableList());
+              .map(registrarContact -> makeRdapJsonForRegistrarContact(registrarContact))
+              .filter(optional -> optional.isPresent())
+              .map(optional -> optional.get())
+              .collect(toImmutableList());
       // TODO(b/117242274): add a warning (severe?) log if registrar has no ABUSE contact, as having
       // one is required by the RDAP response profile
       builder.entitiesBuilder().addAll(registrarContacts);
-    }
-    if (whoisServer != null) {
-      builder.setPort43(Port43WhoisServer.create(whoisServer));
     }
     return builder.build();
   }
@@ -545,11 +503,9 @@ public class RdapJsonFormatter {
    * <p>Returns empty if this contact shouldn't be visible (doesn't have a role).
    *
    * @param registrarContact the registrar contact for which the JSON object should be created
-   * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
-   *     port43 field; if null, port43 is not added to the object
    */
   static Optional<RdapEntity> makeRdapJsonForRegistrarContact(
-      RegistrarContact registrarContact, @Nullable String whoisServer) {
+      RegistrarContact registrarContact) {
     ImmutableList<RdapEntity.Role> roles = makeRdapRoleList(registrarContact);
     if (roles.isEmpty()) {
       return Optional.empty();
@@ -576,9 +532,6 @@ public class RdapJsonFormatter {
       vcardBuilder.add(Vcard.create("email", "text", emailAddress));
     }
     builder.setVcardArray(vcardBuilder.build());
-    if (whoisServer != null) {
-      builder.setPort43(Port43WhoisServer.create(whoisServer));
-    }
     return Optional.of(builder.build());
   }
 
@@ -627,7 +580,7 @@ public class RdapJsonFormatter {
   /**
    * Creates an event list for a domain, host or contact resource.
    */
-  private static ImmutableList<Event> makeEvents(EppResource resource, DateTime now) {
+  private ImmutableList<Event> makeEvents(EppResource resource) {
     HashMap<EventAction, HistoryEntry> lastEntryOfType = Maps.newHashMap();
     // Events (such as transfer, but also create) can appear multiple times. We only want the last
     // time they appeared.
@@ -707,13 +660,13 @@ public class RdapJsonFormatter {
     // any EPP update (for example, by the passage of time).
     DateTime lastChangeTime =
         changeTimesBuilder.build().stream()
-        .filter(changeTime -> changeTime.isBefore(now))
+        .filter(changeTime -> changeTime.isBefore(getRequestTime()))
         .max(DateTimeComparator.getInstance())
         .orElse(null);
     if (lastChangeTime != null && lastChangeTime.isAfter(creationTime)) {
       eventsBuilder.add(makeEvent(EventAction.LAST_CHANGED, null, lastChangeTime));
     }
-    eventsBuilder.add(makeEvent(EventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, now));
+    eventsBuilder.add(makeEvent(EventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, getRequestTime()));
     // TODO(b/129849684): sort events by their time once we return a list of Events instead of JSON
     // objects.
     return eventsBuilder.build();
@@ -722,7 +675,7 @@ public class RdapJsonFormatter {
   /**
    * Creates an event list for a {@link Registrar}.
    */
-  private static ImmutableList<Event> makeEvents(Registrar registrar, DateTime now) {
+  private ImmutableList<Event> makeEvents(Registrar registrar) {
     ImmutableList.Builder<Event> eventsBuilder = new ImmutableList.Builder<>();
     Long ianaIdentifier = registrar.getIanaIdentifier();
     eventsBuilder.add(makeEvent(
@@ -734,7 +687,7 @@ public class RdapJsonFormatter {
       eventsBuilder.add(makeEvent(
           EventAction.LAST_CHANGED, null, registrar.getLastUpdateTime()));
     }
-    eventsBuilder.add(makeEvent(EventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, now));
+    eventsBuilder.add(makeEvent(EventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, getRequestTime()));
     return eventsBuilder.build();
   }
 
@@ -883,5 +836,27 @@ public class RdapJsonFormatter {
         .setHref(url)
         .setType("application/rdap+json")
         .build();
+  }
+
+  /**
+   * Returns the DateTime this request took place.
+   *
+   * <p>The RDAP reply is large with a lot of different object in them. We want to make sure that
+   * all these objects are projected to the same "now".
+   *
+   * <p>This "now" will also be considered the time of the "last update of RDAP database" event that
+   * RDAP sepc requires.
+   *
+   * <p>We would have set this during the constructor, but the clock is injected after construction.
+   * So instead we set the time during the first call to this function.
+   *
+   * <p>We would like even more to just inject it in RequestModule and use it in many places in our
+   * codebase that just need a general "now" of the request, but that's a lot of work.
+   */
+  DateTime getRequestTime() {
+    if (requestTime == null) {
+      requestTime = clock.nowUtc();
+    }
+    return requestTime;
   }
 }

@@ -49,13 +49,11 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestMethod;
 import google.registry.request.RequestPath;
 import google.registry.request.Response;
-import google.registry.util.Clock;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -86,7 +84,6 @@ public abstract class RdapActionBase implements Runnable {
   }
 
   @Inject Response response;
-  @Inject Clock clock;
   @Inject @RequestMethod Action.Method requestMethod;
   @Inject @RequestPath String requestPath;
   @Inject RdapAuthorization rdapAuthorization;
@@ -94,7 +91,6 @@ public abstract class RdapActionBase implements Runnable {
   @Inject @Parameter("registrar") Optional<String> registrarParam;
   @Inject @Parameter("includeDeleted") Optional<Boolean> includeDeletedParam;
   @Inject @Parameter("formatOutput") Optional<Boolean> formatOutputParam;
-  @Inject @Config("rdapWhoisServer") @Nullable String rdapWhoisServer;
   @Inject @Config("rdapResultSetMaxSize") int rdapResultSetMaxSize;
   @Inject RdapMetrics rdapMetrics;
 
@@ -242,8 +238,8 @@ public abstract class RdapActionBase implements Runnable {
    * <p>This is true if the resource is not deleted, or the request wants to see deleted items, and
    * is authorized to do so.
    */
-  boolean isAuthorized(EppResource eppResource, DateTime now) {
-    return now.isBefore(eppResource.getDeletionTime())
+  boolean isAuthorized(EppResource eppResource) {
+    return getRequestTime().isBefore(eppResource.getDeletionTime())
             || (shouldIncludeDeleted()
                 && rdapAuthorization
                     .isAuthorizedForClientId(eppResource.getPersistedCurrentSponsorClientId()));
@@ -257,8 +253,8 @@ public abstract class RdapActionBase implements Runnable {
    *    do so, and:
    * 2. The request did not specify a registrar to filter on, or the registrar matches.
    */
-  boolean shouldBeVisible(EppResource eppResource, DateTime now) {
-    return isAuthorized(eppResource, now)
+  boolean shouldBeVisible(EppResource eppResource) {
+    return isAuthorized(eppResource)
         && (!registrarParam.isPresent()
             || registrarParam.get().equals(eppResource.getPersistedCurrentSponsorClientId()));
   }
@@ -271,8 +267,8 @@ public abstract class RdapActionBase implements Runnable {
    *    forward in time to empty),
    * 2. The request did not specify a registrar to filter on, or the registrar matches.
    */
-  boolean shouldBeVisible(Optional<? extends EppResource> eppResource, DateTime now) {
-    return eppResource.isPresent() && shouldBeVisible(eppResource.get(), now);
+  boolean shouldBeVisible(Optional<? extends EppResource> eppResource) {
+    return eppResource.isPresent() && shouldBeVisible(eppResource.get());
   }
 
   /**
@@ -468,7 +464,6 @@ public abstract class RdapActionBase implements Runnable {
    *
    * @param query an already-defined query to be run; a filter on currentSponsorClientId will be
    *        added if appropriate
-   * @param now the time as of which to evaluate the query
    * @param checkForVisibility true if the results should be checked to make sure they are visible;
    *        normally this should be equal to the shouldIncludeDeleted setting, but in cases where
    *        the query could not check deletion status (due to Datastore limitations such as the
@@ -483,7 +478,7 @@ public abstract class RdapActionBase implements Runnable {
    *         query is greater than or equal to the maximum number we might have expected
    */
   <T extends EppResource> RdapResultSet<T> getMatchingResources(
-      Query<T> query, boolean checkForVisibility, DateTime now, int querySizeLimit) {
+      Query<T> query, boolean checkForVisibility, int querySizeLimit) {
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     if (desiredRegistrar.isPresent()) {
       query = query.filter("currentSponsorClientId", desiredRegistrar.get());
@@ -496,7 +491,7 @@ public abstract class RdapActionBase implements Runnable {
     int numResourcesQueried = 0;
     boolean someExcluded = false;
     for (T resource : query) {
-      if (shouldBeVisible(resource, now)) {
+      if (shouldBeVisible(resource)) {
         resources.add(resource);
       } else {
         someExcluded = true;
@@ -541,5 +536,10 @@ public abstract class RdapActionBase implements Runnable {
     }
     metricInformationBuilder.setPrefixLength(partialStringQuery.getInitialString().length());
     return partialStringQuery;
+  }
+
+  /** Returns the DateTime this request took place. */
+  DateTime getRequestTime() {
+    return rdapJsonFormatter.getRequestTime();
   }
 }

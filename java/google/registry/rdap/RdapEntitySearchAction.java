@@ -43,7 +43,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
-import org.joda.time.DateTime;
 
 /**
  * RDAP (new WHOIS) action for entity (contact and registrar) search requests.
@@ -111,7 +110,6 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
   @Override
   public EntitySearchResponse getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest) {
-    DateTime now = clock.nowUtc();
 
     // RDAP syntax example: /rdap/entities?fn=Bobby%20Joe*.
     // The pathSearchString is not used by search commands.
@@ -166,8 +164,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
               recordWildcardType(RdapSearchPattern.create(fnParam.get(), false)),
               cursorType,
               cursorQueryString,
-              subtype,
-              now);
+              subtype);
 
     // Search by handle.
     } else {
@@ -179,8 +176,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
               recordWildcardType(RdapSearchPattern.create(handleParam.get(), false)),
               cursorType,
               cursorQueryString,
-              subtype,
-              now);
+              subtype);
     }
 
     // Build the result object and return it.
@@ -218,8 +214,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       final RdapSearchPattern partialStringQuery,
       CursorType cursorType,
       Optional<String> cursorQueryString,
-      Subtype subtype,
-      DateTime now) {
+      Subtype subtype) {
     // Don't allow wildcard suffixes when searching for entities.
     if (partialStringQuery.getHasWildcard() && (partialStringQuery.getSuffix() != null)) {
       throw new UnprocessableEntityException(
@@ -282,10 +277,10 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
         if (rdapAuthorization.role() != RdapAuthorization.Role.ADMINISTRATOR) {
           query = query.filter("currentSponsorClientId in", rdapAuthorization.clientIds());
         }
-        resultSet = getMatchingResources(query, false, now, rdapResultSetMaxSize + 1);
+        resultSet = getMatchingResources(query, false, rdapResultSetMaxSize + 1);
       }
     }
-    return makeSearchResults(resultSet, registrars, QueryType.FULL_NAME, now);
+    return makeSearchResults(resultSet, registrars, QueryType.FULL_NAME);
   }
 
   /**
@@ -302,8 +297,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       final RdapSearchPattern partialStringQuery,
       CursorType cursorType,
       Optional<String> cursorQueryString,
-      Subtype subtype,
-      DateTime now) {
+      Subtype subtype) {
     if (partialStringQuery.getSuffix() != null) {
       throw new UnprocessableEntityException("Suffixes not allowed in entity handle searches");
     }
@@ -320,7 +314,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
                 .id(partialStringQuery.getInitialString())
                 .now();
         contactResourceList =
-            ((contactResource != null) && shouldBeVisible(contactResource, now))
+            ((contactResource != null) && shouldBeVisible(contactResource))
                 ? ImmutableList.of(contactResource)
                 : ImmutableList.of();
       }
@@ -335,8 +329,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
           IncompletenessWarningType.COMPLETE,
           contactResourceList.size(),
           registrarList,
-          QueryType.HANDLE,
-          now);
+          QueryType.HANDLE);
     // Handle queries with a wildcard (or including deleted), but no suffix. Because the handle
     // for registrars is the IANA identifier number, don't allow wildcard searches for registrars,
     // by simply not searching for registrars if a wildcard is present (unless the request is for
@@ -385,14 +378,12 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
                     getDeletedItemHandling(),
                     querySizeLimit),
                 shouldIncludeDeleted(),
-                now,
                 querySizeLimit);
       }
       return makeSearchResults(
           contactResultSet,
           registrars,
-          QueryType.HANDLE,
-          now);
+          QueryType.HANDLE);
     }
   }
 
@@ -417,15 +408,13 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
   private EntitySearchResponse makeSearchResults(
       RdapResultSet<ContactResource> resultSet,
       List<Registrar> registrars,
-      QueryType queryType,
-      DateTime now) {
+      QueryType queryType) {
     return makeSearchResults(
         resultSet.resources(),
         resultSet.incompletenessWarningType(),
         resultSet.numResourcesRetrieved(),
         registrars,
-        queryType,
-        now);
+        queryType);
   }
 
   /**
@@ -441,7 +430,6 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    *        results
    * @param registrars the list of registrars which can be returned
    * @param queryType whether the query was by full name or by handle
-   * @param now the current date and time
    * @return an {@link RdapSearchResults} object
    */
   private EntitySearchResponse makeSearchResults(
@@ -449,8 +437,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       IncompletenessWarningType incompletenessWarningType,
       int numContactsRetrieved,
       List<Registrar> registrars,
-      QueryType queryType,
-      DateTime now) {
+      QueryType queryType) {
 
     metricInformationBuilder.setNumContactsRetrieved(numContactsRetrieved);
 
@@ -476,8 +463,6 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       builder.entitySearchResultsBuilder().add(rdapJsonFormatter.makeRdapJsonForContact(
           contact,
           Optional.empty(),
-          rdapWhoisServer,
-          now,
           outputDataType));
       newCursor =
           Optional.of(
@@ -493,7 +478,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
             .entitySearchResultsBuilder()
             .add(
                 rdapJsonFormatter.makeRdapJsonForRegistrar(
-                    registrar, rdapWhoisServer, now, outputDataType));
+                    registrar, outputDataType));
         newCursor = Optional.of(REGISTRAR_CURSOR_PREFIX + registrar.getRegistrarName());
       }
     }

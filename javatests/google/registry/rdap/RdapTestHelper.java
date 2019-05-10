@@ -25,6 +25,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import google.registry.util.Clock;
 
 public class RdapTestHelper {
 
@@ -142,10 +143,11 @@ public class RdapTestHelper {
                             "type", "text/html")))));
   }
 
-  static RdapJsonFormatter getTestRdapJsonFormatter() {
+  static RdapJsonFormatter getTestRdapJsonFormatter(Clock clock) {
     RdapJsonFormatter rdapJsonFormatter = new RdapJsonFormatter();
     rdapJsonFormatter.rdapAuthorization = RdapAuthorization.PUBLIC_AUTHORIZATION;
     rdapJsonFormatter.fullServletPath = "https://example.tld/rdap/";
+    rdapJsonFormatter.clock = clock;
     rdapJsonFormatter.rdapTos =
         ImmutableList.of(
             "By querying our Domain Database, you are agreeing to comply with these"

@@ -205,8 +205,17 @@ final class RdapObjectClasses {
     @JsonableElement abstract ImmutableList<RdapStatus> status();
     @JsonableElement abstract ImmutableList<Remark> remarks();
     @JsonableElement abstract ImmutableList<Link> links();
-    @JsonableElement abstract Optional<Port43WhoisServer> port43();
     @JsonableElement abstract ImmutableList<Event> events();
+
+    /**
+     * WHOIS server displayed in RDAP query responses.
+     *
+     * <p>As per Gustavo Lozano of ICANN, this should be omitted, but the ICANN operational profile
+     * doesn't actually say that, so it's good to have the ability to reinstate this field if
+     * necessary.
+     */
+    @JsonableElement
+    abstract Optional<Port43WhoisServer> port43();
 
     RdapObjectBase(BoilerplateType boilerplateType, ObjectClassName objectClassName) {
       super(boilerplateType);

@@ -33,7 +33,6 @@ import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
 import java.util.Optional;
 import javax.inject.Inject;
-import org.joda.time.DateTime;
 
 /**
  * RDAP (new WHOIS) action for entity (contact and registrar) requests. the ICANN operational
@@ -62,7 +61,6 @@ public class RdapEntityAction extends RdapActionBase {
   @Override
   public RdapEntity getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest) {
-    DateTime now = clock.nowUtc();
     // The query string is not used; the RDAP syntax is /rdap/entity/handle (the handle is the roid
     // for contacts and the client identifier for registrars). Since RDAP's concept of an entity
     // includes both contacts and registrars, search for one first, then the other.
@@ -73,12 +71,10 @@ public class RdapEntityAction extends RdapActionBase {
       ContactResource contactResource = ofy().load().key(contactKey).now();
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
-      if ((contactResource != null) && shouldBeVisible(contactResource, now)) {
+      if ((contactResource != null) && shouldBeVisible(contactResource)) {
         return rdapJsonFormatter.makeRdapJsonForContact(
             contactResource,
             Optional.empty(),
-            rdapWhoisServer,
-            now,
             OutputDataType.FULL);
       }
     }
@@ -88,7 +84,7 @@ public class RdapEntityAction extends RdapActionBase {
       Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
       if (registrar.isPresent() && shouldBeVisible(registrar.get())) {
         return rdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar.get(), rdapWhoisServer, now, OutputDataType.FULL);
+            registrar.get(), OutputDataType.FULL);
       }
     }
     // At this point, we have failed to find either a contact or a registrar.

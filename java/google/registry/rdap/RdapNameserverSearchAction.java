@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
-import org.joda.time.DateTime;
 
 /**
  * RDAP (new WHOIS) action for nameserver search requests.
@@ -82,7 +81,6 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
   @Override
   public NameserverSearchResponse getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest) {
-    DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/nameservers?name=ns*.example.com.
     // The pathSearchString is not used by search commands.
     if (pathSearchString.length() > 0) {
@@ -103,8 +101,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
       }
       results =
           searchByName(
-              recordWildcardType(RdapSearchPattern.create(Idn.toASCII(nameParam.get()), true)),
-              now);
+              recordWildcardType(RdapSearchPattern.create(Idn.toASCII(nameParam.get()), true)));
     } else {
       // syntax: /rdap/nameservers?ip=1.2.3.4
       metricInformationBuilder.setSearchType(SearchType.BY_NAMESERVER_ADDRESS);
@@ -114,7 +111,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
       } catch (IllegalArgumentException e) {
         throw new BadRequestException("Invalid value of ip parameter");
       }
-      results = searchByIp(inetAddress, now);
+      results = searchByIp(inetAddress);
     }
     if (results.nameserverSearchResults().isEmpty()) {
       throw new NotFoundException("No nameservers found");
@@ -128,12 +125,11 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
    * <p>When deleted nameservers are included in the search, the search is treated as if it has a
    * wildcard, because multiple results can be returned.
    */
-  private NameserverSearchResponse searchByName(
-      final RdapSearchPattern partialStringQuery, final DateTime now) {
+  private NameserverSearchResponse searchByName(final RdapSearchPattern partialStringQuery) {
     // Handle queries without a wildcard -- just load by foreign key. We can't do this if deleted
     // nameservers are desired, because there may be multiple nameservers with the same name.
     if (!partialStringQuery.getHasWildcard() && !shouldIncludeDeleted()) {
-      return searchByNameUsingForeignKey(partialStringQuery, now);
+      return searchByNameUsingForeignKey(partialStringQuery);
     // Handle queries with a wildcard (or including deleted entries). If there is a suffix, it
     // should be a domain that we manage, so we can look up the domain and search through the
     // subordinate hosts. This is more efficient, and lets us permit wildcard searches with no
@@ -145,10 +141,10 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
         throw new UnprocessableEntityException(
             "A suffix after a wildcard is not allowed when searching for deleted nameservers");
       }
-      return searchByNameUsingSuperordinateDomain(partialStringQuery, now);
+      return searchByNameUsingSuperordinateDomain(partialStringQuery);
     // Handle queries with a wildcard (or deleted entries included), but no suffix.
     } else {
-      return searchByNameUsingPrefix(partialStringQuery, now);
+      return searchByNameUsingPrefix(partialStringQuery);
     }
   }
 
@@ -158,10 +154,11 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
    * <p>In this case, we can load by foreign key.
    */
   private NameserverSearchResponse searchByNameUsingForeignKey(
-      final RdapSearchPattern partialStringQuery, final DateTime now) {
+      RdapSearchPattern partialStringQuery) {
     Optional<HostResource> hostResource =
-        loadByForeignKey(HostResource.class, partialStringQuery.getInitialString(), now);
-    if (!shouldBeVisible(hostResource, now)) {
+        loadByForeignKey(
+            HostResource.class, partialStringQuery.getInitialString(), getRequestTime());
+    if (!shouldBeVisible(hostResource)) {
       metricInformationBuilder.setNumHostsRetrieved(0);
       throw new NotFoundException("No nameservers found");
     }
@@ -173,17 +170,15 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
     builder.nameserverSearchResultsBuilder().add(
             rdapJsonFormatter.makeRdapJsonForHost(
                 hostResource.get(),
-                rdapWhoisServer,
-                now,
                 OutputDataType.FULL));
     return builder.build();
   }
 
   /** Searches for nameservers by name using the superordinate domain as a suffix. */
   private NameserverSearchResponse searchByNameUsingSuperordinateDomain(
-      final RdapSearchPattern partialStringQuery, final DateTime now) {
+      RdapSearchPattern partialStringQuery) {
     Optional<DomainBase> domainBase =
-        loadByForeignKey(DomainBase.class, partialStringQuery.getSuffix(), now);
+        loadByForeignKey(DomainBase.class, partialStringQuery.getSuffix(), getRequestTime());
     if (!domainBase.isPresent()) {
       // Don't allow wildcards with suffixes which are not domains we manage. That would risk a
       // table scan in many easily foreseeable cases. The user might ask for ns*.zombo.com,
@@ -201,8 +196,9 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
       // We can't just check that the host name starts with the initial query string, because
       // then the query ns.exam*.example.com would match against nameserver ns.example.com.
       if (partialStringQuery.matches(fqhn)) {
-        Optional<HostResource> hostResource = loadByForeignKey(HostResource.class, fqhn, now);
-        if (shouldBeVisible(hostResource, now)) {
+        Optional<HostResource> hostResource =
+            loadByForeignKey(HostResource.class, fqhn, getRequestTime());
+        if (shouldBeVisible(hostResource)) {
           hostList.add(hostResource.get());
           if (hostList.size() > rdapResultSetMaxSize) {
             break;
@@ -214,8 +210,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
         hostList,
         IncompletenessWarningType.COMPLETE,
         domainBase.get().getSubordinateHosts().size(),
-        CursorType.NAME,
-        now);
+        CursorType.NAME);
   }
 
   /**
@@ -223,8 +218,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
    *
    * <p>There are no pending deletes for hosts, so we can call {@link RdapActionBase#queryItems}.
    */
-  private NameserverSearchResponse searchByNameUsingPrefix(
-      final RdapSearchPattern partialStringQuery, final DateTime now) {
+  private NameserverSearchResponse searchByNameUsingPrefix(RdapSearchPattern partialStringQuery) {
     // Add 1 so we can detect truncation.
     int querySizeLimit = getStandardQuerySizeLimit();
     Query<HostResource> query =
@@ -236,13 +230,12 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
             getDeletedItemHandling(),
             querySizeLimit);
     return makeSearchResults(
-        getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit),
-        CursorType.NAME,
-        now);
+        getMatchingResources(query, shouldIncludeDeleted(), querySizeLimit),
+        CursorType.NAME);
   }
 
   /** Searches for nameservers by IP address, returning a JSON array of nameserver info maps. */
-  private NameserverSearchResponse searchByIp(final InetAddress inetAddress, DateTime now) {
+  private NameserverSearchResponse searchByIp(InetAddress inetAddress) {
     // Add 1 so we can detect truncation.
     int querySizeLimit = getStandardQuerySizeLimit();
     Query<HostResource> query =
@@ -255,20 +248,18 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
                 getDeletedItemHandling(),
                 querySizeLimit);
     return makeSearchResults(
-        getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit),
-        CursorType.ADDRESS,
-        now);
+        getMatchingResources(query, shouldIncludeDeleted(), querySizeLimit),
+        CursorType.ADDRESS);
   }
 
   /** Output JSON for a lists of hosts contained in an {@link RdapResultSet}. */
   private NameserverSearchResponse makeSearchResults(
-      RdapResultSet<HostResource> resultSet, CursorType cursorType, DateTime now) {
+      RdapResultSet<HostResource> resultSet, CursorType cursorType) {
     return makeSearchResults(
         resultSet.resources(),
         resultSet.incompletenessWarningType(),
         resultSet.numResourcesRetrieved(),
-        cursorType,
-        now);
+        cursorType);
   }
 
   /** Output JSON for a list of hosts. */
@@ -276,8 +267,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
       List<HostResource> hosts,
       IncompletenessWarningType incompletenessWarningType,
       int numHostsRetrieved,
-      CursorType cursorType,
-      DateTime now) {
+      CursorType cursorType) {
     metricInformationBuilder.setNumHostsRetrieved(numHostsRetrieved);
     OutputDataType outputDataType =
         (hosts.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
@@ -290,9 +280,9 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
               (cursorType == CursorType.NAME)
                   ? host.getFullyQualifiedHostName()
                   : host.getRepoId());
-      builder.nameserverSearchResultsBuilder().add(
-          rdapJsonFormatter.makeRdapJsonForHost(
-              host, rdapWhoisServer, now, outputDataType));
+      builder
+          .nameserverSearchResultsBuilder()
+          .add(rdapJsonFormatter.makeRdapJsonForHost(host, outputDataType));
     }
     if (rdapResultSetMaxSize < hosts.size()) {
       builder.setNextPageUri(createNavigationUri(newCursor.get()));

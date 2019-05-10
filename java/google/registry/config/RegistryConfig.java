@@ -970,20 +970,6 @@ public final class RegistryConfig {
     }
 
     /**
-     * WHOIS server displayed in RDAP query responses. As per Gustavo Lozano of ICANN, this should
-     * be omitted, but the ICANN operational profile doesn't actually say that, so it's good to have
-     * the ability to reinstate this field if necessary.
-     *
-     * @see google.registry.rdap.RdapActionBase
-     */
-    @Nullable
-    @Provides
-    @Config("rdapWhoisServer")
-    public static String provideRdapWhoisServer() {
-      return null;
-    }
-
-    /**
      * Redaction text for email address in WHOIS
      *
      * @see google.registry.whois.WhoisResponse

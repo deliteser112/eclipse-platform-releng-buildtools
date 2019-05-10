@@ -17,6 +17,7 @@ package google.registry.request;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.io.ByteStreams;
@@ -47,6 +48,7 @@ public final class RequestModule {
   private final HttpServletResponse rsp;
   private final AuthResult authResult;
 
+  @VisibleForTesting
   public RequestModule(
       HttpServletRequest req, HttpServletResponse rsp) {
     this(req, rsp, AuthResult.NOT_AUTHENTICATED);
