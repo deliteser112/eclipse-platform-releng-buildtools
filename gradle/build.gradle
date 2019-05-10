@@ -77,20 +77,6 @@ task stage {
   description = 'Generates application directories for all services.'
 }
 
-ext.constructMavenCoordinate = { deps, distinctMetadata ->
-  if (deps.isEmpty()) {
-    return
-  }
-  deps.each { ResolvedDependency dep ->
-    if (dep.moduleGroup == "nomulus") {
-      return
-    }
-    def artifactId = "${dep.moduleGroup}:${dep.moduleName}:${dep.moduleVersion}"
-    distinctMetadata.add(artifactId)
-    rootProject.constructMavenCoordinate(dep.children, distinctMetadata)
-  }
-}
-
 allprojects {
   // Skip no-op project
   if (project.name == 'services') return
@@ -104,36 +90,6 @@ allprojects {
     } else {
       println "Java dependencies: Using Maven Central..."
       mavenCentral()
-    }
-  }
-
-  // This task generates a Maven coordinate for each resolved dependency and
-  // stores them in the given file.
-  task generateMavenCoordinateForDependency {
-    doLast {
-      def allconfigs = []
-      def distinctMetadata = [] as Set
-      if (!rootProject.mavenCoordinateFile) {
-        throw new IllegalArgumentException("mavenCoordinateFile must be set")
-      }
-      def outputFile = new File(rootProject.mavenCoordinateFile)
-
-      allconfigs.addAll(configurations)
-      // This only adds buildscript dependencies declare in this project.
-      allconfigs.addAll(buildscript.configurations)
-
-      allconfigs.each {
-        if (!it.isCanBeResolved()) {
-          return
-        }
-        rootProject.constructMavenCoordinate(
-          it.resolvedConfiguration.firstLevelModuleDependencies,
-          distinctMetadata)
-      }
-
-      distinctMetadata.each { metadata ->
-        outputFile.append("${metadata}\n")
-      }
     }
   }
 }
