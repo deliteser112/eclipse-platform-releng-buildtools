@@ -136,7 +136,18 @@ class UnrenewDomainCommand extends ConfirmingCommand implements CommandWithRemot
 
   @Override
   protected String prompt() {
-    return String.format("Unrenew these domain(s) for %d years?", period);
+    StringBuilder resultBuilder = new StringBuilder();
+    DateTime now = clock.nowUtc();
+    for (String domainName : mainParameters) {
+      DomainBase domain = loadByForeignKey(DomainBase.class, domainName, now).get();
+      DateTime previousTime = domain.getRegistrationExpirationTime();
+      DateTime newTime = leapSafeSubtractYears(previousTime, period);
+      resultBuilder.append(
+          String.format(
+              "%s expiration time changed from %s to %s\n", domainName, previousTime, newTime));
+    }
+    resultBuilder.append(String.format("Unrenew these domains(s) for %d years?", period));
+    return resultBuilder.toString();
   }
 
   @Override
