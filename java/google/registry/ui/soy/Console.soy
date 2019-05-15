@@ -21,7 +21,8 @@
 {template .header}
   {@param app: string} /** App identifier, e.g. 'admin', 'registrar'. */
   {@param? subtitle: string} /** Extra stuff to put in {@code <title>}. */
-   <!doctype html>
+  {@param analyticsConfig: [googleAnalyticsId: string|null]}
+  <!doctype html>
   <meta charset="utf-8">
   {literal}<!--
 
@@ -56,6 +57,7 @@
       <!-- No DEBUG option set. -->
   {/switch}
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Open+Sans:300">
+  {call registry.soy.analytics.googleAnalytics data="all" /}
 {/template}
 
 

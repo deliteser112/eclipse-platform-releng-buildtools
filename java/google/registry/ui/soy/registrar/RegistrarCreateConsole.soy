@@ -24,6 +24,7 @@
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param productName: string} /** Name to display for this software product. */
   {@param logoFilename: string}
+  {@param analyticsConfig: [googleAnalyticsId: string|null]}
   {@param? errorMessage: string} /** If set - display the error message above the form. */
   {@param? clientId: string} /** If set - an initial value for the client ID. */
   {@param? name: string} /** If set - an initial value for the Registrar name. */
@@ -43,6 +44,7 @@
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Create Registrar' /}
+    {param analyticsConfig: $analyticsConfig /}
   {/call}
   {call registry.soy.console.googlebar data="all" /}
   <div id="reg-content-and-footer">
@@ -70,10 +72,12 @@
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param productName: string} /** Name to display for this software product. */
   {@param logoFilename: string}
+  {@param analyticsConfig: [googleAnalyticsId: string|null]}
 
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Create Registrar' /}
+    {param analyticsConfig: $analyticsConfig /}
   {/call}
   {call registry.soy.console.googlebar data="all" /}
   <div id="reg-content-and-footer">
@@ -335,9 +339,12 @@
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param logoFilename: string}
   {@param productName: string}
+  {@param analyticsConfig: [googleAnalyticsId: string|null]}
+
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Not Authorized' /}
+    {param analyticsConfig: $analyticsConfig /}
   {/call}
   <div class="{css('whoAreYou')}">
     <a class="{css('logo')}" href="/registrar">

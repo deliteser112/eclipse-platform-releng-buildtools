@@ -23,6 +23,8 @@
   {@param username: string} /** Arbitrary username to display. */
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param productName: string} /** Name to display for this software product. */
+  {@param analyticsConfig: [googleAnalyticsId: string|null]}
+
   {@param logoFilename: string}
   {@param? errorMessage: string} /** If set - display the error message above the form. */
   {@param? baseClientId: string} /** If set - an initial value to fill for the base client ID. */
@@ -31,6 +33,7 @@
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'OT&E setup' /}
+    {param analyticsConfig: $analyticsConfig /}
   {/call}
   {call registry.soy.console.googlebar data="all" /}
   <div id="reg-content-and-footer">
@@ -58,10 +61,12 @@
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param productName: string} /** Name to display for this software product. */
   {@param logoFilename: string}
+  {@param analyticsConfig: [googleAnalyticsId: string|null]}
 
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'OT&E setup' /}
+    {param analyticsConfig: $analyticsConfig /}
   {/call}
   {call registry.soy.console.googlebar data="all" /}
   <div id="reg-content-and-footer">
@@ -100,6 +105,7 @@
   {@param xsrfToken: string} /** Security token. */
   {@param? baseClientId: string} /** If set - an initial value to fill for the base client ID. */
   {@param? contactEmail: string} /** If set - an initial value to fill for the email. */
+
   <form name="item" class="{css('item')}" method="post" action="/registrar-ote-setup">
     <table>
       <tr class="{css('kd-settings-pane-section')}">
@@ -162,9 +168,12 @@
   {@param logoutUrl: string} /** Generated URL for logging out of Google. */
   {@param logoFilename: string}
   {@param productName: string}
+  {@param analyticsConfig: [googleAnalyticsId: string|null]}
+
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Not Authorized' /}
+    {param analyticsConfig: $analyticsConfig /}
   {/call}
   <div class="{css('whoAreYou')}">
     <a class="{css('logo')}" href="/registrar">

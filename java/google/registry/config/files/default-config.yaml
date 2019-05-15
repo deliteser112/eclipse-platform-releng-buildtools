@@ -332,6 +332,11 @@ registrarConsole:
   # URL linking to directory of technical support docs on the registry.
   technicalDocsUrl: http://example.com/your_support_docs/
 
+  # Configuration for all analytics services installed in the web console
+  analyticsConfig:
+    # Google Analytics account where data on console use is sent, optional
+    googleAnalyticsId: null
+
 monitoring:
   # Max queries per second for the Google Cloud Monitoring V3 (aka Stackdriver)
   # API. The limit can be adjusted by contacting Cloud Support.

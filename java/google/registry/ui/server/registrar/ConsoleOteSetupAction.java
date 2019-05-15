@@ -48,6 +48,7 @@ import google.registry.ui.server.SoyTemplateUtils;
 import google.registry.ui.soy.registrar.OteSetupConsoleSoyInfo;
 import google.registry.util.StringGenerator;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -79,6 +80,7 @@ public final class ConsoleOteSetupAction implements Runnable {
       SoyTemplateUtils.createTofuSupplier(
           google.registry.ui.soy.ConsoleSoyInfo.getInstance(),
           google.registry.ui.soy.FormsSoyInfo.getInstance(),
+          google.registry.ui.soy.AnalyticsSoyInfo.getInstance(),
           google.registry.ui.soy.registrar.OteSetupConsoleSoyInfo.getInstance());
 
   @VisibleForTesting  // webdriver and screenshot tests need this
@@ -98,6 +100,7 @@ public final class ConsoleOteSetupAction implements Runnable {
   @Inject SendEmailUtils sendEmailUtils;
   @Inject @Config("logoFilename") String logoFilename;
   @Inject @Config("productName") String productName;
+  @Inject @Config("analyticsConfig") Map<String, Object> analyticsConfig;
   @Inject @Named("base58StringGenerator") StringGenerator passwordGenerator;
   @Inject @Parameter("clientId") Optional<String> clientId;
   @Inject @Parameter("email") Optional<String> email;
@@ -140,6 +143,7 @@ public final class ConsoleOteSetupAction implements Runnable {
     data.put("username", user.getNickname());
     data.put("logoutUrl", userService.createLogoutURL(PATH));
     data.put("xsrfToken", xsrfTokenManager.generateToken(user.getEmail()));
+    data.put("analyticsConfig", analyticsConfig);
     response.setContentType(MediaType.HTML_UTF_8);
 
     if (!registrarAccessor.isAdmin()) {

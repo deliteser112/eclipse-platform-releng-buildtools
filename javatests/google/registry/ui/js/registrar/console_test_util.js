@@ -61,6 +61,7 @@ registry.registrar.ConsoleTestUtil.renderConsoleMain = function(
     supportPhoneNumber: args.supportPhoneNumber || '+1 (888) 555 0123',
     technicalDocsUrl: args.technicalDocsUrl || 'http://example.com/techdocs',
     environment: args.environment || 'UNITTEST',
+    analyticsConfig: args.analyticsConfig || {googleAnalyticsId: null},
   });
 };
 
@@ -80,6 +81,9 @@ registry.registrar.ConsoleTestUtil.visit = function(
   opt_args.clientId = opt_args.clientId || 'dummyRegistrarId';
   opt_args.xsrfToken = opt_args.xsrfToken || 'dummyXsrfToken';
   opt_args.isAdmin = !!opt_args.isAdmin;
+  opt_args.analyticsConfig =
+      opt_args.analyticsConfig || {googleAnalyticsIds: null};
+
   // set the default isOwner to be the opposite of isAdmin.
   // That way, if we don't explicitly state them both we get what we'd expect:
   // {} -> OWNER (the "regular" case of a visitor to the console)

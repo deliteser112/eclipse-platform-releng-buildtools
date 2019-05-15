@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryEnvironment;
@@ -79,6 +80,7 @@ public class ConsoleUiActionTest {
     action.paramClientId = Optional.empty();
     action.authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     action.environment = RegistryEnvironment.UNITTEST;
+    action.analyticsConfig = ImmutableMap.of("googleAnalyticsId", "sampleId");
 
     action.registrarAccessor =
         AuthenticatedRegistrarAccessor.createForTesting(
@@ -123,6 +125,13 @@ public class ConsoleUiActionTest {
   }
 
   @Test
+  public void testWebPage_containsGoogleAnalyticsId() {
+    action.run();
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
+    assertMetric("TheRegistrar", "false", "[OWNER]", "SUCCESS");
+  }
+
+  @Test
   public void testUserHasAccessAsTheRegistrar_showsRegistrarConsole() {
     action.run();
     assertThat(response.getPayload()).contains("Registrar Console");
@@ -135,6 +144,7 @@ public class ConsoleUiActionTest {
     action.enabled = false;
     action.run();
     assertThat(response.getPayload()).contains("<h1>Console is disabled</h1>");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
   }
 
   @Test
@@ -144,6 +154,7 @@ public class ConsoleUiActionTest {
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
     assertThat(response.getPayload()).contains("not associated with Nomulus.");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
     assertMetric("<null>", "false", "[]", "FORBIDDEN");
   }
 
@@ -172,6 +183,7 @@ public class ConsoleUiActionTest {
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
     assertThat(response.getPayload()).contains("not associated with the registrar fakeRegistrar.");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
     assertMetric("fakeRegistrar", "true", "[]", "FORBIDDEN");
   }
 
@@ -181,6 +193,7 @@ public class ConsoleUiActionTest {
     action.run();
     assertThat(response.getPayload()).contains("Registrar Console");
     assertThat(response.getPayload()).contains("reg-content-and-footer");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
     assertMetric("NewRegistrar", "true", "[OWNER, ADMIN]", "SUCCESS");
   }
 
@@ -190,6 +203,7 @@ public class ConsoleUiActionTest {
     assertThat(response.getPayload()).contains("<option value=\"TheRegistrar\" selected>");
     assertThat(response.getPayload()).contains("<option value=\"NewRegistrar\">");
     assertThat(response.getPayload()).contains("<option value=\"AdminRegistrar\">");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
     assertMetric("TheRegistrar", "false", "[OWNER]", "SUCCESS");
   }
 }

@@ -56,6 +56,7 @@ import google.registry.ui.server.SoyTemplateUtils;
 import google.registry.ui.soy.registrar.RegistrarCreateConsoleSoyInfo;
 import google.registry.util.StringGenerator;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -90,6 +91,7 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
       SoyTemplateUtils.createTofuSupplier(
           google.registry.ui.soy.ConsoleSoyInfo.getInstance(),
           google.registry.ui.soy.FormsSoyInfo.getInstance(),
+          google.registry.ui.soy.AnalyticsSoyInfo.getInstance(),
           google.registry.ui.soy.registrar.RegistrarCreateConsoleSoyInfo.getInstance());
 
   @VisibleForTesting  // webdriver and screenshot tests need this
@@ -109,6 +111,7 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
   @Inject SendEmailUtils sendEmailUtils;
   @Inject @Config("logoFilename") String logoFilename;
   @Inject @Config("productName") String productName;
+  @Inject @Config("analyticsConfig") Map<String, Object> analyticsConfig;
   @Inject @Named("base58StringGenerator") StringGenerator passwordGenerator;
   @Inject @Named("digitOnlyStringGenerator") StringGenerator passcodeGenerator;
   @Inject @Parameter("clientId") Optional<String> clientId;
@@ -167,6 +170,7 @@ public final class ConsoleRegistrarCreatorAction implements Runnable {
     data.put("username", user.getNickname());
     data.put("logoutUrl", userService.createLogoutURL(PATH));
     data.put("xsrfToken", xsrfTokenManager.generateToken(user.getEmail()));
+    data.put("analyticsConfig", analyticsConfig);
     response.setContentType(MediaType.HTML_UTF_8);
 
     if (!registrarAccessor.isAdmin()) {

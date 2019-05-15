@@ -35,6 +35,9 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
 import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -196,6 +199,22 @@ public final class RegistryConfig {
     @Config("technicalDocsUrl")
     public static String provideTechnicalDocsUrl(RegistryConfigSettings config) {
       return config.registrarConsole.technicalDocsUrl;
+    }
+
+    /**
+     * Configuration for analytics services installed in the web console.
+     *
+     * @see google.registry.ui.server.registrar.ConsoleUiAction
+     * @see google.registry.ui.soy.AnalyticsSoyInfo
+     */
+    @Provides
+    @Config("analyticsConfig")
+    public static Map<String, Object> provideAnalyticsConfig(RegistryConfigSettings config) {
+      // Can't be an ImmutableMap because it may contain null values.
+      HashMap<String, Object> analyticsConfig = new HashMap<>();
+      analyticsConfig.put(
+          "googleAnalyticsId", config.registrarConsole.analyticsConfig.googleAnalyticsId);
+      return Collections.unmodifiableMap(analyticsConfig);
     }
 
     /**

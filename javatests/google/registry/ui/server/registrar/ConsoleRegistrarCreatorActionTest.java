@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
@@ -119,6 +120,8 @@ public final class ConsoleRegistrarCreatorActionTest {
 
     action.passwordGenerator = new DeterministicStringGenerator("abcdefghijklmnopqrstuvwxyz");
     action.passcodeGenerator = new DeterministicStringGenerator("314159265");
+
+    action.analyticsConfig = ImmutableMap.of("googleAnalyticsId", "sampleId");
   }
 
   @Test
@@ -134,6 +137,7 @@ public final class ConsoleRegistrarCreatorActionTest {
   public void testGet_authorized() {
     action.run();
     assertThat(response.getPayload()).contains("<h1>Create Registrar</h1>");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
   }
 
   @Test
@@ -141,6 +145,7 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.registryEnvironment = RegistryEnvironment.PRODUCTION;
     action.run();
     assertThat(response.getPayload()).contains("<h1>Create Registrar</h1>");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
   }
 
   @Test
@@ -149,6 +154,7 @@ public final class ConsoleRegistrarCreatorActionTest {
         AuthenticatedRegistrarAccessor.createForTesting(ImmutableSetMultimap.of());
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
   }
 
   @Test
@@ -243,6 +249,7 @@ public final class ConsoleRegistrarCreatorActionTest {
 
     assertThat(response.getPayload())
         .contains("<h1>Successfully created Registrar myclientid</h1>");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
 
     Registrar registrar = loadByClientId("myclientid").orElse(null);
     assertThat(registrar).isNotNull();
@@ -414,5 +421,6 @@ public final class ConsoleRegistrarCreatorActionTest {
     action.method = Method.POST;
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
   }
 }

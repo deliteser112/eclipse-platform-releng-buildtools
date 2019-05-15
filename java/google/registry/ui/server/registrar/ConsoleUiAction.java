@@ -47,6 +47,7 @@ import google.registry.request.auth.AuthenticatedRegistrarAccessor.Role;
 import google.registry.security.XsrfTokenManager;
 import google.registry.ui.server.SoyTemplateUtils;
 import google.registry.ui.soy.registrar.ConsoleSoyInfo;
+import java.util.Map;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -62,7 +63,8 @@ public final class ConsoleUiAction implements Runnable {
   private static final Supplier<SoyTofu> TOFU_SUPPLIER =
       SoyTemplateUtils.createTofuSupplier(
           google.registry.ui.soy.ConsoleSoyInfo.getInstance(),
-          google.registry.ui.soy.registrar.ConsoleSoyInfo.getInstance());
+          google.registry.ui.soy.registrar.ConsoleSoyInfo.getInstance(),
+          google.registry.ui.soy.AnalyticsSoyInfo.getInstance());
 
   @VisibleForTesting  // webdriver and screenshot tests need this
   public static final Supplier<SoyCssRenamingMap> CSS_RENAMING_MAP_SUPPLIER =
@@ -86,6 +88,7 @@ public final class ConsoleUiAction implements Runnable {
   @Inject @Config("supportPhoneNumber") String supportPhoneNumber;
   @Inject @Config("technicalDocsUrl") String technicalDocsUrl;
   @Inject @Config("registrarConsoleEnabled") boolean enabled;
+  @Inject @Config("analyticsConfig") Map<String, Object> analyticsConfig;
   @Inject @Parameter(PARAM_CLIENT_ID) Optional<String> paramClientId;
   @Inject ConsoleUiAction() {}
 
@@ -120,6 +123,7 @@ public final class ConsoleUiAction implements Runnable {
     data.put("announcementsEmail", announcementsEmail);
     data.put("supportPhoneNumber", supportPhoneNumber);
     data.put("technicalDocsUrl", technicalDocsUrl);
+    data.put("analyticsConfig", analyticsConfig);
     if (!enabled) {
       response.setStatus(SC_SERVICE_UNAVAILABLE);
       response.setPayload(
@@ -136,7 +140,7 @@ public final class ConsoleUiAction implements Runnable {
     ImmutableSetMultimap<String, Role> roleMap = registrarAccessor.getAllClientIdWithRoles();
     data.put("allClientIds", roleMap.keySet());
     data.put("environment", environment.toString());
-    // We set the initual value to the value that will show if guessClientId throws.
+    // We set the initial value to the value that will show if guessClientId throws.
     String clientId = "<null>";
     try {
       clientId = paramClientId.orElse(registrarAccessor.guessClientId());

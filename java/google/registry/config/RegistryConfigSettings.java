@@ -154,6 +154,12 @@ public class RegistryConfigSettings {
     public String announcementsEmailAddress;
     public String integrationEmailAddress;
     public String technicalDocsUrl;
+    public AnalyticsConfig analyticsConfig;
+  }
+
+  /** Configuration for analytics services installed in the registrar console */
+  public static class AnalyticsConfig {
+    public String googleAnalyticsId;
   }
 
   /** Configuration for monitoring. */

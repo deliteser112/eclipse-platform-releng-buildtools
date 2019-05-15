@@ -35,10 +35,12 @@
   {@param supportPhoneNumber: string}
   {@param technicalDocsUrl: string}
   {@param environment: string}
+  {@param analyticsConfig: [googleAnalyticsId: string|null]}
 
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Registrar Console' /}
+    {param analyticsConfig: $analyticsConfig /}
   {/call}
   {call registry.soy.console.googlebar data="all" /}
   <div id="reg-app">
@@ -145,9 +147,11 @@
 {template .disabled}
   {@param logoFilename: string}
   {@param productName: string}
+  {@param analyticsConfig: [googleAnalyticsId: string|null]}
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Console Disabled' /}
+    {param analyticsConfig: $analyticsConfig /}
   {/call}
   <div class="{css('whoAreYou-disabled')}">
     <a class="{css('logo')}" href="/registrar">
@@ -172,9 +176,11 @@
   {@param logoFilename: string}
   {@param productName: string}
   {@param? clientId: string}
+  {@param analyticsConfig: [googleAnalyticsId: string|null]}
   {call registry.soy.console.header}
     {param app: 'registrar' /}
     {param subtitle: 'Not Authorized' /}
+    {param analyticsConfig: $analyticsConfig /}
   {/call}
   <div class="{css('whoAreYou')}">
     <a class="{css('logo')}" href="/registrar">

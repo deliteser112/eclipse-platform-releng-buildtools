@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserServiceFactory;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registry.Registry;
@@ -97,6 +98,7 @@ public final class ConsoleOteSetupActionTest {
     action.productName = "Nomulus";
     action.clientId = Optional.empty();
     action.email = Optional.empty();
+    action.analyticsConfig = ImmutableMap.of("googleAnalyticsId", "sampleId");
 
     action.optionalPassword = Optional.empty();
     action.passwordGenerator = new DeterministicStringGenerator("abcdefghijklmnopqrstuvwxyz");
@@ -115,6 +117,7 @@ public final class ConsoleOteSetupActionTest {
   public void testGet_authorized() {
     action.run();
     assertThat(response.getPayload()).contains("<h1>Setup OT&E</h1>");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
   }
 
   @Test
@@ -129,6 +132,7 @@ public final class ConsoleOteSetupActionTest {
         AuthenticatedRegistrarAccessor.createForTesting(ImmutableSetMultimap.of());
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
   }
 
   @Test
@@ -160,6 +164,7 @@ public final class ConsoleOteSetupActionTest {
                 + "   Registrar myclientid-4 with access to TLD myclientid-ga\n"
                 + "   Registrar myclientid-5 with access to TLD myclientid-eap\n"
                 + "Gave user contact@registry.example web access to these Registrars\n");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
   }
 
   @Test
@@ -189,5 +194,6 @@ public final class ConsoleOteSetupActionTest {
     action.method = Method.POST;
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
+    assertThat(response.getPayload()).contains("gtag('config', 'sampleId')");
   }
 }
