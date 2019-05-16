@@ -124,6 +124,11 @@ public final class UpdateAllocationTokensCommand extends ConfirmingCommand
   }
 
   @Override
+  public String prompt() {
+    return String.format("Update %d tokens?", tokensToSave.size());
+  }
+
+  @Override
   protected String execute() {
     long numUpdated =
         stream(partition(tokensToSave, BATCH_SIZE))
