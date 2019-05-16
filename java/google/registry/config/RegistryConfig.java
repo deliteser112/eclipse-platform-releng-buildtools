@@ -372,7 +372,7 @@ public final class RegistryConfig {
     @Provides
     @Config("dnsDefaultNsTtl")
     public static Duration provideDnsDefaultNsTtl() {
-      return Duration.standardHours(1);
+      return Duration.standardHours(3);
     }
 
     /**
