@@ -451,9 +451,6 @@ task soyToJS {
         file("${rootSoyDirectory}/registrar").listFiles()
       }.filter {
         it.name.endsWith(".soy")
-      }.filter{
-        // TODO(b/123653579): add this back in when it compiles
-        !it.name.equals("OteSetupConsole.soy")
       }, rootSoyFiles)
   }
 }
