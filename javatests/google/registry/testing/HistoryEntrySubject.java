@@ -23,7 +23,6 @@ import com.google.common.truth.Subject;
 import google.registry.model.domain.Period;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.TruthChainer.And;
-import java.util.Objects;
 import java.util.Optional;
 import org.joda.time.DateTime;
 
@@ -49,23 +48,23 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
   }
 
   public And<HistoryEntrySubject> hasType(HistoryEntry.Type type) {
-    return hasValue(type, actual.getType(), "has type");
+    return hasValue(type, actual.getType(), "getType()");
   }
 
   public And<HistoryEntrySubject> hasClientId(String clientId) {
-    return hasValue(clientId, actual.getClientId(), "has client ID");
+    return hasValue(clientId, actual.getClientId(), "getClientId()");
   }
 
   public And<HistoryEntrySubject> hasOtherClientId(String otherClientId) {
-    return hasValue(otherClientId, actual.getOtherClientId(), "has other client ID");
+    return hasValue(otherClientId, actual.getOtherClientId(), "getOtherClientId()");
   }
 
   public And<HistoryEntrySubject> hasModificationTime(DateTime modificationTime) {
-    return hasValue(modificationTime, actual.getModificationTime(), "has modification time");
+    return hasValue(modificationTime, actual.getModificationTime(), "getModificationTime()");
   }
 
   public And<HistoryEntrySubject> bySuperuser(boolean superuser) {
-    return hasValue(superuser, actual.getBySuperuser(), "has modification time");
+    return hasValue(superuser, actual.getBySuperuser(), "getBySuperuser()");
   }
 
   public And<HistoryEntrySubject> hasPeriod() {
@@ -78,9 +77,9 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
   public And<HistoryEntrySubject> hasPeriodYears(int years) {
     return hasPeriod()
         .and()
-        .hasValue(Period.Unit.YEARS, actual.getPeriod().getUnit(), "has period in")
+        .hasValue(Period.Unit.YEARS, actual.getPeriod().getUnit(), "getPeriod().getUnit()")
         .and()
-        .hasValue(years, actual.getPeriod().getValue(), "has period length");
+        .hasValue(years, actual.getPeriod().getValue(), "getPeriod().getValue()");
   }
 
   public And<HistoryEntrySubject> hasNoXml() {
@@ -91,26 +90,17 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
   }
 
   public And<HistoryEntrySubject> hasMetadataReason(String reason) {
-    return hasValue(reason, actual.getReason(), "has metadata reason");
+    return hasValue(reason, actual.getReason(), "getReason()");
   }
 
   public And<HistoryEntrySubject> hasMetadataRequestedByRegistrar(
         boolean requestedByRegistrar) {
-    if (actual.getRequestedByRegistrar() != requestedByRegistrar) {
-      failWithActual(
-          "expected to have metadata requestedByRegistrar with value", requestedByRegistrar);
-    }
-    return new And<>(this);
+    return hasValue(
+        requestedByRegistrar, actual.getRequestedByRegistrar(), "getRequestedByRegistrar()");
   }
 
-  protected void failWithBadResults(String dualVerb, Object expected, Object actual) {
-    failWithBadResults(dualVerb, expected, dualVerb, actual);
-  }
-
-  protected <E> And<HistoryEntrySubject> hasValue(E expected, E actual, String verb) {
-    if (!Objects.equals(expected, actual)) {
-      failWithBadResults(verb, expected, actual);
-    }
+  protected <E> And<HistoryEntrySubject> hasValue(E expected, E actual, String name) {
+    check(name).that(actual).isEqualTo(expected);
     return new And<>(this);
   }
 

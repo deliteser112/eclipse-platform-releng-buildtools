@@ -15,6 +15,7 @@
 package google.registry.testing;
 
 import static com.google.common.truth.Fact.simpleFact;
+import static com.google.common.truth.OptionalSubject.optionals;
 import static com.google.common.truth.Truth.assertAbout;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
@@ -23,7 +24,6 @@ import com.google.common.truth.Subject;
 import google.registry.model.eppoutput.Result.Code;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.TruthChainer.And;
-import java.util.Objects;
 import java.util.Optional;
 
 /** Utility methods for asserting things about {@link EppMetric} instances. */
@@ -41,15 +41,15 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
   }
 
   public And<EppMetricSubject> hasClientId(String clientId) {
-    return hasValue(clientId, actual.getClientId(), "has clientId");
+    return hasValue(clientId, actual.getClientId(), "getClientId()");
   }
 
   public And<EppMetricSubject> hasCommandName(String commandName) {
-    return hasValue(commandName, actual.getCommandName(), "has commandName");
+    return hasValue(commandName, actual.getCommandName(), "getCommandName()");
   }
 
   public And<EppMetricSubject> hasStatus(Code status) {
-    return hasValue(status, actual.getStatus(), "has status");
+    return hasValue(status, actual.getStatus(), "getStatus()");
   }
 
   public And<EppMetricSubject> hasNoStatus() {
@@ -60,7 +60,7 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
   }
 
   public And<EppMetricSubject> hasTld(String tld) {
-    return hasValue(tld, actual.getTld(), "has tld");
+    return hasValue(tld, actual.getTld(), "getTld()");
   }
 
   public And<EppMetricSubject> hasNoTld() {
@@ -70,15 +70,9 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
     return new And<>(this);
   }
 
-  private <E> And<EppMetricSubject> hasValue(E expected, Optional<E> actual, String verb) {
+  private <E> And<EppMetricSubject> hasValue(E expected, Optional<E> actual, String name) {
     checkArgumentNotNull(expected, "Expected value cannot be null");
-    if (actual == null) {
-      failWithActual("expected to be non-null", expected);
-    } else if (!actual.isPresent()) {
-      failWithActual("expected to have value", expected);
-    } else if (!Objects.equals(expected, actual.get())) {
-      failWithBadResults(verb, expected, verb, actual);
-    }
+    check(name).about(optionals()).that(actual).hasValue(expected);
     return new And<>(this);
   }
 

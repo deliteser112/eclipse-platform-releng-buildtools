@@ -26,7 +26,6 @@ import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.testing.TruthChainer.And;
-import java.util.Objects;
 import java.util.Set;
 import org.joda.time.DateTime;
 
@@ -74,19 +73,17 @@ public final class DomainBaseSubject
   }
 
   public And<DomainBaseSubject> hasRegistrationExpirationTime(DateTime expiration) {
-    if (!Objects.equals(actual.getRegistrationExpirationTime(), expiration)) {
-      failWithBadResults(
-          "has registrationExpirationTime", expiration, actual.getRegistrationExpirationTime());
-    }
-    return andChainer();
+    return hasValue(
+        expiration, actual.getRegistrationExpirationTime(), "getRegistrationExpirationTime()");
   }
 
   public And<DomainBaseSubject> hasLastTransferTime(DateTime lastTransferTime) {
-    return hasValue(lastTransferTime, actual.getLastTransferTime(), "has lastTransferTime");
+    return hasValue(lastTransferTime, actual.getLastTransferTime(), "getLastTransferTime()");
   }
 
   public And<DomainBaseSubject> hasLastTransferTimeNotEqualTo(DateTime lastTransferTime) {
-    return doesNotHaveValue(lastTransferTime, actual.getLastTransferTime(), "lastTransferTime");
+    return doesNotHaveValue(
+        lastTransferTime, actual.getLastTransferTime(), "getLastTransferTime()");
   }
 
   public And<DomainBaseSubject> hasDeletePollMessage() {
@@ -104,7 +101,7 @@ public final class DomainBaseSubject
   }
 
   public And<DomainBaseSubject> hasSmdId(String smdId) {
-    return hasValue(smdId, actual.getSmdId(), "has smdId");
+    return hasValue(smdId, actual.getSmdId(), "getSmdId()");
   }
 
   public static SimpleSubjectBuilder<DomainBaseSubject, DomainBase> assertAboutDomains() {

@@ -60,7 +60,7 @@ public class EppExceptionSubject extends Subject<EppExceptionSubject, EppExcepti
                   .build()),
           ValidationMode.STRICT);
     } catch (XmlException e) {
-      fail("fails to marshal to XML: " + e.getMessage());
+      failWithActual("expected to marshal to XML, but failed with exception", e.getMessage());
     }
     return new And<>(this);
   }
