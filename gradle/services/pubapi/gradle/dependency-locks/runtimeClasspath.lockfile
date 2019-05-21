@@ -59,7 +59,7 @@ com.google.appengine:appengine-testing:1.9.58
 com.google.auth:google-auth-library-credentials:0.12.0
 com.google.auth:google-auth-library-oauth2-http:0.12.0
 com.google.auto.value:auto-value-annotations:1.6.3
-com.google.auto.value:auto-value:1.6.2
+com.google.auto.value:auto-value:1.6.3
 com.google.cloud.bigdataoss:gcsio:1.9.16
 com.google.cloud.bigdataoss:util:1.9.16
 com.google.cloud.bigtable:bigtable-client-core:1.8.0
