@@ -48,7 +48,7 @@ java_library(
         "@com_google_appengine_remote_api",
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
-        "@com_google_code_gson",
+        "@com_google_gson",
         "@com_google_guava",
         "@com_google_http_client",
         "@com_google_http_client_jackson2",
