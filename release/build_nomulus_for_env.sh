@@ -40,6 +40,9 @@ do
   mv gradle/services/"${service}"/build/staged-app "${dest}/${service}"
 done
 
+mv gradle/core/build/resources/main/google/registry/env/common/META-INF \
+  "${dest}/META-INF"
+
 cd "${dest}"
 tar cvf ../../"${environment}.tar" .
 cd -
