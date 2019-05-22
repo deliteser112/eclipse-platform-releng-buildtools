@@ -1,7 +1,9 @@
 buildscript {
-  // Lock buildscript dependencies.
-  configurations.classpath {
-    resolutionStrategy.activateDependencyLocking()
+  if (project.disableDependencyLocking.toBoolean() == false) {
+    // Lock buildscript dependencies.
+    configurations.classpath {
+      resolutionStrategy.activateDependencyLocking()
+    }
   }
 
   dependencies {
@@ -98,16 +100,18 @@ subprojects {
   // Skip no-op project
   if (project.name == 'services') return
 
-  buildscript {
-    // Lock buildscript dependencies.
-    configurations.classpath {
-      resolutionStrategy.activateDependencyLocking()
-    }
-  }
 
-  // Lock application dependencies.
-  dependencyLocking {
-    lockAllConfigurations()
+  if (rootProject.disableDependencyLocking.toBoolean() == false) {
+    buildscript {
+      // Lock buildscript dependencies.
+      configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+      }
+    }
+    // Lock application dependencies.
+    dependencyLocking {
+      lockAllConfigurations()
+    }
   }
 
   def services = [':services:default',
