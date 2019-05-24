@@ -41,17 +41,7 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
   }
 
   private static final Correspondence<String, String> CONTAINS_CORRESPONDENCE =
-      new Correspondence<String, String>() {
-        @Override
-        public boolean compare(String actual, String expected) {
-          return actual.contains(expected);
-        }
-
-        @Override
-        public String toString() {
-          return "contains";
-        }
-      };
+      Correspondence.from((actual, expected) -> actual.contains(expected), "contains");
 
   private List<String> getMessagesAtLevel(Level level) {
     ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
