@@ -32,7 +32,7 @@
       we add a 4+ minute grace period to ensure the transactions cool down, since
       our queries are not transactional.
     -->
-    <schedule>every 4 hours from 00:07 to 20:00</schedule>
+    <schedule>every 8 hours from 00:07 to 20:00</schedule>
     <target>backend</target>
   </cron>
 
