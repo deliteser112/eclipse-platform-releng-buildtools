@@ -229,28 +229,33 @@ public class DomainWhoisResponseTest {
     Key<ContactResource> adminResourceKey = Key.create(adminContact);
     Key<ContactResource> techResourceKey = Key.create(techContact);
 
-    domainBase = persistResource(new DomainBase.Builder()
-        .setFullyQualifiedDomainName("example.tld")
-        .setRepoId("3-TLD")
-        .setLastEppUpdateTime(DateTime.parse("2009-05-29T20:13:00Z"))
-        .setCreationTimeForTest(DateTime.parse("2000-10-08T00:45:00Z"))
-        .setRegistrationExpirationTime(DateTime.parse("2010-10-08T00:44:59Z"))
-        .setPersistedCurrentSponsorClientId("NewRegistrar")
-        .setStatusValues(ImmutableSet.of(
-            StatusValue.CLIENT_DELETE_PROHIBITED,
-            StatusValue.CLIENT_RENEW_PROHIBITED,
-            StatusValue.CLIENT_TRANSFER_PROHIBITED,
-            StatusValue.SERVER_UPDATE_PROHIBITED))
-        .setRegistrant(registrantResourceKey)
-        .setContacts(ImmutableSet.of(
-            DesignatedContact.create(DesignatedContact.Type.ADMIN, adminResourceKey),
-            DesignatedContact.create(DesignatedContact.Type.TECH, techResourceKey)))
-        .setNameservers(ImmutableSet.of(hostResource1Key, hostResource2Key))
-        .setDsData(ImmutableSet.of(new DelegationSignerData()))
-        .setGracePeriods(ImmutableSet.of(
-            GracePeriod.create(GracePeriodStatus.ADD, END_OF_TIME, "", null),
-            GracePeriod.create(GracePeriodStatus.TRANSFER, END_OF_TIME, "", null)))
-        .build());
+    domainBase =
+        persistResource(
+            new DomainBase.Builder()
+                .setFullyQualifiedDomainName("example.tld")
+                .setRepoId("3-TLD")
+                .setLastEppUpdateTime(DateTime.parse("2009-05-29T20:13:00Z"))
+                .setCreationTimeForTest(DateTime.parse("2000-10-08T00:45:00Z"))
+                .setRegistrationExpirationTime(DateTime.parse("2010-10-08T00:44:59Z"))
+                .setPersistedCurrentSponsorClientId("NewRegistrar")
+                .setStatusValues(
+                    ImmutableSet.of(
+                        StatusValue.CLIENT_DELETE_PROHIBITED,
+                        StatusValue.CLIENT_RENEW_PROHIBITED,
+                        StatusValue.CLIENT_TRANSFER_PROHIBITED,
+                        StatusValue.SERVER_UPDATE_PROHIBITED))
+                .setRegistrant(registrantResourceKey)
+                .setContacts(
+                    ImmutableSet.of(
+                        DesignatedContact.create(DesignatedContact.Type.ADMIN, adminResourceKey),
+                        DesignatedContact.create(DesignatedContact.Type.TECH, techResourceKey)))
+                .setNameservers(ImmutableSet.of(hostResource1Key, hostResource2Key))
+                .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, "deadface")))
+                .setGracePeriods(
+                    ImmutableSet.of(
+                        GracePeriod.create(GracePeriodStatus.ADD, END_OF_TIME, "", null),
+                        GracePeriod.create(GracePeriodStatus.TRANSFER, END_OF_TIME, "", null)))
+                .build());
   }
 
   @Test

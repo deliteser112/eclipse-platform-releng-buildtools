@@ -15,6 +15,9 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.rdap.RdapTestHelper.assertThat;
+import static google.registry.rdap.RdapTestHelper.loadJsonFile;
+import static google.registry.rdap.RdapTestHelper.parseJsonObject;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -161,23 +164,19 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   private JsonObject generateExpectedJson(
       String handle,
       String expectedOutputFile) {
-        return generateExpectedJson(handle, null, "active", null, null, expectedOutputFile);
+    return generateExpectedJson(handle, null, "active", null, expectedOutputFile);
   }
 
   private JsonObject generateExpectedJson(
       String handle,
       @Nullable String fullName,
       String status,
-      @Nullable String email,
       @Nullable String address,
       String expectedOutputFile) {
     ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
     builder.put("NAME", handle);
     if (fullName != null) {
       builder.put("FULLNAME", fullName);
-    }
-    if (email != null) {
-      builder.put("EMAIL", email);
     }
     if (address != null) {
       builder.put("ADDRESS", address);
@@ -191,11 +190,9 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
       String handle,
       String fullName,
       String status,
-      @Nullable String email,
       @Nullable String address,
       String expectedOutputFile) {
-    JsonObject obj =
-        generateExpectedJson(handle, fullName, status, email, address, expectedOutputFile);
+    JsonObject obj = generateExpectedJson(handle, fullName, status, address, expectedOutputFile);
     obj = RdapTestHelper.wrapInSearchReply("entitySearchResults", obj);
     RdapTestHelper.addNonDomainBoilerplateNotices(obj, "https://example.tld/rdap/");
     return obj;
@@ -275,7 +272,6 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
         "2-ROID",
         "Blinky (赤ベイ)",
         "active",
-        "blinky@b.tld",
         "\"123 Blinky St\", \"Blinkyland\"",
         fileName);
   }
@@ -285,7 +281,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
       String handle,
       @Nullable String fullName,
       String fileName) {
-    runSuccessfulNameTest(queryString, handle, fullName, "active", null, null, fileName);
+    runSuccessfulNameTest(queryString, handle, fullName, "active", null, fileName);
   }
 
   private void runSuccessfulNameTest(
@@ -293,13 +289,11 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
       String handle,
       @Nullable String fullName,
       String status,
-      @Nullable String email,
       @Nullable String address,
       String fileName) {
     rememberWildcardType(queryString);
     assertThat(generateActualJsonWithFullName(queryString))
-        .isEqualTo(
-            generateExpectedJsonForEntity(handle, fullName, status, email, address, fileName));
+        .isEqualTo(generateExpectedJsonForEntity(handle, fullName, status, address, fileName));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -316,7 +310,6 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
         "2-ROID",
         "Blinky (赤ベイ)",
         "active",
-        "blinky@b.tld",
         "\"123 Blinky St\", \"Blinkyland\"",
         fileName);
   }
@@ -326,7 +319,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
       String handle,
       @Nullable String fullName,
       String fileName) {
-    runSuccessfulHandleTest(queryString, handle, fullName, "active", null, null, fileName);
+    runSuccessfulHandleTest(queryString, handle, fullName, "active", null, fileName);
   }
 
   private void runSuccessfulHandleTest(
@@ -334,13 +327,11 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
       String handle,
       @Nullable String fullName,
       String status,
-      @Nullable String email,
       @Nullable String address,
       String fileName) {
     rememberWildcardType(queryString);
     assertThat(generateActualJsonWithHandle(queryString))
-        .isEqualTo(
-            generateExpectedJsonForEntity(handle, fullName, status, email, address, fileName));
+        .isEqualTo(generateExpectedJsonForEntity(handle, fullName, status, address, fileName));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -869,7 +860,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   public void testNameMatchRegistrar_found_inactiveAsSameRegistrar() {
     action.includeDeletedParam = Optional.of(true);
     login("2-RegistrarInact");
-    runSuccessfulNameTest("No Way", "21", "No Way", "inactive", null, null, "rdap_registrar.json");
+    runSuccessfulNameTest("No Way", "21", "No Way", "inactive", null, "rdap_registrar.json");
     verifyMetrics(0);
   }
 
@@ -877,7 +868,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   public void testNameMatchRegistrar_found_inactiveAsAdmin() {
     action.includeDeletedParam = Optional.of(true);
     loginAsAdmin();
-    runSuccessfulNameTest("No Way", "21", "No Way", "inactive", null, null, "rdap_registrar.json");
+    runSuccessfulNameTest("No Way", "21", "No Way", "inactive", null, "rdap_registrar.json");
     verifyMetrics(0);
   }
 
@@ -900,7 +891,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
     action.includeDeletedParam = Optional.of(true);
     login("2-RegistrarTest");
     runSuccessfulNameTest(
-        "Da Test Registrar", "(none)", "Da Test Registrar", "rdap_registrar_test.json");
+        "Da Test Registrar", "not applicable", "Da Test Registrar", "rdap_registrar_test.json");
     verifyMetrics(0);
   }
 
@@ -909,7 +900,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
     action.includeDeletedParam = Optional.of(true);
     loginAsAdmin();
     runSuccessfulNameTest(
-        "Da Test Registrar", "(none)", "Da Test Registrar", "rdap_registrar_test.json");
+        "Da Test Registrar", "not applicable", "Da Test Registrar", "rdap_registrar_test.json");
     verifyMetrics(0);
   }
 
@@ -983,7 +974,6 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
         "",
         "inactive",
         "",
-        "",
         "rdap_contact_deleted.json");
     verifyMetrics(1);
   }
@@ -997,7 +987,6 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
         "6-ROID",
         "",
         "inactive",
-        "",
         "",
         "rdap_contact_deleted.json");
     verifyMetrics(1);
@@ -1028,7 +1017,6 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
         "",
         "inactive",
         "",
-        "",
         "rdap_contact_deleted.json");
     verifyMetrics(1);
   }
@@ -1042,7 +1030,6 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
         "6-ROID",
         "",
         "inactive",
-        "",
         "",
         "rdap_contact_deleted.json");
     verifyMetrics(1);
@@ -1240,7 +1227,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   public void testHandleMatchRegistrar_found_inactiveAsSameRegistrar() {
     action.includeDeletedParam = Optional.of(true);
     login("2-RegistrarInact");
-    runSuccessfulHandleTest("21", "21", "No Way", "inactive", null, null, "rdap_registrar.json");
+    runSuccessfulHandleTest("21", "21", "No Way", "inactive", null, "rdap_registrar.json");
     verifyMetrics(0);
   }
 
@@ -1248,7 +1235,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   public void testHandleMatchRegistrar_found_inactiveAsAdmin() {
     action.includeDeletedParam = Optional.of(true);
     loginAsAdmin();
-    runSuccessfulHandleTest("21", "21", "No Way", "inactive", null, null, "rdap_registrar.json");
+    runSuccessfulHandleTest("21", "21", "No Way", "inactive", null, "rdap_registrar.json");
     verifyMetrics(0);
   }
 }

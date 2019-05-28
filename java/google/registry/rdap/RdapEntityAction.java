@@ -19,6 +19,7 @@ import static google.registry.rdap.RdapUtils.getRegistrarByIanaIdentifier;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
@@ -72,10 +73,8 @@ public class RdapEntityAction extends RdapActionBase {
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
       if ((contactResource != null) && shouldBeVisible(contactResource)) {
-        return rdapJsonFormatter.makeRdapJsonForContact(
-            contactResource,
-            Optional.empty(),
-            OutputDataType.FULL);
+        return rdapJsonFormatter.createRdapContactEntity(
+            contactResource, ImmutableSet.of(), OutputDataType.FULL);
       }
     }
     Long ianaIdentifier = Longs.tryParse(pathSearchString);
@@ -83,8 +82,7 @@ public class RdapEntityAction extends RdapActionBase {
       wasValidKey = true;
       Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
       if (registrar.isPresent() && shouldBeVisible(registrar.get())) {
-        return rdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar.get(), OutputDataType.FULL);
+        return rdapJsonFormatter.createRdapRegistrarEntity(registrar.get(), OutputDataType.FULL);
       }
     }
     // At this point, we have failed to find either a contact or a registrar.

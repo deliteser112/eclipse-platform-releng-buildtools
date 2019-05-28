@@ -1,22 +1,14 @@
 {
-  "objectClassName" : "domain",
-  "handle" : "17-Q9JYB4C",
-  "ldhName" : "cat.xn--q9jyb4c",
-  "unicodeName" : "cat.みんな",
-  "status" :
-    [
-      "client delete prohibited",
-      "client renew prohibited",
-      "client transfer prohibited",
-      "server update prohibited"
-    ],
-  "links" :
-  [
+  "objectClassName": "domain",
+  "handle": "17-Q9JYB4C",
+  "ldhName": "cat.xn--q9jyb4c",
+  "unicodeName": "cat.みんな",
+  "links": [
     {
-      "value" : "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
-      "rel" : "self",
-      "href" : "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
-      "type" : "application/rdap+json"
+      "value": "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
+      "rel": "self",
+      "href": "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
+      "type": "application/rdap+json"
     }
   ],
   "remarks": [

@@ -1,5 +1,6 @@
 {
   "rdapConformance": [
+    "rdap_level_0",
     "icann_rdap_response_profile_0"
   ],
   "objectClassName" : "entity",
@@ -17,20 +18,6 @@
   "events":
   [
     {
-      "eventAction": "registration",
-      "eventActor": "foo",
-      "eventDate": "1999-01-01T00:00:00.000Z"
-    },
-    {
-      "eventAction": "deletion",
-      "eventActor": "foo",
-      "eventDate": "1999-07-01T00:00:00.000Z"
-    },
-    {
-      "eventAction": "last changed",
-      "eventDate": "1999-07-01T00:00:00.000Z"
-    },
-    {
       "eventAction": "last update of RDAP database",
       "eventDate": "2000-01-01T00:00:00.000Z"
     }
@@ -41,5 +28,15 @@
     [
       ["version", {}, "text", "4.0"]
     ]
+  ],
+  "remarks":  [
+    {
+      "title": "EMAIL REDACTED FOR PRIVACY",
+      "type": "object redacted due to authorization",
+      "description": [
+        "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+      ]
+    }
   ]
+
 }

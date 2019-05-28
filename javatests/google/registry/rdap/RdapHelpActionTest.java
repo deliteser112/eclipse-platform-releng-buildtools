@@ -15,6 +15,7 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.rdap.RdapTestHelper.loadJsonFile;
 import static org.mockito.Mockito.verify;
 
 import google.registry.rdap.RdapMetrics.EndpointType;

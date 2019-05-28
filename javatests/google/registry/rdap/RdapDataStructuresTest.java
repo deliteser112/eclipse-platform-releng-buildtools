@@ -45,7 +45,7 @@ public final class RdapDataStructuresTest {
   @Test
   public void testRdapConformance() {
     assertThat(RdapConformance.INSTANCE.toJson())
-        .isEqualTo(createJson("['icann_rdap_response_profile_0']"));
+        .isEqualTo(createJson("['rdap_level_0','icann_rdap_response_profile_0']"));
   }
 
   @Test

@@ -65,8 +65,6 @@ public class RdapDomainAction extends RdapActionBase {
     if (!shouldBeVisible(domainBase)) {
       throw new NotFoundException(pathSearchString + " not found");
     }
-    return rdapJsonFormatter.makeRdapJsonForDomain(
-        domainBase.get(),
-        OutputDataType.FULL);
+    return rdapJsonFormatter.createRdapDomain(domainBase.get(), OutputDataType.FULL);
   }
 }

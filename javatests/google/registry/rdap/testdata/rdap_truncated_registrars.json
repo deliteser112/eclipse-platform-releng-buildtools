@@ -4,7 +4,6 @@
     {
       "objectClassName" : "entity",
       "handle" : "301",
-      "status" : ["active"],
       "links" :
       [
         {
@@ -19,6 +18,12 @@
         {
           "type" : "IANA Registrar ID",
           "identifier" : "301"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -57,7 +62,6 @@
     {
       "objectClassName" : "entity",
       "handle" : "302",
-      "status" : ["active"],
       "links" :
       [
         {
@@ -72,6 +76,12 @@
         {
           "type" : "IANA Registrar ID",
           "identifier" : "302"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -110,7 +120,6 @@
     {
       "objectClassName" : "entity",
       "handle" : "303",
-      "status" : ["active"],
       "links" :
       [
         {
@@ -125,6 +134,12 @@
         {
           "type" : "IANA Registrar ID",
           "identifier" : "303"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -163,7 +178,6 @@
     {
       "objectClassName" : "entity",
       "handle" : "304",
-      "status" : ["active"],
       "links" :
       [
         {
@@ -178,6 +192,12 @@
         {
           "type" : "IANA Registrar ID",
           "identifier" : "304"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -214,7 +234,7 @@
       "roles" : ["registrar"]
     }
   ],
-  "rdapConformance": [ "icann_rdap_response_profile_0" ],
+  "rdapConformance": ["rdap_level_0", "icann_rdap_response_profile_0" ],
   "notices" :
   [
     {

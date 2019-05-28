@@ -15,11 +15,6 @@
   ],
   "events": [
     {
-      "eventAction": "registration",
-      "eventActor": "foo",
-      "eventDate": "1995-01-01T00:00:00.000Z"
-    },
-    {
       "eventAction": "last update of RDAP database",
       "eventDate": "2000-01-01T00:00:00.000Z"
     }
@@ -28,7 +23,6 @@
     {
       "objectClassName" : "entity",
       "handle" : "1",
-      "status" : ["active"],
       "roles" : ["registrar"],
       "links" :
       [
@@ -51,18 +45,7 @@
         "vcard",
         [
           ["version", {}, "text", "4.0"],
-          ["fn", {}, "text", "みんな"],
-          ["adr", {}, "text", [
-            "",
-            "",
-            "123 Example Boulevard <script>",
-            "Williamsburg <script>",
-            "NY",
-            "11211",
-            "United States"]],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
-          ["email", {}, "text", "contact-us@example.com"]
+          ["fn", {}, "text", "みんな"]
         ]
       ],
       "remarks": [

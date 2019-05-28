@@ -67,6 +67,6 @@ public class RdapNameserverAction extends RdapActionBase {
     if (!shouldBeVisible(hostResource)) {
       throw new NotFoundException(pathSearchString + " not found");
     }
-    return rdapJsonFormatter.makeRdapJsonForHost(hostResource.get(), OutputDataType.FULL);
+    return rdapJsonFormatter.createRdapNameserver(hostResource.get(), OutputDataType.FULL);
   }
 }

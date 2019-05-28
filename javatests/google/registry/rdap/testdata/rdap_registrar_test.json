@@ -1,5 +1,6 @@
 {
   "rdapConformance": [
+    "rdap_level_0",
     "icann_rdap_response_profile_0"
   ],
   "objectClassName" : "entity",
@@ -7,11 +8,6 @@
   "status" : ["%STATUS%"],
   "roles" : ["registrar"],
   "events": [
-    {
-      "eventAction": "registration",
-      "eventActor": "%NAME%",
-      "eventDate": "2000-01-01T00:00:00.000Z"
-    },
     {
       "eventAction": "last update of RDAP database",
       "eventDate": "2000-01-01T00:00:00.000Z"

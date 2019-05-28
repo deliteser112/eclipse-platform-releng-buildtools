@@ -207,7 +207,7 @@ public class DomainBaseTest extends EntityTestCase {
                 .isNotNull();
     // This behavior should also hold true for ImmutableObjects nested in collections.
     assertThat(newDomainBase("example.com").asBuilder()
-        .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 1, 1, null)))
+        .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 1, 1, (byte[]) null)))
         .build().getDsData().asList().get(0).getDigest())
             .isNull();
     assertThat(newDomainBase("example.com").asBuilder()

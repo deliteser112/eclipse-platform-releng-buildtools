@@ -2,16 +2,21 @@
   "entitySearchResults":
   [
     {
-      "objectClassName" : "entity",
-      "handle" : "0001-ROID",
-      "status" : ["active"],
-      "links" :
+      "objectClassName": "entity",
+      "handle": "0001-ROID",
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/entity/0001-ROID",
-          "rel" : "self",
+          "value": "https://example.tld/rdap/entity/0001-ROID",
+          "rel": "self",
           "href": "https://example.tld/rdap/entity/0001-ROID",
-          "type" : "application/rdap+json"
+          "type": "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -21,9 +26,16 @@
             "Summary data only. For complete data, send a specific query for the object."
           ],
           "type": "object truncated due to unexplainable reasons"
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
         }
       ],
-      "vcardArray" :
+      "vcardArray":
       [
         "vcard",
         [
@@ -41,23 +53,27 @@
               "United States"
             ]
           ],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-          ["email", {}, "text", "contact1@gmail.com"]
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2126660420"]
         ]
       ]
     },
     {
-      "objectClassName" : "entity",
-      "handle" : "0002-ROID",
-      "status" : ["active"],
-      "links" :
+      "objectClassName": "entity",
+      "handle": "0002-ROID",
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/entity/0002-ROID",
-          "rel" : "self",
+          "value": "https://example.tld/rdap/entity/0002-ROID",
+          "rel": "self",
           "href": "https://example.tld/rdap/entity/0002-ROID",
-          "type" : "application/rdap+json"
+          "type": "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -67,9 +83,16 @@
             "Summary data only. For complete data, send a specific query for the object."
           ],
           "type": "object truncated due to unexplainable reasons"
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
         }
       ],
-      "vcardArray" :
+      "vcardArray":
       [
         "vcard",
         [
@@ -87,23 +110,27 @@
               "United States"
             ]
           ],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-          ["email", {}, "text", "contact2@gmail.com"]
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2126660420"]
         ]
       ]
     },
     {
-      "objectClassName" : "entity",
-      "handle" : "0003-ROID",
-      "status" : ["active"],
-      "links" :
+      "objectClassName": "entity",
+      "handle": "0003-ROID",
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/entity/0003-ROID",
-          "rel" : "self",
+          "value": "https://example.tld/rdap/entity/0003-ROID",
+          "rel": "self",
           "href": "https://example.tld/rdap/entity/0003-ROID",
-          "type" : "application/rdap+json"
+          "type": "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -113,9 +140,16 @@
             "Summary data only. For complete data, send a specific query for the object."
           ],
           "type": "object truncated due to unexplainable reasons"
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
         }
       ],
-      "vcardArray" :
+      "vcardArray":
       [
         "vcard",
         [
@@ -133,23 +167,27 @@
               "United States"
             ]
           ],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-          ["email", {}, "text", "contact3@gmail.com"]
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2126660420"]
         ]
       ]
     },
     {
-      "objectClassName" : "entity",
-      "handle" : "0004-ROID",
-      "status" : ["active"],
-      "links" :
+      "objectClassName": "entity",
+      "handle": "0004-ROID",
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/entity/0004-ROID",
-          "rel" : "self",
+          "value": "https://example.tld/rdap/entity/0004-ROID",
+          "rel": "self",
           "href": "https://example.tld/rdap/entity/0004-ROID",
-          "type" : "application/rdap+json"
+          "type": "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -159,9 +197,16 @@
             "Summary data only. For complete data, send a specific query for the object."
           ],
           "type": "object truncated due to unexplainable reasons"
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
         }
       ],
-      "vcardArray" :
+      "vcardArray":
       [
         "vcard",
         [
@@ -179,39 +224,38 @@
               "United States"
             ]
           ],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-          ["email", {}, "text", "contact4@gmail.com"]
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2126660420"]
         ]
       ]
     }
   ],
-  "rdapConformance": [ "icann_rdap_response_profile_0" ],
-  "notices" :
+  "rdapConformance": ["rdap_level_0", "icann_rdap_response_profile_0" ],
+  "notices":
   [
     {
-      "title" : "Search Policy",
-      "type" : "result set truncated due to unexplainable reasons",
-      "description" :
+      "title": "Search Policy",
+      "type": "result set truncated due to unexplainable reasons",
+      "description":
       [
         "Search results per query are limited."
       ]
     },
     {
-      "title" : "Navigation Links",
-      "links" :
+      "title": "Navigation Links",
+      "links":
       [
         {
-          "type" : "application/rdap+json",
-          "href" : "https://example.tld/rdap/entities?%NAME%",
-          "rel" : "next"
+          "type": "application/rdap+json",
+          "href": "https://example.tld/rdap/entities?%NAME%",
+          "rel": "next"
         }
       ],
-      "description" : [ "Links to related pages." ]
+      "description": [ "Links to related pages." ]
     },
     {
-      "title" : "RDAP Terms of Service",
-      "description" :
+      "title": "RDAP Terms of Service",
+      "description":
       [
         "By querying our Domain Database, you are agreeing to comply with these terms so please read them carefully.",
         "Any information provided is 'as is' without any guarantee of accuracy.",
@@ -224,18 +268,18 @@
         "We reserve the right to restrict or deny your access to the database if we suspect that you have failed to comply with these terms.",
         "We reserve the right to modify this agreement at any time."
       ],
-      "links" :
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/help/tos",
-          "rel" : "alternate",
-          "href" : "https://www.registry.tld/about/rdap/tos.html",
-          "type" : "text/html"
+          "value": "https://example.tld/rdap/help/tos",
+          "rel": "alternate",
+          "href": "https://www.registry.tld/about/rdap/tos.html",
+          "type": "text/html"
         }
       ]
     },
     {
-      "description" :
+      "description":
       [
         "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
       ]

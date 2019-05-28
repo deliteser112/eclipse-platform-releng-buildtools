@@ -1,127 +1,115 @@
 {
-   "domainSearchResults":[
-      {
-         "ldhName":"%DOMAINNAME1%",
-         "status":[
-            "client delete prohibited",
-            "client renew prohibited",
-            "client transfer prohibited",
-            "server update prohibited"
-         ],
-         "remarks":[
-            {
-               "title":"Incomplete Data",
-               "type":"object truncated due to unexplainable reasons",
-               "description":[
-                  "Summary data only. For complete data, send a specific query for the object."
-               ]
-            }
-         ],
-         "handle":"%DOMAINHANDLE1%",
-         "links":[
-            {
-               "value":"https://example.tld/rdap/domain/%DOMAINNAME1%",
-               "type":"application/rdap+json",
-               "rel":"self",
-               "href":"https://example.tld/rdap/domain/%DOMAINNAME1%"
-            }
-         ],
-         "objectClassName":"domain"
-      },
-      {
-         "ldhName":"%DOMAINNAME2%",
-         "status":[
-            "client delete prohibited",
-            "client renew prohibited",
-            "client transfer prohibited",
-            "server update prohibited"
-         ],
-         "remarks":[
-            {
-               "title":"Incomplete Data",
-               "type":"object truncated due to unexplainable reasons",
-               "description":[
-                  "Summary data only. For complete data, send a specific query for the object."
-               ]
-            }
-         ],
-         "handle":"%DOMAINHANDLE2%",
-         "links":[
-            {
-               "value":"https://example.tld/rdap/domain/%DOMAINNAME2%",
-               "type":"application/rdap+json",
-               "rel":"self",
-               "href":"https://example.tld/rdap/domain/%DOMAINNAME2%"
-            }
-         ],
-         "objectClassName":"domain"
-      }
-   ],
-   "notices":[
-      {
-         "title":"Search Policy",
-         "type":"result set truncated due to unexplainable reasons",
-         "description":[
-            "Search results may contain incomplete information due to first-stage query limits."
+  "domainSearchResults":[
+    {
+      "objectClassName":"domain",
+      "handle":"%DOMAIN_HANDLE_1%",
+      "ldhName":"%DOMAIN_PUNYCODE_NAME_1%",
+      "remarks":[
+        {
+          "title":"Incomplete Data",
+          "type":"object truncated due to unexplainable reasons",
+          "description":[
+            "Summary data only. For complete data, send a specific query for the object."
+          ]
+        }
+      ],
+      "links":[
+        {
+          "value":"https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%",
+          "type":"application/rdap+json",
+          "rel":"self",
+          "href":"https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%"
+        }
+      ]
+    },
+    {
+      "objectClassName":"domain",
+      "handle":"%DOMAIN_HANDLE_2%",
+      "ldhName":"%DOMAIN_PUNYCODE_NAME_2%",
+      "remarks":[
+        {
+          "title":"Incomplete Data",
+          "type":"object truncated due to unexplainable reasons",
+          "description":[
+            "Summary data only. For complete data, send a specific query for the object."
+          ]
+        }
+      ],
+      "links":[
+        {
+          "value":"https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_2%",
+          "type":"application/rdap+json",
+          "rel":"self",
+          "href":"https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_2%"
+        }
+      ]
+    }
+  ],
+  "notices":[
+    {
+      "title":"Search Policy",
+      "type":"result set truncated due to unexplainable reasons",
+      "description":[
+        "Search results may contain incomplete information due to first-stage query limits."
          ]
-      },
-      {
-         "title":"RDAP Terms of Service",
-         "description":[
-            "By querying our Domain Database, you are agreeing to comply with these terms so please read them carefully.",
-            "Any information provided is 'as is' without any guarantee of accuracy.",
-            "Please do not misuse the Domain Database. It is intended solely for query-based access.",
-            "Don't use the Domain Database to allow, enable, or otherwise support the transmission of mass unsolicited, commercial advertising or solicitations.",
-            "Don't access our Domain Database through the use of high volume, automated electronic processes that send queries or data to the systems of any ICANN-accredited registrar.",
-            "You may only use the information contained in the Domain Database for lawful purposes.",
-            "Do not compile, repackage, disseminate, or otherwise use the information contained in the Domain Database in its entirety, or in any substantial portion, without our prior written permission.",
-            "We may retain certain details about queries to our Domain Database for the purposes of detecting and preventing misuse.",
-            "We reserve the right to restrict or deny your access to the database if we suspect that you have failed to comply with these terms.",
-            "We reserve the right to modify this agreement at any time."
-         ],
-         "links":[
-            {
-               "value":"https://example.tld/rdap/help/tos",
-               "type":"text/html",
-               "rel":"alternate",
-               "href":"https://www.registry.tld/about/rdap/tos.html"
-            }
+    },
+    {
+      "title":"RDAP Terms of Service",
+      "description":[
+        "By querying our Domain Database, you are agreeing to comply with these terms so please read them carefully.",
+        "Any information provided is 'as is' without any guarantee of accuracy.",
+        "Please do not misuse the Domain Database. It is intended solely for query-based access.",
+        "Don't use the Domain Database to allow, enable, or otherwise support the transmission of mass unsolicited, commercial advertising or solicitations.",
+        "Don't access our Domain Database through the use of high volume, automated electronic processes that send queries or data to the systems of any ICANN-accredited registrar.",
+        "You may only use the information contained in the Domain Database for lawful purposes.",
+        "Do not compile, repackage, disseminate, or otherwise use the information contained in the Domain Database in its entirety, or in any substantial portion, without our prior written permission.",
+        "We may retain certain details about queries to our Domain Database for the purposes of detecting and preventing misuse.",
+        "We reserve the right to restrict or deny your access to the database if we suspect that you have failed to comply with these terms.",
+        "We reserve the right to modify this agreement at any time."
+      ],
+      "links":[
+        {
+          "value":"https://example.tld/rdap/help/tos",
+          "type":"text/html",
+          "rel":"alternate",
+          "href":"https://www.registry.tld/about/rdap/tos.html"
+        }
+      ]
+    },
+    {
+      "description":[
+        "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
          ]
-      },
-      {
-         "description":[
-            "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
-         ]
-      },
-      {
-         "title":"Status Codes",
-         "description":[
-            "For more information on domain status codes, please visit https://icann.org/epp"
+    },
+    {
+      "title":"Status Codes",
+      "description":[
+        "For more information on domain status codes, please visit https://icann.org/epp"
          ],
          "links":[
-            {
-               "value":"https://icann.org/epp",
-               "type":"text/html",
-               "rel":"alternate",
-               "href":"https://icann.org/epp"
-            }
+           {
+             "value":"https://icann.org/epp",
+             "type":"text/html",
+             "rel":"alternate",
+             "href":"https://icann.org/epp"
+           }
          ]
-      },
-      {
-         "description":[
-            "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"
-         ],
-         "links":[
-            {
-               "value":"https://www.icann.org/wicf",
-               "type":"text/html",
-               "rel":"alternate",
-               "href":"https://www.icann.org/wicf"
-            }
-         ]
-      }
-   ],
-   "rdapConformance":[
-      "icann_rdap_response_profile_0"
+    },
+    {
+      "title": "RDDS Inaccuracy Complaint Form",
+      "description":["URL of the ICANN RDDS Inaccuracy Complaint Form: https://www.icann.org/wicf"],
+      "links":[
+        {
+          "value":"https://www.icann.org/wicf",
+          "type":"text/html",
+          "rel":"alternate",
+          "href":"https://www.icann.org/wicf"
+        }
+      ]
+    }
+  ],
+  "rdapConformance":[
+    "rdap_level_0",
+    "icann_rdap_response_profile_0"
    ]
 }

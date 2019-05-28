@@ -1,12 +1,13 @@
 {
   "rdapConformance": [
+    "rdap_level_0",
     "icann_rdap_response_profile_0"
   ],
-  "status": [
-    "active"
-  ],
-  "unicodeName": "%NAME%",
+  "objectClassName": "nameserver",
   "handle": "%HANDLE%",
+  "ldhName": "%PUNYCODENAME%",
+  "unicodeName": "%NAME%",
+  "status": ["active"],
   "links": [
     {
       "href": "https://example.tld/rdap/nameserver/%PUNYCODENAME%",
@@ -15,7 +16,6 @@
       "value": "https://example.tld/rdap/nameserver/%PUNYCODENAME%"
     }
   ],
-  "ldhName": "%PUNYCODENAME%",
   "ipAddresses": {
     "%ADDRESSTYPE%": [
       "%ADDRESS%"
@@ -23,21 +23,14 @@
   },
   "events": [
     {
-      "eventAction": "registration",
-      "eventActor": "foo",
-      "eventDate": "1999-01-01T00:00:00.000Z"
-    },
-    {
       "eventAction": "last update of RDAP database",
       "eventDate": "2000-01-01T00:00:00.000Z"
     }
   ],
-  "objectClassName": "nameserver",
   "entities" : [
     {
       "objectClassName" : "entity",
       "handle" : "1",
-      "status" : ["active"],
       "roles" : ["registrar"],
       "links" :
       [
@@ -60,17 +53,7 @@
         "vcard",
         [
           ["version", {}, "text", "4.0"],
-          ["fn", {}, "text", "The Registrar"],
-          ["adr", {}, "text", [
-            "",
-            "",
-            "123 Example Boulevard",
-            "Williamsburg",
-            "NY",
-            "11211",
-            "United States"]],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2223334444"],
-          ["email", {}, "text", "the.registrar@example.com"]
+          ["fn", {}, "text", "The Registrar"]
         ]
       ],
       "remarks": [

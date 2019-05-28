@@ -1,7 +1,6 @@
 {
   "objectClassName" : "entity",
   "handle" : "1",
-  "status" : ["active"],
   "roles" : ["registrar"],
   "links" :
   [
@@ -10,6 +9,12 @@
       "rel" : "self",
       "href" : "https://example.tld/rdap/entity/1",
       "type" : "application/rdap+json"
+    }
+  ],
+  "events": [
+    {
+      "eventAction": "last update of RDAP database",
+      "eventDate": "2000-01-01T00:00:00.000Z"
     }
   ],
   "publicIds" :

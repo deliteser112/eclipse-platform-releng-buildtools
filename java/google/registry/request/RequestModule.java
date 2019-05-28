@@ -49,8 +49,7 @@ public final class RequestModule {
   private final AuthResult authResult;
 
   @VisibleForTesting
-  public RequestModule(
-      HttpServletRequest req, HttpServletResponse rsp) {
+  public RequestModule(HttpServletRequest req, HttpServletResponse rsp) {
     this(req, rsp, AuthResult.NOT_AUTHENTICATED);
   }
 

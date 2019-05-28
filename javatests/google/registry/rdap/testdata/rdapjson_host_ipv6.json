@@ -1,72 +1,52 @@
 {
-  "objectClassName" : "nameserver",
-  "handle" : "C-ROID",
-  "ldhName" : "ns2.cat.xn--q9jyb4c",
-  "unicodeName" : "ns2.cat.みんな",
-  "status" : ["active", "associated"],
-  "links" :
+  "objectClassName": "nameserver",
+  "handle": "C-ROID",
+  "ldhName": "ns2.cat.xn--q9jyb4c",
+  "unicodeName": "ns2.cat.みんな",
+  "status": ["active", "associated"],
+  "links":
   [
     {
-      "value" : "https://example.tld/rdap/nameserver/ns2.cat.xn--q9jyb4c",
-      "rel" : "self",
-      "href" : "https://example.tld/rdap/nameserver/ns2.cat.xn--q9jyb4c",
-      "type" : "application/rdap+json"
+      "value": "https://example.tld/rdap/nameserver/ns2.cat.xn--q9jyb4c",
+      "rel": "self",
+      "href": "https://example.tld/rdap/nameserver/ns2.cat.xn--q9jyb4c",
+      "type": "application/rdap+json"
     }
   ],
   "events": [
-    {
-      "eventAction": "registration",
-      "eventActor": "foo",
-      "eventDate": "1998-01-01T00:00:00.000Z"
-    },
     {
       "eventAction": "last update of RDAP database",
       "eventDate": "2000-01-01T00:00:00.000Z"
     }
   ],
-  "ipAddresses" :
-  {
-    "v6" : ["bad:f00d:cafe::15:beef"]
-  },
-  "entities" : [
+  "ipAddresses": {"v6": ["bad:f00d:cafe::15:beef"]},
+  "entities": [
     {
-      "objectClassName" : "entity",
-      "handle" : "1",
-      "status" : ["active"],
-      "roles" : ["registrar"],
-      "links" :
+      "objectClassName": "entity",
+      "handle": "1",
+      "roles": ["registrar"],
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/entity/1",
-          "rel" : "self",
-          "href" : "https://example.tld/rdap/entity/1",
-          "type" : "application/rdap+json"
+          "value": "https://example.tld/rdap/entity/1",
+          "rel": "self",
+          "href": "https://example.tld/rdap/entity/1",
+          "type": "application/rdap+json"
         }
       ],
-      "publicIds" :
+      "publicIds":
       [
         {
-          "type" : "IANA Registrar ID",
-          "identifier" : "1"
+          "type": "IANA Registrar ID",
+          "identifier": "1"
         }
       ],
-      "vcardArray" :
+      "vcardArray":
       [
         "vcard",
         [
           ["version", {}, "text", "4.0"],
-          ["fn", {}, "text", "みんな"],
-          ["adr", {}, "text", [
-            "",
-            "",
-            "123 Example Boulevard <script>",
-            "Williamsburg <script>",
-            "NY",
-            "11211",
-            "United States"]],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
-          ["email", {}, "text", "contact-us@example.com"]
+          ["fn", {}, "text", "みんな"]
         ]
       ],
       "remarks": [

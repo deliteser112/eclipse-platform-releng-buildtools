@@ -16,6 +16,8 @@ package google.registry.rdap;
 
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.rdap.RdapTestHelper.loadJsonFile;
+import static google.registry.rdap.RdapTestHelper.parseJsonObject;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.testing.DatastoreHelper.createTld;

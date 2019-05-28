@@ -340,19 +340,22 @@ public final class FullFieldsTestEntityHelper {
       @Nullable HostResource ns1,
       @Nullable HostResource ns2,
       Registrar registrar) {
-    DomainBase.Builder builder = new DomainBase.Builder()
-        .setFullyQualifiedDomainName(Idn.toASCII(domain))
-        .setRepoId(generateNewDomainRoid(getTldFromDomainName(Idn.toASCII(domain))))
-        .setLastEppUpdateTime(DateTime.parse("2009-05-29T20:13:00Z"))
-        .setCreationTimeForTest(DateTime.parse("2000-10-08T00:45:00Z"))
-        .setRegistrationExpirationTime(DateTime.parse("2110-10-08T00:44:59Z"))
-        .setPersistedCurrentSponsorClientId(registrar.getClientId())
-        .setStatusValues(ImmutableSet.of(
-            StatusValue.CLIENT_DELETE_PROHIBITED,
-            StatusValue.CLIENT_RENEW_PROHIBITED,
-            StatusValue.CLIENT_TRANSFER_PROHIBITED,
-            StatusValue.SERVER_UPDATE_PROHIBITED))
-        .setDsData(ImmutableSet.of(new DelegationSignerData()));
+    DomainBase.Builder builder =
+        new DomainBase.Builder()
+            .setFullyQualifiedDomainName(Idn.toASCII(domain))
+            .setRepoId(generateNewDomainRoid(getTldFromDomainName(Idn.toASCII(domain))))
+            .setLastEppUpdateTime(DateTime.parse("2009-05-29T20:13:00Z"))
+            .setCreationTimeForTest(DateTime.parse("2000-10-08T00:45:00Z"))
+            .setRegistrationExpirationTime(DateTime.parse("2110-10-08T00:44:59Z"))
+            .setPersistedCurrentSponsorClientId(registrar.getClientId())
+            .setCreationClientId(registrar.getClientId())
+            .setStatusValues(
+                ImmutableSet.of(
+                    StatusValue.CLIENT_DELETE_PROHIBITED,
+                    StatusValue.CLIENT_RENEW_PROHIBITED,
+                    StatusValue.CLIENT_TRANSFER_PROHIBITED,
+                    StatusValue.SERVER_UPDATE_PROHIBITED))
+            .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, "deadface")));
     if (registrant != null) {
       builder.setRegistrant(Key.create(registrant));
     }

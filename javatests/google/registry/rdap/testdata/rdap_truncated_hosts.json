@@ -4,7 +4,6 @@
     {
       "objectClassName" : "nameserver",
       "handle" : "14-ROID",
-      "status" : ["active"],
       "ldhName" : "nsx1.cat.lol",
       "links" :
       [
@@ -28,62 +27,16 @@
           "type": "object truncated due to unexplainable reasons"
         }
       ],
-      "entities" : [
+      "events":  [
         {
-          "objectClassName" : "entity",
-          "handle" : "1",
-          "status" : ["active"],
-          "roles" : ["registrar"],
-          "links" :
-          [
-            {
-              "value" : "https://example.tld/rdap/entity/1",
-              "rel" : "self",
-              "href" : "https://example.tld/rdap/entity/1",
-              "type" : "application/rdap+json"
-            }
-          ],
-          "publicIds" :
-          [
-            {
-              "type" : "IANA Registrar ID",
-              "identifier" : "1"
-            }
-          ],
-          "vcardArray" :
-          [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "The Registrar"],
-              ["adr", {}, "text", [
-                "",
-                "",
-                "123 Example Boulevard",
-                "Williamsburg",
-                "NY",
-                "11211",
-                "United States"]],
-              ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "the.registrar@example.com"]
-            ]
-          ],
-          "remarks": [
-            {
-              "title": "Incomplete Data",
-              "description": [
-                "Summary data only. For complete data, send a specific query for the object."
-              ],
-              "type": "object truncated due to unexplainable reasons"
-            }
-          ]
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ]
     },
     {
       "objectClassName" : "nameserver",
       "handle" : "15-ROID",
-      "status" : ["active"],
       "ldhName" : "nsx2.cat.lol",
       "links" :
       [
@@ -107,62 +60,16 @@
           "type": "object truncated due to unexplainable reasons"
         }
       ],
-      "entities" : [
+      "events" :[
         {
-          "objectClassName" : "entity",
-          "handle" : "1",
-          "status" : ["active"],
-          "roles" : ["registrar"],
-          "links" :
-          [
-            {
-              "value" : "https://example.tld/rdap/entity/1",
-              "rel" : "self",
-              "href" : "https://example.tld/rdap/entity/1",
-              "type" : "application/rdap+json"
-            }
-          ],
-          "publicIds" :
-          [
-            {
-              "type" : "IANA Registrar ID",
-              "identifier" : "1"
-            }
-          ],
-          "vcardArray" :
-          [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "The Registrar"],
-              ["adr", {}, "text", [
-                "",
-                "",
-                "123 Example Boulevard",
-                "Williamsburg",
-                "NY",
-                "11211",
-                "United States"]],
-              ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "the.registrar@example.com"]
-            ]
-          ],
-          "remarks": [
-            {
-              "title": "Incomplete Data",
-              "description": [
-                "Summary data only. For complete data, send a specific query for the object."
-              ],
-              "type": "object truncated due to unexplainable reasons"
-            }
-          ]
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ]
     },
     {
       "objectClassName" : "nameserver",
       "handle" : "16-ROID",
-      "status" : ["active"],
       "ldhName" : "nsx3.cat.lol",
       "links" :
       [
@@ -186,62 +93,16 @@
           "type": "object truncated due to unexplainable reasons"
         }
       ],
-      "entities" : [
+      "events":  [
         {
-          "objectClassName" : "entity",
-          "handle" : "1",
-          "status" : ["active"],
-          "roles" : ["registrar"],
-          "links" :
-          [
-            {
-              "value" : "https://example.tld/rdap/entity/1",
-              "rel" : "self",
-              "href" : "https://example.tld/rdap/entity/1",
-              "type" : "application/rdap+json"
-            }
-          ],
-          "publicIds" :
-          [
-            {
-              "type" : "IANA Registrar ID",
-              "identifier" : "1"
-            }
-          ],
-          "vcardArray" :
-          [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "The Registrar"],
-              ["adr", {}, "text", [
-                "",
-                "",
-                "123 Example Boulevard",
-                "Williamsburg",
-                "NY",
-                "11211",
-                "United States"]],
-              ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "the.registrar@example.com"]
-            ]
-          ],
-          "remarks": [
-            {
-              "title": "Incomplete Data",
-              "description": [
-                "Summary data only. For complete data, send a specific query for the object."
-              ],
-              "type": "object truncated due to unexplainable reasons"
-            }
-          ]
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ]
     },
     {
       "objectClassName" : "nameserver",
       "handle" : "17-ROID",
-      "status" : ["active"],
       "ldhName" : "nsx4.cat.lol",
       "links" :
       [
@@ -265,60 +126,15 @@
           "type": "object truncated due to unexplainable reasons"
         }
       ],
-      "entities" : [
+      "events":  [
         {
-          "objectClassName" : "entity",
-          "handle" : "1",
-          "status" : ["active"],
-          "roles" : ["registrar"],
-          "links" :
-          [
-            {
-              "value" : "https://example.tld/rdap/entity/1",
-              "rel" : "self",
-              "href" : "https://example.tld/rdap/entity/1",
-              "type" : "application/rdap+json"
-            }
-          ],
-          "publicIds" :
-          [
-            {
-              "type" : "IANA Registrar ID",
-              "identifier" : "1"
-            }
-          ],
-          "vcardArray" :
-          [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "The Registrar"],
-              ["adr", {}, "text", [
-                "",
-                "",
-                "123 Example Boulevard",
-                "Williamsburg",
-                "NY",
-                "11211",
-                "United States"]],
-              ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "the.registrar@example.com"]
-            ]
-          ],
-          "remarks": [
-            {
-              "title": "Incomplete Data",
-              "description": [
-                "Summary data only. For complete data, send a specific query for the object."
-              ],
-              "type": "object truncated due to unexplainable reasons"
-            }
-          ]
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ]
     }
   ],
-  "rdapConformance" : ["icann_rdap_response_profile_0"],
+  "rdapConformance" : ["rdap_level_0", "icann_rdap_response_profile_0"],
   "notices" :
   [
     {

@@ -21,6 +21,7 @@ import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import com.google.common.primitives.Booleans;
@@ -380,10 +381,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
                 shouldIncludeDeleted(),
                 querySizeLimit);
       }
-      return makeSearchResults(
-          contactResultSet,
-          registrars,
-          QueryType.HANDLE);
+      return makeSearchResults(contactResultSet, registrars, QueryType.HANDLE);
     }
   }
 
@@ -406,9 +404,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    * properties of the {@link RdapResultSet} structure and passes them as separate arguments.
    */
   private EntitySearchResponse makeSearchResults(
-      RdapResultSet<ContactResource> resultSet,
-      List<Registrar> registrars,
-      QueryType queryType) {
+      RdapResultSet<ContactResource> resultSet, List<Registrar> registrars, QueryType queryType) {
     return makeSearchResults(
         resultSet.resources(),
         resultSet.incompletenessWarningType(),
@@ -424,10 +420,10 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    *
    * @param contacts the list of contacts which can be returned
    * @param incompletenessWarningType MIGHT_BE_INCOMPLETE if the list of contacts might be
-   *        incomplete; this only matters if the total count of contacts and registrars combined is
-   *        less than a full result set's worth
+   *     incomplete; this only matters if the total count of contacts and registrars combined is
+   *     less than a full result set's worth
    * @param numContactsRetrieved the number of contacts retrieved in the process of generating the
-   *        results
+   *     results
    * @param registrars the list of registrars which can be returned
    * @param queryType whether the query was by full name or by handle
    * @return an {@link RdapSearchResults} object
@@ -460,10 +456,11 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
     for (ContactResource contact : Iterables.limit(contacts, rdapResultSetMaxSize)) {
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
-      builder.entitySearchResultsBuilder().add(rdapJsonFormatter.makeRdapJsonForContact(
-          contact,
-          Optional.empty(),
-          outputDataType));
+      builder
+          .entitySearchResultsBuilder()
+          .add(
+              rdapJsonFormatter.createRdapContactEntity(
+                  contact, ImmutableSet.of(), outputDataType));
       newCursor =
           Optional.of(
               CONTACT_CURSOR_PREFIX
@@ -476,9 +473,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
           Iterables.limit(registrars, rdapResultSetMaxSize - contacts.size())) {
         builder
             .entitySearchResultsBuilder()
-            .add(
-                rdapJsonFormatter.makeRdapJsonForRegistrar(
-                    registrar, outputDataType));
+            .add(rdapJsonFormatter.createRdapRegistrarEntity(registrar, outputDataType));
         newCursor = Optional.of(REGISTRAR_CURSOR_PREFIX + registrar.getRegistrarName());
       }
     }

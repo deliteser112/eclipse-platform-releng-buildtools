@@ -2,23 +2,28 @@
   "entitySearchResults":
   [
     {
-      "objectClassName" : "entity",
-      "handle" : "301",
-      "status" : ["active"],
-      "links" :
+      "objectClassName": "entity",
+      "handle": "301",
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/entity/301",
-          "rel" : "self",
+          "value": "https://example.tld/rdap/entity/301",
+          "rel": "self",
           "href": "https://example.tld/rdap/entity/301",
-          "type" : "application/rdap+json"
+          "type": "application/rdap+json"
         }
       ],
-      "publicIds" :
+      "publicIds":
       [
         {
-          "type" : "IANA Registrar ID",
-          "identifier" : "301"
+          "type": "IANA Registrar ID",
+          "identifier": "301"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -30,7 +35,7 @@
           "type": "object truncated due to unexplainable reasons"
         }
       ],
-      "vcardArray" :
+      "vcardArray":
       [
         "vcard",
         [
@@ -47,31 +52,36 @@
               "United States"
             ]
           ],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2125551212"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2125551213"],
           ["email", {}, "text", "contact-us@example.com"]
         ]
       ],
-      "roles" : ["registrar"]
+      "roles": ["registrar"]
     },
     {
-      "objectClassName" : "entity",
-      "handle" : "302",
-      "status" : ["active"],
-      "links" :
+      "objectClassName": "entity",
+      "handle": "302",
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/entity/302",
-          "rel" : "self",
+          "value": "https://example.tld/rdap/entity/302",
+          "rel": "self",
           "href": "https://example.tld/rdap/entity/302",
-          "type" : "application/rdap+json"
+          "type": "application/rdap+json"
         }
       ],
-      "publicIds" :
+      "publicIds":
       [
         {
-          "type" : "IANA Registrar ID",
-          "identifier" : "302"
+          "type": "IANA Registrar ID",
+          "identifier": "302"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -83,7 +93,7 @@
           "type": "object truncated due to unexplainable reasons"
         }
       ],
-      "vcardArray" :
+      "vcardArray":
       [
         "vcard",
         [
@@ -100,31 +110,36 @@
               "United States"
             ]
           ],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2125551212"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2125551213"],
           ["email", {}, "text", "contact-us@example.com"]
         ]
       ],
-      "roles" : ["registrar"]
+      "roles": ["registrar"]
     },
     {
-      "objectClassName" : "entity",
-      "handle" : "303",
-      "status" : ["active"],
-      "links" :
+      "objectClassName": "entity",
+      "handle": "303",
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/entity/303",
-          "rel" : "self",
+          "value": "https://example.tld/rdap/entity/303",
+          "rel": "self",
           "href": "https://example.tld/rdap/entity/303",
-          "type" : "application/rdap+json"
+          "type": "application/rdap+json"
         }
       ],
-      "publicIds" :
+      "publicIds":
       [
         {
-          "type" : "IANA Registrar ID",
-          "identifier" : "303"
+          "type": "IANA Registrar ID",
+          "identifier": "303"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -136,7 +151,7 @@
           "type": "object truncated due to unexplainable reasons"
         }
       ],
-      "vcardArray" :
+      "vcardArray":
       [
         "vcard",
         [
@@ -153,31 +168,36 @@
               "United States"
             ]
           ],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2125551212"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2125551213"],
           ["email", {}, "text", "contact-us@example.com"]
         ]
       ],
-      "roles" : ["registrar"]
+      "roles": ["registrar"]
     },
     {
-      "objectClassName" : "entity",
-      "handle" : "304",
-      "status" : ["active"],
-      "links" :
+      "objectClassName": "entity",
+      "handle": "304",
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/entity/304",
-          "rel" : "self",
+          "value": "https://example.tld/rdap/entity/304",
+          "rel": "self",
           "href": "https://example.tld/rdap/entity/304",
-          "type" : "application/rdap+json"
+          "type": "application/rdap+json"
         }
       ],
-      "publicIds" :
+      "publicIds":
       [
         {
-          "type" : "IANA Registrar ID",
-          "identifier" : "304"
+          "type": "IANA Registrar ID",
+          "identifier": "304"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
         }
       ],
       "remarks": [
@@ -189,7 +209,7 @@
           "type": "object truncated due to unexplainable reasons"
         }
       ],
-      "vcardArray" :
+      "vcardArray":
       [
         "vcard",
         [
@@ -206,20 +226,20 @@
               "United States"
             ]
           ],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2125551212"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2125551213"],
           ["email", {}, "text", "contact-us@example.com"]
         ]
       ],
-      "roles" : ["registrar"]
+      "roles": ["registrar"]
     }
   ],
-  "rdapConformance": [ "icann_rdap_response_profile_0" ],
-  "notices" :
+  "rdapConformance": ["rdap_level_0", "icann_rdap_response_profile_0" ],
+  "notices":
   [
     {
-      "title" : "RDAP Terms of Service",
-      "description" :
+      "title": "RDAP Terms of Service",
+      "description":
       [
         "By querying our Domain Database, you are agreeing to comply with these terms so please read them carefully.",
         "Any information provided is 'as is' without any guarantee of accuracy.",
@@ -232,18 +252,18 @@
         "We reserve the right to restrict or deny your access to the database if we suspect that you have failed to comply with these terms.",
         "We reserve the right to modify this agreement at any time."
       ],
-      "links" :
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/help/tos",
-          "rel" : "alternate",
-          "href" : "https://www.registry.tld/about/rdap/tos.html",
-          "type" : "text/html"
+          "value": "https://example.tld/rdap/help/tos",
+          "rel": "alternate",
+          "href": "https://www.registry.tld/about/rdap/tos.html",
+          "type": "text/html"
         }
       ]
     },
     {
-      "description" :
+      "description":
       [
         "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
       ]

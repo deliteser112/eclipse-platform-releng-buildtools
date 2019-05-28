@@ -14,11 +14,6 @@
   ],
   "events": [
     {
-      "eventAction": "registration",
-      "eventActor": "foo",
-      "eventDate": "1998-01-01T00:00:00.000Z"
-    },
-    {
       "eventAction": "last update of RDAP database",
       "eventDate": "2000-01-01T00:00:00.000Z"
     }
@@ -45,5 +40,14 @@
       ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
       ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"]
     ]
+  ],
+  "remarks": [
+    {
+      "title": "EMAIL REDACTED FOR PRIVACY",
+      "type": "object redacted due to authorization",
+      "description": [
+        "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+                                                        ]
+    }
   ]
 }

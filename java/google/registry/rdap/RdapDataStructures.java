@@ -43,9 +43,7 @@ final class RdapDataStructures {
     public JsonArray toJson() {
       JsonArray jsonArray = new JsonArray();
       // Conformance to RFC7483
-      // TODO(b/127490882) check if we need to Add back the rdap_level_0 string, as I think that
-      // just means we conform to the RFC, which we do
-      // jsonArray.add("rdap_level_0");
+      jsonArray.add("rdap_level_0");
 
       // Conformance to the RDAP Response Profile V2.1
       // (see section 1.3)

@@ -162,8 +162,10 @@ public abstract class RdapActionBase implements Runnable {
       setPayload(replyObject);
       metricInformationBuilder.setStatusCode(SC_OK);
     } catch (HttpException e) {
+      logger.atInfo().withCause(e).log("Error in RDAP");
       setError(e.getResponseCode(), e.getResponseCodeString(), e.getMessage());
     } catch (URISyntaxException | IllegalArgumentException e) {
+      logger.atInfo().withCause(e).log("Bad request in RDAP");
       setError(SC_BAD_REQUEST, "Bad Request", "Not a valid " + getHumanReadableObjectTypeName());
     } catch (RuntimeException e) {
       setError(SC_INTERNAL_SERVER_ERROR, "Internal Server Error", "An error was encountered");
@@ -240,18 +242,17 @@ public abstract class RdapActionBase implements Runnable {
    */
   boolean isAuthorized(EppResource eppResource) {
     return getRequestTime().isBefore(eppResource.getDeletionTime())
-            || (shouldIncludeDeleted()
-                && rdapAuthorization
-                    .isAuthorizedForClientId(eppResource.getPersistedCurrentSponsorClientId()));
+        || (shouldIncludeDeleted()
+            && rdapAuthorization.isAuthorizedForClientId(
+                eppResource.getPersistedCurrentSponsorClientId()));
   }
 
   /**
    * Returns true if the EPP resource should be visible.
    *
-   * <p>This is true iff:
-   * 1. The resource is not deleted, or the request wants to see deleted items, and is authorized to
-   *    do so, and:
-   * 2. The request did not specify a registrar to filter on, or the registrar matches.
+   * <p>This is true iff: 1. The resource is not deleted, or the request wants to see deleted items,
+   * and is authorized to do so, and: 2. The request did not specify a registrar to filter on, or
+   * the registrar matches.
    */
   boolean shouldBeVisible(EppResource eppResource) {
     return isAuthorized(eppResource)
@@ -262,10 +263,9 @@ public abstract class RdapActionBase implements Runnable {
   /**
    * Returns true if the EPP resource should be visible.
    *
-   * <p>This is true iff:
-   * 1. The passed in resource exists and is not deleted (deleted ones will have been projected
-   *    forward in time to empty),
-   * 2. The request did not specify a registrar to filter on, or the registrar matches.
+   * <p>This is true iff: 1. The passed in resource exists and is not deleted (deleted ones will
+   * have been projected forward in time to empty), 2. The request did not specify a registrar to
+   * filter on, or the registrar matches.
    */
   boolean shouldBeVisible(Optional<? extends EppResource> eppResource) {
     return eppResource.isPresent() && shouldBeVisible(eppResource.get());
@@ -463,19 +463,19 @@ public abstract class RdapActionBase implements Runnable {
    * Runs the given query, and checks for permissioning if necessary.
    *
    * @param query an already-defined query to be run; a filter on currentSponsorClientId will be
-   *        added if appropriate
+   *     added if appropriate
    * @param checkForVisibility true if the results should be checked to make sure they are visible;
-   *        normally this should be equal to the shouldIncludeDeleted setting, but in cases where
-   *        the query could not check deletion status (due to Datastore limitations such as the
-   *        limit of one field queried for inequality, for instance), it may need to be set to true
-   *        even when not including deleted records
+   *     normally this should be equal to the shouldIncludeDeleted setting, but in cases where the
+   *     query could not check deletion status (due to Datastore limitations such as the limit of
+   *     one field queried for inequality, for instance), it may need to be set to true even when
+   *     not including deleted records
    * @param querySizeLimit the maximum number of items the query is expected to return, usually
-   *        because the limit has been set
-   * @return an {@link RdapResultSet} object containing the list of
-   *         resources and an incompleteness warning flag, which is set to MIGHT_BE_INCOMPLETE iff
-   *         any resources were excluded due to lack of visibility, and the resulting list of
-   *         resources is less than the maximum allowable, and the number of items returned by the
-   *         query is greater than or equal to the maximum number we might have expected
+   *     because the limit has been set
+   * @return an {@link RdapResultSet} object containing the list of resources and an incompleteness
+   *     warning flag, which is set to MIGHT_BE_INCOMPLETE iff any resources were excluded due to
+   *     lack of visibility, and the resulting list of resources is less than the maximum allowable,
+   *     and the number of items returned by the query is greater than or equal to the maximum
+   *     number we might have expected
    */
   <T extends EppResource> RdapResultSet<T> getMatchingResources(
       Query<T> query, boolean checkForVisibility, int querySizeLimit) {

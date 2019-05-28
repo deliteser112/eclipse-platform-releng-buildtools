@@ -167,10 +167,9 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
     NameserverSearchResponse.Builder builder =
         NameserverSearchResponse.builder()
             .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE);
-    builder.nameserverSearchResultsBuilder().add(
-            rdapJsonFormatter.makeRdapJsonForHost(
-                hostResource.get(),
-                OutputDataType.FULL));
+    builder
+        .nameserverSearchResultsBuilder()
+        .add(rdapJsonFormatter.createRdapNameserver(hostResource.get(), OutputDataType.FULL));
     return builder.build();
   }
 
@@ -230,8 +229,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
             getDeletedItemHandling(),
             querySizeLimit);
     return makeSearchResults(
-        getMatchingResources(query, shouldIncludeDeleted(), querySizeLimit),
-        CursorType.NAME);
+        getMatchingResources(query, shouldIncludeDeleted(), querySizeLimit), CursorType.NAME);
   }
 
   /** Searches for nameservers by IP address, returning a JSON array of nameserver info maps. */
@@ -248,8 +246,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
                 getDeletedItemHandling(),
                 querySizeLimit);
     return makeSearchResults(
-        getMatchingResources(query, shouldIncludeDeleted(), querySizeLimit),
-        CursorType.ADDRESS);
+        getMatchingResources(query, shouldIncludeDeleted(), querySizeLimit), CursorType.ADDRESS);
   }
 
   /** Output JSON for a lists of hosts contained in an {@link RdapResultSet}. */
@@ -282,7 +279,7 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
                   : host.getRepoId());
       builder
           .nameserverSearchResultsBuilder()
-          .add(rdapJsonFormatter.makeRdapJsonForHost(host, outputDataType));
+          .add(rdapJsonFormatter.createRdapNameserver(host, outputDataType));
     }
     if (rdapResultSetMaxSize < hosts.size()) {
       builder.setNextPageUri(createNavigationUri(newCursor.get()));

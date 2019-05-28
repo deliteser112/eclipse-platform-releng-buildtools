@@ -51,11 +51,12 @@ public class RdapIcannStandardInformation {
                   .build())
           .build();
 
-  /** Required by ICANN RDAP Profile section 1.5.20. */
+  /** Required by ICANN RDAP Response Profile section 2.11. */
   private static final Notice INACCURACY_COMPLAINT_FORM_NOTICE =
       Notice.builder()
+          .setTitle("RDDS Inaccuracy Complaint Form")
           .setDescription(
-              "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf")
+              "URL of the ICANN RDDS Inaccuracy Complaint Form: https://www.icann.org/wicf")
           .addLink(
               Link.builder()
                   .setValue("https://www.icann.org/wicf")
@@ -71,6 +72,7 @@ public class RdapIcannStandardInformation {
           CONFORMANCE_NOTICE,
           // RDAP Response Profile 2.6.3
           DOMAIN_STATUS_CODES_NOTICE,
+          // RDAP Response Profile 2.11
           INACCURACY_COMPLAINT_FORM_NOTICE);
 
   /** Boilerplate remarks required by nameserver and entity responses. */
@@ -125,21 +127,14 @@ public class RdapIcannStandardInformation {
   static final ImmutableList<Notice> POSSIBLY_INCOMPLETE_NOTICES =
       ImmutableList.of(POSSIBLY_INCOMPLETE_RESULT_SET_NOTICE);
 
-  /** Included when the requester is not logged in as the owner of the domain being returned. */
-  static final Remark DOMAIN_CONTACTS_HIDDEN_DATA_REMARK =
-      Remark.builder()
-          .setTitle("Contacts Hidden")
-          .setDescription("Domain contacts are visible only to the owning registrar.")
-          .setType(Remark.Type.OBJECT_TRUNCATED_UNEXPLAINABLE)
-          .build();
-
   /**
-   * Included when requester is not logged in as the owner of the contact being returned. Format
-   * required by ICANN RDAP Response Profile 15feb19 section 2.7.4.3.
+   * Included when requester is not logged in as the owner of the contact being returned.
+   *
+   * <p>Format required by ICANN RDAP Response Profile 15feb19 section 2.7.4.3.
    */
   static final Remark CONTACT_PERSONAL_DATA_HIDDEN_DATA_REMARK =
       Remark.builder()
-          .setTitle("Redacted for Privacy")
+          .setTitle("REDACTED FOR PRIVACY")
           .setDescription(
               "Some of the data in this object has been removed.",
               "Contact personal data is visible only to the owning registrar.")
@@ -153,5 +148,31 @@ public class RdapIcannStandardInformation {
                       "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication")
                   .setType("text/html")
                   .build())
+          .build();
+
+  /**
+   * String that replaces GDPR redacted values.
+   *
+   * <p>GTLD Registration Data Temp Spec 17may18, Appendix A, 2.2: Fields required to be "redacted"
+   * MUST privide in the value section text similar to "REDACTED FOR PRIVACY"
+   */
+  static final String CONTACT_REDACTED_VALUE = "REDACTED FOR PRIVACY";
+
+  /**
+   * Included in ALL contact responses, even if the user is authorized.
+   *
+   * <p>Format required by ICANN RDAP Response Profile 15feb19 section 2.7.5.3.
+   *
+   * <p>NOTE that unlike other redacted fields, there's no allowance to give the email to authorized
+   * users or allow for registrar consent.
+   */
+  static final Remark CONTACT_EMAIL_REDACTED_FOR_DOMAIN =
+      Remark.builder()
+          .setTitle("EMAIL REDACTED FOR PRIVACY")
+          .setDescription(
+              "Please query the RDDS service of the Registrar of Record identifies in this output"
+                  + " for information on how to contact the Registrant of the queried domain"
+                  + " name.")
+          .setType(Remark.Type.OBJECT_REDACTED_AUTHORIZATION)
           .build();
 }

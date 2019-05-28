@@ -1,120 +1,89 @@
 {
   "domainSearchResults": [
     {
-      "status": [
-        "client delete prohibited",
-        "client renew prohibited",
-        "client transfer prohibited",
-        "server update prohibited"
-      ],
-      "handle": "%DOMAINHANDLE1%",
+      "objectClassName": "domain",
+      "handle": "%DOMAIN_HANDLE_1%",
+      "ldhName": "%DOMAIN_PUNYCODE_NAME_1%",
       "links": [
         {
-          "href": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME1%",
+          "href": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME1%"
+          "value": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%"
         }
       ],
-      "ldhName": "%DOMAINPUNYCODENAME1%",
-      "objectClassName": "domain",
       "remarks": [
         {
           "title": "Incomplete Data",
-          "description": [
-            "Summary data only. For complete data, send a specific query for the object."
-          ],
+          "description": ["Summary data only. For complete data, send a specific query for the object."],
           "type": "object truncated due to unexplainable reasons"
         }
       ]
     },
     {
-      "status": [
-        "client delete prohibited",
-        "client renew prohibited",
-        "client transfer prohibited",
-        "server update prohibited"
-      ],
-      "handle": "%DOMAINHANDLE2%",
+      "objectClassName": "domain",
+      "handle": "%DOMAIN_HANDLE_2%",
+      "ldhName": "%DOMAIN_PUNYCODE_NAME_2%",
       "links": [
         {
-          "href": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME2%",
+          "href": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_2%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME2%"
+          "value": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_2%"
         }
       ],
-      "ldhName": "%DOMAINPUNYCODENAME2%",
-      "objectClassName": "domain",
       "remarks": [
         {
           "title": "Incomplete Data",
-          "description": [
-            "Summary data only. For complete data, send a specific query for the object."
-          ],
+          "description": ["Summary data only. For complete data, send a specific query for the object."],
           "type": "object truncated due to unexplainable reasons"
         }
       ]
     },
     {
-      "status": [
-        "client delete prohibited",
-        "client renew prohibited",
-        "client transfer prohibited",
-        "server update prohibited"
-      ],
-      "handle": "%DOMAINHANDLE3%",
+      "objectClassName": "domain",
+      "handle": "%DOMAIN_HANDLE_3%",
+      "ldhName": "%DOMAIN_PUNYCODE_NAME_3%",
       "links": [
         {
-          "href": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME3%",
+          "href": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_3%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME3%"
+          "value": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_3%"
         }
       ],
-      "ldhName": "%DOMAINPUNYCODENAME3%",
-      "objectClassName": "domain",
       "remarks": [
         {
           "title": "Incomplete Data",
-          "description": [
-            "Summary data only. For complete data, send a specific query for the object."
-          ],
+          "description": ["Summary data only. For complete data, send a specific query for the object."],
           "type": "object truncated due to unexplainable reasons"
         }
       ]
     },
     {
-      "status": [
-        "client delete prohibited",
-        "client renew prohibited",
-        "client transfer prohibited",
-        "server update prohibited"
-      ],
-      "handle": "%DOMAINHANDLE4%",
+      "objectClassName": "domain",
+      "handle": "%DOMAIN_HANDLE_4%",
+      "ldhName": "%DOMAIN_PUNYCODE_NAME_4%",
+      "unicodeName": "%DOMAIN_UNICODE_NAME_4%",
       "links": [
         {
-          "href": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME4%",
+          "href": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_4%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.tld/rdap/domain/%DOMAINPUNYCODENAME4%"
+          "value": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_4%"
         }
       ],
-      "ldhName": "%DOMAINPUNYCODENAME4%",
-      "unicodeName": "%DOMAINNAME4%",
-      "objectClassName": "domain",
       "remarks": [
         {
           "title": "Incomplete Data",
-          "description": [
-            "Summary data only. For complete data, send a specific query for the object."
-          ],
+          "description": ["Summary data only. For complete data, send a specific query for the object."],
           "type": "object truncated due to unexplainable reasons"
         }
       ]
     }
   ],
   "rdapConformance": [
+    "rdap_level_0",
     "icann_rdap_response_profile_0"
   ],
   "notices" :
@@ -187,10 +156,8 @@
       ]
     },
     {
-      "description" :
-      [
-        "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"
-      ],
+      "title": "RDDS Inaccuracy Complaint Form",
+      "description" : ["URL of the ICANN RDDS Inaccuracy Complaint Form: https://www.icann.org/wicf"],
       "links" :
       [
         {

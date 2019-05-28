@@ -122,8 +122,9 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
       if (!LDH_PATTERN.matcher(nsLdhNameParam.get()).matches()) {
         throw new BadRequestException("Invalid value of nsLdhName parameter");
       }
-      results = searchByNameserverLdhName(
-          recordWildcardType(RdapSearchPattern.create(nsLdhNameParam.get(), true)));
+      results =
+          searchByNameserverLdhName(
+              recordWildcardType(RdapSearchPattern.create(nsLdhNameParam.get(), true)));
     } else {
       metricInformationBuilder.setSearchType(SearchType.BY_NAMESERVER_ADDRESS);
       metricInformationBuilder.setWildcardType(WildcardType.NO_WILDCARD);
@@ -182,9 +183,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     return searchByDomainNameByTld(partialStringQuery.getSuffix());
   }
 
-  /**
-   * Searches for domains by domain name without a wildcard or interest in deleted entries.
-   */
+  /** Searches for domains by domain name without a wildcard or interest in deleted entries. */
   private DomainSearchResponse searchByDomainNameWithoutWildcard(
       final RdapSearchPattern partialStringQuery) {
     Optional<DomainBase> domainBase =
@@ -388,15 +387,14 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * <p>In theory, we could have any number of hosts using the same IP address. To make sure we get
    * all the associated domains, we have to retrieve all of them, and use them to look up domains.
    * This could open us up to a kind of DoS attack if huge number of hosts are defined on a single
-   * IP. To avoid this, fetch only the first {@link #maxNameserversInFirstStage} nameservers. In
-   * all normal circumstances, this should be orders of magnitude more than there actually are. But
-   * it could result in us missing some domains.
+   * IP. To avoid this, fetch only the first {@link #maxNameserversInFirstStage} nameservers. In all
+   * normal circumstances, this should be orders of magnitude more than there actually are. But it
+   * could result in us missing some domains.
    *
    * <p>The includeDeleted parameter does NOT cause deleted nameservers to be searched, only deleted
    * domains which used to be connected to an undeleted nameserver.
    */
-  private DomainSearchResponse searchByNameserverIp(
-      final InetAddress inetAddress) {
+  private DomainSearchResponse searchByNameserverIp(final InetAddress inetAddress) {
     Query<HostResource> query =
         queryItems(
             HostResource.class,
@@ -419,8 +417,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * <p>This method is called by {@link #searchByNameserverLdhName} and {@link
    * #searchByNameserverIp} after they assemble the relevant host keys.
    */
-  private DomainSearchResponse searchByNameserverRefs(
-      final Iterable<Key<HostResource>> hostKeys) {
+  private DomainSearchResponse searchByNameserverRefs(final Iterable<Key<HostResource>> hostKeys) {
     // We must break the query up into chunks, because the in operator is limited to 30 subqueries.
     // Since it is possible for the same domain to show up more than once in our result list (if
     // we do a wildcard nameserver search that returns multiple nameservers used by the same
@@ -459,8 +456,8 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     return makeSearchResults(
         domains,
         (numHostKeysSearched >= maxNameserversInFirstStage)
-        ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
-        : IncompletenessWarningType.COMPLETE,
+            ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
+            : IncompletenessWarningType.COMPLETE,
         (numHostKeysSearched > 0) ? Optional.of((long) domains.size()) : Optional.empty());
   }
 
@@ -471,8 +468,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
   }
 
   /** Output JSON from data in an {@link RdapResultSet} object. */
-  private DomainSearchResponse makeSearchResults(
-      RdapResultSet<DomainBase> resultSet) {
+  private DomainSearchResponse makeSearchResults(RdapResultSet<DomainBase> resultSet) {
     return makeSearchResults(
         resultSet.resources(),
         resultSet.incompletenessWarningType(),
@@ -501,7 +497,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
       newCursor = Optional.of(domain.getFullyQualifiedDomainName());
       builder
           .domainSearchResultsBuilder()
-          .add(rdapJsonFormatter.makeRdapJsonForDomain(domain, outputDataType));
+          .add(rdapJsonFormatter.createRdapDomain(domain, outputDataType));
     }
     if (rdapResultSetMaxSize < domains.size()) {
       builder.setNextPageUri(createNavigationUri(newCursor.get()));

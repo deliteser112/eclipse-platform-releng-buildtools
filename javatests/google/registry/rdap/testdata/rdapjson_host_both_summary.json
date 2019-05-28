@@ -3,7 +3,6 @@
   "handle" : "E-ROID",
   "ldhName" : "ns3.cat.xn--q9jyb4c",
   "unicodeName" : "ns3.cat.みんな",
-  "status" : ["active", "associated"],
   "links" :
   [
     {
@@ -11,6 +10,12 @@
       "rel" : "self",
       "href" : "https://example.tld/rdap/nameserver/ns3.cat.xn--q9jyb4c",
       "type" : "application/rdap+json"
+    }
+  ],
+  "events": [
+    {
+      "eventAction": "last update of RDAP database",
+      "eventDate": "2000-01-01T00:00:00.000Z"
     }
   ],
   "ipAddresses" :
@@ -25,58 +30,6 @@
         "Summary data only. For complete data, send a specific query for the object."
       ],
       "type": "object truncated due to unexplainable reasons"
-    }
-  ],
-  "entities" : [
-    {
-      "objectClassName" : "entity",
-      "handle" : "1",
-      "status" : ["active"],
-      "roles" : ["registrar"],
-      "links" :
-      [
-        {
-          "value" : "https://example.tld/rdap/entity/1",
-          "rel" : "self",
-          "href" : "https://example.tld/rdap/entity/1",
-          "type" : "application/rdap+json"
-        }
-      ],
-      "publicIds" :
-      [
-        {
-          "type" : "IANA Registrar ID",
-          "identifier" : "1"
-        }
-      ],
-      "vcardArray" :
-      [
-        "vcard",
-        [
-          ["version", {}, "text", "4.0"],
-          ["fn", {}, "text", "みんな"],
-          ["adr", {}, "text", [
-            "",
-            "",
-            "123 Example Boulevard <script>",
-            "Williamsburg <script>",
-            "NY",
-            "11211",
-            "United States"]],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
-          ["email", {}, "text", "contact-us@example.com"]
-        ]
-      ],
-      "remarks": [
-        {
-          "title": "Incomplete Data",
-          "description": [
-            "Summary data only. For complete data, send a specific query for the object."
-          ],
-          "type": "object truncated due to unexplainable reasons"
-        }
-      ]
     }
   ]
 }

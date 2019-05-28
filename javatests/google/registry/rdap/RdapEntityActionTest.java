@@ -15,6 +15,8 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.rdap.RdapTestHelper.assertThat;
+import static google.registry.rdap.RdapTestHelper.loadJsonFile;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
@@ -139,7 +141,6 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
         "NAME", handle,
         "FULLNAME", fullName,
         "ADDRESS", (address == null) ? "\"1 Smiley Row\", \"Suite みんな\"" : address,
-        "EMAIL", "lol@cat.みんな",
         "TYPE", "entity",
         "STATUS", status);
   }

@@ -20,12 +20,9 @@ import static google.registry.rdap.RdapAuthorization.Role.PUBLIC;
 import static google.registry.rdap.RdapAuthorization.Role.REGISTRAR;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
-import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 
 import com.google.appengine.api.users.User;
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import google.registry.model.ofy.Ofy;
 import google.registry.request.Action;
@@ -37,8 +34,9 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
+import google.registry.util.Idn;
 import google.registry.util.TypeUtils;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -78,8 +76,6 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
   protected final String actionPath;
   protected final Class<A> rdapActionClass;
 
-  private static final Gson GSON = new Gson();
-
   protected RdapActionBaseTestCase(Class<A> rdapActionClass) {
     this.rdapActionClass = rdapActionClass;
     this.actionPath = Actions.getPathForAction(rdapActionClass);
@@ -117,15 +113,11 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
     metricRole = ADMINISTRATOR;
   }
 
-  protected static JsonObject parseJsonObject(String jsonString) {
-    return GSON.fromJson(jsonString, JsonObject.class);
-  }
-
   protected JsonObject generateActualJson(String domainName) {
     action.requestPath = actionPath + domainName;
     action.requestMethod = GET;
     action.run();
-    return parseJsonObject(response.getPayload());
+    return RdapTestHelper.parseJsonObject(response.getPayload());
   }
 
   protected String generateHeadPayload(String domainName) {
@@ -133,38 +125,6 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
     action.requestMethod = HEAD;
     action.run();
     return response.getPayload();
-  }
-
-  /**
-   * Loads a resource testdata JSON file, and applies substitutions.
-   *
-   * <p>{@code loadJsonFile("filename.json", "NANE", "something", "ID", "other")} is the same as
-   * {@code loadJsonFile("filename.json", ImmutableMap.of("NANE", "something", "ID", "other"))}.
-   *
-   * @param filename the name of the file from the testdata directory
-   * @param keysAndValues alternating substitution key and value. The substitutions are applied to
-   *     the file before parsing it to JSON.
-   */
-  protected static JsonObject loadJsonFile(String filename, String... keysAndValues) {
-    checkArgument(keysAndValues.length % 2 == 0);
-    ImmutableMap.Builder<String, String> builder = new ImmutableMap.Builder<>();
-    for (int i = 0; i < keysAndValues.length; i += 2) {
-      if (keysAndValues[i + 1] != null) {
-        builder.put(keysAndValues[i], keysAndValues[i + 1]);
-      }
-    }
-    return loadJsonFile(filename, builder.build());
-  }
-
-  /**
-   * Loads a resource testdata JSON file, and applies substitutions.
-   *
-   * @param filename the name of the file from the testdata directory
-   * @param substitutions map of substitutions to apply to the file. The substitutions are applied
-   *     to the file before parsing it to JSON.
-   */
-  protected static JsonObject loadJsonFile(String filename, Map<String, String> substitutions) {
-    return parseJsonObject(loadFile(RdapActionBaseTestCase.class, filename, substitutions));
   }
 
   protected JsonObject generateExpectedJsonError(
@@ -191,10 +151,75 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
         title = "ERR";
         break;
     }
-    return loadJsonFile(
+    return RdapTestHelper.loadJsonFile(
         "rdap_error.json",
         "DESCRIPTION", description,
         "TITLE", title,
         "CODE", String.valueOf(code));
+  }
+
+  protected static JsonFileBuilder jsonFileBuilder() {
+    return new JsonFileBuilder();
+  }
+
+  protected static final class JsonFileBuilder {
+    private final HashMap<String, String> substitutions = new HashMap<>();
+
+    public JsonObject load(String filename) {
+      return RdapTestHelper.loadJsonFile(filename, substitutions);
+    }
+
+    public JsonFileBuilder put(String key, String value) {
+      checkArgument(
+          substitutions.put(key, value) == null, "substitutions already had key of %s", key);
+      return this;
+    }
+
+    public JsonFileBuilder put(String key, int index, String value) {
+      return put(String.format("%s%d", key, index), value);
+    }
+
+    public JsonFileBuilder putNext(String key, String value, String... moreKeyValues) {
+      checkArgument(moreKeyValues.length % 2 == 0);
+      int index = putNextAndReturnIndex(key, value);
+      for (int i = 0; i < moreKeyValues.length; i += 2) {
+        put(moreKeyValues[i], index, moreKeyValues[i + 1]);
+      }
+      return this;
+    }
+
+    public JsonFileBuilder addDomain(String name, String handle) {
+      return putNext(
+          "DOMAIN_PUNYCODE_NAME_", Idn.toASCII(name),
+          "DOMAIN_UNICODE_NAME_", name,
+          "DOMAIN_HANDLE_", handle);
+    }
+
+    public JsonFileBuilder addNameserver(String name, String handle) {
+      return putNext(
+          "NAMESERVER_NAME_", Idn.toASCII(name),
+          "NAMESERVER_UNICODE_NAME_", name,
+          "NAMESERVER_HANDLE_", handle);
+    }
+
+    public JsonFileBuilder addRegistrar(String fullName) {
+      return putNext("REGISTRAR_FULL_NAME_", fullName);
+    }
+
+    public JsonFileBuilder addContact(String handle) {
+      return putNext("CONTACT_HANDLE_", handle);
+    }
+
+    public JsonFileBuilder setNextQuery(String nextQuery) {
+      return put("NEXT_QUERY", nextQuery);
+    }
+
+    private int putNextAndReturnIndex(String key, String value) {
+      for (int i = 1; ; i++) {
+        if (substitutions.putIfAbsent(String.format("%s%d", key, i), value) == null) {
+          return i;
+        }
+      }
+    }
   }
 }

@@ -25,6 +25,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.rdap.AbstractJsonableObject.RestrictJsonNames;
 import google.registry.rdap.RdapDataStructures.Event;
 import google.registry.rdap.RdapDataStructures.EventWithoutActor;
@@ -149,7 +150,6 @@ final class RdapObjectClasses {
    *
    * All Actions need to return an object of this type.
    */
-  @RestrictJsonNames("*")
   abstract static class ReplyPayloadBase extends AbstractJsonableObject {
     final BoilerplateType boilerplateType;
 
@@ -208,6 +208,18 @@ final class RdapObjectClasses {
     @JsonableElement abstract ImmutableList<Event> events();
 
     /**
+     * Required event for all response objects, but not for internal objects.
+     *
+     * <p>Meaning it's required in, e.g., an RdapNameserver object that is a response to a
+     * Nameserver query, but not to an RdapNameserver that's part of an RdapDomain response to a
+     * Domain query.
+     *
+     * <p>RDAP Response Profile 2.3.1.3, 3.3, 4.4
+     */
+    @JsonableElement("events[]")
+    abstract Optional<Event> lastUpdateOfRdapDatabaseEvent();
+
+    /**
      * WHOIS server displayed in RDAP query responses.
      *
      * <p>As per Gustavo Lozano of ICANN, this should be omitted, but the ICANN operational profile
@@ -232,16 +244,20 @@ final class RdapObjectClasses {
       abstract ImmutableList.Builder<Link> linksBuilder();
       abstract B setPort43(Port43WhoisServer port43);
       abstract ImmutableList.Builder<Event> eventsBuilder();
+
+      abstract B setLastUpdateOfRdapDatabaseEvent(Event event);
     }
   }
 
   /**
    * The Entity Object Class defined in 5.1 of RFC7483.
    *
+   * <p>Entities are used both for Contacts and for Registrars. We will create different subobjects
+   * for each one for type safety.
+   *
    * <p>We're missing the "autnums" and "networks" fields
    */
   @RestrictJsonNames({"entities[]", "entitySearchResults[]"})
-  @AutoValue
   abstract static class RdapEntity extends RdapObjectBase {
 
     /** Role values specified in RFC 7483 § 10.2.4. */
@@ -280,17 +296,50 @@ final class RdapObjectClasses {
     @JsonableElement abstract ImmutableSet<Role> roles();
     @JsonableElement abstract ImmutableList<EventWithoutActor> asEventActor();
 
+    private abstract static class Builder<B extends Builder<B>> extends RdapObjectBase.Builder<B> {
+      abstract B setVcardArray(VcardArray vcardArray);
+
+      abstract ImmutableSet.Builder<Role> rolesBuilder();
+
+      abstract ImmutableList.Builder<EventWithoutActor> asEventActorBuilder();
+    }
+  }
+
+  /**
+   * Registrar version of the Entity Object Class defined in 5.1 of RFC7483.
+   *
+   * <p>Entities are used both for Contacts and for Registrars. We will create different subobjects
+   * for each one for type safety.
+   */
+  @AutoValue
+  abstract static class RdapRegistrarEntity extends RdapEntity {
+
     static Builder builder() {
-      return new AutoValue_RdapObjectClasses_RdapEntity.Builder();
+      return new AutoValue_RdapObjectClasses_RdapRegistrarEntity.Builder();
     }
 
     @AutoValue.Builder
-    abstract static class Builder extends RdapObjectBase.Builder<Builder> {
-      abstract Builder setVcardArray(VcardArray vcardArray);
-      abstract ImmutableSet.Builder<Role> rolesBuilder();
-      abstract ImmutableList.Builder<EventWithoutActor> asEventActorBuilder();
+    abstract static class Builder extends RdapEntity.Builder<Builder> {
+      abstract RdapRegistrarEntity build();
+    }
+  }
 
-      abstract RdapEntity build();
+  /**
+   * Contact version of the Entity Object Class defined in 5.1 of RFC7483.
+   *
+   * <p>Entities are used both for Contacts and for Registrars. We will create different subobjects
+   * for each one for type safety.
+   */
+  @AutoValue
+  abstract static class RdapContactEntity extends RdapEntity {
+
+    static Builder builder() {
+      return new AutoValue_RdapObjectClasses_RdapContactEntity.Builder();
+    }
+
+    @AutoValue.Builder
+    abstract static class Builder extends RdapEntity.Builder<Builder> {
+      abstract RdapContactEntity build();
     }
   }
 
@@ -300,6 +349,10 @@ final class RdapObjectClasses {
    * <p>Takes care of the name and unicode field.
    *
    * <p>See RDAP Response Profile 15feb19 sections 2.1 and 4.1.
+   *
+   * <p>Note the ldhName field is only required for non-IDN names or IDN names when the query was an
+   * A-label. It is optional for IDN names when the query was a U-label. Because we don't want to
+   * remember the query when building the results, we always show it.
    *
    * <p>Not part of the spec, but seems convenient.
    */
@@ -374,7 +427,80 @@ final class RdapObjectClasses {
 
       abstract RdapNameserver build();
     }
+  }
 
+  /** Object defined in RFC7483 section 5.3, only used for RdapDomain. */
+  @RestrictJsonNames("secureDNS")
+  @AutoValue
+  abstract static class SecureDns extends AbstractJsonableObject {
+    @RestrictJsonNames("dsData[]")
+    @AutoValue
+    abstract static class DsData extends AbstractJsonableObject {
+      @JsonableElement
+      abstract int keyTag();
+
+      @JsonableElement
+      abstract int algorithm();
+
+      @JsonableElement
+      abstract String digest();
+
+      @JsonableElement
+      abstract int digestType();
+
+      static DsData create(DelegationSignerData dsData) {
+        return new AutoValue_RdapObjectClasses_SecureDns_DsData(
+            dsData.getKeyTag(),
+            dsData.getAlgorithm(),
+            dsData.getDigestAsString(),
+            dsData.getDigestType());
+      }
+    }
+
+    /** true if the zone has been signed, false otherwise. */
+    @JsonableElement
+    abstract boolean zoneSigned();
+
+    /** true if there are DS records in the parent, false otherwise. */
+    @JsonableElement
+    boolean delegationSigned() {
+      return !dsData().isEmpty();
+    }
+
+    /**
+     * an integer representing the signature lifetime in seconds to be used when creating the RRSIG
+     * DS record in the parent zone [RFC5910].
+     *
+     * <p>Note that although it isn't given as optional in RFC7483, in RFC5910 it's mentioned as
+     * optional. Also, our code doesn't support it at all - so it's set to always be empty.
+     */
+    @JsonableElement
+    Optional<Integer> maxSigLife() {
+      return Optional.empty();
+    }
+
+    @JsonableElement
+    abstract ImmutableList<DsData> dsData();
+
+    static Builder builder() {
+      return new AutoValue_RdapObjectClasses_SecureDns.Builder();
+    }
+
+    abstract Builder toBuilder();
+
+    @AutoValue.Builder
+    abstract static class Builder {
+      abstract Builder setZoneSigned(boolean zoneSigned);
+
+      abstract ImmutableList.Builder<DsData> dsDataBuilder();
+
+      Builder addDsData(DelegationSignerData dsData) {
+        dsDataBuilder().add(DsData.create(dsData));
+        return this;
+      }
+
+      abstract SecureDns build();
+    }
   }
 
   /**
@@ -388,6 +514,9 @@ final class RdapObjectClasses {
 
     @JsonableElement abstract ImmutableList<RdapNameserver> nameservers();
 
+    @JsonableElement("secureDNS")
+    abstract Optional<SecureDns> secureDns();
+
     RdapDomain() {
       super(BoilerplateType.DOMAIN, ObjectClassName.DOMAIN);
     }
@@ -399,6 +528,8 @@ final class RdapObjectClasses {
     @AutoValue.Builder
     abstract static class Builder extends RdapNamedObjectBase.Builder<Builder> {
       abstract ImmutableList.Builder<RdapNameserver> nameserversBuilder();
+
+      abstract Builder setSecureDns(SecureDns secureDns);
 
       abstract RdapDomain build();
     }

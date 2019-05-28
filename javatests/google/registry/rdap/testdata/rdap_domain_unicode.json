@@ -1,5 +1,10 @@
 {
+  "objectClassName": "domain",
+  "ldhName": "%DOMAIN_PUNYCODE_NAME_1%",
+  "unicodeName": "%DOMAIN_UNICODE_NAME_1%",
+  "handle": "%DOMAIN_HANDLE_1%",
   "rdapConformance": [
+    "rdap_level_0",
     "icann_rdap_response_profile_0"
   ],
   "status": [
@@ -8,21 +13,19 @@
     "client transfer prohibited",
     "server update prohibited"
   ],
-  "unicodeName": "%NAME%",
-  "handle": "%HANDLE%",
   "links": [
     {
-      "href": "https://example.tld/rdap/domain/%PUNYCODENAME%",
+      "href": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%",
       "type": "application/rdap+json",
       "rel": "self",
-      "value": "https://example.tld/rdap/domain/%PUNYCODENAME%"
+      "value": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%"
     }
   ],
   "events": [
     {
       "eventAction": "registration",
       "eventActor": "foo",
-      "eventDate": "2000-01-01T00:00:00.000Z"
+      "eventDate": "1997-01-01T00:00:00.000Z"
     },
     {
       "eventAction": "expiration",
@@ -31,474 +34,70 @@
     {
       "eventAction": "last update of RDAP database",
       "eventDate": "2000-01-01T00:00:00.000Z"
+    },
+    {
+      "eventAction": "last changed",
+      "eventDate": "2009-05-29T20:13:00.000Z"
     }
   ],
   "nameservers": [
     {
-      "status": [
-        "active",
-        "associated"
-      ],
-      "handle": "%NAMESERVER1ROID%",
+      "objectClassName": "nameserver",
+      "handle": "%NAMESERVER_HANDLE_1%",
+      "ldhName": "%NAMESERVER_NAME_1%",
       "links": [
         {
           "href":
-              "https://example.tld/rdap/nameserver/%NAMESERVER1PUNYCODENAME%",
+              "https://example.tld/rdap/nameserver/%NAMESERVER_NAME_1%",
           "type": "application/rdap+json",
           "rel": "self",
           "value":
-              "https://example.tld/rdap/nameserver/%NAMESERVER1PUNYCODENAME%"
+              "https://example.tld/rdap/nameserver/%NAMESERVER_NAME_1%"
         }
       ],
-      "ldhName": "%NAMESERVER1PUNYCODENAME%",
-      "ipAddresses": {
-        "v4": [
-          "%NAMESERVER1ADDRESS%"
-        ]
-      },
-      "events": [
+      "remarks": [
         {
-          "eventAction": "registration",
-          "eventActor": "foo",
-          "eventDate": "1999-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        }
-      ],
-      "objectClassName": "nameserver",
-      "entities": [
-        {
-          "objectClassName": "entity",
-          "status": [ "active" ],
-          "handle": "1",
-          "roles": [ "registrar" ],
-          "links": [
-            {
-              "href": "https://example.tld/rdap/entity/1",
-              "type": "application/rdap+json",
-              "rel": "self",
-              "value": "https://example.tld/rdap/entity/1"
-            }
-          ],
-          "vcardArray" : [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "The Registrar"],
-              [
-                "adr",
-                {},
-                "text",
-                [
-                  "",
-                  "",
-                  "123 Example Boulevard",
-                  "Williamsburg",
-                  "NY",
-                  "11211",
-                  "United States"
-                ]
-              ],
-              ["tel", {"type":["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "the.registrar@example.com"]
-            ]
-          ],
-          "publicIds" : [
-            {
-              "type": "IANA Registrar ID",
-              "identifier":"1"
-            }
-          ],
-          "remarks": [
-            {
-              "title": "Incomplete Data",
-              "description": [
-                "Summary data only. For complete data, send a specific query for the object."
-              ],
-              "type": "object truncated due to unexplainable reasons"
-            }
-          ]
+          "title": "Incomplete Data",
+          "type": "object truncated due to unexplainable reasons",
+          "description": ["Summary data only. For complete data, send a specific query for the object."]
         }
       ]
     },
     {
-      "status": [
-        "active",
-        "associated"
-      ],
-      "handle": "%NAMESERVER2ROID%",
+      "objectClassName": "nameserver",
+      "handle": "%NAMESERVER_HANDLE_2%",
+      "ldhName": "%NAMESERVER_NAME_2%",
       "links": [
         {
           "href":
-              "https://example.tld/rdap/nameserver/%NAMESERVER2PUNYCODENAME%",
+              "https://example.tld/rdap/nameserver/%NAMESERVER_NAME_2%",
           "type": "application/rdap+json",
           "rel": "self",
           "value":
-              "https://example.tld/rdap/nameserver/%NAMESERVER2PUNYCODENAME%"
+              "https://example.tld/rdap/nameserver/%NAMESERVER_NAME_2%"
         }
       ],
-      "ldhName": "%NAMESERVER2PUNYCODENAME%",
-      "ipAddresses": {
-        "v6": [
-          "%NAMESERVER2ADDRESS%"
-        ]
-      },
-      "events": [
+      "remarks": [
         {
-          "eventAction": "registration",
-          "eventActor": "foo",
-          "eventDate": "1998-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        }
-      ],
-      "objectClassName": "nameserver",
-      "entities": [
-        {
-          "objectClassName": "entity",
-          "status": [ "active" ],
-          "handle": "1",
-          "roles": [ "registrar" ],
-          "links": [
-            {
-              "href": "https://example.tld/rdap/entity/1",
-              "type": "application/rdap+json",
-              "rel": "self",
-              "value": "https://example.tld/rdap/entity/1"
-            }
-          ],
-          "vcardArray" : [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "The Registrar"],
-              [
-                "adr",
-                {},
-                "text",
-                [
-                  "",
-                  "",
-                  "123 Example Boulevard",
-                  "Williamsburg",
-                  "NY",
-                  "11211",
-                  "United States"
-                ]
-              ],
-              ["tel", {"type":["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "the.registrar@example.com"]
-            ]
-          ],
-          "publicIds" : [
-            {
-              "type": "IANA Registrar ID",
-              "identifier":"1"
-            }
-          ],
-          "remarks": [
-            {
-              "title": "Incomplete Data",
-              "description": [
-                "Summary data only. For complete data, send a specific query for the object."
-              ],
-              "type": "object truncated due to unexplainable reasons"
-            }
-          ]
+          "title": "Incomplete Data",
+          "type": "object truncated due to unexplainable reasons",
+          "description": ["Summary data only. For complete data, send a specific query for the object."]
         }
       ]
     }
   ],
-  "ldhName": "%PUNYCODENAME%",
+  "secureDNS": {
+    "delegationSigned": true,
+    "zoneSigned": true,
+    "dsData": [
+      {"algorithm": 2, "digest": "DEADFACE", "digestType": 3, "keyTag": 1}
+    ]
+  },
   "entities": [
     {
-      "status": [
-        "active",
-        "associated"
-      ],
-      "handle": "%CONTACT1ROID%",
-      "roles": [
-        "administrative"
-      ],
-      "links": [
-        {
-          "href": "https://example.tld/rdap/entity/%CONTACT1ROID%",
-          "type": "application/rdap+json",
-          "rel": "self",
-          "value": "https://example.tld/rdap/entity/%CONTACT1ROID%"
-        }
-      ],
-      "events": [
-        {
-          "eventAction": "registration",
-          "eventActor": "foo",
-          "eventDate": "1998-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        }
-      ],
       "objectClassName": "entity",
-      "vcardArray": [
-        "vcard",
-        [
-          [
-            "version",
-            {},
-            "text",
-            "4.0"
-          ],
-          [
-            "fn",
-            {},
-            "text",
-            "Santa Claus"
-          ],
-          [
-            "org",
-            {},
-            "text",
-            "GOOGLE INCORPORATED <script>"
-          ],
-          [
-            "adr",
-            {},
-            "text",
-            [
-              "",
-              "",
-              "123 Example Boulevard <script>",
-              "KOKOMO",
-              "BM",
-              "31337",
-              "United States"
-            ]
-          ],
-          [
-            "tel",
-            {
-              "type": [
-                "voice"
-              ]
-            },
-            "uri",
-            "tel:+1.2126660420"
-          ],
-          [
-            "tel",
-            {
-              "type": [
-                "fax"
-              ]
-            },
-            "uri",
-            "tel:+1.2126660420"
-          ],
-          [
-            "email",
-            {},
-            "text",
-            "BOFH@cat.lol"
-          ]
-        ]
-      ]
-    },
-    {
-      "status": [
-        "active",
-        "associated"
-      ],
-      "handle": "%CONTACT2ROID%",
-      "roles": [
-        "technical"
-      ],
-      "links": [
-        {
-          "href": "https://example.tld/rdap/entity/%CONTACT2ROID%",
-          "type": "application/rdap+json",
-          "rel": "self",
-          "value": "https://example.tld/rdap/entity/%CONTACT2ROID%"
-        }
-      ],
-      "events": [
-        {
-          "eventAction": "registration",
-          "eventActor": "foo",
-          "eventDate": "1997-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        }
-      ],
-      "objectClassName": "entity",
-      "vcardArray": [
-        "vcard",
-        [
-          [
-            "version",
-            {},
-            "text",
-            "4.0"
-          ],
-          [
-            "fn",
-            {},
-            "text",
-            "The Raven"
-          ],
-          [
-            "org",
-            {},
-            "text",
-            "GOOGLE INCORPORATED <script>"
-          ],
-          [
-            "adr",
-            {},
-            "text",
-            [
-              "",
-              "",
-              "123 Example Boulevard <script>",
-              "KOKOMO",
-              "BM",
-              "31337",
-              "United States"
-            ]
-          ],
-          [
-            "tel",
-            {
-              "type": [
-                "voice"
-              ]
-            },
-            "uri",
-            "tel:+1.2126660420"
-          ],
-          [
-            "tel",
-            {
-              "type": [
-                "fax"
-              ]
-            },
-            "uri",
-            "tel:+1.2126660420"
-          ],
-          [
-            "email",
-            {},
-            "text",
-            "bog@cat.lol"
-          ]
-        ]
-      ]
-    },
-    {
-      "status": [
-        "active",
-        "associated"
-      ],
-      "handle": "%CONTACT3ROID%",
-      "roles": [
-        "registrant"
-      ],
-      "links": [
-        {
-          "href": "https://example.tld/rdap/entity/%CONTACT3ROID%",
-          "type": "application/rdap+json",
-          "rel": "self",
-          "value": "https://example.tld/rdap/entity/%CONTACT3ROID%"
-        }
-      ],
-      "events": [
-        {
-          "eventAction": "registration",
-          "eventActor": "foo",
-          "eventDate": "1999-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        }
-      ],
-      "objectClassName": "entity",
-      "vcardArray": [
-        "vcard",
-        [
-          [
-            "version",
-            {},
-            "text",
-            "4.0"
-          ],
-          [
-            "fn",
-            {},
-            "text",
-            "Goblin Market"
-          ],
-          [
-            "org",
-            {},
-            "text",
-            "GOOGLE INCORPORATED <script>"
-          ],
-          [
-            "adr",
-            {},
-            "text",
-            [
-              "",
-              "",
-              "123 Example Boulevard <script>",
-              "KOKOMO",
-              "BM",
-              "31337",
-              "United States"
-            ]
-          ],
-          [
-            "tel",
-            {
-              "type": [
-                "voice"
-              ]
-            },
-            "uri",
-            "tel:+1.2126660420"
-          ],
-          [
-            "tel",
-            {
-              "type": [
-                "fax"
-              ]
-            },
-            "uri",
-            "tel:+1.2126660420"
-          ],
-          [
-            "email",
-            {},
-            "text",
-            "lol@cat.lol"
-          ]
-        ]
-      ]
-    },
-    {
-      "objectClassName": "entity",
-      "status": [ "active" ],
       "handle": "1",
-      "roles": [ "registrar" ],
+      "roles": ["registrar"],
       "links": [
         {
           "href": "https://example.tld/rdap/entity/1",
@@ -511,24 +110,7 @@
         "vcard",
         [
           ["version", {}, "text", "4.0"],
-          ["fn", {}, "text", "%REGISTRARNAME%"],
-          [
-            "adr",
-            {},
-            "text",
-            [
-              "",
-              "",
-              "123 Example Boulevard <script>",
-              "Williamsburg <script>",
-              "NY",
-              "11211",
-              "United States"
-            ]
-          ],
-          ["tel", {"type":["voice"]}, "uri", "tel:+1.2125551212"],
-          ["tel", {"type":["fax"]}, "uri", "tel:+1.2125551213"],
-          ["email", {}, "text", "contact-us@example.com"]
+          ["fn", {}, "text", "%REGISTRAR_FULL_NAME_1%"]
         ]
       ],
       "publicIds" : [
@@ -545,8 +127,138 @@
           ],
           "type": "object truncated due to unexplainable reasons"
         }
+      ],
+      "entities": [
+        {
+          "objectClassName": "entity",
+          "roles": ["abuse"],
+          "status": ["active"],
+          "vcardArray": [
+            "vcard",
+            [
+              ["version", {}, "text", "4.0"],
+              ["fn", {}, "text", "Jake Doe"],
+              ["tel", {"type": ["voice"]}, "uri", "tel:+1.2125551216"],
+              ["tel", {"type": ["fax"]}, "uri", "tel:+1.2125551216"],
+              ["email", {}, "text", "jakedoe@example.com"]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "handle": "%CONTACT_HANDLE_1%",
+      "roles": ["administrative"],
+      "links": [
+        {
+          "href": "https://example.tld/rdap/entity/%CONTACT_HANDLE_1%",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.tld/rdap/entity/%CONTACT_HANDLE_1%"
+        }
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Santa Claus"],
+          ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
+          ["adr", {}, "text", [ "", "", "123 Example Boulevard <script>", "KOKOMO", "BM", "31337", "United States"]],
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2126660420" ]
+        ]
+      ],
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "type": "object truncated due to unexplainable reasons",
+          "description": ["Summary data only. For complete data, send a specific query for the object."]
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
+        }
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "handle": "%CONTACT_HANDLE_2%",
+      "roles": ["technical"],
+      "links": [
+        {
+          "href": "https://example.tld/rdap/entity/%CONTACT_HANDLE_2%",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.tld/rdap/entity/%CONTACT_HANDLE_2%"
+        }
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "The Raven"],
+          ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
+          ["adr", {}, "text", ["", "", "123 Example Boulevard <script>", "KOKOMO", "BM", "31337", "United States"]],
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2126660420"]
+        ]
+      ],
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "type": "object truncated due to unexplainable reasons",
+          "description": ["Summary data only. For complete data, send a specific query for the object."]
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
+        }
+      ]
+    },
+    {
+      "objectClassName": "entity",
+      "handle": "%CONTACT_HANDLE_3%",
+      "roles": ["registrant"],
+      "links": [
+        {
+          "href": "https://example.tld/rdap/entity/%CONTACT_HANDLE_3%",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.tld/rdap/entity/%CONTACT_HANDLE_3%"
+        }
+      ],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "Goblin Market"],
+          ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
+          ["adr", {}, "text", ["", "", "123 Example Boulevard <script>", "KOKOMO", "BM", "31337", "United States"]],
+          ["tel", {"type": ["voice"]}, "uri", "tel:+1.2126660420"],
+          ["tel", {"type": ["fax"]}, "uri", "tel:+1.2126660420"]
+        ]
+      ],
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "type": "object truncated due to unexplainable reasons",
+          "description": ["Summary data only. For complete data, send a specific query for the object."]
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
+        }
       ]
     }
-  ],
-  "objectClassName": "domain"
+  ]
 }

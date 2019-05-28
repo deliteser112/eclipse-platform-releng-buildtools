@@ -1,23 +1,21 @@
 {
+  "rdapConformance": [
+    "rdap_level_0",
+    "icann_rdap_response_profile_0"
+  ],
   "domainSearchResults": [
     {
-      "status": [
-        "client delete prohibited",
-        "client renew prohibited",
-        "client transfer prohibited",
-        "server update prohibited"
-      ],
-      "handle": "%DOMAINHANDLE1%",
+      "objectClassName": "domain",
+      "handle": "%DOMAIN_HANDLE_1%",
+      "ldhName": "%DOMAIN_PUNYCODE_NAME_1%",
       "links": [
         {
-          "href": "https://example.tld/rdap/domain/%DOMAINNAME1%",
+          "href": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.tld/rdap/domain/%DOMAINNAME1%"
+          "value": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%"
         }
       ],
-      "ldhName": "%DOMAINNAME1%",
-      "objectClassName": "domain",
       "remarks": [
         {
           "title": "Incomplete Data",
@@ -29,23 +27,17 @@
       ]
     },
     {
-      "status": [
-        "client delete prohibited",
-        "client renew prohibited",
-        "client transfer prohibited",
-        "server update prohibited"
-      ],
-      "handle": "%DOMAINHANDLE2%",
+      "objectClassName": "domain",
+      "handle": "%DOMAIN_HANDLE_2%",
+      "ldhName": "%DOMAIN_PUNYCODE_NAME_2%",
       "links": [
         {
-          "href": "https://example.tld/rdap/domain/%DOMAINNAME2%",
+          "href": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_2%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.tld/rdap/domain/%DOMAINNAME2%"
+          "value": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_2%"
         }
       ],
-      "ldhName": "%DOMAINNAME2%",
-      "objectClassName": "domain",
       "remarks": [
         {
           "title": "Incomplete Data",
@@ -57,14 +49,10 @@
       ]
     }
   ],
-  "rdapConformance": [
-    "icann_rdap_response_profile_0"
-  ],
-  "notices" :
-  [
+  "notices": [
     {
-      "title" : "RDAP Terms of Service",
-      "description" :
+      "title": "RDAP Terms of Service",
+      "description":
       [
         "By querying our Domain Database, you are agreeing to comply with these terms so please read them carefully.",
         "Any information provided is 'as is' without any guarantee of accuracy.",
@@ -77,50 +65,42 @@
         "We reserve the right to restrict or deny your access to the database if we suspect that you have failed to comply with these terms.",
         "We reserve the right to modify this agreement at any time."
       ],
-      "links" :
+      "links":
       [
         {
-          "value" : "https://example.tld/rdap/help/tos",
-          "rel" : "alternate",
-          "href" : "https://www.registry.tld/about/rdap/tos.html",
-          "type" : "text/html"
+          "value": "https://example.tld/rdap/help/tos",
+          "rel": "alternate",
+          "href": "https://www.registry.tld/about/rdap/tos.html",
+          "type": "text/html"
         }
       ]
     },
     {
-      "description" :
-      [
-        "This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"
-      ]
+      "description": ["This response conforms to the RDAP Operational Profile for gTLD Registries and Registrars version 1.0"]
     },
     {
-      "title" : "Status Codes",
-      "description" :
-      [
-        "For more information on domain status codes, please visit https://icann.org/epp"
-      ],
-      "links" :
+      "title": "Status Codes",
+      "description": ["For more information on domain status codes, please visit https://icann.org/epp"],
+      "links":
       [
         {
-          "value" :  "https://icann.org/epp",
-          "rel" : "alternate",
-          "href" : "https://icann.org/epp",
-          "type" : "text/html"
+          "value":  "https://icann.org/epp",
+          "rel": "alternate",
+          "href": "https://icann.org/epp",
+          "type": "text/html"
         }
       ]
     },
     {
-      "description" :
-      [
-        "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"
-      ],
-      "links" :
+      "title": "RDDS Inaccuracy Complaint Form",
+      "description": ["URL of the ICANN RDDS Inaccuracy Complaint Form: https://www.icann.org/wicf"],
+      "links":
       [
         {
-          "value" : "https://www.icann.org/wicf",
-          "rel" : "alternate",
-          "href" : "https://www.icann.org/wicf",
-          "type" : "text/html"
+          "value": "https://www.icann.org/wicf",
+          "rel": "alternate",
+          "href": "https://www.icann.org/wicf",
+          "type": "text/html"
         }
       ]
     }

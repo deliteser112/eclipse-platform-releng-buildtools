@@ -4,7 +4,6 @@
     {
       "objectClassName" : "nameserver",
       "handle" : "4-ROID",
-      "status" : ["active", "associated"],
       "ldhName" : "ns2.cat.lol",
       "links" :
       [
@@ -19,6 +18,12 @@
       {
         "v6" : ["bad:f00d:cafe::15:beef"]
       },
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
       "remarks": [
         {
           "title": "Incomplete Data",
@@ -27,63 +32,11 @@
           ],
           "type": "object truncated due to unexplainable reasons"
         }
-      ],
-      "entities" : [
-        {
-          "objectClassName" : "entity",
-          "handle" : "1",
-          "status" : ["active"],
-          "roles" : ["registrar"],
-          "links" :
-          [
-            {
-              "value" : "https://example.tld/rdap/entity/1",
-              "rel" : "self",
-              "href" : "https://example.tld/rdap/entity/1",
-              "type" : "application/rdap+json"
-            }
-          ],
-          "publicIds" :
-          [
-            {
-              "type" : "IANA Registrar ID",
-              "identifier" : "1"
-            }
-          ],
-          "vcardArray" :
-          [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "The Registrar"],
-              ["adr", {}, "text", [
-                "",
-                "",
-                "123 Example Boulevard",
-                "Williamsburg",
-                "NY",
-                "11211",
-                "United States"]],
-              ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "the.registrar@example.com"]
-            ]
-          ],
-          "remarks": [
-            {
-              "title": "Incomplete Data",
-              "description": [
-                "Summary data only. For complete data, send a specific query for the object."
-              ],
-              "type": "object truncated due to unexplainable reasons"
-            }
-          ]
-        }
       ]
     },
     {
       "objectClassName" : "nameserver",
       "handle" : "6-ROID",
-      "status" : ["active"],
       "ldhName" : "ns1.cat2.lol",
       "links" :
       [
@@ -99,6 +52,12 @@
         "v4" : ["1.2.3.3"],
         "v6" : ["bad:f00d:cafe::15:beef"]
       },
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
       "remarks": [
         {
           "title": "Incomplete Data",
@@ -107,61 +66,10 @@
           ],
           "type": "object truncated due to unexplainable reasons"
         }
-      ],
-      "entities" : [
-        {
-          "objectClassName" : "entity",
-          "handle" : "1",
-          "status" : ["active"],
-          "roles" : ["registrar"],
-          "links" :
-          [
-            {
-              "value" : "https://example.tld/rdap/entity/1",
-              "rel" : "self",
-              "href" : "https://example.tld/rdap/entity/1",
-              "type" : "application/rdap+json"
-            }
-          ],
-          "publicIds" :
-          [
-            {
-              "type" : "IANA Registrar ID",
-              "identifier" : "1"
-            }
-          ],
-          "vcardArray" :
-          [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "The Registrar"],
-              ["adr", {}, "text", [
-                "",
-                "",
-                "123 Example Boulevard",
-                "Williamsburg",
-                "NY",
-                "11211",
-                "United States"]],
-              ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "the.registrar@example.com"]
-            ]
-          ],
-          "remarks": [
-            {
-              "title": "Incomplete Data",
-              "description": [
-                "Summary data only. For complete data, send a specific query for the object."
-              ],
-              "type": "object truncated due to unexplainable reasons"
-            }
-          ]
-        }
       ]
     }
   ],
-  "rdapConformance" : ["icann_rdap_response_profile_0"],
+  "rdapConformance" : ["rdap_level_0", "icann_rdap_response_profile_0"],
   "notices" :
   [
     {

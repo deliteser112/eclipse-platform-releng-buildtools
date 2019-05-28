@@ -17,21 +17,27 @@ package google.registry.rdap;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.ImmutableSetMultimap.toImmutableSetMultimap;
 import static google.registry.model.EppResourceUtils.isLinked;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.rdap.RdapIcannStandardInformation.CONTACT_REDACTED_VALUE;
 import static google.registry.util.CollectionUtils.union;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Streams;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.InetAddresses;
 import com.google.gson.JsonArray;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResource;
+import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
@@ -51,9 +57,12 @@ import google.registry.rdap.RdapDataStructures.Link;
 import google.registry.rdap.RdapDataStructures.Notice;
 import google.registry.rdap.RdapDataStructures.PublicId;
 import google.registry.rdap.RdapDataStructures.RdapStatus;
+import google.registry.rdap.RdapObjectClasses.RdapContactEntity;
 import google.registry.rdap.RdapObjectClasses.RdapDomain;
 import google.registry.rdap.RdapObjectClasses.RdapEntity;
 import google.registry.rdap.RdapObjectClasses.RdapNameserver;
+import google.registry.rdap.RdapObjectClasses.RdapRegistrarEntity;
+import google.registry.rdap.RdapObjectClasses.SecureDns;
 import google.registry.rdap.RdapObjectClasses.Vcard;
 import google.registry.rdap.RdapObjectClasses.VcardArray;
 import google.registry.request.FullServletPath;
@@ -68,11 +77,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeComparator;
 
 /**
  * Helper class to create RDAP JSON objects for various registry entities and objects.
@@ -86,6 +95,8 @@ import org.joda.time.DateTimeComparator;
  *        RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
  */
 public class RdapJsonFormatter {
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private DateTime requestTime = null;
 
@@ -108,8 +119,35 @@ public class RdapJsonFormatter {
    * returned object indicating that it includes only summary data.
    */
   public enum OutputDataType {
+    /**
+     * The full information about an RDAP object.
+     *
+     * <p>Reserved to cases when this object is the only result of a query - either queried
+     * directly, or the sole result of a search query.
+     */
     FULL,
-    SUMMARY
+    /**
+     * The minimal information about an RDAP object that is allowed as a reply.
+     *
+     * <p>Reserved to cases when this object is one of many results of a search query.
+     *
+     * <p>We want to minimize the size of the reply, and also minimize the Datastore queries needed
+     * to generate these replies since we might have a lot of these objects to return.
+     *
+     * <p>Each object with a SUMMARY type will have a remark with a direct link to itself, which
+     * will return the FULL result.
+     */
+    SUMMARY,
+    /**
+     * The object isn't the subject of the query, but is rather a sub-object of the actual reply.
+     *
+     * <p>These objects have less required fields in the RDAP spec, and hence can be even smaller
+     * than the SUMMARY objects.
+     *
+     * <p>Like SUMMARY objects, these objects will also have a remark with a direct link to itself,
+     * which will return the FULL result.
+     */
+    INTERNAL
   }
 
   /** Map of EPP status values to the RDAP equivalents. */
@@ -144,12 +182,11 @@ public class RdapJsonFormatter {
   /**
    * Map of EPP event values to the RDAP equivalents.
    *
-   * <p>Only has entries for the events we care about, according to the RDAP Response Profile
-   * 15feb19.
+   * <p>Only has entries for optional events, either stated as optional in the RDAP Response Profile
+   * 15feb19, or not mentioned at all but thought to be useful anyway.
    *
-   * There are additional events that don't have HistoryEntry equivalent and are created
-   * differently. They will be in different locations in the code. These values are: EXPIRATION,
-   * LAST_CHANGED, LAST_UPDATE_OF_RDAP_DATABASE.
+   * <p>Any required event should be added elsewhere, preferably without using HistoryEntries (so
+   * that we don't need to load HistoryEntries for "summary" responses).
    */
   private static final ImmutableMap<HistoryEntry.Type, EventAction>
       HISTORY_ENTRY_TYPE_TO_RDAP_EVENT_ACTION_MAP =
@@ -160,8 +197,6 @@ public class RdapJsonFormatter {
 
               /** Not in the Response Profile. */
               .put(HistoryEntry.Type.DOMAIN_AUTORENEW, EventAction.REREGISTRATION)
-              /** Section 2.3.1.1, obligatory. */
-              .put(HistoryEntry.Type.DOMAIN_CREATE, EventAction.REGISTRATION)
               /** Not in the Response Profile. */
               .put(HistoryEntry.Type.DOMAIN_DELETE, EventAction.DELETION)
               /** Not in the Response Profile. */
@@ -170,7 +205,6 @@ public class RdapJsonFormatter {
               .put(HistoryEntry.Type.DOMAIN_RESTORE, EventAction.REINSTANTIATION)
               /** Section 2.3.2.3, optional. */
               .put(HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE, EventAction.TRANSFER)
-
               .put(HistoryEntry.Type.HOST_CREATE, EventAction.REGISTRATION)
               .put(HistoryEntry.Type.HOST_DELETE, EventAction.DELETION)
               .build();
@@ -214,85 +248,134 @@ public class RdapJsonFormatter {
   /**
    * Creates a JSON object for a {@link DomainBase}.
    *
+   * <p>NOTE that domain searches aren't in the spec yet - they're in the RFC7482 that describes the
+   * query format, but they aren't in the RDAP Technical Implementation Guide 15feb19, meaning we
+   * don't have to implement them yet and the RDAP Response Profile doesn't apply to them.
+   *
+   * <p>We're implementing domain searches anyway, BUT we won't have the response for searches
+   * conform to the RDAP Response Profile.
+   *
    * @param domainBase the domain resource object from which the JSON object should be created
-   * @param outputDataType whether to generate full or summary data
+   * @param outputDataType whether to generate FULL or SUMMARY data. Domains are never INTERNAL.
    */
-  RdapDomain makeRdapJsonForDomain(
-      DomainBase domainBase,
-      OutputDataType outputDataType) {
+  RdapDomain createRdapDomain(DomainBase domainBase, OutputDataType outputDataType) {
     RdapDomain.Builder builder = RdapDomain.builder();
+    builder.linksBuilder().add(makeSelfLink("domain", domainBase.getFullyQualifiedDomainName()));
+    if (outputDataType != OutputDataType.FULL) {
+      builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+    }
+    // RDAP Response Profile 15feb19 section 2.1 discusses the domain name.
+    builder.setLdhName(domainBase.getFullyQualifiedDomainName());
     // RDAP Response Profile 15feb19 section 2.2:
     // The domain handle MUST be the ROID
     builder.setHandle(domainBase.getRepoId());
-    builder.setLdhName(domainBase.getFullyQualifiedDomainName());
-    builder.statusBuilder().addAll(
+    // If this is a summary (search result) - we'll return now. Since there's no requirement for
+    // domain searches at all, having the name, handle, and self link is enough.
+    if (outputDataType == OutputDataType.SUMMARY) {
+      return builder.build();
+    }
+    // RDAP Response Profile 15feb19 section 2.3.1:
+    // The domain object in the RDAP response MUST contain the following events:
+    // [registration, expiration, last update of RDAP database]
+    builder
+        .eventsBuilder()
+        .add(
+            Event.builder()
+                .setEventAction(EventAction.REGISTRATION)
+                .setEventActor(
+                    Optional.ofNullable(domainBase.getCreationClientId()).orElse("(none)"))
+                .setEventDate(domainBase.getCreationTime())
+                .build(),
+            Event.builder()
+                .setEventAction(EventAction.EXPIRATION)
+                .setEventDate(domainBase.getRegistrationExpirationTime())
+                .build(),
+            Event.builder()
+                .setEventAction(EventAction.LAST_UPDATE_OF_RDAP_DATABASE)
+                .setEventDate(getRequestTime())
+                .build());
+    // RDAP Response Profile 15feb19 section 2.3.2 discusses optional events. We add some of those
+    // here. We also add a few others we find interesting.
+    builder.eventsBuilder().addAll(makeOptionalEvents(domainBase));
+    // RDAP Response Profile 15feb19 section 2.4.1:
+    // The domain object in the RDAP response MUST contain an entity with the Registrar role.
+    //
+    // See {@link createRdapRegistrarEntity} for details of section 2.4 conformance
+    builder
+        .entitiesBuilder()
+        .add(
+            createRdapRegistrarEntity(
+                domainBase.getCurrentSponsorClientId(), OutputDataType.INTERNAL));
+    // RDAP Response Profile 2.6.1: must have at least one status member
+    // makeStatusValueList should in theory always contain one of either "active" or "inactive".
+    ImmutableSet<RdapStatus> status =
         makeStatusValueList(
             domainBase.getStatusValues(),
             false, // isRedacted
-            domainBase.getDeletionTime().isBefore(getRequestTime())));
-    builder.linksBuilder().add(
-        makeSelfLink("domain", domainBase.getFullyQualifiedDomainName()));
-    boolean displayContacts =
-        rdapAuthorization.isAuthorizedForClientId(domainBase.getCurrentSponsorClientId());
-    // If we are outputting all data (not just summary data), also add information about hosts,
-    // contacts and events (history entries). If we are outputting summary data, instead add a
-    // remark indicating that fact.
-    if (outputDataType == OutputDataType.SUMMARY) {
-      builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
-    } else {
-      ImmutableList<Event> events = makeEvents(domainBase);
-      builder.eventsBuilder().addAll(events);
-      // Kick off the database loads of the nameservers that we will need, so it can load
-      // asynchronously while we load and process the contacts.
-      Map<Key<HostResource>, HostResource> loadedHosts =
-          ofy().load().keys(domainBase.getNameservers());
-      // Load the registrant and other contacts and add them to the data.
-      if (!displayContacts) {
-        builder
-            .remarksBuilder()
-            .add(RdapIcannStandardInformation.DOMAIN_CONTACTS_HIDDEN_DATA_REMARK);
-      } else {
-        Map<Key<ContactResource>, ContactResource> loadedContacts =
-            ofy().load().keys(domainBase.getReferencedContacts());
+            domainBase.getDeletionTime().isBefore(getRequestTime()));
+    builder.statusBuilder().addAll(status);
+    if (status.isEmpty()) {
+      logger.atWarning().log(
+          "Domain %s (ROID %s) doesn't have any status",
+          domainBase.getFullyQualifiedDomainName(), domainBase.getRepoId());
+    }
+    // RDAP Response Profile 2.6.3, must have a notice about statuses. That is in {@link
+    // RdapIcannStandardInformation#domainBoilerplateNotices}
+
+    // Kick off the database loads of the nameservers that we will need, so it can load
+    // asynchronously while we load and process the contacts.
+    Map<Key<HostResource>, HostResource> loadedHosts =
+        ofy().load().keys(domainBase.getNameservers());
+    // Load the registrant and other contacts and add them to the data.
+    Map<Key<ContactResource>, ContactResource> loadedContacts =
+        ofy().load().keys(domainBase.getReferencedContacts());
+    // RDAP Response Profile 2.7.3, A domain MUST have the REGISTRANT, ADMIN, TECH roles and MAY
+    // have others. We also add the BILLING.
+    //
+    // RDAP Response Profile 2.7.1, 2.7.3 - we MUST have the contacts. 2.7.4 discusses redaction of
+    // fields we don't want to show (as opposed to not having contacts at all) because of GDPR etc.
+    //
+    // the GDPR redaction is handled in createRdapContactEntity
+    ImmutableSetMultimap<Key<ContactResource>, Type> contactsToRoles =
         Streams.concat(
-            domainBase.getContacts().stream(),
-            Stream.of(
-                DesignatedContact.create(Type.REGISTRANT, domainBase.getRegistrant())))
+                domainBase.getContacts().stream(),
+                Stream.of(DesignatedContact.create(Type.REGISTRANT, domainBase.getRegistrant())))
             .sorted(DESIGNATED_CONTACT_ORDERING)
-            .map(
-                designatedContact ->
-                makeRdapJsonForContact(
-                    loadedContacts.get(designatedContact.getContactKey()),
-                    Optional.of(designatedContact.getType()),
-                    outputDataType))
-            .forEach(builder.entitiesBuilder()::add);
+            .collect(
+                toImmutableSetMultimap(
+                    DesignatedContact::getContactKey, DesignatedContact::getType));
+
+    for (Key<ContactResource> contactKey : contactsToRoles.keySet()) {
+      Set<RdapEntity.Role> roles =
+          contactsToRoles.get(contactKey).stream()
+              .map(RdapJsonFormatter::convertContactTypeToRdapRole)
+              .collect(toImmutableSet());
+      if (roles.isEmpty()) {
+        continue;
       }
       builder
           .entitiesBuilder()
-          .add(createInternalRegistrarEntity(domainBase.getCurrentSponsorClientId()));
-      // Add the nameservers to the data; the load was kicked off above for efficiency.
-      for (HostResource hostResource
-          : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
-        builder.nameserversBuilder().add(makeRdapJsonForHost(hostResource, outputDataType));
-      }
+          .add(
+              createRdapContactEntity(
+                  loadedContacts.get(contactKey), roles, OutputDataType.INTERNAL));
     }
-    return builder.build();
-  }
+    // Add the nameservers to the data; the load was kicked off above for efficiency.
+    // RDAP Response Profile 2.9: we MUST have the nameservers
+    for (HostResource hostResource :
+        HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
+      builder.nameserversBuilder().add(createRdapNameserver(hostResource, OutputDataType.INTERNAL));
+    }
 
-  /**
-   * Creates a JSON object for the desired registrar to an existing list of JSON objects.
-   *
-   * @param clientId the registrar client ID
-   */
-  RdapEntity createInternalRegistrarEntity(String clientId) {
-    Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
-    if (!registrar.isPresent()) {
-      throw new InternalServerErrorException(
-          String.format("Coudn't find registrar '%s'", clientId));
-    }
-    // TODO(b/130150723): we need to display the ABUSE contact for registrar object inside of Domain
-    // responses. Currently, we use summary for any "internal" registrar.
-    return makeRdapJsonForRegistrar(registrar.get(), OutputDataType.SUMMARY);
+    // RDAP Response Profile 2.10 - MUST contain a secureDns member including at least a
+    // delegationSigned element. Other elements (e.g. dsData) MUST be included if the domain name is
+    // signed and the elements are stored in the Registry
+    //
+    // TODO(b/133310221): get the zoneSigned value from the config files.
+    SecureDns.Builder secureDnsBuilder = SecureDns.builder().setZoneSigned(true);
+    domainBase.getDsData().forEach(secureDnsBuilder::addDsData);
+    builder.setSecureDns(secureDnsBuilder.build());
+
+    return builder.build();
   }
 
   /**
@@ -301,58 +384,80 @@ public class RdapJsonFormatter {
    * @param hostResource the host resource object from which the JSON object should be created
    * @param outputDataType whether to generate full or summary data
    */
-  RdapNameserver makeRdapJsonForHost(
-      HostResource hostResource,
-      OutputDataType outputDataType) {
-    RdapNameserver.Builder builder = RdapNameserver.builder()
-        .setHandle(hostResource.getRepoId())
-        .setLdhName(hostResource.getFullyQualifiedHostName());
-
-    ImmutableSet.Builder<StatusValue> statuses = new ImmutableSet.Builder<>();
-    statuses.addAll(hostResource.getStatusValues());
-    if (isLinked(Key.create(hostResource), getRequestTime())) {
-      statuses.add(StatusValue.LINKED);
-    }
-    if (hostResource.isSubordinate()
-        && ofy()
-            .load()
-            .key(hostResource.getSuperordinateDomain())
-            .now()
-            .cloneProjectedAtTime(getRequestTime())
-            .getStatusValues()
-            .contains(StatusValue.PENDING_TRANSFER)) {
-      statuses.add(StatusValue.PENDING_TRANSFER);
-    }
-    builder
-        .statusBuilder()
-        .addAll(
-            makeStatusValueList(
-                statuses.build(),
-                false, // isRedacted
-                hostResource.getDeletionTime().isBefore(getRequestTime())));
+  RdapNameserver createRdapNameserver(HostResource hostResource, OutputDataType outputDataType) {
+    RdapNameserver.Builder builder = RdapNameserver.builder();
     builder
         .linksBuilder()
         .add(makeSelfLink("nameserver", hostResource.getFullyQualifiedHostName()));
-
-    // If we are outputting all data (not just summary data), also add events taken from the history
-    // entries. If we are outputting summary data, instead add a remark indicating that fact.
-    if (outputDataType == OutputDataType.SUMMARY) {
+    if (outputDataType != OutputDataType.FULL) {
       builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
-    } else {
-      builder.eventsBuilder().addAll(makeEvents(hostResource));
     }
 
-    // We MUST have the ip addresses: RDAP Response Profile 4.2.
-    for (InetAddress inetAddress : hostResource.getInetAddresses()) {
-      if (inetAddress instanceof Inet4Address) {
-        builder.ipv4Builder().add(InetAddresses.toAddrString(inetAddress));
-      } else if (inetAddress instanceof Inet6Address) {
-        builder.ipv6Builder().add(InetAddresses.toAddrString(inetAddress));
+    // We need the ldhName: RDAP Response Profile 2.9.1, 4.1
+    builder.setLdhName(hostResource.getFullyQualifiedHostName());
+    // Handle is optional, but if given it MUST be the ROID.
+    // We will set it always as it's important as a "self link"
+    builder.setHandle(hostResource.getRepoId());
+
+    // Status is optional for internal Nameservers - RDAP Response Profile 2.9.2
+    // It isn't mentioned at all anywhere else. So we can just not put it at all?
+    //
+    // To be safe, we'll put it on the "FULL" version anyway
+    if (outputDataType == OutputDataType.FULL) {
+      ImmutableSet.Builder<StatusValue> statuses = new ImmutableSet.Builder<>();
+      statuses.addAll(hostResource.getStatusValues());
+      if (isLinked(Key.create(hostResource), getRequestTime())) {
+        statuses.add(StatusValue.LINKED);
+      }
+      if (hostResource.isSubordinate()
+          && ofy()
+              .load()
+              .key(hostResource.getSuperordinateDomain())
+              .now()
+              .cloneProjectedAtTime(getRequestTime())
+              .getStatusValues()
+              .contains(StatusValue.PENDING_TRANSFER)) {
+        statuses.add(StatusValue.PENDING_TRANSFER);
+      }
+      builder
+          .statusBuilder()
+          .addAll(
+              makeStatusValueList(
+                  statuses.build(),
+                  false, // isRedacted
+                  hostResource.getDeletionTime().isBefore(getRequestTime())));
+    }
+
+    // For query responses - we MUST have all the ip addresses: RDAP Response Profile 4.2.
+    //
+    // However, it is optional for internal responses: RDAP Response Profile 2.9.2
+    if (outputDataType != OutputDataType.INTERNAL) {
+      for (InetAddress inetAddress : hostResource.getInetAddresses()) {
+        if (inetAddress instanceof Inet4Address) {
+          builder.ipv4Builder().add(InetAddresses.toAddrString(inetAddress));
+        } else if (inetAddress instanceof Inet6Address) {
+          builder.ipv6Builder().add(InetAddresses.toAddrString(inetAddress));
+        }
       }
     }
-    builder
-        .entitiesBuilder()
-        .add(createInternalRegistrarEntity(hostResource.getPersistedCurrentSponsorClientId()));
+
+    // RDAP Response Profile 4.3 - Registrar member is optional, so we only set it for FULL
+    if (outputDataType == OutputDataType.FULL) {
+      builder
+          .entitiesBuilder()
+          .add(
+              createRdapRegistrarEntity(
+                  hostResource.getPersistedCurrentSponsorClientId(), OutputDataType.INTERNAL));
+    }
+    if (outputDataType != OutputDataType.INTERNAL) {
+      // Rdap Response Profile 4.4, must have "last update of RDAP database" response. But this is
+      // only for direct query responses and not for internal objects.
+      builder.setLastUpdateOfRdapDatabaseEvent(
+          Event.builder()
+              .setEventAction(EventAction.LAST_UPDATE_OF_RDAP_DATABASE)
+              .setEventDate(getRequestTime())
+              .build());
+    }
     return builder.build();
   }
 
@@ -360,141 +465,301 @@ public class RdapJsonFormatter {
    * Creates a JSON object for a {@link ContactResource} and associated contact type.
    *
    * @param contactResource the contact resource object from which the JSON object should be created
-   * @param contactType the contact type to map to an RDAP role; if absent, no role is listed
+   * @param roles the roles of this contact
    * @param outputDataType whether to generate full or summary data
    */
-  RdapEntity makeRdapJsonForContact(
+  RdapContactEntity createRdapContactEntity(
       ContactResource contactResource,
-      Optional<DesignatedContact.Type> contactType,
+      Iterable<RdapEntity.Role> roles,
       OutputDataType outputDataType) {
+    RdapContactEntity.Builder contactBuilder = RdapContactEntity.builder();
+
+    // RDAP Response Profile 2.7.1, 2.7.3 - we MUST have the contacts. 2.7.4 discusses censoring of
+    // fields we don't want to show (as opposed to not having contacts at all) because of GDPR etc.
+    //
+    // 2.8 allows for unredacted output for authorized people.
     boolean isAuthorized =
         rdapAuthorization.isAuthorizedForClientId(contactResource.getCurrentSponsorClientId());
 
-    RdapEntity.Builder entityBuilder =
-        RdapEntity.builder()
-            .setHandle(contactResource.getRepoId());
-    entityBuilder
-        .statusBuilder()
-        .addAll(
-            makeStatusValueList(
-                isLinked(Key.create(contactResource), getRequestTime())
-                    ? union(contactResource.getStatusValues(), StatusValue.LINKED)
-                    : contactResource.getStatusValues(),
-                !isAuthorized,
-                contactResource.getDeletionTime().isBefore(getRequestTime())));
-
-    contactType.ifPresent(
-        type -> entityBuilder.rolesBuilder().add(convertContactTypeToRdapRole(type)));
-    entityBuilder.linksBuilder().add(makeSelfLink("entity", contactResource.getRepoId()));
-    // If we are logged in as the owner of this contact, create the vCard.
+    // ROID needs to be redacted if we aren't authorized, so we can't have a self-link for
+    // unauthorized users
     if (isAuthorized) {
-      VcardArray.Builder vcardBuilder = VcardArray.builder();
-      PostalInfo postalInfo = contactResource.getInternationalizedPostalInfo();
-      if (postalInfo == null) {
-        postalInfo = contactResource.getLocalizedPostalInfo();
-      }
-      if (postalInfo != null) {
-        if (postalInfo.getName() != null) {
-          vcardBuilder.add(Vcard.create("fn", "text", postalInfo.getName()));
-        }
-        if (postalInfo.getOrg() != null) {
-          vcardBuilder.add(Vcard.create("org", "text", postalInfo.getOrg()));
-        }
-        addVCardAddressEntry(vcardBuilder, postalInfo.getAddress());
-      }
-      ContactPhoneNumber voicePhoneNumber = contactResource.getVoiceNumber();
-      if (voicePhoneNumber != null) {
-        vcardBuilder.add(makePhoneEntry(PHONE_TYPE_VOICE, makePhoneString(voicePhoneNumber)));
-      }
-      ContactPhoneNumber faxPhoneNumber = contactResource.getFaxNumber();
-      if (faxPhoneNumber != null) {
-        vcardBuilder.add(makePhoneEntry(PHONE_TYPE_FAX, makePhoneString(faxPhoneNumber)));
-      }
-      String emailAddress = contactResource.getEmailAddress();
-      if (emailAddress != null) {
-        vcardBuilder.add(Vcard.create("email", "text", emailAddress));
-      }
-      entityBuilder.setVcardArray(vcardBuilder.build());
-    } else {
-      entityBuilder
+      contactBuilder.linksBuilder().add(makeSelfLink("entity", contactResource.getRepoId()));
+    }
+
+    // Only show the "summary data remark" if the user is authorized to see this data - because
+    // unauthorized users don't have a self link meaning they can't navigate to the full data.
+    if (outputDataType != OutputDataType.FULL && isAuthorized) {
+      contactBuilder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+    }
+
+    // GTLD Registration Data Temp Spec 17may18, Appendix A, 2.3, 2.4 and RDAP Response Profile
+    // 2.7.4.1, 2.7.4.2 - the following fields must be redacted:
+    // for REGISTRANT:
+    // handle (ROID), FN (name), TEL (telephone/fax and extension), street, city, postal code
+    // for ADMIN, TECH:
+    // handle (ROID), FN (name), TEL (telephone/fax and extension), Organization, street, city,
+    // state/province, postal code, country
+    //
+    // Note that in theory we have to show the Organization and state/province and country for the
+    // REGISTRANT. For now we won't do that until we make sure it's really OK for GDPR
+    //
+    if (!isAuthorized) {
+      // RDAP Response Profile 2.7.4.3: if we redact values from the contact, we MUST include a
+      // remark
+      contactBuilder
           .remarksBuilder()
           .add(RdapIcannStandardInformation.CONTACT_PERSONAL_DATA_HIDDEN_DATA_REMARK);
+      // to make sure we don't accidentally display data we shouldn't - we replace the
+      // contactResource with a safe resource. Then we can add any information we need (e.g. the
+      // Organization / state / country of the registrant), although we currently don't do that.
+      contactResource =
+          new ContactResource.Builder()
+              .setRepoId(CONTACT_REDACTED_VALUE)
+              .setVoiceNumber(
+                  new ContactPhoneNumber.Builder().setPhoneNumber(CONTACT_REDACTED_VALUE).build())
+              .setFaxNumber(
+                  new ContactPhoneNumber.Builder().setPhoneNumber(CONTACT_REDACTED_VALUE).build())
+              .setInternationalizedPostalInfo(
+                  new PostalInfo.Builder()
+                      .setName(CONTACT_REDACTED_VALUE)
+                      .setOrg(CONTACT_REDACTED_VALUE)
+                      .setType(PostalInfo.Type.INTERNATIONALIZED)
+                      .setAddress(
+                          new ContactAddress.Builder()
+                              .setStreet(ImmutableList.of(CONTACT_REDACTED_VALUE))
+                              .setCity(CONTACT_REDACTED_VALUE)
+                              .setState(CONTACT_REDACTED_VALUE)
+                              .setZip(CONTACT_REDACTED_VALUE)
+                              .setCountryCode("XX")
+                              .build())
+                      .build())
+              .build();
     }
+
+    // RDAP Response Profile 2.7.3 - we MUST provide a handle set with the ROID, subject to the
+    // redaction above.
+    contactBuilder.setHandle(contactResource.getRepoId());
+
+    // RDAP Response Profile doesn't mention status for contacts, so we only show it if we're both
+    // FULL and Authorized.
+    if (outputDataType == OutputDataType.FULL && isAuthorized) {
+      contactBuilder
+          .statusBuilder()
+          .addAll(
+              makeStatusValueList(
+                  isLinked(Key.create(contactResource), getRequestTime())
+                      ? union(contactResource.getStatusValues(), StatusValue.LINKED)
+                      : contactResource.getStatusValues(),
+                  false,
+                  contactResource.getDeletionTime().isBefore(getRequestTime())));
+    }
+
+    contactBuilder.rolesBuilder().addAll(roles);
+
+    VcardArray.Builder vcardBuilder = VcardArray.builder();
+    // Adding the VCard members subject to the redaction above.
+    //
+    // RDAP Response Profile 2.7.3 - we MUST have FN, ADR, TEL, EMAIL.
+    //
+    // Note that 2.7.5 also says the EMAIL must be omitted, so we'll omit it
+    PostalInfo postalInfo = contactResource.getInternationalizedPostalInfo();
+    if (postalInfo == null) {
+      postalInfo = contactResource.getLocalizedPostalInfo();
+    }
+    if (postalInfo != null) {
+      if (postalInfo.getName() != null) {
+        vcardBuilder.add(Vcard.create("fn", "text", postalInfo.getName()));
+      }
+      if (postalInfo.getOrg() != null) {
+        vcardBuilder.add(Vcard.create("org", "text", postalInfo.getOrg()));
+      }
+      addVCardAddressEntry(vcardBuilder, postalInfo.getAddress());
+    }
+    ContactPhoneNumber voicePhoneNumber = contactResource.getVoiceNumber();
+    if (voicePhoneNumber != null) {
+      vcardBuilder.add(makePhoneEntry(PHONE_TYPE_VOICE, makePhoneString(voicePhoneNumber)));
+    }
+    ContactPhoneNumber faxPhoneNumber = contactResource.getFaxNumber();
+    if (faxPhoneNumber != null) {
+      vcardBuilder.add(makePhoneEntry(PHONE_TYPE_FAX, makePhoneString(faxPhoneNumber)));
+    }
+    // RDAP Response Profile 2.7.5.1, 2.7.5.3:
+    // email MUST be omitted, and we MUST have a Remark saying so
+    contactBuilder
+        .remarksBuilder()
+        .add(RdapIcannStandardInformation.CONTACT_EMAIL_REDACTED_FOR_DOMAIN);
+    contactBuilder.setVcardArray(vcardBuilder.build());
+
+    if (outputDataType != OutputDataType.INTERNAL) {
+      // Rdap Response Profile 2.7.6 must have "last update of RDAP database" response. But this is
+      // only for direct query responses and not for internal objects. I'm not sure why it's in that
+      // section at all...
+      contactBuilder.setLastUpdateOfRdapDatabaseEvent(
+          Event.builder()
+              .setEventAction(EventAction.LAST_UPDATE_OF_RDAP_DATABASE)
+              .setEventDate(getRequestTime())
+              .build());
+    }
+
     // If we are outputting all data (not just summary data), also add events taken from the history
-    // entries. If we are outputting summary data, instead add a remark indicating that fact.
-    if (outputDataType == OutputDataType.SUMMARY) {
-      entityBuilder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
-    } else {
-      entityBuilder.eventsBuilder().addAll(makeEvents(contactResource));
+    // entries. This isn't strictly required.
+    //
+    // We also only add it for authorized users because millisecond times can fingerprint a user
+    // just as much as the handle can.
+    if (outputDataType == OutputDataType.FULL && isAuthorized) {
+      contactBuilder.eventsBuilder().addAll(makeOptionalEvents(contactResource));
     }
-    return entityBuilder.build();
+    return contactBuilder.build();
   }
 
   /**
    * Creates a JSON object for a {@link Registrar}.
    *
-   * @param registrar the registrar object from which the JSON object should be created
-   * @param outputDataType whether to generate full or summary data
+   * <p>This object can be INTERNAL to the Domain and Nameserver responses, with requirements
+   * discussed in the RDAP Response Profile 15feb19 sections 2.4 (internal to Domain) and 4.3
+   * (internal to Namesever)
+   *
+   * @param registrar the registrar object from which the RDAP response
+   * @param outputDataType whether to generate FULL, SUMMARY, or INTERNAL data.
    */
-  RdapEntity makeRdapJsonForRegistrar(
-      Registrar registrar,
-      OutputDataType outputDataType) {
-    RdapEntity.Builder builder = RdapEntity.builder();
-    Long ianaIdentifier = registrar.getIanaIdentifier();
-    // the handle MUST be the ianaIdentifier, RDAP Response Profile 2.4.2.
-    builder.setHandle((ianaIdentifier == null) ? "(none)" : ianaIdentifier.toString());
-    builder.statusBuilder().addAll(registrar.isLive() ? STATUS_LIST_ACTIVE : STATUS_LIST_INACTIVE);
-    builder.rolesBuilder().add(RdapEntity.Role.REGISTRAR);
-    if (ianaIdentifier != null) {
-      builder.linksBuilder().add(makeSelfLink("entity", ianaIdentifier.toString()));
-      // We MUST have a publicId with the ianaIdentifier, RDAP Response Profile 2.4.3, 4.3
-      builder
-          .publicIdsBuilder()
-          .add(PublicId.create(PublicId.Type.IANA_REGISTRAR_ID, ianaIdentifier.toString()));
+  RdapRegistrarEntity createRdapRegistrarEntity(
+      Registrar registrar, OutputDataType outputDataType) {
+    RdapRegistrarEntity.Builder builder = RdapRegistrarEntity.builder();
+    if (outputDataType != OutputDataType.FULL) {
+      builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     }
     // Create the vCard.
     VcardArray.Builder vcardBuilder = VcardArray.builder();
+    // Rdap Response Profile 2.4.1, 3.1 - The role must me "registrar" and a valid FN VCard must be
+    // present (3.1 requires additional VCards, which will be added next)
+    builder.rolesBuilder().add(RdapEntity.Role.REGISTRAR);
     String registrarName = registrar.getRegistrarName();
-    if (registrarName != null) {
-      // A valid fn member MUST be present: RDAP Response Profile 2.4.1.
-      vcardBuilder.add(Vcard.create("fn", "text", registrarName));
+    vcardBuilder.add(Vcard.create("fn", "text", registrarName == null ? "(none)" : registrarName));
+
+    // Rdap Response Profile 3.1 says the response MUST have valid elements FN (already added), ADR,
+    // TEL, EMAIL.
+    // Other than FN (that we already added), these aren't required in INTERNAL responses.
+    if (outputDataType != OutputDataType.INTERNAL) {
+      // Rdap Response Profile 3.1.1 and 3.1.2 discuss the ADR field. See {@link
+      // addVcardAddressEntry}
+      RegistrarAddress address = registrar.getInternationalizedAddress();
+      if (address == null) {
+        address = registrar.getLocalizedAddress();
+      }
+      addVCardAddressEntry(vcardBuilder, address);
+      // TEL fields can be phone or fax
+      String voicePhoneNumber = registrar.getPhoneNumber();
+      if (voicePhoneNumber != null) {
+        vcardBuilder.add(makePhoneEntry(PHONE_TYPE_VOICE, "tel:" + voicePhoneNumber));
+      }
+      String faxPhoneNumber = registrar.getFaxNumber();
+      if (faxPhoneNumber != null) {
+        vcardBuilder.add(makePhoneEntry(PHONE_TYPE_FAX, "tel:" + faxPhoneNumber));
+      }
+      // EMAIL field
+      String emailAddress = registrar.getEmailAddress();
+      if (emailAddress != null) {
+        vcardBuilder.add(Vcard.create("email", "text", emailAddress));
+      }
     }
-    RegistrarAddress address = registrar.getInternationalizedAddress();
-    if (address == null) {
-      address = registrar.getLocalizedAddress();
+
+    // RDAP Response Profile 2.4.2 and 4.3:
+    // The handle MUST be the IANA ID
+    // 4.3 also says that if no IANA ID exists (which should never be the case for a valid
+    // registrar), the value must be "not applicable". 2.4 doesn't discuss this possibility.
+    Long ianaIdentifier = registrar.getIanaIdentifier();
+    builder.setHandle((ianaIdentifier == null) ? "not applicable" : ianaIdentifier.toString());
+    // RDAP Response Profile 2.4.3 and 4.3:
+    // MUST contain a publicId member with the IANA ID
+    // 4.3 also says that if no IANA ID exists, the response MUST NOT contain the publicId member.
+    // 2.4 doesn't discuss this possibility.
+    if (ianaIdentifier != null) {
+      builder
+          .publicIdsBuilder()
+          .add(PublicId.create(PublicId.Type.IANA_REGISTRAR_ID, ianaIdentifier.toString()));
+      // We also add a self link if an IANA ID exists
+      builder.linksBuilder().add(makeSelfLink("entity", ianaIdentifier.toString()));
     }
-    addVCardAddressEntry(vcardBuilder, address);
-    String voicePhoneNumber = registrar.getPhoneNumber();
-    if (voicePhoneNumber != null) {
-      vcardBuilder.add(makePhoneEntry(PHONE_TYPE_VOICE, "tel:" + voicePhoneNumber));
+
+    // There's no mention of the registrar STATUS in the RDAP Response Profile, so we'll only add it
+    // for FULL response
+    // We could probably not add it at all, but it could be useful for us internally
+    if (outputDataType == OutputDataType.FULL) {
+      builder
+          .statusBuilder()
+          .addAll(registrar.isLive() ? STATUS_LIST_ACTIVE : STATUS_LIST_INACTIVE);
     }
-    String faxPhoneNumber = registrar.getFaxNumber();
-    if (faxPhoneNumber != null) {
-      vcardBuilder.add(makePhoneEntry(PHONE_TYPE_FAX, "tel:" + faxPhoneNumber));
-    }
-    String emailAddress = registrar.getEmailAddress();
-    if (emailAddress != null) {
-      vcardBuilder.add(Vcard.create("email", "text", emailAddress));
-    }
+
     builder.setVcardArray(vcardBuilder.build());
-    // If we are outputting all data (not just summary data), also add registrar contacts. If we are
-    // outputting summary data, instead add a remark indicating that fact.
-    if (outputDataType == OutputDataType.SUMMARY) {
-      builder.remarksBuilder().add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
-    } else {
-      builder.eventsBuilder().addAll(makeEvents(registrar));
-      // include the registrar contacts as subentities
-      ImmutableList<RdapEntity> registrarContacts =
+
+    // Registrar contacts are a bit complicated.
+    //
+    // Rdap Response Profile 3.2, we SHOULD have at least ADMIN and TECH contacts. It says
+    // nothing about ABUSE at all.
+    //
+    // Rdap Response Profile 4.3 doesn't mention contacts at all, meaning probably we don't have to
+    // have any contacts there. But the Registrar itself is Optional in that case, so we will just
+    // skip it completely.
+    //
+    // Rdap Response Profile 2.4.5 says the Registrar inside a Domain response MUST include the
+    // ABUSE contact, but doesn't require any other contact.
+    //
+    // In our current Datastore schema, to get the ABUSE contact we must go over all contacts.
+    // However, there's something to be said about returning smaller JSON
+    //
+    // TODO(b/117242274): Need to decide between 2 options:
+    // - Write the minimum, meaning only ABUSE for INTERNAL registrars, nothing for SUMMARY (also
+    //   saves resources for the RegistrarContact Datastore query!) and everything for FULL.
+    // - Write everything for everything.
+    //
+    // For now we'll do the first.
+
+    if (outputDataType != OutputDataType.SUMMARY) {
+      ImmutableList<RdapContactEntity> registrarContacts =
           registrar.getContacts().stream()
               .map(registrarContact -> makeRdapJsonForRegistrarContact(registrarContact))
               .filter(optional -> optional.isPresent())
               .map(optional -> optional.get())
+              .filter(
+                  contact ->
+                      outputDataType == OutputDataType.FULL
+                          || contact.roles().contains(RdapEntity.Role.ABUSE))
               .collect(toImmutableList());
-      // TODO(b/117242274): add a warning (severe?) log if registrar has no ABUSE contact, as having
-      // one is required by the RDAP response profile
+      if (registrarContacts.stream()
+          .noneMatch(contact -> contact.roles().contains(RdapEntity.Role.ABUSE))) {
+        logger.atWarning().log(
+            "Registrar '%s' (IANA ID %s) is missing ABUSE contact",
+            registrar.getClientId(), registrar.getIanaIdentifier());
+      }
       builder.entitiesBuilder().addAll(registrarContacts);
     }
+
+    // Rdap Response Profile 3.3, must have "last update of RDAP database" response. But this is
+    // only for direct query responses and not for internal objects.
+    if (outputDataType != OutputDataType.INTERNAL) {
+      builder.setLastUpdateOfRdapDatabaseEvent(
+          Event.builder()
+              .setEventAction(EventAction.LAST_UPDATE_OF_RDAP_DATABASE)
+              .setEventDate(getRequestTime())
+              .build());
+    }
     return builder.build();
+  }
+
+  /**
+   * Creates a JSON object for the desired registrar to an existing list of JSON objects.
+   *
+   * @param clientId the registrar client ID
+   * @param outputDataType whether to generate FULL, SUMMARY, or INTERNAL data.
+   */
+  RdapRegistrarEntity createRdapRegistrarEntity(String clientId, OutputDataType outputDataType) {
+    Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
+    if (!registrar.isPresent()) {
+      throw new InternalServerErrorException(
+          String.format("Couldn't find registrar '%s'", clientId));
+    }
+    return createRdapRegistrarEntity(registrar.get(), outputDataType);
   }
 
   /**
@@ -502,23 +767,38 @@ public class RdapJsonFormatter {
    *
    * <p>Returns empty if this contact shouldn't be visible (doesn't have a role).
    *
+   * <p>NOTE that registrar locations in the response require different roles and different VCard
+   * members according to the spec. Currently, this function returns all the rolls and all the
+   * members for every location, but we might consider refactoring it to allow the minimal required
+   * roles and members.
+   *
+   * <p>Specifically:
+   * <li>Registrar inside a Domain only requires the ABUSE role, and only the TEL and EMAIL members
+   *     (RDAP Response Profile 2.4.5)
+   * <li>Registrar responses to direct query don't require any contact, but *should* have the TECH
+   *     and ADMIN roles, but require the FN, TEL and EMAIL members
+   * <li>Registrar inside a Nameserver isn't required at all, and if given doesn't require any
+   *     contacts
+   *
    * @param registrarContact the registrar contact for which the JSON object should be created
    */
-  static Optional<RdapEntity> makeRdapJsonForRegistrarContact(
+  static Optional<RdapContactEntity> makeRdapJsonForRegistrarContact(
       RegistrarContact registrarContact) {
     ImmutableList<RdapEntity.Role> roles = makeRdapRoleList(registrarContact);
     if (roles.isEmpty()) {
       return Optional.empty();
     }
-    RdapEntity.Builder builder = RdapEntity.builder();
+    RdapContactEntity.Builder builder = RdapContactEntity.builder();
     builder.statusBuilder().addAll(STATUS_LIST_ACTIVE);
     builder.rolesBuilder().addAll(roles);
     // Create the vCard.
     VcardArray.Builder vcardBuilder = VcardArray.builder();
+    // MUST include FN member: RDAP Response Profile 3.2
     String name = registrarContact.getName();
     if (name != null) {
       vcardBuilder.add(Vcard.create("fn", "text", name));
     }
+    // MUST include TEL and EMAIL members: RDAP Response Profile 2.4.5, 3.2
     String voicePhoneNumber = registrarContact.getPhoneNumber();
     if (voicePhoneNumber != null) {
       vcardBuilder.add(makePhoneEntry(PHONE_TYPE_VOICE, "tel:" + voicePhoneNumber));
@@ -546,9 +826,8 @@ public class RdapJsonFormatter {
         return RdapEntity.Role.BILLING;
       case ADMIN:
         return RdapEntity.Role.ADMIN;
-      default:
-        throw new AssertionError();
     }
+    throw new AssertionError();
   }
 
   /**
@@ -561,6 +840,8 @@ public class RdapJsonFormatter {
    * <p>2.4.5. Abuse Contact (email, phone) - an RDAP server MUST include an *entity* with the
    * *abuse* role within the registrar *entity* which MUST include *tel* and *email*, and MAY
    * include other members
+   *
+   * <p>3.2. For direct Registrar queries, we SHOULD have at least "admin" and "tech".
    */
   private static ImmutableList<RdapEntity.Role> makeRdapRoleList(
       RegistrarContact registrarContact) {
@@ -578,9 +859,16 @@ public class RdapJsonFormatter {
   }
 
   /**
-   * Creates an event list for a domain, host or contact resource.
+   * Creates the list of optional events to list in domain, nameserver, or contact replies.
+   *
+   * <p>Only has entries for optional events that won't be shown in "SUMMARY" versions of these
+   * objects. These are either stated as optional in the RDAP Response Profile 15feb19, or not
+   * mentioned at all but thought to be useful anyway.
+   *
+   * <p>Any required event should be added elsewhere, preferably without using HistoryEntries (so
+   * that we don't need to load HistoryEntries for "summary" responses).
    */
-  private ImmutableList<Event> makeEvents(EppResource resource) {
+  private ImmutableList<Event> makeOptionalEvents(EppResource resource) {
     HashMap<EventAction, HistoryEntry> lastEntryOfType = Maps.newHashMap();
     // Events (such as transfer, but also create) can appear multiple times. We only want the last
     // time they appeared.
@@ -604,21 +892,9 @@ public class RdapJsonFormatter {
       lastEntryOfType.put(rdapEventAction, historyEntry);
     }
     ImmutableList.Builder<Event> eventsBuilder = new ImmutableList.Builder<>();
-    // There are 2 possibly conflicting values for the creation time - either the
-    // resource.getCreationTime, or the REGISTRATION event created from a HistoryEntry
-    //
-    // We favor the HistoryEntry if it exists, since we show that value as REGISTRATION time in the
-    // reply, so the reply will be self-consistent.
-    //
-    // This is mostly an issue in the tests as in "reality" these two values should be the same.
-    //
-    DateTime creationTime =
-        Optional.ofNullable(lastEntryOfType.get(EventAction.REGISTRATION))
-            .map(historyEntry -> historyEntry.getModificationTime())
-            .orElse(resource.getCreationTime());
-    // TODO(b/129849684) remove this and use the events List defined above once we have Event
-    // objects
-    ImmutableList.Builder<DateTime> changeTimesBuilder = new ImmutableList.Builder<>();
+    DateTime creationTime = resource.getCreationTime();
+    DateTime lastChangeTime =
+        resource.getLastEppUpdateTime() == null ? creationTime : resource.getLastEppUpdateTime();
     // The order of the elements is stable - it's the order in which the enum elements are defined
     // in EventAction
     for (EventAction rdapEventAction : EventAction.values()) {
@@ -640,54 +916,18 @@ public class RdapJsonFormatter {
               .setEventActor(historyEntry.getClientId())
               .setEventDate(modificationTime)
               .build());
-      changeTimesBuilder.add(modificationTime);
-    }
-    if (resource instanceof DomainBase) {
-      DateTime expirationTime = ((DomainBase) resource).getRegistrationExpirationTime();
-      if (expirationTime != null) {
-        eventsBuilder.add(
-            Event.builder()
-                .setEventAction(EventAction.EXPIRATION)
-                .setEventDate(expirationTime)
-                .build());
-        changeTimesBuilder.add(expirationTime);
+      // The last change time might not be the lastEppUpdateTime, since some changes happen without
+      // any EPP update (for example, by the passage of time).
+      if (modificationTime.isAfter(lastChangeTime) && modificationTime.isBefore(getRequestTime())) {
+        lastChangeTime = modificationTime;
       }
     }
-    if (resource.getLastEppUpdateTime() != null) {
-      changeTimesBuilder.add(resource.getLastEppUpdateTime());
-    }
-    // The last change time might not be the lastEppUpdateTime, since some changes happen without
-    // any EPP update (for example, by the passage of time).
-    DateTime lastChangeTime =
-        changeTimesBuilder.build().stream()
-        .filter(changeTime -> changeTime.isBefore(getRequestTime()))
-        .max(DateTimeComparator.getInstance())
-        .orElse(null);
-    if (lastChangeTime != null && lastChangeTime.isAfter(creationTime)) {
+    // RDAP Response Profile 15feb19 section 2.3.2.2:
+    // The event of eventAction type last changed MUST be omitted if the domain name has not been
+    // updated since it was created
+    if (lastChangeTime.isAfter(creationTime)) {
       eventsBuilder.add(makeEvent(EventAction.LAST_CHANGED, null, lastChangeTime));
     }
-    eventsBuilder.add(makeEvent(EventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, getRequestTime()));
-    // TODO(b/129849684): sort events by their time once we return a list of Events instead of JSON
-    // objects.
-    return eventsBuilder.build();
-  }
-
-  /**
-   * Creates an event list for a {@link Registrar}.
-   */
-  private ImmutableList<Event> makeEvents(Registrar registrar) {
-    ImmutableList.Builder<Event> eventsBuilder = new ImmutableList.Builder<>();
-    Long ianaIdentifier = registrar.getIanaIdentifier();
-    eventsBuilder.add(makeEvent(
-        EventAction.REGISTRATION,
-        (ianaIdentifier == null) ? "(none)" : ianaIdentifier.toString(),
-        registrar.getCreationTime()));
-    if ((registrar.getLastUpdateTime() != null)
-        && registrar.getLastUpdateTime().isAfter(registrar.getCreationTime())) {
-      eventsBuilder.add(makeEvent(
-          EventAction.LAST_CHANGED, null, registrar.getLastUpdateTime()));
-    }
-    eventsBuilder.add(makeEvent(EventAction.LAST_UPDATE_OF_RDAP_DATABASE, null, getRequestTime()));
     return eventsBuilder.build();
   }
 
@@ -710,8 +950,11 @@ public class RdapJsonFormatter {
   /**
    * Creates a vCard address entry: array of strings specifying the components of the address.
    *
-   * @see <a href="https://tools.ietf.org/html/rfc7095">
-   *        RFC 7095: jCard: The JSON Format for vCard</a>
+   * <p>Rdap Response Profile 3.1.1: MUST contain the following fields: Street, City, Country Rdap
+   * Response Profile 3.1.2: optional fields: State/Province, Postal Code, Fax Number
+   *
+   * @see <a href="https://tools.ietf.org/html/rfc7095">RFC 7095: jCard: The JSON Format for
+   *     vCard</a>
    */
   private static void addVCardAddressEntry(VcardArray.Builder vcardArrayBuilder, Address address) {
     if (address == null) {
@@ -761,7 +1004,8 @@ public class RdapJsonFormatter {
     addressArray.add(nullToEmpty(address.getState()));
     addressArray.add(nullToEmpty(address.getZip()));
     addressArray.add(
-        new Locale("en", address.getCountryCode()).getDisplayCountry(new Locale("en")));
+        new Locale("en", nullToEmpty(address.getCountryCode()))
+            .getDisplayCountry(new Locale("en")));
     vcardArrayBuilder.add(Vcard.create(
         "adr",
         "text",
@@ -791,7 +1035,7 @@ public class RdapJsonFormatter {
    * indicate deleted objects, and as directed by the profile, the "removed" status to indicate
    * redacted objects.
    */
-  private static ImmutableList<RdapStatus> makeStatusValueList(
+  private static ImmutableSet<RdapStatus> makeStatusValueList(
       ImmutableSet<StatusValue> statusValues, boolean isRedacted, boolean isDeleted) {
     Stream<RdapStatus> stream =
         statusValues
@@ -808,7 +1052,7 @@ public class RdapJsonFormatter {
     }
     return stream
         .sorted(Ordering.natural().onResultOf(RdapStatus::getDisplayName))
-        .collect(toImmutableList());
+        .collect(toImmutableSet());
   }
 
   /**

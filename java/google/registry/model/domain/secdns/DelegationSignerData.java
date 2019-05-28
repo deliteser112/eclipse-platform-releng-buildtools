@@ -32,6 +32,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @XmlType(name = "dsData")
 public class DelegationSignerData extends ImmutableObject {
 
+  private DelegationSignerData() {}
+
   /** The identifier for this particular key in the domain. */
   int keyTag;
 
@@ -74,6 +76,10 @@ public class DelegationSignerData extends ImmutableObject {
     return digest;
   }
 
+  public String getDigestAsString() {
+    return digest == null ? "" : DatatypeConverter.printHexBinary(digest);
+  }
+
   public static DelegationSignerData create(
       int keyTag, int algorithm, int digestType, byte[] digest) {
     DelegationSignerData instance = new DelegationSignerData();
@@ -82,6 +88,11 @@ public class DelegationSignerData extends ImmutableObject {
     instance.digestType = digestType;
     instance.digest = digest;
     return instance;
+  }
+
+  public static DelegationSignerData create(
+      int keyTag, int algorithm, int digestType, String digestAsHex) {
+    return create(keyTag, algorithm, digestType, DatatypeConverter.parseHexBinary(digestAsHex));
   }
 
   /**

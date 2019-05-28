@@ -4,7 +4,6 @@
     {
       "objectClassName" : "entity",
       "handle" : "0001-ROID",
-      "status" : ["active"],
       "links" :
       [
         {
@@ -14,6 +13,12 @@
           "type" : "application/rdap+json"
         }
       ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
       "remarks": [
         {
           "title": "Incomplete Data",
@@ -21,6 +26,13 @@
             "Summary data only. For complete data, send a specific query for the object."
           ],
           "type": "object truncated due to unexplainable reasons"
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
         }
       ],
       "vcardArray" :
@@ -42,15 +54,13 @@
             ]
           ],
           ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-          ["email", {}, "text", "contact1@gmail.com"]
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"]
         ]
       ]
     },
     {
       "objectClassName" : "entity",
       "handle" : "0002-ROID",
-      "status" : ["active"],
       "links" :
       [
         {
@@ -60,6 +70,12 @@
           "type" : "application/rdap+json"
         }
       ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
       "remarks": [
         {
           "title": "Incomplete Data",
@@ -67,6 +83,13 @@
             "Summary data only. For complete data, send a specific query for the object."
           ],
           "type": "object truncated due to unexplainable reasons"
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
         }
       ],
       "vcardArray" :
@@ -88,15 +111,13 @@
             ]
           ],
           ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-          ["email", {}, "text", "contact2@gmail.com"]
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"]
         ]
       ]
     },
     {
       "objectClassName" : "entity",
       "handle" : "0003-ROID",
-      "status" : ["active"],
       "links" :
       [
         {
@@ -106,6 +127,12 @@
           "type" : "application/rdap+json"
         }
       ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
       "remarks": [
         {
           "title": "Incomplete Data",
@@ -113,6 +140,13 @@
             "Summary data only. For complete data, send a specific query for the object."
           ],
           "type": "object truncated due to unexplainable reasons"
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
         }
       ],
       "vcardArray" :
@@ -134,15 +168,13 @@
             ]
           ],
           ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-          ["email", {}, "text", "contact3@gmail.com"]
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"]
         ]
       ]
     },
     {
       "objectClassName" : "entity",
       "handle" : "0004-ROID",
-      "status" : ["active"],
       "links" :
       [
         {
@@ -152,6 +184,12 @@
           "type" : "application/rdap+json"
         }
       ],
+      "events": [
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
       "remarks": [
         {
           "title": "Incomplete Data",
@@ -159,6 +197,13 @@
             "Summary data only. For complete data, send a specific query for the object."
           ],
           "type": "object truncated due to unexplainable reasons"
+        },
+        {
+          "title": "EMAIL REDACTED FOR PRIVACY",
+          "type": "object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
         }
       ],
       "vcardArray" :
@@ -180,13 +225,12 @@
             ]
           ],
           ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-          ["email", {}, "text", "contact4@gmail.com"]
+          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"]
         ]
       ]
     }
   ],
-  "rdapConformance": [ "icann_rdap_response_profile_0" ],
+  "rdapConformance": ["rdap_level_0", "icann_rdap_response_profile_0" ],
   "notices" :
   [
     {

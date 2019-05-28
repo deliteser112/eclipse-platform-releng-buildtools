@@ -1,44 +1,59 @@
 {
   "objectClassName" : "entity",
-  "handle" : "2-ROID",
-  "status" : ["active", "associated", "removed"],
+  "handle" : "REDACTED FOR PRIVACY",
   "roles" : ["registrant"],
-  "links" :
-  [
-    {
-      "value" : "https://example.tld/rdap/entity/2-ROID",
-      "rel" : "self",
-      "href" : "https://example.tld/rdap/entity/2-ROID",
-      "type" : "application/rdap+json"
-    }
-  ],
   "events": [
-    {
-      "eventAction": "registration",
-      "eventActor": "foo",
-      "eventDate": "1999-01-01T00:00:00.000Z"
-    },
     {
       "eventAction": "last update of RDAP database",
       "eventDate": "2000-01-01T00:00:00.000Z"
     }
   ],
+  "vcardArray": [
+    "vcard",
+    [
+      ["version",{},"text","4.0"],
+      ["fn",{},"text","REDACTED FOR PRIVACY"],
+      ["org",{},"text","REDACTED FOR PRIVACY"],
+      [
+        "adr",
+        {},
+        "text",
+        [
+          "",
+          "",
+          "REDACTED FOR PRIVACY",
+          "REDACTED FOR PRIVACY",
+          "REDACTED FOR PRIVACY",
+          "REDACTED FOR PRIVACY",
+          "XX"
+        ]
+      ],
+      ["tel",{"type":["voice"]},"uri","tel:REDACTED FOR PRIVACY"],
+      ["tel",{"type":["fax"]},"uri","tel:REDACTED FOR PRIVACY"]
+    ]
+  ],
   "remarks": [
     {
-      "title": "Redacted for Privacy",
+      "title": "REDACTED FOR PRIVACY",
+      "type": "object redacted due to authorization",
       "description": [
         "Some of the data in this object has been removed.",
         "Contact personal data is visible only to the owning registrar."
       ],
-      "type": "object redacted due to authorization",
-      "links" :
-      [
+      "links": [
         {
-          "value" : "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
-          "rel" : "alternate",
-          "href" : "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
-          "type" : "text/html"
+          "type": "text/html",
+          "href": "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+          "rel": "alternate",
+          "value": "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication"
         }
+      ]
+    },
+    {
+      "title": "EMAIL REDACTED FOR PRIVACY",
+      "type": "object redacted due to authorization",
+      "description": [
+        "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
       ]
     }
   ]

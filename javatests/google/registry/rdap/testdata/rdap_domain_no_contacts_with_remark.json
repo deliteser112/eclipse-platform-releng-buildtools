@@ -1,10 +1,11 @@
 {
-  "objectClassName": "domain",
-  "handle": "%HANDLE%",
-  "ldhName": "%NAME%",
   "rdapConformance": [
+    "rdap_level_0",
     "icann_rdap_response_profile_0"
   ],
+  "objectClassName": "domain",
+  "handle": "%DOMAIN_HANDLE_1%",
+  "ldhName": "%DOMAIN_PUNYCODE_NAME_1%",
   "status": [
     "client delete prohibited",
     "client renew prohibited",
@@ -13,17 +14,17 @@
   ],
   "links": [
     {
-      "href": "https://example.tld/rdap/domain/%NAME%",
+      "href": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%",
       "type": "application/rdap+json",
       "rel": "self",
-      "value": "https://example.tld/rdap/domain/%NAME%"
+      "value": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%"
     }
   ],
   "events": [
     {
       "eventAction": "registration",
       "eventActor": "foo",
-      "eventDate": "2000-01-01T00:00:00.000Z"
+      "eventDate": "1997-01-01T00:00:00.000Z"
     },
     {
       "eventAction": "expiration",
@@ -32,192 +33,67 @@
     {
       "eventAction": "last update of RDAP database",
       "eventDate": "2000-01-01T00:00:00.000Z"
+    },
+    {
+      "eventAction": "last changed",
+      "eventDate": "2009-05-29T20:13:00.000Z"
     }
   ],
   "nameservers": [
     {
-      "status": [
-        "active",
-        "associated"
-      ],
-      "handle": "%NAMESERVER1ROID%",
+      "objectClassName": "nameserver",
+      "handle": "%NAMESERVER_HANDLE_1%",
+      "ldhName": "%NAMESERVER_NAME_1%",
       "links": [
         {
-          "href": "https://example.tld/rdap/nameserver/%NAMESERVER1NAME%",
+          "href": "https://example.tld/rdap/nameserver/%NAMESERVER_NAME_1%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.tld/rdap/nameserver/%NAMESERVER1NAME%"
+          "value": "https://example.tld/rdap/nameserver/%NAMESERVER_NAME_1%"
         }
       ],
-      "ldhName": "%NAMESERVER1NAME%",
-      "ipAddresses": {
-        "v4": [
-          "%NAMESERVER1ADDRESS%"
-        ]
-      },
-      "events": [
+      "remarks": [
         {
-          "eventAction": "registration",
-          "eventActor": "foo",
-          "eventDate": "1999-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        }
-      ],
-      "objectClassName": "nameserver",
-      "entities": [
-        {
-          "objectClassName": "entity",
-          "status": [ "active" ],
-          "handle": "1",
-          "roles": [ "registrar" ],
-          "links": [
-            {
-              "href": "https://example.tld/rdap/entity/1",
-              "type": "application/rdap+json",
-              "rel": "self",
-              "value": "https://example.tld/rdap/entity/1"
-            }
-          ],
-          "vcardArray" : [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "The Registrar"],
-              [
-                "adr",
-                {},
-                "text",
-                [
-                  "",
-                  "",
-                  "123 Example Boulevard",
-                  "Williamsburg",
-                  "NY",
-                  "11211",
-                  "United States"
-                ]
-              ],
-              ["tel", {"type":["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "the.registrar@example.com"]
-            ]
-          ],
-          "publicIds" : [
-            {
-              "type": "IANA Registrar ID",
-              "identifier":"1"
-            }
-          ],
-          "remarks": [
-            {
-              "title": "Incomplete Data",
-              "description": [
-                "Summary data only. For complete data, send a specific query for the object."
-              ],
-              "type": "object truncated due to unexplainable reasons"
-            }
-          ]
+          "title": "Incomplete Data",
+          "type": "object truncated due to unexplainable reasons",
+          "description": ["Summary data only. For complete data, send a specific query for the object."]
         }
       ]
     },
     {
-      "status": [
-        "active",
-        "associated"
-      ],
-      "handle": "%NAMESERVER2ROID%",
+      "objectClassName": "nameserver",
+      "handle": "%NAMESERVER_HANDLE_2%",
+      "ldhName": "%NAMESERVER_NAME_2%",
       "links": [
         {
-          "href": "https://example.tld/rdap/nameserver/%NAMESERVER2NAME%",
+          "href": "https://example.tld/rdap/nameserver/%NAMESERVER_NAME_2%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.tld/rdap/nameserver/%NAMESERVER2NAME%"
+          "value": "https://example.tld/rdap/nameserver/%NAMESERVER_NAME_2%"
         }
       ],
-      "ldhName": "%NAMESERVER2NAME%",
-      "ipAddresses": {
-        "v6": [
-          "%NAMESERVER2ADDRESS%"
-        ]
-      },
-      "events": [
+      "remarks": [
         {
-          "eventAction": "registration",
-          "eventActor": "foo",
-          "eventDate": "1998-01-01T00:00:00.000Z"
-        },
-        {
-          "eventAction": "last update of RDAP database",
-          "eventDate": "2000-01-01T00:00:00.000Z"
-        }
-      ],
-      "objectClassName": "nameserver",
-      "entities": [
-        {
-          "objectClassName": "entity",
-          "status": [ "active" ],
-          "handle": "1",
-          "roles": [ "registrar" ],
-          "links": [
-            {
-              "href": "https://example.tld/rdap/entity/1",
-              "type": "application/rdap+json",
-              "rel": "self",
-              "value": "https://example.tld/rdap/entity/1"
-            }
-          ],
-          "vcardArray" : [
-            "vcard",
-            [
-              ["version", {}, "text", "4.0"],
-              ["fn", {}, "text", "The Registrar"],
-              [
-                "adr",
-                {},
-                "text",
-                [
-                  "",
-                  "",
-                  "123 Example Boulevard",
-                  "Williamsburg",
-                  "NY",
-                  "11211",
-                  "United States"
-                ]
-              ],
-              ["tel", {"type":["voice"]}, "uri", "tel:+1.2223334444"],
-              ["email", {}, "text", "the.registrar@example.com"]
-            ]
-          ],
-          "publicIds" : [
-            {
-              "type": "IANA Registrar ID",
-              "identifier":"1"
-            }
-          ],
-          "remarks": [
-            {
-              "title": "Incomplete Data",
-              "description": [
-                "Summary data only. For complete data, send a specific query for the object."
-              ],
-              "type": "object truncated due to unexplainable reasons"
-            }
-          ]
+          "title": "Incomplete Data",
+          "type": "object truncated due to unexplainable reasons",
+          "description": ["Summary data only. For complete data, send a specific query for the object."]
         }
       ]
     }
   ],
+  "secureDNS" : {
+    "delegationSigned": true,
+    "zoneSigned":true,
+    "dsData":[
+      {"algorithm":2,"digest":"DEADFACE","digestType":3,"keyTag":1}
+    ]
+  },
   "entities": [
     {
       "objectClassName" : "entity",
       "handle" : "1",
-      "status" : ["active"],
       "roles" : ["registrar"],
-      "links" :
-      [
+      "links" : [
         {
           "value" : "https://example.tld/rdap/entity/1",
           "rel" : "self",
@@ -225,31 +101,35 @@
           "type" : "application/rdap+json"
         }
       ],
-      "publicIds" :
-      [
+      "publicIds" : [
         {
           "type" : "IANA Registrar ID",
           "identifier" : "1"
         }
       ],
-      "vcardArray" :
-      [
+      "vcardArray" : [
         "vcard",
         [
           ["version", {}, "text", "4.0"],
-          ["fn", {}, "text", "%REGISTRARNAME%"],
-          ["adr", {}, "text", [
-            "",
-            "",
-            "123 Example Boulevard <script>",
-            "Williamsburg <script>",
-            "NY",
-            "11211",
-            "United States"]],
-          ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2125551212"],
-          ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2125551213"],
-          ["email", {}, "text", "contact-us@example.com"]
+          ["fn", {}, "text", "%REGISTRAR_FULL_NAME_1%"]
         ]
+      ],
+      "entities" : [
+        {
+          "objectClassName":"entity",
+          "roles":["abuse"],
+          "status":["active"],
+          "vcardArray": [
+            "vcard",
+            [
+              ["version",{},"text","4.0"],
+              ["fn",{},"text","Jake Doe"],
+              ["tel",{"type":["voice"]},"uri","tel:+1.2125551216"],
+              ["tel",{"type":["fax"]},"uri","tel:+1.2125551216"],
+              ["email",{},"text","jakedoe@example.com"]
+            ]
+          ]
+        }
       ],
       "remarks": [
         {
@@ -260,15 +140,131 @@
           "type": "object truncated due to unexplainable reasons"
         }
       ]
-    }
-  ],
-  "remarks": [
+    },
     {
-      "title": "Contacts Hidden",
-      "description": [
-        "Domain contacts are visible only to the owning registrar."
+      "objectClassName": "entity",
+      "handle": "REDACTED FOR PRIVACY",
+      "roles":["administrative"],
+      "remarks": [
+        {
+          "title":"REDACTED FOR PRIVACY",
+          "type":"object redacted due to authorization",
+          "description": [
+            "Some of the data in this object has been removed.",
+            "Contact personal data is visible only to the owning registrar."
+          ],
+          "links":[
+            {
+              "href":"https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+              "rel":"alternate",
+              "type":"text/html",
+              "value":"https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication"
+            }
+          ]
+        },
+        {
+          "title":"EMAIL REDACTED FOR PRIVACY",
+          "type":"object redacted due to authorization",
+          "description": [
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
+        }
       ],
-      "type": "object truncated due to unexplainable reasons"
+      "vcardArray":[
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "REDACTED FOR PRIVACY"],
+          ["org", {}, "text", "REDACTED FOR PRIVACY"],
+          ["adr", {}, "text", ["", "", "REDACTED FOR PRIVACY", "REDACTED FOR PRIVACY", "REDACTED FOR PRIVACY", "REDACTED FOR PRIVACY", "XX"]],
+          ["tel", {"type":["voice"]}, "uri", "tel:REDACTED FOR PRIVACY"],
+          ["tel", {"type":["fax"]}, "uri", "tel:REDACTED FOR PRIVACY"]
+        ]
+      ]
+    },
+
+    {
+      "objectClassName":"entity",
+      "handle":"REDACTED FOR PRIVACY",
+      "remarks":[
+        {
+          "title":"REDACTED FOR PRIVACY",
+          "type":"object redacted due to authorization",
+          "description":[
+            "Some of the data in this object has been removed.",
+            "Contact personal data is visible only to the owning registrar."
+          ],
+          "links":[
+            {
+              "href":"https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+              "rel":"alternate",
+              "type":"text/html",
+              "value":"https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication"
+            }
+          ]
+        },
+        {
+          "description":[
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ],
+          "title":"EMAIL REDACTED FOR PRIVACY",
+          "type":"object redacted due to authorization"
+        }
+      ],
+      "roles": ["technical"],
+      "vcardArray": [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "REDACTED FOR PRIVACY"],
+          ["org", {}, "text", "REDACTED FOR PRIVACY"],
+          ["adr", {}, "text", ["", "", "REDACTED FOR PRIVACY", "REDACTED FOR PRIVACY", "REDACTED FOR PRIVACY", "REDACTED FOR PRIVACY", "XX"]],
+          ["tel", {"type":["voice"]}, "uri", "tel:REDACTED FOR PRIVACY"],
+          ["tel", {"type":["fax"]}, "uri", "tel:REDACTED FOR PRIVACY"]
+        ]
+      ]
+    },
+
+    {
+      "objectClassName":"entity",
+      "handle":"REDACTED FOR PRIVACY",
+      "remarks":[
+        {
+          "title":"REDACTED FOR PRIVACY",
+          "type":"object redacted due to authorization",
+          "description":[
+            "Some of the data in this object has been removed.",
+            "Contact personal data is visible only to the owning registrar."
+          ],
+          "links":[
+            {
+              "href":"https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+              "rel":"alternate",
+              "type":"text/html",
+              "value":"https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication"
+            }
+          ]
+        },
+        {
+          "title":"EMAIL REDACTED FOR PRIVACY",
+          "type":"object redacted due to authorization",
+          "description":[
+            "Please query the RDDS service of the Registrar of Record identifies in this output for information on how to contact the Registrant of the queried domain name."
+          ]
+        }
+      ],
+      "roles":["registrant"],
+      "vcardArray":[
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "REDACTED FOR PRIVACY"],
+          ["org", {}, "text", "REDACTED FOR PRIVACY"],
+          ["adr", {}, "text", ["", "", "REDACTED FOR PRIVACY", "REDACTED FOR PRIVACY", "REDACTED FOR PRIVACY", "REDACTED FOR PRIVACY", "XX"]],
+          ["tel", {"type":["voice"]}, "uri", "tel:REDACTED FOR PRIVACY"],
+          ["tel", {"type":["fax"]}, "uri", "tel:REDACTED FOR PRIVACY"]
+        ]
+      ]
     }
   ]
 }
