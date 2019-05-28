@@ -60,7 +60,7 @@ def domain_registry_repositories(
         omit_com_google_auto_factory = False,
         omit_com_google_auto_service = False,
         omit_com_google_auto_value = False,
-        omit_com_google_code_gson = False,
+        omit_com_google_gson = False,
         omit_com_google_cloud_bigdataoss_gcsio = False,
         omit_com_google_cloud_bigdataoss_util = False,
         omit_com_google_code_findbugs_jsr305 = False,
@@ -249,8 +249,8 @@ def domain_registry_repositories(
         com_google_auto_service()
     if not omit_com_google_auto_value:
         com_google_auto_value()
-    if not omit_com_google_code_gson:
-        com_google_code_gson()
+    if not omit_com_google_gson:
+        com_google_gson()
     if not omit_com_google_cloud_bigdataoss_gcsio:
         com_google_cloud_bigdataoss_gcsio()
     if not omit_com_google_cloud_bigdataoss_util:
@@ -1134,9 +1134,9 @@ def com_google_auto_value():
         ]),
     )
 
-def com_google_code_gson():
+def com_google_gson():
     java_import_external(
-        name = "com_google_code_gson",
+        name = "com_google_gson",
         licenses = ["notice"],  # Apache 2.0
         jar_sha256 = "233a0149fc365c9f6edbd683cfe266b19bdc773be98eabdaf6b3c924b48e7d81",
         jar_urls = [
