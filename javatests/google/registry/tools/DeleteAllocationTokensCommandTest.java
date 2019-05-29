@@ -20,7 +20,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 
-import com.beust.jcommander.ParameterException;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.domain.token.AllocationToken.TokenType;
@@ -52,14 +51,6 @@ public class DeleteAllocationTokensCommandTest
   }
 
   @Test
-  public void test_deleteAllUnredeemedTokens_whenEmptyPrefixSpecified() throws Exception {
-    runCommandForced("--prefix", "");
-    assertThat(reloadTokens(preNot1, preNot2, othrNot)).isEmpty();
-    assertThat(reloadTokens(preRed1, preRed2, othrRed)).containsExactly(preRed1, preRed2, othrRed);
-    assertInStdout("Deleted tokens: asdgfho7HASDS, prefix2978204, prefix8ZZZhs8");
-  }
-
-  @Test
   public void test_deleteOnlyUnredeemedTokensWithPrefix() throws Exception {
     runCommandForced("--prefix", "prefix");
     assertThat(reloadTokens(preNot1, preNot2)).isEmpty();
@@ -76,6 +67,14 @@ public class DeleteAllocationTokensCommandTest
   }
 
   @Test
+  public void test_deleteParticularTokens() throws Exception {
+    runCommandForced("--tokens", "prefix2978204,asdgfho7HASDS");
+    assertThat(reloadTokens(preNot1, othrNot)).isEmpty();
+    assertThat(reloadTokens(preRed1, preRed2, preNot2, othrRed))
+        .containsExactly(preRed1, preRed2, preNot2, othrRed);
+  }
+
+  @Test
   public void test_deleteTokensWithNonExistentPrefix_doesNothing() throws Exception {
     runCommandForced("--prefix", "nonexistent");
     assertThat(reloadTokens(preRed1, preRed2, preNot1, preNot2, othrRed, othrNot))
@@ -84,10 +83,10 @@ public class DeleteAllocationTokensCommandTest
 
   @Test
   public void test_dryRun_deletesNothing() throws Exception {
-    runCommandForced("--prefix", "", "--dry_run");
+    runCommandForced("--prefix", "prefix", "--dry_run");
     assertThat(reloadTokens(preRed1, preRed2, preNot1, preNot2, othrRed, othrNot))
         .containsExactly(preRed1, preRed2, preNot1, preNot2, othrRed, othrNot);
-    assertInStdout("Would delete tokens: asdgfho7HASDS, prefix2978204, prefix8ZZZhs8");
+    assertInStdout("Would delete tokens: prefix2978204, prefix8ZZZhs8");
   }
 
   @Test
@@ -134,10 +133,29 @@ public class DeleteAllocationTokensCommandTest
 
   @Test
   public void test_prefixIsRequired() {
-    ParameterException thrown = assertThrows(ParameterException.class, () -> runCommandForced());
+    IllegalArgumentException thrown =
+        assertThrows(IllegalArgumentException.class, this::runCommandForced);
     assertThat(thrown)
         .hasMessageThat()
-        .isEqualTo("The following option is required: -p, --prefix ");
+        .isEqualTo("Must provide one of --tokens or --prefix, not both / neither");
+  }
+
+  @Test
+  public void testFailure_bothPrefixAndTokens() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> runCommandForced("--prefix", "somePrefix", "--tokens", "someToken"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Must provide one of --tokens or --prefix, not both / neither");
+  }
+
+  @Test
+  public void testFailure_emptyPrefix() {
+    IllegalArgumentException thrown =
+        assertThrows(IllegalArgumentException.class, () -> runCommandForced("--prefix", ""));
+    assertThat(thrown).hasMessageThat().isEqualTo("Provided prefix should not be blank");
   }
 
   private static AllocationToken persistToken(

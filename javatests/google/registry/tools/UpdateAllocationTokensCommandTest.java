@@ -176,7 +176,7 @@ public class UpdateAllocationTokensCommandTest
                 IllegalArgumentException.class,
                 () -> runCommandForced("--prefix", "token", "--tokens", "token")))
         .hasMessageThat()
-        .isEqualTo("Must provide one of --tokens or --prefix, not both");
+        .isEqualTo("Must provide one of --tokens or --prefix, not both / neither");
   }
 
   @Test
@@ -185,7 +185,14 @@ public class UpdateAllocationTokensCommandTest
             assertThrows(
                 IllegalArgumentException.class, () -> runCommandForced("--allowed_tlds", "tld")))
         .hasMessageThat()
-        .isEqualTo("Must provide one of --tokens or --prefix, not both");
+        .isEqualTo("Must provide one of --tokens or --prefix, not both / neither");
+  }
+
+  @Test
+  public void testFailure_emptyPrefix() {
+    IllegalArgumentException thrown =
+        assertThrows(IllegalArgumentException.class, () -> runCommandForced("--prefix", ""));
+    assertThat(thrown).hasMessageThat().isEqualTo("Provided prefix should not be blank");
   }
 
   private static AllocationToken.Builder builderWithPromo() {

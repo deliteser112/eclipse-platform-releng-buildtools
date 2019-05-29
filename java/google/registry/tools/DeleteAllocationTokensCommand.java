@@ -25,37 +25,24 @@ import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.cmd.Query;
 import google.registry.model.domain.token.AllocationToken;
 import java.util.List;
 
 /**
  * Command to delete unused {@link AllocationToken}s.
  *
- * <p>Allocation tokens that have been redeemed cannot be deleted. To delete a single allocation
- * token, specify the entire token as the prefix.
+ * <p>Note that all multi-use tokens and redeemed single-use tokens cannot be deleted.
  */
 @Parameters(
     separators = " =",
-    commandDescription = "Deletes the unused AllocationTokens with a given prefix.")
-final class DeleteAllocationTokensCommand extends ConfirmingCommand
-    implements CommandWithRemoteApi {
-
-  @Parameter(
-      names = {"-p", "--prefix"},
-      description = "Allocation token prefix; if blank, deletes all unused tokens",
-      required = true)
-  private String prefix;
+    commandDescription =
+        "Deletes the unused AllocationTokens with a given prefix (or specified tokens).")
+final class DeleteAllocationTokensCommand extends UpdateOrDeleteAllocationTokensCommand {
 
   @Parameter(
       names = {"--with_domains"},
       description = "Allow deletion of allocation tokens with specified domains; defaults to false")
-  boolean withDomains;
-
-  @Parameter(
-      names = {"--dry_run"},
-      description = "Do not actually delete the tokens; defaults to false")
-  boolean dryRun;
+  private boolean withDomains;
 
   private static final int BATCH_SIZE = 20;
   private static final Joiner JOINER = Joiner.on(", ");
@@ -64,12 +51,7 @@ final class DeleteAllocationTokensCommand extends ConfirmingCommand
 
   @Override
   public void init() {
-    Query<AllocationToken> query =
-        ofy().load().type(AllocationToken.class).filter("redemptionHistoryEntry", null);
-    tokensToDelete =
-        query.keys().list().stream()
-            .filter(key -> key.getName().startsWith(prefix))
-            .collect(toImmutableSet());
+    tokensToDelete = getTokenKeys();
   }
 
   @Override
