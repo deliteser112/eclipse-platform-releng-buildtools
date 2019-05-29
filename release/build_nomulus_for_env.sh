@@ -19,7 +19,7 @@
 
 if [ $# -ne 2 ];
 then
-  echo "Usage: $0 alpha|crash|sandbox|production <destination>"
+  echo "Usage: $0 alpha|crash|sandbox|production|tool <destination>"
   exit 1
 fi
 
@@ -27,22 +27,35 @@ environment="$1"
 dest="$2/$1"
 gcs_prefix="storage.googleapis.com/domain-registry-maven-repository"
 
-cd gradle
-./gradlew clean stage -Penvironment="${environment}" \
-  -PmavenUrl=https://"${gcs_prefix}"/maven \
-  -PpluginsUrl=https://"${gcs_prefix}"/plugins
-cd -
+if [ "${environment}" == tool ]
+then
+  mkdir -p "${dest}"
 
-mkdir -p "${dest}"
+  cd gradle
+  ./gradlew clean :core:nomulus \
+    -PmavenUrl=https://"${gcs_prefix}"/maven \
+    -PpluginsUrl=https://"${gcs_prefix}"/plugins
+  cd -
 
-for service in default pubapi backend tools
-do
-  mv gradle/services/"${service}"/build/staged-app "${dest}/${service}"
-done
+  mv gradle/core/build/libs/nomulus.jar .
+else
+  mkdir -p "${dest}"
 
-mv gradle/core/build/resources/main/google/registry/env/common/META-INF \
-  "${dest}/META-INF"
+  cd gradle
+  ./gradlew clean stage -Penvironment="${environment}" \
+    -PmavenUrl=https://"${gcs_prefix}"/maven \
+    -PpluginsUrl=https://"${gcs_prefix}"/plugins
+  cd -
 
-cd "${dest}"
-tar cvf ../../"${environment}.tar" .
-cd -
+  for service in default pubapi backend tools
+  do
+    mv gradle/services/"${service}"/build/staged-app "${dest}/${service}"
+  done
+
+  mv gradle/core/build/resources/main/google/registry/env/common/META-INF \
+    "${dest}/META-INF"
+
+  cd "${dest}"
+  tar cvf ../../"${environment}.tar" .
+  cd -
+fi
