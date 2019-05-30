@@ -453,6 +453,42 @@ public class RegistrarTest extends EntityTestCase {
   }
 
   @Test
+  public void testFailure_nullEmail() {
+    NullPointerException thrown =
+        assertThrows(NullPointerException.class, () -> registrar.asBuilder().setEmailAddress(null));
+    assertThat(thrown).hasMessageThat().isEqualTo("Provided email was null");
+  }
+
+  @Test
+  public void testFailure_invalidEmail() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> registrar.asBuilder().setEmailAddress("lolcat"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Provided email lolcat is not a valid email address");
+  }
+
+  @Test
+  public void testFailure_nullIcannReferralEmail() {
+    NullPointerException thrown =
+        assertThrows(
+            NullPointerException.class, () -> registrar.asBuilder().setIcannReferralEmail(null));
+    assertThat(thrown).hasMessageThat().isEqualTo("Provided email was null");
+  }
+
+  @Test
+  public void testFailure_invalidIcannEmail() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> registrar.asBuilder().setIcannReferralEmail("lolcat"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Provided email lolcat is not a valid email address");
+  }
+
+  @Test
   public void testSuccess_setAllowedTldsUncached_newTldNotInCache() {
     int origSingletonCacheRefreshSeconds =
         RegistryConfig.CONFIG_SETTINGS.get().caching.singletonCacheRefreshSeconds;
