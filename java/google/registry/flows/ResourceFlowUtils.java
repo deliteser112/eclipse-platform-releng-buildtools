@@ -31,7 +31,8 @@ import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.NotPendingTransferException;
 import google.registry.flows.exceptions.NotTransferInitiatorException;
-import google.registry.flows.exceptions.ResourceAlreadyExistsException;
+import google.registry.flows.exceptions.ResourceAlreadyExistsForThisClientException;
+import google.registry.flows.exceptions.ResourceCreateContentionException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.flows.exceptions.ResourceToDeleteIsReferencedException;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
@@ -45,6 +46,7 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.transfer.TransferStatus;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -131,9 +133,16 @@ public final class ResourceFlowUtils {
   }
 
   public static <R extends EppResource> void verifyResourceDoesNotExist(
-      Class<R> clazz, String targetId, DateTime now)  throws EppException {
-    if (loadAndGetKey(clazz, targetId, now) != null) {
-      throw new ResourceAlreadyExistsException(targetId);
+      Class<R> clazz, String targetId, DateTime now, String clientId) throws EppException {
+    Key<R> key = loadAndGetKey(clazz, targetId, now);
+    if (key != null) {
+      R resource = ofy().load().key(key).now();
+      // These are similar exceptions, but we can track them internally as log-based metrics.
+      if (Objects.equals(clientId, resource.getPersistedCurrentSponsorClientId())) {
+        throw new ResourceAlreadyExistsForThisClientException(targetId);
+      } else {
+        throw new ResourceCreateContentionException(targetId);
+      }
     }
   }
 

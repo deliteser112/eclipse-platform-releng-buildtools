@@ -17,8 +17,10 @@ package google.registry.flows.contact;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.assertThrows;
 
@@ -26,7 +28,8 @@ import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.contact.ContactFlowUtils.BadInternationalizedPostalInfoException;
 import google.registry.flows.contact.ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException;
-import google.registry.flows.exceptions.ResourceAlreadyExistsException;
+import google.registry.flows.exceptions.ResourceAlreadyExistsForThisClientException;
+import google.registry.flows.exceptions.ResourceCreateContentionException;
 import google.registry.model.contact.ContactResource;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -44,8 +47,10 @@ public class ContactCreateFlowTest
     assertTransactionalFlow(true);
     runFlowAssertResponse(loadFile("contact_create_response.xml"));
     // Check that the contact was created and persisted with a history entry.
-    assertAboutContacts().that(reloadResourceByForeignKey())
-        .hasOnlyOneHistoryEntryWhich().hasNoXml();
+    assertAboutContacts()
+        .that(reloadResourceByForeignKey())
+        .hasOnlyOneHistoryEntryWhich()
+        .hasNoXml();
     assertNoBillingEvents();
     assertEppResourceIndexEntityFor(reloadResourceByForeignKey());
   }
@@ -70,12 +75,28 @@ public class ContactCreateFlowTest
   @Test
   public void testFailure_alreadyExists() throws Exception {
     persistActiveContact(getUniqueIdFromCommand());
-    ResourceAlreadyExistsException thrown =
-        assertThrows(ResourceAlreadyExistsException.class, this::runFlow);
+    ResourceAlreadyExistsForThisClientException thrown =
+        assertThrows(ResourceAlreadyExistsForThisClientException.class, this::runFlow);
     assertThat(thrown)
         .hasMessageThat()
         .contains(
             String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_resourceContention() throws Exception {
+    String targetId = getUniqueIdFromCommand();
+    persistResource(
+        newContactResource(targetId)
+            .asBuilder()
+            .setPersistedCurrentSponsorClientId("NewRegistrar")
+            .build());
+    ResourceCreateContentionException thrown =
+        assertThrows(ResourceCreateContentionException.class, this::runFlow);
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(String.format("Object with given ID (%s) already exists", targetId));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

@@ -37,6 +37,8 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
+import google.registry.flows.exceptions.ResourceAlreadyExistsForThisClientException;
+import google.registry.flows.exceptions.ResourceCreateContentionException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -64,7 +66,8 @@ import org.joda.time.DateTime;
  * update DNS.
  *
  * @error {@link google.registry.flows.FlowUtils.IpAddressVersionMismatchException}
- * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
+ * @error {@link ResourceAlreadyExistsForThisClientException}
+ * @error {@link ResourceCreateContentionException}
  * @error {@link HostFlowUtils.HostNameTooLongException}
  * @error {@link HostFlowUtils.HostNameTooShallowException}
  * @error {@link HostFlowUtils.InvalidHostNameException}
@@ -101,7 +104,7 @@ public final class HostCreateFlow implements TransactionalFlow {
     validateClientIsLoggedIn(clientId);
     Create command = (Create) resourceCommand;
     DateTime now = ofy().getTransactionTime();
-    verifyResourceDoesNotExist(HostResource.class, targetId, now);
+    verifyResourceDoesNotExist(HostResource.class, targetId, now, clientId);
     // The superordinate domain of the host object if creating an in-bailiwick host, or null if
     // creating an external host. This is looked up before we actually create the Host object so
     // we can detect error conditions earlier.

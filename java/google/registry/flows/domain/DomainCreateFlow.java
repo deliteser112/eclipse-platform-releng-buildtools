@@ -68,6 +68,8 @@ import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponsePa
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.EntityChanges;
 import google.registry.flows.domain.token.AllocationTokenFlowUtils;
+import google.registry.flows.exceptions.ResourceAlreadyExistsForThisClientException;
+import google.registry.flows.exceptions.ResourceCreateContentionException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -114,13 +116,19 @@ import org.joda.time.Duration;
 /**
  * An EPP flow that creates a new domain resource.
  *
- * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotInPromotionException}
- * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotValidForRegistrarException}
- * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotValidForTldException}
- * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.AlreadyRedeemedAllocationTokenException}
- * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.InvalidAllocationTokenException}
+ * @error {@link
+ *     google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotInPromotionException}
+ * @error {@link
+ *     google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotValidForRegistrarException}
+ * @error {@link
+ *     google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTokenNotValidForTldException}
+ * @error {@link
+ *     google.registry.flows.domain.token.AllocationTokenFlowUtils.AlreadyRedeemedAllocationTokenException}
+ * @error {@link
+ *     google.registry.flows.domain.token.AllocationTokenFlowUtils.InvalidAllocationTokenException}
  * @error {@link google.registry.flows.exceptions.OnlyToolCanPassMetadataException}
- * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
+ * @error {@link ResourceAlreadyExistsForThisClientException}
+ * @error {@link ResourceCreateContentionException}
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException}
  * @error {@link google.registry.flows.FlowUtils.UnknownCurrencyEppException}
@@ -218,7 +226,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     verifyUnitIsYears(period);
     int years = period.getValue();
     validateRegistrationPeriod(years);
-    verifyResourceDoesNotExist(DomainBase.class, targetId, now);
+    verifyResourceDoesNotExist(DomainBase.class, targetId, now, clientId);
     // Validate that this is actually a legal domain name on a TLD that the registrar has access to.
     InternetDomainName domainName = validateDomainName(command.getFullyQualifiedDomainName());
     String domainLabel = domainName.parts().get(0);

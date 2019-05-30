@@ -29,6 +29,8 @@ import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
+import google.registry.flows.exceptions.ResourceAlreadyExistsForThisClientException;
+import google.registry.flows.exceptions.ResourceCreateContentionException;
 import google.registry.model.contact.ContactCommand.Create;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.metadata.MetadataExtension;
@@ -46,7 +48,8 @@ import org.joda.time.DateTime;
 /**
  * An EPP flow that creates a new contact.
  *
- * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
+ * @error {@link ResourceAlreadyExistsForThisClientException}
+ * @error {@link ResourceCreateContentionException}
  * @error {@link ContactFlowUtils.BadInternationalizedPostalInfoException}
  * @error {@link ContactFlowUtils.DeclineContactDisclosureFieldDisallowedPolicyException}
  */
@@ -69,7 +72,7 @@ public final class ContactCreateFlow implements TransactionalFlow {
     validateClientIsLoggedIn(clientId);
     Create command = (Create) resourceCommand;
     DateTime now = ofy().getTransactionTime();
-    verifyResourceDoesNotExist(ContactResource.class, targetId, now);
+    verifyResourceDoesNotExist(ContactResource.class, targetId, now, clientId);
     ContactResource newContact =
         new ContactResource.Builder()
             .setContactId(targetId)

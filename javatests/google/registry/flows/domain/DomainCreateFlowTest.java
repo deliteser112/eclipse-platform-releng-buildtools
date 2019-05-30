@@ -40,6 +40,7 @@ import static google.registry.testing.DatastoreHelper.deleteTld;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newContactResource;
+import static google.registry.testing.DatastoreHelper.newDomainBase;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -134,7 +135,8 @@ import google.registry.flows.domain.token.AllocationTokenFlowUtils.AllocationTok
 import google.registry.flows.domain.token.AllocationTokenFlowUtils.AlreadyRedeemedAllocationTokenException;
 import google.registry.flows.domain.token.AllocationTokenFlowUtils.InvalidAllocationTokenException;
 import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
-import google.registry.flows.exceptions.ResourceAlreadyExistsException;
+import google.registry.flows.exceptions.ResourceAlreadyExistsForThisClientException;
+import google.registry.flows.exceptions.ResourceCreateContentionException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -965,14 +967,31 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFailure_alreadyExists() throws Exception {
     persistContactsAndHosts();
     persistActiveDomain(getUniqueIdFromCommand());
-    ResourceAlreadyExistsException thrown =
-        assertThrows(ResourceAlreadyExistsException.class, this::runFlow);
+    ResourceAlreadyExistsForThisClientException thrown =
+        assertThrows(ResourceAlreadyExistsForThisClientException.class, this::runFlow);
     assertAboutEppExceptions()
         .that(thrown)
         .marshalsToXml()
         .and()
         .hasMessage(
             String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
+  }
+
+  @Test
+  public void testFailure_resourceContention() throws Exception {
+    persistContactsAndHosts();
+    String targetId = getUniqueIdFromCommand();
+    persistResource(
+        newDomainBase(targetId)
+            .asBuilder()
+            .setPersistedCurrentSponsorClientId("NewRegistrar")
+            .build());
+    ResourceCreateContentionException thrown =
+        assertThrows(ResourceCreateContentionException.class, this::runFlow);
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(String.format("Object with given ID (%s) already exists", targetId));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

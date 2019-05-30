@@ -20,6 +20,7 @@ import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.newDomainBase;
+import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
@@ -37,7 +38,8 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowUtils.IpAddressVersionMismatchException;
 import google.registry.flows.ResourceFlowTestCase;
-import google.registry.flows.exceptions.ResourceAlreadyExistsException;
+import google.registry.flows.exceptions.ResourceAlreadyExistsForThisClientException;
+import google.registry.flows.exceptions.ResourceCreateContentionException;
 import google.registry.flows.host.HostCreateFlow.SubordinateHostMustHaveIpException;
 import google.registry.flows.host.HostCreateFlow.UnexpectedExternalHostIpException;
 import google.registry.flows.host.HostFlowUtils.HostNameNotLowerCaseException;
@@ -200,12 +202,29 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   public void testFailure_alreadyExists() throws Exception {
     setEppHostCreateInput("ns1.example.tld", null);
     persistActiveHost(getUniqueIdFromCommand());
-    ResourceAlreadyExistsException thrown =
-        assertThrows(ResourceAlreadyExistsException.class, this::runFlow);
+    ResourceAlreadyExistsForThisClientException thrown =
+        assertThrows(ResourceAlreadyExistsForThisClientException.class, this::runFlow);
     assertThat(thrown)
         .hasMessageThat()
         .contains(
             String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
+  }
+
+  @Test
+  public void testFailure_resourceContention() throws Exception {
+    setEppHostCreateInput("ns1.example.tld", null);
+    String targetId = getUniqueIdFromCommand();
+    persistResource(
+        newHostResource(targetId)
+            .asBuilder()
+            .setPersistedCurrentSponsorClientId("NewRegistrar")
+            .build());
+    ResourceCreateContentionException thrown =
+        assertThrows(ResourceCreateContentionException.class, this::runFlow);
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(String.format("Object with given ID (%s) already exists", targetId));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

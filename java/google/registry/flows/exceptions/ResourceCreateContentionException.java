@@ -17,8 +17,11 @@ package google.registry.flows.exceptions;
 import google.registry.flows.EppException.ObjectAlreadyExistsException;
 
 /** Resource with this id already exists. */
-public class ResourceAlreadyExistsException extends ObjectAlreadyExistsException {
-  public ResourceAlreadyExistsException(String resourceId) {
+// This is different from ResourceAlreadyExistsForThisClientException in that this is used in
+// resource creation contention situations, where another client owns this resource. Javadoc and
+// exception message are the same for backcompat purposes.
+public class ResourceCreateContentionException extends ObjectAlreadyExistsException {
+  public ResourceCreateContentionException(String resourceId) {
     super(String.format("Object with given ID (%s) already exists", resourceId));
   }
 }
