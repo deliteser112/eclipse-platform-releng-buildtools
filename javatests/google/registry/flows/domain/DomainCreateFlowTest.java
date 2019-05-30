@@ -1109,6 +1109,27 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
+  public void testSuccess_anchorTenant_duringQuietPeriodBeforeSunrise() throws Exception {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setTldStateTransitions(
+                ImmutableSortedMap.of(
+                    START_OF_TIME, PREDELEGATION,
+                    DateTime.parse("1999-01-01T00:00:00Z"), QUIET_PERIOD,
+                    // The anchor tenant is created here, on 1999-04-03
+                    DateTime.parse("1999-07-01T00:00:00Z"), START_DATE_SUNRISE,
+                    DateTime.parse("2000-01-01T00:00:00Z"), GENERAL_AVAILABILITY))
+            .build());
+    setEppInput("domain_create_anchor_allocationtoken.xml");
+    persistContactsAndHosts();
+    runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT), allocationToken);
+    assertNoLordn();
+    assertAllocationTokenWasRedeemed("abcDEF23456");
+  }
+
+  @Test
   public void testSuccess_reservedDomain_viaAllocationTokenExtension() throws Exception {
     allocationToken =
         persistResource(
