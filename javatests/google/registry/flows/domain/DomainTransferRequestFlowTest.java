@@ -23,6 +23,7 @@ import static google.registry.batch.AsyncTaskEnqueuer.PARAM_RESOURCE_KEY;
 import static google.registry.batch.AsyncTaskEnqueuer.PATH_RESAVE_ENTITY;
 import static google.registry.batch.AsyncTaskEnqueuer.QUEUE_ASYNC_ACTIONS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registry.TldState.QUIET_PERIOD;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
 import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
 import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST;
@@ -870,6 +871,17 @@ public class DomainTransferRequestFlowTest
             .get()
             .asBuilder()
             .setState(State.SUSPENDED)
+            .build());
+    doSuccessfulTest("domain_transfer_request.xml", "domain_transfer_request_response.xml");
+  }
+
+  @Test
+  public void testSuccess_inQuietPeriod() throws Exception {
+    setupDomain("example", "tld");
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setTldStateTransitions(ImmutableSortedMap.of(START_OF_TIME, QUIET_PERIOD))
             .build());
     doSuccessfulTest("domain_transfer_request.xml", "domain_transfer_request_response.xml");
   }

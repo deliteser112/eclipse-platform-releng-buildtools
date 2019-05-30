@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registry.TldState.QUIET_PERIOD;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainBase;
@@ -26,10 +27,12 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TestDataHelper.updateSubstitutions;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.FlowUtils.UnknownCurrencyEppException;
@@ -55,6 +58,7 @@ import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.RequestCapturingAsyncDatastoreService;
+import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -267,6 +271,16 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     eppLoader.replaceAll("JD1234-REP", registrant.getRepoId());
     sessionMetadata.setClientId("ClientZ");
     doSuccessfulTest("domain_info_response.xml", false);
+  }
+
+  @Test
+  public void testSuccess_inQuietPeriod() throws Exception {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setTldStateTransitions(ImmutableSortedMap.of(START_OF_TIME, QUIET_PERIOD))
+            .build());
+    doSuccessfulTest("domain_info_response.xml");
   }
 
   @Test
