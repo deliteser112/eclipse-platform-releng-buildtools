@@ -16,8 +16,8 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 

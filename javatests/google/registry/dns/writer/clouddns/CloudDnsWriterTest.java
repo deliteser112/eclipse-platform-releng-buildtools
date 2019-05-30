@@ -59,8 +59,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -428,10 +428,13 @@ public class CloudDnsWriterTest {
   public void retryMutateZoneOnError() {
     CloudDnsWriter spyWriter = spy(writer);
     // First call - throw. Second call - do nothing.
-    doThrow(ZoneStateException.class).doNothing().when(spyWriter).mutateZone(Matchers.any());
+    doThrow(ZoneStateException.class)
+        .doNothing()
+        .when(spyWriter)
+        .mutateZone(ArgumentMatchers.any());
     spyWriter.commit();
 
-    verify(spyWriter, times(2)).mutateZone(Matchers.any());
+    verify(spyWriter, times(2)).mutateZone(ArgumentMatchers.any());
   }
 
   @Test

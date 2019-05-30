@@ -48,7 +48,7 @@ import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.mockito.ArgumentMatchers;
 
 /** Unit tests for {@link GenerateAllocationTokensCommand}. */
 public class GenerateAllocationTokensCommandTest
@@ -93,7 +93,7 @@ public class GenerateAllocationTokensCommandTest
         .doThrow(fakeException)
         .doCallRealMethod()
         .when(spyCommand)
-        .saveTokens(Mockito.any());
+        .saveTokens(ArgumentMatchers.any());
     runCommand("--number", "1");
     assertAllocationTokens(createToken("123456789ABCDEFG", null, null));
     assertInStdout("123456789ABCDEFG");

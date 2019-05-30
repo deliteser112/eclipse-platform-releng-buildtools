@@ -57,7 +57,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -99,7 +99,7 @@ public class EppControllerTest extends ShardableTestCase {
     loggerToIntercept.addHandler(logHandler);
 
     when(sessionMetadata.getClientId()).thenReturn("some-client");
-    when(flowComponentBuilder.flowModule(Matchers.any())).thenReturn(flowComponentBuilder);
+    when(flowComponentBuilder.flowModule(ArgumentMatchers.any())).thenReturn(flowComponentBuilder);
     when(flowComponentBuilder.build()).thenReturn(flowComponent);
     when(flowComponent.flowRunner()).thenReturn(flowRunner);
     when(eppOutput.isResponse()).thenReturn(true);

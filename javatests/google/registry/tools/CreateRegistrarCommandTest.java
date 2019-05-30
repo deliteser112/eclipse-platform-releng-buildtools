@@ -40,8 +40,8 @@ import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 /** Unit tests for {@link CreateRegistrarCommand}. */
 public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarCommand> {
@@ -238,10 +238,10 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_groupCreationFails() throws Exception {
     when(connection.sendPostRequest(
-            Mockito.anyString(),
-            Mockito.anyMap(),
-            Mockito.any(MediaType.class),
-            Mockito.any(byte[].class)))
+            ArgumentMatchers.anyString(),
+            ArgumentMatchers.anyMap(),
+            ArgumentMatchers.any(MediaType.class),
+            ArgumentMatchers.any(byte[].class)))
         .thenThrow(new IOException("BAD ROBOT NO COOKIE"));
     runCommandForced(
         "--name=blobio",
