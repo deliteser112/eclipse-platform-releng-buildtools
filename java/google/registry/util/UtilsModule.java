@@ -22,6 +22,7 @@ import dagger.Provides;
 import java.security.NoSuchAlgorithmException;
 import java.security.ProviderException;
 import java.security.SecureRandom;
+import java.util.Random;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -48,7 +49,6 @@ public abstract class UtilsModule {
   abstract AppEngineServiceUtils provideAppEngineServiceUtils(
       AppEngineServiceUtilsImpl appEngineServiceUtilsImpl);
 
-
   @Singleton
   @Provides
   public static SecureRandom provideSecureRandom() {
@@ -58,6 +58,10 @@ public abstract class UtilsModule {
       throw new ProviderException(e);
     }
   }
+
+  @Binds
+  @Singleton
+  abstract Random provideSecureRandomAsRandom(SecureRandom random);
 
   @Singleton
   @Provides

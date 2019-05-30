@@ -14,6 +14,7 @@
 
 package google.registry.tools.server;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.registry.Registries.assertTldsExist;
@@ -32,9 +33,11 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.NonFinalForTesting;
+import java.util.Random;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Duration;
 
 /**
  * A mapreduce that enqueues DNS publish tasks on all active domains on the specified TLD(s).
@@ -46,6 +49,11 @@ import org.joda.time.DateTimeZone;
  * <p>Because there are no auth settings in the {@link Action} annotation, this command can only be
  * run internally, or by pretending to be internal by setting the X-AppEngine-QueueName header,
  * which only admin users can do.
+ *
+ * <p>You must pass in a number of <code>smearMinutes</code> as a URL parameter so that the DNS
+ * queue doesn't get overloaded. A rough rule of thumb for Cloud DNS is 1 minute per every 1,000
+ * domains. This smears the updates out over the next N minutes. For small TLDs consisting of fewer
+ * than 1,000 domains, passing in 1 is fine (which will execute all the updates immediately).
  */
 @Action(
     service = Action.Service.TOOLS,
@@ -57,18 +65,30 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
-  @Inject @Parameter(PARAM_TLDS) ImmutableSet<String> tlds;
-  @Inject RefreshDnsForAllDomainsAction() {}
+
+  @Inject
+  @Parameter(PARAM_TLDS)
+  ImmutableSet<String> tlds;
+
+  @Inject
+  @Parameter("smearMinutes")
+  int smearMinutes;
+
+  @Inject Random random;
+
+  @Inject
+  RefreshDnsForAllDomainsAction() {}
 
   @Override
   public void run() {
     assertTldsExist(tlds);
+    checkArgument(smearMinutes > 0, "Must specify a positive number of smear minutes");
     mrRunner
         .setJobName("Refresh DNS for all domains")
         .setModuleName("tools")
         .setDefaultMapShards(10)
         .runMapOnly(
-            new RefreshDnsForAllDomainsActionMapper(tlds),
+            new RefreshDnsForAllDomainsActionMapper(tlds, smearMinutes, random),
             ImmutableList.of(createEntityInput(DomainBase.class)))
         .sendLinkToMapreduceConsole(response);
   }
@@ -77,14 +97,19 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
   public static class RefreshDnsForAllDomainsActionMapper
       extends Mapper<DomainBase, Void, Void> {
 
-    private static final long serialVersionUID = 1455544013508953083L;
+    private static final long serialVersionUID = -5103865047156795489L;
 
     @NonFinalForTesting private static DnsQueue dnsQueue = DnsQueue.create();
 
     private final ImmutableSet<String> tlds;
+    private final int smearMinutes;
+    private final Random random;
 
-    RefreshDnsForAllDomainsActionMapper(ImmutableSet<String> tlds) {
+    RefreshDnsForAllDomainsActionMapper(
+        ImmutableSet<String> tlds, int smearMinutes, Random random) {
       this.tlds = tlds;
+      this.smearMinutes = smearMinutes;
+      this.random = random;
     }
 
     @Override
@@ -93,7 +118,9 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
       if (tlds.contains(domain.getTld())) {
         if (isActive(domain, DateTime.now(DateTimeZone.UTC))) {
           try {
-            dnsQueue.addDomainRefreshTask(domainName);
+            // Smear the task execution time over the next N minutes.
+            dnsQueue.addDomainRefreshTask(
+                domainName, Duration.standardMinutes(random.nextInt(smearMinutes)));
             getContext().incrementCounter("active domains refreshed");
           } catch (Throwable t) {
             logger.atSevere().withCause(t).log(

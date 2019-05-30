@@ -103,16 +103,16 @@ public class DnsQueue {
   @VisibleForTesting
   long leaseTasksBatchSize = QueueConstants.maxLeaseCount();
 
-  /**
-   * Enqueues the given task type with the given target name to the DNS queue.
-   */
-  private TaskHandle addToQueue(TargetType targetType, String targetName, String tld) {
+  /** Enqueues the given task type with the given target name to the DNS queue. */
+  private TaskHandle addToQueue(
+      TargetType targetType, String targetName, String tld, Duration countdown) {
     logger.atInfo().log(
         "Adding task type=%s, target=%s, tld=%s to pull queue %s (%d tasks currently on queue)",
         targetType, targetName, tld, DNS_PULL_QUEUE_NAME, queue.fetchStatistics().getNumTasks());
     return queue.add(
         TaskOptions.Builder.withDefaults()
             .method(Method.PULL)
+            .countdownMillis(countdown.getMillis())
             .param(DNS_TARGET_TYPE_PARAM, targetType.toString())
             .param(DNS_TARGET_NAME_PARAM, targetName)
             .param(DNS_TARGET_CREATE_TIME_PARAM, clock.nowUtc().toString())
@@ -127,20 +127,27 @@ public class DnsQueue {
         Registries.findTldForName(InternetDomainName.from(fullyQualifiedHostName));
     checkArgument(tld.isPresent(),
         String.format("%s is not a subordinate host to a known tld", fullyQualifiedHostName));
-    return addToQueue(TargetType.HOST, fullyQualifiedHostName, tld.get().toString());
+    return addToQueue(TargetType.HOST, fullyQualifiedHostName, tld.get().toString(), Duration.ZERO);
   }
 
-  /** Adds a task to the queue to refresh the DNS information for the specified domain. */
+  /** Enqueues a task to refresh DNS for the specified domain now. */
   public TaskHandle addDomainRefreshTask(String fullyQualifiedDomainName) {
+    return addDomainRefreshTask(fullyQualifiedDomainName, Duration.ZERO);
+  }
+
+  /** Enqueues a task to refresh DNS for the specified domain at some point in the future. */
+  public TaskHandle addDomainRefreshTask(String fullyQualifiedDomainName, Duration countdown) {
     return addToQueue(
         TargetType.DOMAIN,
         fullyQualifiedDomainName,
-        assertTldExists(getTldFromDomainName(fullyQualifiedDomainName)));
+        assertTldExists(getTldFromDomainName(fullyQualifiedDomainName)),
+        countdown);
   }
 
   /** Adds a task to the queue to refresh the DNS information for the specified zone. */
   public TaskHandle addZoneRefreshTask(String fullyQualifiedZoneName) {
-    return addToQueue(TargetType.ZONE, fullyQualifiedZoneName, fullyQualifiedZoneName);
+    return addToQueue(
+        TargetType.ZONE, fullyQualifiedZoneName, fullyQualifiedZoneName, Duration.ZERO);
   }
 
   /**

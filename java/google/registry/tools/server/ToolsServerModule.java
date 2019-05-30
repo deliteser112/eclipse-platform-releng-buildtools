@@ -108,4 +108,10 @@ public class ToolsServerModule {
   String provideJobId(HttpServletRequest req) {
     return extractRequiredParameter(req, "jobId");
   }
+
+  @Provides
+  @Parameter("smearMinutes")
+  static int provideSmearMinutes(HttpServletRequest req) {
+    return extractIntParameter(req, "smearMinutes");
+  }
 }
