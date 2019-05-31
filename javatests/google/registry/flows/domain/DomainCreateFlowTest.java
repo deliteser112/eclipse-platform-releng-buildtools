@@ -1149,6 +1149,30 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertAllocationTokenWasRedeemed("abc123");
   }
 
+  @Test
+  public void testSuccess_reservedDomain_viaAllocationTokenExtension_inQuietPeriod()
+      throws Exception {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setTldStateTransitions(ImmutableSortedMap.of(START_OF_TIME, QUIET_PERIOD))
+            .build());
+    allocationToken =
+        persistResource(
+            new AllocationToken.Builder()
+                .setToken("abc123")
+                .setTokenType(SINGLE_USE)
+                .setDomainName("resdom.tld")
+                .build());
+    setEppInput("domain_create_allocationtoken.xml", ImmutableMap.of("DOMAIN", "resdom.tld"));
+    persistContactsAndHosts();
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "resdom.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of(RESERVED), allocationToken);
+    assertNoLordn();
+    assertAllocationTokenWasRedeemed("abc123");
+  }
+
   private void assertAllocationTokenWasRedeemed(String token) throws Exception {
     AllocationToken reloadedToken =
         ofy().load().key(Key.create(AllocationToken.class, token)).now();

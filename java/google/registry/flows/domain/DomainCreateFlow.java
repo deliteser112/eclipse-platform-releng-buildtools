@@ -44,6 +44,7 @@ import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.eppcommon.StatusValue.SERVER_HOLD;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.QUIET_PERIOD;
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -254,11 +255,12 @@ public class DomainCreateFlow implements TransactionalFlow {
     // registering premium domains.
     if (!isSuperuser) {
       checkAllowedAccessToTld(clientId, registry.getTldStr());
-      verifyIsGaOrIsSpecialCase(tldState, isAnchorTenant, hasSignedMarks);
+      boolean isValidReservedCreate = isValidReservedCreate(domainName, allocationToken);
+      verifyIsGaOrIsSpecialCase(tldState, isAnchorTenant, isValidReservedCreate, hasSignedMarks);
       if (launchCreate.isPresent()) {
         verifyLaunchPhaseMatchesRegistryPhase(registry, launchCreate.get(), now);
       }
-      if (!isAnchorTenant && !isValidReservedCreate(domainName, allocationToken)) {
+      if (!isAnchorTenant && !isValidReservedCreate) {
         verifyNotReserved(domainName, isSunriseCreate);
       }
       if (hasClaimsNotice) {
@@ -423,7 +425,10 @@ public class DomainCreateFlow implements TransactionalFlow {
    * non-superusers.
    */
   private void verifyIsGaOrIsSpecialCase(
-      TldState tldState, boolean isAnchorTenant, boolean hasSignedMarks)
+      TldState tldState,
+      boolean isAnchorTenant,
+      boolean isValidReservedCreate,
+      boolean hasSignedMarks)
       throws NoGeneralRegistrationsInCurrentPhaseException,
           MustHaveSignedMarksInCurrentPhaseException {
     // Anchor Tenant overrides any other consideration to allow registration.
@@ -442,6 +447,13 @@ public class DomainCreateFlow implements TransactionalFlow {
         throw new MustHaveSignedMarksInCurrentPhaseException();
       }
       return;
+    }
+
+    // We allow creates of specifically reserved domain names during quiet periods.
+    if (QUIET_PERIOD.equals(tldState)) {
+      if (isValidReservedCreate) {
+        return;
+      }
     }
 
     // All other phases do not allow registration
