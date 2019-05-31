@@ -220,10 +220,15 @@ public class DnsMetrics {
       Duration processingDuration,
       int numberOfDomains,
       int numberOfHosts) {
-    // We don't want to record all these metrics in production, as they are quite expensive
+    commitCount.increment(tld, status.name(), dnsWriter);
+    domainsCommittedCount.incrementBy(numberOfDomains, tld, status.name(), dnsWriter);
+    hostsCommittedCount.incrementBy(numberOfHosts, tld, status.name(), dnsWriter);
+
+    // We don't want to record the following metrics in production, as they are quite expensive
     if (registryEnvironment == RegistryEnvironment.PRODUCTION) {
       return;
     }
+
     int batchSize = numberOfDomains + numberOfHosts;
 
     processingTimePerCommitDist.record(
@@ -244,10 +249,6 @@ public class DnsMetrics {
     totalBatchSizePerCommitDist.record(batchSize, tld, status.name(), dnsWriter);
 
     totalBatchSizePerItemDist.record(batchSize, batchSize, tld, status.name(), dnsWriter);
-
-    commitCount.increment(tld, status.name(), dnsWriter);
-    domainsCommittedCount.incrementBy(numberOfDomains, tld, status.name(), dnsWriter);
-    hostsCommittedCount.incrementBy(numberOfHosts, tld, status.name(), dnsWriter);
   }
 
   void recordActionResult(
