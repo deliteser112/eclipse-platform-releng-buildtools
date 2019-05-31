@@ -27,7 +27,6 @@ An EPP flow that creates a new contact.
     *   Internationalized postal infos can only contain ASCII characters.
 *   2302
     *   Resource with this id already exists.
-    *   Resource with this id already exists.
 *   2306
     *   Declining contact disclosure is disallowed by server policy.
 
@@ -341,7 +340,6 @@ An EPP flow that creates a new domain resource.
     *   Registrar is not authorized to access this TLD.
     *   Registrar must be active in order to perform this operation.
 *   2302
-    *   Resource with this id already exists.
     *   Resource with this id already exists.
 *   2303
     *   Resource linked to this domain does not exist.
@@ -824,7 +822,6 @@ allows creating a host name, and if necessary enqueues tasks to update DNS.
     *   Host names must be in normalized format.
     *   Host names must be puny-coded.
 *   2302
-    *   Resource with this id already exists.
     *   Resource with this id already exists.
 *   2303
     *   Superordinate domain for this hostname does not exist.

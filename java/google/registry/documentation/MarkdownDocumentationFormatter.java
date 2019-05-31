@@ -163,15 +163,18 @@ public final class MarkdownDocumentationFormatter {
       for (Long code : flowDoc.getErrorsByCode().keySet()) {
         output.append(String.format("*   %d\n", code));
 
+        flowDoc.getErrorsByCode().get(code).stream()
+            .map(ErrorCase::getReason)
+            .distinct()
+            .forEach(
+                reason -> {
+                  output.append("    *   ");
+                  String wrappedReason = reflow(fixHtml(reason), LINE_WIDTH - 8);
 
-        for (ErrorCase error : flowDoc.getErrorsByCode().get(code)) {
-          output.append("    *   ");
-          String wrappedReason = reflow(fixHtml(error.getReason()), LINE_WIDTH - 8);
-
-          // Replace internal newlines with indentation and strip the final newline.
-          output.append(wrappedReason.trim().replace("\n", "\n" + INDENT8));
-          output.append('\n');
-        }
+                  // Replace internal newlines with indentation and strip the final newline.
+                  output.append(wrappedReason.trim().replace("\n", "\n" + INDENT8));
+                  output.append('\n');
+                });
       }
       output.append('\n');
     }
