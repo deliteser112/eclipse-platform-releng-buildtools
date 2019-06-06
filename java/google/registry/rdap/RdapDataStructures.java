@@ -48,6 +48,11 @@ final class RdapDataStructures {
       // Conformance to the RDAP Response Profile V2.1
       // (see section 1.3)
       jsonArray.add("icann_rdap_response_profile_0");
+
+      // Conformance to the RDAP Technical Implementation Guide V2.1
+      // (see section 1.14)
+      jsonArray.add("icann_rdap_technical_implementation_guide_0");
+
       return jsonArray;
     }
   }

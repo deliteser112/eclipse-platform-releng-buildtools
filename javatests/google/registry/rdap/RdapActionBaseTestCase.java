@@ -86,7 +86,6 @@ public class RdapActionBaseTestCase<A extends RdapActionBase> {
     inject.setStaticField(Ofy.class, "clock", clock);
     action = TypeUtils.instantiate(rdapActionClass);
     action.includeDeletedParam = Optional.empty();
-    action.registrarParam = Optional.empty();
     action.formatOutputParam = Optional.empty();
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter(clock);

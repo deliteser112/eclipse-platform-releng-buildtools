@@ -298,6 +298,7 @@ public class RdapMetrics {
           .setSearchType(SearchType.NONE)
           .setWildcardType(WildcardType.INVALID)
           .setPrefixLength(0)
+          .setRegistrarSpecified(false)
           .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE);
     }
   }

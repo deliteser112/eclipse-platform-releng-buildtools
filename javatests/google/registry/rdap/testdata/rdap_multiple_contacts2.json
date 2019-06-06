@@ -116,7 +116,11 @@
       ]
     }
   ],
-  "rdapConformance": ["rdap_level_0",  "icann_rdap_response_profile_0" ],
+  "rdapConformance": [
+    "rdap_level_0",
+    "icann_rdap_response_profile_0",
+    "icann_rdap_technical_implementation_guide_0"
+  ],
   "notices" :
   [
     {

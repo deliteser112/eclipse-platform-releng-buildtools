@@ -663,10 +663,11 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
   @Test
   public void testInvalidWildcard_rejected() {
     assertThat(generateActualJson(RequestType.NAME, "exam*ple"))
-        .isEqualTo(generateExpectedJsonError(
-            "Suffix after wildcard must be one or more domain"
-                + " name labels, e.g. exam*.tld, ns*.example.tld",
-            422));
+        .isEqualTo(
+            generateExpectedJsonError(
+                "Query can only have a single wildcard, and it must be at the end of a label, but"
+                    + " was: 'exam*ple'",
+                422));
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(SearchType.BY_DOMAIN_NAME, Optional.empty(), 422);
   }
@@ -674,7 +675,11 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
   @Test
   public void testMultipleWildcards_rejected() {
     assertThat(generateActualJson(RequestType.NAME, "*.*"))
-        .isEqualTo(generateExpectedJsonError("Only one wildcard allowed", 422));
+        .isEqualTo(
+            generateExpectedJsonError(
+                "Query can only have a single wildcard, and it must be at the end of a label, but"
+                    + " was: '*.*'",
+                422));
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(SearchType.BY_DOMAIN_NAME, Optional.empty(), 422);
   }
@@ -1297,7 +1302,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
 
   @Test
   public void testNameserverMatchWithWildcardAndEmptySuffix_unprocessable() {
-    rememberWildcardType("ns*.");
+    rememberWildcardTypeInvalid();
     generateActualJson(RequestType.NS_LDH_NAME, "ns*.");
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(SearchType.BY_NAMESERVER_NAME, Optional.empty(), 422);
@@ -1331,8 +1336,8 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase<RdapDom
     metricWildcardType = WildcardType.INVALID;
     metricPrefixLength = 0;
     generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.みんな");
-    assertThat(response.getStatus()).isEqualTo(400);
-    verifyErrorMetrics(SearchType.BY_NAMESERVER_NAME, Optional.empty(), 400);
+    assertThat(response.getStatus()).isEqualTo(422);
+    verifyErrorMetrics(SearchType.BY_NAMESERVER_NAME, Optional.empty(), 422);
   }
 
   @Test

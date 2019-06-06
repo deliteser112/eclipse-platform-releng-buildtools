@@ -274,20 +274,6 @@ public class RdapDomainActionTest extends RdapActionBaseTestCase<RdapDomainActio
   }
 
   @Test
-  public void testValidDomain_works_sameRegistrarRequested() {
-    action.registrarParam = Optional.of("evilregistrar");
-    login("evilregistrar");
-    assertProperResponseForCatLol("cat.lol", "rdap_domain.json");
-  }
-
-  @Test
-  public void testValidDomain_notFound_differentRegistrarRequested() {
-    action.registrarParam = Optional.of("idnregistrar");
-    generateActualJson("cat.lol");
-    assertThat(response.getStatus()).isEqualTo(404);
-  }
-
-  @Test
   public void testValidDomain_asAdministrator_works() {
     loginAsAdmin();
     assertProperResponseForCatLol("cat.lol", "rdap_domain.json");

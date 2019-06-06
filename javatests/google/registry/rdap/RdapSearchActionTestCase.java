@@ -43,28 +43,32 @@ public class RdapSearchActionTestCase<A extends RdapSearchActionBase>
   public void initRdapSearchActionTestCase() {
     action.parameterMap = ImmutableListMultimap.of();
     action.cursorTokenParam = Optional.empty();
+    action.registrarParam = Optional.empty();
     action.rdapResultSetMaxSize = 4;
     action.requestUrl = "https://example.tld" + actionPath;
     action.requestPath = actionPath;
   }
 
-  void rememberWildcardType(String queryString) {
-    try {
-      RdapSearchPattern partialStringQuery = RdapSearchPattern.create(queryString, true);
-      if (!partialStringQuery.getHasWildcard()) {
-        metricWildcardType = WildcardType.NO_WILDCARD;
-      } else if (partialStringQuery.getSuffix() == null) {
-        metricWildcardType = WildcardType.PREFIX;
-      } else if (partialStringQuery.getInitialString().isEmpty()) {
-        metricWildcardType = WildcardType.SUFFIX;
-      } else {
-        metricWildcardType = WildcardType.PREFIX_AND_SUFFIX;
-      }
-      metricPrefixLength = partialStringQuery.getInitialString().length();
-    } catch (Exception e) {
-      metricWildcardType = WildcardType.INVALID;
-      metricPrefixLength = 0;
+  void rememberWildcardType(WildcardType wildcardType, int prefixLength) {
+    metricWildcardType = wildcardType;
+    metricPrefixLength = prefixLength;
+  }
+
+  void rememberWildcardType(String searchQuery) {
+    int wildcardLocation = searchQuery.indexOf('*');
+    if (wildcardLocation < 0) {
+      rememberWildcardType(WildcardType.NO_WILDCARD, searchQuery.length());
+    } else if (wildcardLocation == searchQuery.length() - 1) {
+      rememberWildcardType(WildcardType.PREFIX, wildcardLocation);
+    } else if (wildcardLocation == 0) {
+      rememberWildcardType(WildcardType.SUFFIX, wildcardLocation);
+    } else {
+      rememberWildcardType(WildcardType.PREFIX_AND_SUFFIX, wildcardLocation);
     }
+  }
+
+  void rememberWildcardTypeInvalid() {
+    rememberWildcardType(WildcardType.INVALID, 0);
   }
 
   void verifyMetrics(

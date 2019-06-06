@@ -34,7 +34,8 @@ import java.util.Objects;
 
 public class RdapTestHelper {
 
-  private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+  private static final Gson GSON =
+      new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
   static JsonElement createJson(String... lines) {
     return GSON.fromJson(Joiner.on("\n").join(lines), JsonElement.class);
@@ -47,7 +48,7 @@ public class RdapTestHelper {
   }
 
   private static JsonObject createTosNotice(String linkBase) {
-    return new Gson().toJsonTree(
+    return GSON.toJsonTree(
         ImmutableMap.of(
             "title", "RDAP Terms of Service",
             "description",
@@ -90,13 +91,12 @@ public class RdapTestHelper {
 
     notices.add(createTosNotice(linkBase));
     notices.add(
-        new Gson()
-            .toJsonTree(
-                ImmutableMap.of(
-                    "description",
-                    ImmutableList.of(
-                        "This response conforms to the RDAP Operational Profile for gTLD"
-                            + " Registries and Registrars version 1.0"))));
+        GSON.toJsonTree(
+            ImmutableMap.of(
+                "description",
+                ImmutableList.of(
+                    "This response conforms to the RDAP Operational Profile for gTLD"
+                        + " Registries and Registrars version 1.0"))));
   }
 
   static void addDomainBoilerplateNotices(JsonObject jsonObject, String linkBase) {
@@ -107,47 +107,44 @@ public class RdapTestHelper {
 
     notices.add(createTosNotice(linkBase));
     notices.add(
-        new Gson()
-            .toJsonTree(
-                ImmutableMap.of(
-                    "description",
-                    ImmutableList.of(
-                        "This response conforms to the RDAP Operational Profile for gTLD"
-                            + " Registries and Registrars version 1.0"))));
+        GSON.toJsonTree(
+            ImmutableMap.of(
+                "description",
+                ImmutableList.of(
+                    "This response conforms to the RDAP Operational Profile for gTLD"
+                        + " Registries and Registrars version 1.0"))));
     notices.add(
-        new Gson()
-            .toJsonTree(
-                ImmutableMap.of(
-                    "title",
-                    "Status Codes",
-                    "description",
-                    ImmutableList.of(
-                        "For more information on domain status codes, please visit"
-                            + " https://icann.org/epp"),
-                    "links",
-                    ImmutableList.of(
-                        ImmutableMap.of(
-                            "value", "https://icann.org/epp",
-                            "rel", "alternate",
-                            "href", "https://icann.org/epp",
-                            "type", "text/html")))));
+        GSON.toJsonTree(
+            ImmutableMap.of(
+                "title",
+                "Status Codes",
+                "description",
+                ImmutableList.of(
+                    "For more information on domain status codes, please visit"
+                        + " https://icann.org/epp"),
+                "links",
+                ImmutableList.of(
+                    ImmutableMap.of(
+                        "value", "https://icann.org/epp",
+                        "rel", "alternate",
+                        "href", "https://icann.org/epp",
+                        "type", "text/html")))));
     notices.add(
-        new Gson()
-            .toJsonTree(
-                ImmutableMap.of(
-                    "title",
-                    "RDDS Inaccuracy Complaint Form",
-                    "description",
-                    ImmutableList.of(
-                        "URL of the ICANN RDDS Inaccuracy Complaint Form:"
-                            + " https://www.icann.org/wicf"),
-                    "links",
-                    ImmutableList.of(
-                        ImmutableMap.of(
-                            "value", "https://www.icann.org/wicf",
-                            "rel", "alternate",
-                            "href", "https://www.icann.org/wicf",
-                            "type", "text/html")))));
+        GSON.toJsonTree(
+            ImmutableMap.of(
+                "title",
+                "RDDS Inaccuracy Complaint Form",
+                "description",
+                ImmutableList.of(
+                    "URL of the ICANN RDDS Inaccuracy Complaint Form:"
+                        + " https://www.icann.org/wicf"),
+                "links",
+                ImmutableList.of(
+                    ImmutableMap.of(
+                        "value", "https://www.icann.org/wicf",
+                        "rel", "alternate",
+                        "href", "https://www.icann.org/wicf",
+                        "type", "text/html")))));
   }
 
   static RdapJsonFormatter getTestRdapJsonFormatter(Clock clock) {

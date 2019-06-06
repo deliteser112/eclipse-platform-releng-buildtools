@@ -163,76 +163,64 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
     return obj;
   }
 
-  private void runSuccessfulTest(String queryString, String fileName) {
-    runSuccessfulTest(queryString, "(◕‿◕)", "active", null, fileName);
+  private void runSuccessfulHandleTest(String handleQuery, String fileName) {
+    runSuccessfulHandleTest(handleQuery, "(◕‿◕)", "active", null, fileName);
   }
 
-  private void runSuccessfulTest(String queryString, String fullName, String fileName) {
-    runSuccessfulTest(queryString, fullName, "active", null, fileName);
+  private void runSuccessfulHandleTest(String handleQuery, String fullName, String fileName) {
+    runSuccessfulHandleTest(handleQuery, fullName, "active", null, fileName);
   }
 
-  private void runSuccessfulTest(
-      String queryString,
+  private void runSuccessfulHandleTest(
+      String handleQuery,
       String fullName,
       String rdapStatus,
       String address,
       String fileName) {
-    assertThat(generateActualJson(queryString))
+    assertThat(generateActualJson(handleQuery))
         .isEqualTo(
             generateExpectedJsonWithTopLevelEntries(
-                queryString, fullName, rdapStatus, address, fileName));
+                handleQuery, fullName, rdapStatus, address, fileName));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
-  private void runNotFoundTest(String queryString) {
-    assertThat(generateActualJson(queryString))
-        .isEqualTo(generateExpectedJsonError(queryString + " not found", 404));
+  private void runNotFoundTest(String handleQuery) {
+    assertThat(generateActualJson(handleQuery))
+        .isEqualTo(generateExpectedJsonError(handleQuery + " not found", 404));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testInvalidEntity_returns400() {
-    assertThat(generateActualJson("invalid/entity/handle")).isEqualTo(
-        generateExpectedJsonError(
-            "invalid/entity/handle is not a valid entity handle",
-            400));
-    assertThat(response.getStatus()).isEqualTo(400);
+  public void testUnknownEntity_RoidPattern_notFound() {
+    runNotFoundTest("_MISSING-ENTITY_");
   }
 
   @Test
-  public void testUnknownEntity_notFound() {
-    runNotFoundTest("_MISSING-ENTITY_");
+  public void testUnknownEntity_IanaPattern_notFound() {
+    runNotFoundTest("123");
+  }
+
+  @Test
+  public void testUnknownEntity_notRoidNotIana_notFound() {
+    // Since we allow search by registrar name, every string is a possible name
+    runNotFoundTest("some,random,string");
   }
 
   @Test
   public void testValidRegistrantContact_works() {
     login("evilregistrar");
-    runSuccessfulTest(registrant.getRepoId(), "rdap_associated_contact.json");
-  }
-
-  @Test
-  public void testValidRegistrantContact_found_sameRegistrarRequested() {
-    login("evilregistrar");
-    action.registrarParam = Optional.of("evilregistrar");
-    runSuccessfulTest(registrant.getRepoId(), "rdap_associated_contact.json");
-  }
-
-  @Test
-  public void testValidRegistrantContact_notFound_differentRegistrarRequested() {
-    login("evilregistrar");
-    action.registrarParam = Optional.of("idnregistrar");
-    runNotFoundTest(registrant.getRepoId());
+    runSuccessfulHandleTest(registrant.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
   public void testValidRegistrantContact_found_asAdministrator() {
     loginAsAdmin();
-    runSuccessfulTest(registrant.getRepoId(), "rdap_associated_contact.json");
+    runSuccessfulHandleTest(registrant.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
   public void testValidRegistrantContact_found_notLoggedIn() {
-    runSuccessfulTest(
+    runSuccessfulHandleTest(
         registrant.getRepoId(),
         "(◕‿◕)",
         "active",
@@ -243,7 +231,7 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
   @Test
   public void testValidRegistrantContact_found_loggedInAsOtherRegistrar() {
     login("otherregistrar");
-    runSuccessfulTest(
+    runSuccessfulHandleTest(
         registrant.getRepoId(),
         "(◕‿◕)",
         "active",
@@ -254,19 +242,19 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
   @Test
   public void testValidAdminContact_works() {
     login("evilregistrar");
-    runSuccessfulTest(adminContact.getRepoId(), "rdap_associated_contact.json");
+    runSuccessfulHandleTest(adminContact.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
   public void testValidTechContact_works() {
     login("evilregistrar");
-    runSuccessfulTest(techContact.getRepoId(), "rdap_associated_contact.json");
+    runSuccessfulHandleTest(techContact.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
   public void testValidDisconnectedContact_works() {
     login("evilregistrar");
-    runSuccessfulTest(disconnectedContact.getRepoId(), "rdap_contact.json");
+    runSuccessfulHandleTest(disconnectedContact.getRepoId(), "rdap_contact.json");
   }
 
   @Test
@@ -297,7 +285,7 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
   public void testDeletedContact_found_loggedInAsCorrectRegistrar() {
     login("evilregistrar");
     action.includeDeletedParam = Optional.of(true);
-    runSuccessfulTest(
+    runSuccessfulHandleTest(
         deletedContact.getRepoId(),
         "",
         "inactive",
@@ -309,7 +297,7 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
   public void testDeletedContact_found_loggedInAsAdmin() {
     loginAsAdmin();
     action.includeDeletedParam = Optional.of(true);
-    runSuccessfulTest(
+    runSuccessfulHandleTest(
         deletedContact.getRepoId(),
         "",
         "inactive",
@@ -319,29 +307,26 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
 
   @Test
   public void testRegistrar_found() {
-    runSuccessfulTest("101", "Yes Virginia <script>", "rdap_registrar.json");
+    runSuccessfulHandleTest("101", "Yes Virginia <script>", "rdap_registrar.json");
+  }
+
+  @Test
+  public void testRegistrarByName_found() {
+    assertThat(generateActualJson("IDN%20Registrar"))
+        .isEqualTo(
+            generateExpectedJsonWithTopLevelEntries(
+                "102", "IDN Registrar", "active", null, "rdap_registrar.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testRegistrar102_works() {
-    runSuccessfulTest("102", "IDN Registrar", "rdap_registrar.json");
-  }
-
-  @Test
-  public void testRegistrar102_found_requestingSameRegistrar() {
-    action.registrarParam = Optional.of("idnregistrar");
-    runSuccessfulTest("102", "IDN Registrar", "rdap_registrar.json");
-  }
-
-  @Test
-  public void testRegistrar102_notFound_requestingOtherRegistrar() {
-    action.registrarParam = Optional.of("1tldregistrar");
-    runNotFoundTest("102");
+    runSuccessfulHandleTest("102", "IDN Registrar", "rdap_registrar.json");
   }
 
   @Test
   public void testRegistrar103_works() {
-    runSuccessfulTest("103", "Multilevel Registrar", "rdap_registrar.json");
+    runSuccessfulHandleTest("103", "Multilevel Registrar", "rdap_registrar.json");
   }
 
   @Test
@@ -359,7 +344,7 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
   public void testRegistrar104_found_deletedFlagWhenLoggedIn() {
     login("deletedregistrar");
     action.includeDeletedParam = Optional.of(true);
-    runSuccessfulTest(
+    runSuccessfulHandleTest(
         "104", "Yes Virginia <script>", "inactive", null, "rdap_registrar.json");
   }
 
@@ -374,7 +359,7 @@ public class RdapEntityActionTest extends RdapActionBaseTestCase<RdapEntityActio
   public void testRegistrar104_found_deletedFlagWhenLoggedInAsAdmin() {
     loginAsAdmin();
     action.includeDeletedParam = Optional.of(true);
-    runSuccessfulTest(
+    runSuccessfulHandleTest(
         "104", "Yes Virginia <script>", "inactive", null, "rdap_registrar.json");
   }
 

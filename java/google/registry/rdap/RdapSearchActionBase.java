@@ -14,17 +14,29 @@
 
 package google.registry.rdap;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static com.google.common.base.Charsets.UTF_8;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.cmd.Query;
+import google.registry.model.EppResource;
+import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapMetrics.WildcardType;
+import google.registry.rdap.RdapSearchResults.BaseSearchResponse;
+import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
+import google.registry.request.HttpException.BadRequestException;
+import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;
 import google.registry.request.RequestUrl;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -39,15 +51,32 @@ import javax.inject.Inject;
  */
 public abstract class RdapSearchActionBase extends RdapActionBase {
 
+  private static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
+
   @Inject @RequestUrl String requestUrl;
   @Inject @ParameterMap ImmutableListMultimap<String, String> parameterMap;
   @Inject @Parameter("cursor") Optional<String> cursorTokenParam;
+  @Inject @Parameter("registrar") Optional<String> registrarParam;
 
   protected Optional<String> cursorString;
 
   RdapSearchActionBase(String humanReadableObjectTypeName, EndpointType endpointType) {
     super(humanReadableObjectTypeName, endpointType);
   }
+
+  @Override
+  public final BaseSearchResponse getJsonObjectForResource(
+      String pathSearchString, boolean isHeadRequest) {
+    // The pathSearchString is not used by search commands.
+    if (pathSearchString.length() > 0) {
+      throw new BadRequestException("Unexpected path");
+    }
+    decodeCursorToken();
+    metricInformationBuilder.setRegistrarSpecified(registrarParam.isPresent());
+    return getSearchResponse(isHeadRequest);
+  }
+
+  public abstract BaseSearchResponse getSearchResponse(boolean isHeadRequest);
 
   /**
    * Decodes the cursor token passed in the HTTP request.
@@ -57,14 +86,9 @@ public abstract class RdapSearchActionBase extends RdapActionBase {
    * than the cursor value.
    */
   protected void decodeCursorToken() {
-    if (!cursorTokenParam.isPresent()) {
-      cursorString = Optional.empty();
-    } else {
-      cursorString =
-          Optional.of(
-              new String(
-                  Base64.getDecoder().decode(cursorTokenParam.get().getBytes(UTF_8)), UTF_8));
-    }
+    cursorString =
+        cursorTokenParam.map(
+            cursor -> new String(Base64.getDecoder().decode(cursor.getBytes(UTF_8)), UTF_8));
   }
 
   /** Returns an encoded cursor token to pass back in the RDAP JSON link strings. */
@@ -75,6 +99,121 @@ public abstract class RdapSearchActionBase extends RdapActionBase {
   /** Returns the original request URL, but with the specified parameter added or overridden. */
   protected String getRequestUrlWithExtraParameter(String parameterName, String parameterValue) {
     return getRequestUrlWithExtraParameter(parameterName, ImmutableList.of(parameterValue));
+  }
+
+  /** Returns the registrar on which results should be filtered, or absent(). */
+  protected Optional<String> getDesiredRegistrar() {
+    return registrarParam;
+  }
+
+  protected boolean shouldBeVisible(Optional<? extends EppResource> eppResource) {
+    return eppResource.isPresent() && shouldBeVisible(eppResource.get());
+  }
+
+  /**
+   * Returns true if the EPP resource should be visible.
+   *
+   * <p>This is true iff:
+   * 1. The resource is not deleted, or the request wants to see deleted items, and is authorized to
+   *    do so, and:
+   * 2. The request did not specify a registrar to filter on, or the registrar matches.
+   */
+  protected boolean shouldBeVisible(EppResource eppResource) {
+    return isAuthorized(eppResource)
+        && (!registrarParam.isPresent()
+            || registrarParam.get().equals(eppResource.getPersistedCurrentSponsorClientId()));
+  }
+
+  /**
+   * Returns true if the EPP resource should be visible.
+   *
+   * <p>This is true iff:
+   * 1. The resource is not deleted, or the request wants to see deleted items, and is authorized to
+   *    do so, and:
+   * 2. The request did not specify a registrar to filter on, or the registrar matches.
+   */
+  protected boolean shouldBeVisible(Registrar registrar) {
+    return isAuthorized(registrar)
+        && (!registrarParam.isPresent() || registrarParam.get().equals(registrar.getClientId()));
+  }
+
+  /**
+   * Runs the given query, and checks for permissioning if necessary.
+   *
+   * @param query an already-defined query to be run; a filter on currentSponsorClientId will be
+   *     added if appropriate
+   * @param checkForVisibility true if the results should be checked to make sure they are visible;
+   *     normally this should be equal to the shouldIncludeDeleted setting, but in cases where the
+   *     query could not check deletion status (due to Datastore limitations such as the limit of
+   *     one field queried for inequality, for instance), it may need to be set to true even when
+   *     not including deleted records
+   * @param querySizeLimit the maximum number of items the query is expected to return, usually
+   *     because the limit has been set
+   * @return an {@link RdapResultSet} object containing the list of resources and an incompleteness
+   *     warning flag, which is set to MIGHT_BE_INCOMPLETE iff any resources were excluded due to
+   *     lack of visibility, and the resulting list of resources is less than the maximum allowable,
+   *     and the number of items returned by the query is greater than or equal to the maximum
+   *     number we might have expected
+   */
+  <T extends EppResource> RdapResultSet<T> getMatchingResources(
+      Query<T> query, boolean checkForVisibility, int querySizeLimit) {
+    Optional<String> desiredRegistrar = getDesiredRegistrar();
+    if (desiredRegistrar.isPresent()) {
+      query = query.filter("currentSponsorClientId", desiredRegistrar.get());
+    }
+    if (!checkForVisibility) {
+      return RdapResultSet.create(query.list());
+    }
+    // If we are including deleted resources, we need to check that we're authorized for each one.
+    List<T> resources = new ArrayList<>();
+    int numResourcesQueried = 0;
+    boolean someExcluded = false;
+    for (T resource : query) {
+      if (shouldBeVisible(resource)) {
+        resources.add(resource);
+      } else {
+        someExcluded = true;
+      }
+      numResourcesQueried++;
+      if (resources.size() > rdapResultSetMaxSize) {
+        break;
+      }
+    }
+    // The incompleteness problem comes about because we don't know how many items to fetch. We want
+    // to return rdapResultSetMaxSize worth of items, but some might be excluded, so we fetch more
+    // just in case. But how many more? That's the potential problem, addressed with the three way
+    // AND statement:
+    // 1. If we didn't exclude any items, then we can't have the incompleteness problem.
+    // 2. If have a full result set batch (rdapResultSetMaxSize items), we must by definition be
+    //    giving the user a complete result set.
+    // 3. If we started with fewer than querySizeLimit items, then there weren't any more items that
+    //    we missed. Even if we return fewer than rdapResultSetMaxSize items, it isn't because we
+    //    didn't fetch enough to start.
+    // Only if all three conditions are true might things be incomplete. In other words, we fetched
+    // as many as our limit allowed, but then excluded so many that we wound up with less than a
+    // full result set's worth of results.
+    return RdapResultSet.create(
+        resources,
+        (someExcluded
+                && (resources.size() < rdapResultSetMaxSize)
+                && (numResourcesQueried >= querySizeLimit))
+            ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
+            : IncompletenessWarningType.COMPLETE,
+        numResourcesQueried);
+  }
+
+  RdapSearchPattern recordWildcardType(RdapSearchPattern partialStringQuery) {
+    if (!partialStringQuery.getHasWildcard()) {
+      metricInformationBuilder.setWildcardType(WildcardType.NO_WILDCARD);
+    } else if (partialStringQuery.getSuffix() == null) {
+      metricInformationBuilder.setWildcardType(WildcardType.PREFIX);
+    } else if (partialStringQuery.getInitialString().isEmpty()) {
+      metricInformationBuilder.setWildcardType(WildcardType.SUFFIX);
+    } else {
+      metricInformationBuilder.setWildcardType(WildcardType.PREFIX_AND_SUFFIX);
+    }
+    metricInformationBuilder.setPrefixLength(partialStringQuery.getInitialString().length());
+    return partialStringQuery;
   }
 
   /**
@@ -122,5 +261,159 @@ public abstract class RdapSearchActionBase extends RdapActionBase {
   /** Creates the URL for this same search with a different starting point cursor. */
   URI createNavigationUri(String cursor) {
     return URI.create(getRequestUrlWithExtraParameter("cursor", encodeCursorToken(cursor)));
+  }
+
+  // We want to return rdapResultSetMaxSize + 1 results, so that we know if there are "extra"
+  // results (in which case we'll have a "next" link in the RDAP response).
+  // In case that we want to return deleted results as well, we have to scale the number of results
+  // to be (more) sure we got everything.
+  int getStandardQuerySizeLimit() {
+    return shouldIncludeDeleted()
+            ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
+            : (rdapResultSetMaxSize + 1);
+  }
+
+  /**
+   * Handles prefix searches in cases where, if we need to filter out deleted items, there are no
+   * pending deletes.
+   *
+   * <p>In such cases, it is sufficient to check whether {@code deletionTime} is equal to
+   * {@code END_OF_TIME}, because any other value means it has already been deleted. This allows us
+   * to use an equality query for the deletion time.
+   *
+   * @param clazz the type of resource to be queried
+   * @param filterField the database field of interest
+   * @param partialStringQuery the details of the search string; if there is no wildcard, an
+   *        equality query is used; if there is a wildcard, a range query is used instead; the
+   *        initial string should not be empty, and any search suffix will be ignored, so the caller
+   *        must filter the results if a suffix is specified
+   * @param cursorString if a cursor is present, this parameter should specify the cursor string, to
+   *        skip any results up to and including the string; empty() if there is no cursor
+   * @param deletedItemHandling whether to include or exclude deleted items
+   * @param resultSetMaxSize the maximum number of results to return
+   * @return the query object
+   */
+  static <T extends EppResource> Query<T> queryItems(
+      Class<T> clazz,
+      String filterField,
+      RdapSearchPattern partialStringQuery,
+      Optional<String> cursorString,
+      DeletedItemHandling deletedItemHandling,
+      int resultSetMaxSize) {
+    if (partialStringQuery.getInitialString().length()
+        < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
+      throw new UnprocessableEntityException(
+          String.format(
+              "Initial search string must be at least %d characters",
+              RdapSearchPattern.MIN_INITIAL_STRING_LENGTH));
+    }
+    Query<T> query = ofy().load().type(clazz);
+    if (!partialStringQuery.getHasWildcard()) {
+      query = query.filter(filterField, partialStringQuery.getInitialString());
+    } else {
+      // Ignore the suffix; the caller will need to filter on the suffix, if any.
+      query = query
+          .filter(filterField + " >=", partialStringQuery.getInitialString())
+          .filter(filterField + " <", partialStringQuery.getNextInitialString());
+    }
+    if (cursorString.isPresent()) {
+      query = query.filter(filterField + " >", cursorString.get());
+    }
+    return setOtherQueryAttributes(query, deletedItemHandling, resultSetMaxSize);
+  }
+
+  /**
+   * Handles searches using a simple string rather than an {@link RdapSearchPattern}.
+   *
+   * <p>Since the filter is not an inequality, we can support also checking a cursor string against
+   * a different field (which involves an inequality on that field).
+   *
+   * @param clazz the type of resource to be queried
+   * @param filterField the database field of interest
+   * @param queryString the search string
+   * @param cursorField the field which should be compared to the cursor string, or empty() if the
+   *        key should be compared to a key created from the cursor string
+   * @param cursorString if a cursor is present, this parameter should specify the cursor string, to
+   *        skip any results up to and including the string; empty() if there is no cursor
+   * @param deletedItemHandling whether to include or exclude deleted items
+   * @param resultSetMaxSize the maximum number of results to return
+   * @return the query object
+   */
+  static <T extends EppResource> Query<T> queryItems(
+      Class<T> clazz,
+      String filterField,
+      String queryString,
+      Optional<String> cursorField,
+      Optional<String> cursorString,
+      DeletedItemHandling deletedItemHandling,
+      int resultSetMaxSize) {
+    if (queryString.length() < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
+      throw new UnprocessableEntityException(
+          String.format(
+              "Initial search string must be at least %d characters",
+              RdapSearchPattern.MIN_INITIAL_STRING_LENGTH));
+    }
+    Query<T> query = ofy().load().type(clazz).filter(filterField, queryString);
+    if (cursorString.isPresent()) {
+      if (cursorField.isPresent()) {
+        query = query.filter(cursorField.get() + " >", cursorString.get());
+      } else {
+        query = query.filterKey(">", Key.create(clazz, cursorString.get()));
+      }
+    }
+    return setOtherQueryAttributes(query, deletedItemHandling, resultSetMaxSize);
+  }
+
+  /** Handles searches where the field to be searched is the key. */
+  static <T extends EppResource> Query<T> queryItemsByKey(
+      Class<T> clazz,
+      RdapSearchPattern partialStringQuery,
+      Optional<String> cursorString,
+      DeletedItemHandling deletedItemHandling,
+      int resultSetMaxSize) {
+    if (partialStringQuery.getInitialString().length()
+        < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
+      throw new UnprocessableEntityException(
+          String.format(
+              "Initial search string must be at least %d characters",
+              RdapSearchPattern.MIN_INITIAL_STRING_LENGTH));
+    }
+    Query<T> query = ofy().load().type(clazz);
+    if (!partialStringQuery.getHasWildcard()) {
+      query = query.filterKey("=", Key.create(clazz, partialStringQuery.getInitialString()));
+    } else {
+      // Ignore the suffix; the caller will need to filter on the suffix, if any.
+      query = query
+          .filterKey(">=", Key.create(clazz, partialStringQuery.getInitialString()))
+          .filterKey("<", Key.create(clazz, partialStringQuery.getNextInitialString()));
+    }
+    if (cursorString.isPresent()) {
+      query = query.filterKey(">", Key.create(clazz, cursorString.get()));
+    }
+    return setOtherQueryAttributes(query, deletedItemHandling, resultSetMaxSize);
+  }
+
+  /** Handles searches by key using a simple string. */
+  static <T extends EppResource> Query<T> queryItemsByKey(
+      Class<T> clazz,
+      String queryString,
+      DeletedItemHandling deletedItemHandling,
+      int resultSetMaxSize) {
+    if (queryString.length() < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
+      throw new UnprocessableEntityException(
+          String.format(
+              "Initial search string must be at least %d characters",
+              RdapSearchPattern.MIN_INITIAL_STRING_LENGTH));
+    }
+    Query<T> query = ofy().load().type(clazz).filterKey("=", Key.create(clazz, queryString));
+    return setOtherQueryAttributes(query, deletedItemHandling, resultSetMaxSize);
+  }
+
+  static <T extends EppResource> Query<T> setOtherQueryAttributes(
+      Query<T> query, DeletedItemHandling deletedItemHandling, int resultSetMaxSize) {
+    if (deletedItemHandling != DeletedItemHandling.INCLUDE) {
+      query = query.filter("deletionTime", END_OF_TIME);
+    }
+    return query.limit(resultSetMaxSize);
   }
 }

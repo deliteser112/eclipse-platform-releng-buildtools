@@ -236,30 +236,6 @@ public class RdapNameserverActionTest extends RdapActionBaseTestCase<RdapNameser
   }
 
   @Test
-  public void testNameserver_found_sameRegistrarRequested() {
-    action.registrarParam = Optional.of("TheRegistrar");
-    assertThat(generateActualJson("ns1.cat.lol"))
-        .isEqualTo(
-            generateExpectedJsonWithTopLevelEntries(
-                "ns1.cat.lol",
-                ImmutableMap.of(
-                    "HANDLE", "2-ROID",
-                    "ADDRESSTYPE", "v4",
-                    "ADDRESS", "1.2.3.4",
-                    "STATUS", "active"),
-                "rdap_host.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
-  }
-
-  @Test
-  public void testNameserver_notFound_differentRegistrarRequested() {
-    action.registrarParam = Optional.of("otherregistrar");
-    action.includeDeletedParam = Optional.of(false);
-    generateActualJson("ns1.cat.lol");
-    assertThat(response.getStatus()).isEqualTo(404);
-  }
-
-  @Test
   public void testDeletedNameserver_notFound_includeDeletedNotSpecified() {
     generateActualJson("nsdeleted.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
@@ -320,33 +296,6 @@ public class RdapNameserverActionTest extends RdapActionBaseTestCase<RdapNameser
                     "STATUS", "inactive"),
                 "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);
-  }
-
-  @Test
-  public void testDeletedNameserver_found_sameRegistrarRequested() {
-    login("TheRegistrar");
-    action.registrarParam = Optional.of("TheRegistrar");
-    action.includeDeletedParam = Optional.of(true);
-    assertThat(generateActualJson("nsdeleted.cat.lol"))
-        .isEqualTo(
-            generateExpectedJsonWithTopLevelEntries(
-                "nsdeleted.cat.lol",
-                ImmutableMap.of(
-                    "HANDLE", "A-ROID",
-                    "ADDRESSTYPE", "v4",
-                    "ADDRESS", "1.2.3.4",
-                    "STATUS", "inactive"),
-                "rdap_host.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
-  }
-
-  @Test
-  public void testDeletedNameserver_notFound_differentRegistrarRequested() {
-    login("TheRegistrar");
-    action.registrarParam = Optional.of("otherregistrar");
-    action.includeDeletedParam = Optional.of(false);
-    generateActualJson("ns1.cat.lol");
-    assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test

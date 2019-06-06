@@ -16,6 +16,7 @@ package google.registry.rdap;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rdap.RdapUtils.getRegistrarByIanaIdentifier;
+import static google.registry.rdap.RdapUtils.getRegistrarByName;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
@@ -29,7 +30,6 @@ import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapObjectClasses.RdapEntity;
 import google.registry.request.Action;
-import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
 import java.util.Optional;
@@ -63,31 +63,46 @@ public class RdapEntityAction extends RdapActionBase {
   public RdapEntity getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest) {
     // The query string is not used; the RDAP syntax is /rdap/entity/handle (the handle is the roid
-    // for contacts and the client identifier for registrars). Since RDAP's concept of an entity
+    // for contacts and the client identifier/fn for registrars). Since RDAP's concept of an entity
     // includes both contacts and registrars, search for one first, then the other.
-    boolean wasValidKey = false;
+
+    // RDAP Technical Implementation Guide 2.3.1 - MUST support contact entity lookup using the
+    // handle
     if (ROID_PATTERN.matcher(pathSearchString).matches()) {
-      wasValidKey = true;
       Key<ContactResource> contactKey = Key.create(ContactResource.class, pathSearchString);
       ContactResource contactResource = ofy().load().key(contactKey).now();
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
-      if ((contactResource != null) && shouldBeVisible(contactResource)) {
+      if (contactResource != null && isAuthorized(contactResource)) {
         return rdapJsonFormatter.createRdapContactEntity(
             contactResource, ImmutableSet.of(), OutputDataType.FULL);
       }
     }
+
+    // RDAP Technical Implementation Guide 2.4.1 - MUST support registrar entity lookup using the
+    // IANA ID as handle
     Long ianaIdentifier = Longs.tryParse(pathSearchString);
     if (ianaIdentifier != null) {
-      wasValidKey = true;
       Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
-      if (registrar.isPresent() && shouldBeVisible(registrar.get())) {
+      if (registrar.isPresent() && isAuthorized(registrar.get())) {
         return rdapJsonFormatter.createRdapRegistrarEntity(registrar.get(), OutputDataType.FULL);
       }
     }
+
+    // RDAP Technical Implementation Guide 2.4.2 - MUST support registrar entity lookup using the
+    // fn as handle
+    Optional<Registrar> registrar = getRegistrarByName(pathSearchString);
+    if (registrar.isPresent() && isAuthorized(registrar.get())) {
+      return rdapJsonFormatter.createRdapRegistrarEntity(registrar.get(), OutputDataType.FULL);
+    }
+
     // At this point, we have failed to find either a contact or a registrar.
-    throw wasValidKey
-        ? new NotFoundException(pathSearchString + " not found")
-        : new BadRequestException(pathSearchString + " is not a valid entity handle");
+    //
+    // RFC7480 5.3 - if the server wishes to respond that it doesn't have data satisfying the
+    // query, it MUST reply with 404 response code.
+    //
+    // Note we don't do RFC7480 5.3 - returning a different code if we wish to say "this info
+    // exists but we don't want to show it to you", because we DON'T wish to say that.
+    throw new NotFoundException(pathSearchString + " not found");
   }
 }

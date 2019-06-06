@@ -14,6 +14,7 @@
 
 package google.registry.rdap;
 
+import com.google.common.base.Ascii;
 import com.google.common.collect.Streams;
 import google.registry.model.registrar.Registrar;
 import java.util.Objects;
@@ -28,6 +29,19 @@ public final class RdapUtils {
   static Optional<Registrar> getRegistrarByIanaIdentifier(final long ianaIdentifier) {
     return Streams.stream(Registrar.loadAllCached())
         .filter(registrar -> Objects.equals(ianaIdentifier, registrar.getIanaIdentifier()))
+        .findFirst();
+  }
+
+  /**
+   * Looks up a registrar by its name.
+   *
+   * <p>Used for RDAP Technical Implementation Guide 2.4.2 - search of registrar by the fn element.
+   *
+   * <p>For convenience, we use case insensitive search.
+   */
+  static Optional<Registrar> getRegistrarByName(String registrarName) {
+    return Streams.stream(Registrar.loadAllCached())
+        .filter(registrar -> Ascii.equalsIgnoreCase(registrarName, registrar.getRegistrarName()))
         .findFirst();
   }
 }

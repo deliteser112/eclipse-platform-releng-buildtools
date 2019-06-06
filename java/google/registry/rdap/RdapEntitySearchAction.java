@@ -72,6 +72,9 @@ import javax.inject.Inject;
  *     (RDAP) Query Format</a>
  * @see <a href="http://tools.ietf.org/html/rfc7483">RFC 7483: JSON Responses for the Registration
  *     Data Access Protocol (RDAP)</a>
+ *
+ * TODO(guyben):This isn't required by the RDAP Technical Implementation Guide, and hence should be
+ * deleted, at least until it's actually required.
  */
 @Action(
     service = Action.Service.PUBAPI,
@@ -109,14 +112,9 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
 
   /** Parses the parameters and calls the appropriate search function. */
   @Override
-  public EntitySearchResponse getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest) {
+  public EntitySearchResponse getSearchResponse(boolean isHeadRequest) {
 
     // RDAP syntax example: /rdap/entities?fn=Bobby%20Joe*.
-    // The pathSearchString is not used by search commands.
-    if (pathSearchString.length() > 0) {
-      throw new BadRequestException("Unexpected path");
-    }
     if (Booleans.countTrue(fnParam.isPresent(), handleParam.isPresent()) != 1) {
       throw new BadRequestException("You must specify either fn=XXXX or handle=YYYY");
     }
@@ -133,8 +131,6 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       throw new BadRequestException("Subtype parameter must specify contacts, registrars or all");
     }
 
-    // Decode the cursor token and extract the prefix and string portions.
-    decodeCursorToken();
     CursorType cursorType;
     Optional<String> cursorQueryString;
     if (!cursorString.isPresent()) {
@@ -162,7 +158,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       // The name is the contact name or registrar name (not registrar contact name).
       results =
           searchByName(
-              recordWildcardType(RdapSearchPattern.create(fnParam.get(), false)),
+              recordWildcardType(RdapSearchPattern.createFromUnicodeString(fnParam.get())),
               cursorType,
               cursorQueryString,
               subtype);
@@ -174,7 +170,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       // The handle is either the contact roid or the registrar clientId.
       results =
           searchByHandle(
-              recordWildcardType(RdapSearchPattern.create(handleParam.get(), false)),
+              recordWildcardType(RdapSearchPattern.createFromUnicodeString(handleParam.get())),
               cursorType,
               cursorQueryString,
               subtype);

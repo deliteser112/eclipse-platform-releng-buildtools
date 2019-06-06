@@ -14,9 +14,13 @@
 
 package google.registry.rdap;
 
-import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
+import com.google.common.base.Strings;
+import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.UnprocessableEntityException;
+import google.registry.util.Idn;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 
 /**
@@ -31,6 +35,19 @@ import javax.annotation.Nullable;
 public final class RdapSearchPattern {
 
   static final int MIN_INITIAL_STRING_LENGTH = 2;
+
+  /**
+   * Pattern for allowed LDH searches.
+   *
+   * <p>Based on RFC7482 4.1. Must contains only alphanumeric plus dots and hyphens. A single
+   * whildcard asterix is allowed - but if exists must be the last character of a domain name label
+   * (so exam* and exam*.com are allowed, but exam*le.com isn't allowd)
+   *
+   * <p>The prefix is in group(1), and the suffix without the dot (if it exists) is in group(4). If
+   * there's no wildcard, group(2) is empty.
+   */
+  static final Pattern LDH_PATTERN =
+      Pattern.compile("([-.a-zA-Z0-9]*)([*]([.]([-.a-zA-Z0-9]+))?)?");
 
   /** String before the wildcard character. */
   private final String initialString;
@@ -78,49 +95,81 @@ public final class RdapSearchPattern {
   }
 
   /**
-   * Creates a SearchPattern using the provided search pattern string.
+   * Creates a SearchPattern using the provided search pattern string in Unicode.
    *
-   * @param pattern the string containing the partial match pattern
-   * @param allowSuffix true if a suffix is allowed after the wildcard
+   * <p>The search query might end in an asterix, in which case that asterix is considered a
+   * wildcard and can match 0 or more characters. Without that asterix - the match will be exact.
    *
-   * @throws UnprocessableEntityException if {@code pattern} does not meet the requirements of RFC
-   *    7482
+   * @param searchQuery the string containing the partial match pattern, optionally ending in a
+   *     wildcard asterix
+   * @throws UnprocessableEntityException if {@code pattern} has a wildcard not at the end of the
+   *     query
    */
-  public static RdapSearchPattern create(String pattern, boolean allowSuffix) {
-    String initialString;
-    boolean hasWildcard;
-    String suffix;
-    // If there's no wildcard character, just lump everything into the initial string.
-    int wildcardPos = pattern.indexOf('*');
-    if (wildcardPos < 0) {
-      initialString = pattern;
-      hasWildcard = false;
-      suffix = null;
-    } else if (pattern.indexOf('*', wildcardPos + 1) >= 0) {
-      throw new UnprocessableEntityException("Only one wildcard allowed");
-    } else {
-      hasWildcard = true;
-      // Check for a suffix (e.g. exam*.com or ns*.example.com).
-      if (pattern.length() > wildcardPos + 1) {
-        if (!allowSuffix) {
-          throw new UnprocessableEntityException("Suffix not allowed after wildcard");
-        }
-        if ((pattern.length() == wildcardPos + 2) || (pattern.charAt(wildcardPos + 1) != '.')) {
-          throw new UnprocessableEntityException(
-              "Suffix after wildcard must be one or more domain"
-                  + " name labels, e.g. exam*.tld, ns*.example.tld");
-        }
-        suffix = pattern.substring(wildcardPos + 2);
-      } else {
-        suffix = null;
-      }
-      initialString = pattern.substring(0, wildcardPos);
-      if (initialString.startsWith(ACE_PREFIX) && (initialString.length() < 7)) {
-        throw new UnprocessableEntityException(
-            "At least seven characters must be specified for punycode domain searches");
-      }
+  public static RdapSearchPattern createFromUnicodeString(String searchQuery) {
+    int wildcardLocation = searchQuery.indexOf('*');
+    if (wildcardLocation < 0) {
+      return new RdapSearchPattern(searchQuery, false, null);
     }
+    if (wildcardLocation == searchQuery.length() - 1) {
+      return new RdapSearchPattern(searchQuery.substring(0, wildcardLocation), true, null);
+    }
+    throw new UnprocessableEntityException(
+        String.format(
+            "Query can only have a single wildcard, and it must be at the end of the query, but"
+                + " was: '%s'",
+            searchQuery));
+  }
+
+  /**
+   * Creates a SearchPattern using the provided domain search pattern in LDH format.
+   *
+   * <p>The domain search pattern can have a single wildcard asterix that can match 0 or more
+   * charecters. If such an asterix exists - it must be at the end of a domain label.
+   *
+   * @param searchQuery the string containing the partial match pattern
+   * @throws UnprocessableEntityException if {@code pattern} does not meet the requirements of RFC
+   *     7482
+   */
+  public static RdapSearchPattern createFromLdhDomainName(String searchQuery) {
+    Matcher matcher = LDH_PATTERN.matcher(searchQuery);
+    if (!matcher.matches()) {
+      throw new UnprocessableEntityException(
+          String.format(
+              "Query can only have a single wildcard, and it must be at the end of a label,"
+                  + " but was: '%s'",
+              searchQuery));
+    }
+
+    String initialString = matcher.group(1);
+    boolean hasWildcard = !Strings.isNullOrEmpty(matcher.group(2));
+    String suffix = Strings.emptyToNull(matcher.group(4));
+
     return new RdapSearchPattern(initialString, hasWildcard, suffix);
+  }
+
+  /**
+   * Creates a SearchPattern using the provided domain search pattern in LDH or Unicode format.
+   *
+   * <p>The domain search pattern can have a single wildcard asterix that can match 0 or more
+   * charecters. If such an asterix exists - it must be at the end of a domain label.
+   *
+   * <p>In theory, according to RFC7482 4.1 - we should make some checks about partial matching in
+   * unicode queries. We don't, but we might want to just disable partial matches for unicode inputs
+   * (meaning if it doesn't match LDH_PATTERN, then don't allow wildcard at all).
+   *
+   * @param searchQuery the string containing the partial match pattern
+   * @throws UnprocessableEntityException if {@code pattern} does not meet the requirements of RFC
+   *     7482
+   */
+  public static RdapSearchPattern createFromLdhOrUnicodeDomainName(String searchQuery) {
+    String ldhSearchQuery;
+    try {
+      ldhSearchQuery = Idn.toASCII(searchQuery);
+    } catch (Exception e) {
+      throw new BadRequestException(
+          String.format("Invalid value of searchQuery: '%s'", searchQuery), e);
+    }
+    return RdapSearchPattern.createFromLdhDomainName(ldhSearchQuery);
   }
 
   /**

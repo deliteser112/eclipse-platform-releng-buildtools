@@ -163,7 +163,7 @@ final class RdapObjectClasses {
    *
    * <p>RFC 7483 specifies that the top-level object should include an entry indicating the
    * conformance level. ICANN RDAP spec for 15feb19 mandates several additional entries, in sections
-   * 2.6.3, 2.11 of the Response Profile and 3.3.2, 3.5, of the Technical Implementation Guide.
+   * 2.6.3, 2.11 of the Response Profile and 3.3, 3.5, of the Technical Implementation Guide.
    */
   @AutoValue
   @RestrictJsonNames({})

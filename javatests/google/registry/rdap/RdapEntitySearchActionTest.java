@@ -412,7 +412,10 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   public void testNameMatch_suffixRejected() {
     assertThat(generateActualJsonWithFullName("exam*ple"))
         .isEqualTo(
-            generateExpectedJsonError("Suffix not allowed after wildcard", 422));
+            generateExpectedJsonError(
+                "Query can only have a single wildcard, and it must be at the end of the query,"
+                    + " but was: 'exam*ple'",
+                422));
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(Optional.empty(), 422);
   }
@@ -421,7 +424,10 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   public void testHandleMatch_suffixRejected() {
     assertThat(generateActualJsonWithHandle("exam*ple"))
         .isEqualTo(
-            generateExpectedJsonError("Suffix not allowed after wildcard", 422));
+            generateExpectedJsonError(
+                "Query can only have a single wildcard, and it must be at the end of the query,"
+                    + " but was: 'exam*ple'",
+                422));
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(Optional.empty(), 422);
   }
@@ -429,7 +435,11 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase<RdapEnt
   @Test
   public void testMultipleWildcards_rejected() {
     assertThat(generateActualJsonWithHandle("*.*"))
-        .isEqualTo(generateExpectedJsonError("Only one wildcard allowed", 422));
+        .isEqualTo(
+            generateExpectedJsonError(
+                "Query can only have a single wildcard, and it must be at the end of the query,"
+                    + " but was: '*.*'",
+                422));
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(Optional.empty(), 422);
   }

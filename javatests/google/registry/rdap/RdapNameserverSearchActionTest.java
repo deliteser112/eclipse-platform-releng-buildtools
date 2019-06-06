@@ -258,9 +258,10 @@ public class RdapNameserverSearchActionTest
     assertThat(generateActualJsonWithName("exam*ple"))
         .isEqualTo(
             generateExpectedJsonError(
-                "Suffix after wildcard must be one or more domain"
-                    + " name labels, e.g. exam*.tld, ns*.example.tld",
+                "Query can only have a single wildcard, and it must be at the end of a label, but"
+                    + " was: 'exam*ple'",
                 422));
+    rememberWildcardTypeInvalid();
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(Optional.empty(), 422);
   }
@@ -279,7 +280,12 @@ public class RdapNameserverSearchActionTest
   @Test
   public void testMultipleWildcards_rejected() {
     assertThat(generateActualJsonWithName("*.*"))
-        .isEqualTo(generateExpectedJsonError("Only one wildcard allowed", 422));
+        .isEqualTo(
+            generateExpectedJsonError(
+                "Query can only have a single wildcard, and it must be at the end of a label, but"
+                    + " was: '*.*'",
+                422));
+    rememberWildcardTypeInvalid();
     assertThat(response.getStatus()).isEqualTo(422);
     verifyErrorMetrics(Optional.empty(), 422);
   }
@@ -337,7 +343,7 @@ public class RdapNameserverSearchActionTest
     action.registrarParam = Optional.of("unicoderegistrar");
     generateActualJsonWithName("ns1.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
-    verifyErrorMetrics(Optional.of(0L), 404);
+    verifyErrorMetrics(Optional.of(1L), 404);
   }
 
   @Test
@@ -373,13 +379,20 @@ public class RdapNameserverSearchActionTest
   }
 
   @Test
-  public void testNameMatch_ns1_cat_idn_unicode_badRequest() {
-    // name must use punycode.
-    generateActualJsonWithName("ns1.cat.みんな");
-    metricWildcardType = WildcardType.INVALID;
-    metricPrefixLength = 0;
-    assertThat(response.getStatus()).isEqualTo(400);
-    verifyErrorMetrics(Optional.empty(), 400);
+  public void testNameMatch_ns1_cat_idn_unicode_found() {
+    assertThat(generateActualJsonWithName("ns1.cat.みんな"))
+        .isEqualTo(
+            generateExpectedJsonForNameserver(
+                "ns1.cat.みんな",
+                "ns1.cat.xn--q9jyb4c",
+                "B-ROID",
+                "v4",
+                "1.2.3.5",
+                "rdap_host_unicode.json"));
+    metricWildcardType = WildcardType.NO_WILDCARD;
+    metricPrefixLength = 19;
+    assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test

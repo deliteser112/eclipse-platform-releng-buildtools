@@ -47,6 +47,8 @@ public class RdapNameserverAction extends RdapActionBase {
 
   @Override
   public RdapNameserver getJsonObjectForResource(String pathSearchString, boolean isHeadRequest) {
+    // RDAP Technical Implementation Guide 2.2.1 - we must support A-label (Punycode) and U-label
+    // (Unicode) formats. canonicalizeName will transform Unicode to Punycode so we support both.
     pathSearchString = canonicalizeName(pathSearchString);
     // The RDAP syntax is /rdap/nameserver/ns1.mydomain.com.
     try {
@@ -64,7 +66,12 @@ public class RdapNameserverAction extends RdapActionBase {
             HostResource.class,
             pathSearchString,
             shouldIncludeDeleted() ? START_OF_TIME : getRequestTime());
-    if (!shouldBeVisible(hostResource)) {
+    if (!hostResource.isPresent() || !isAuthorized(hostResource.get())) {
+      // RFC7480 5.3 - if the server wishes to respond that it doesn't have data satisfying the
+      // query, it MUST reply with 404 response code.
+      //
+      // Note we don't do RFC7480 5.3 - returning a different code if we wish to say "this info
+      // exists but we don't want to show it to you", because we DON'T wish to say that.
       throw new NotFoundException(pathSearchString + " not found");
     }
     return rdapJsonFormatter.createRdapNameserver(hostResource.get(), OutputDataType.FULL);

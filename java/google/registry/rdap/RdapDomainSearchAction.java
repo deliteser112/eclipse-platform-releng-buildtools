@@ -44,7 +44,6 @@ import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.util.Idn;
 import google.registry.util.NonFinalForTesting;
 import java.net.InetAddress;
 import java.util.Comparator;
@@ -62,6 +61,9 @@ import javax.inject.Inject;
  *     (RDAP) Query Format</a>
  * @see <a href="http://tools.ietf.org/html/rfc7483">RFC 7483: JSON Responses for the Registration
  *     Data Access Protocol (RDAP)</a>
+ *
+ * TODO(guyben):This isn't required by the RDAP Technical Implementation Guide, and hence should be
+ * deleted, at least until it's actually required.
  */
 @Action(
     service = Action.Service.PUBAPI,
@@ -90,41 +92,29 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * <p>The RDAP spec allows for domain search by domain name, nameserver name or nameserver IP.
    */
   @Override
-  public DomainSearchResponse getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest) {
+  public DomainSearchResponse getSearchResponse(boolean isHeadRequest) {
     // RDAP syntax example: /rdap/domains?name=exam*.com.
-    // The pathSearchString is not used by search commands.
-    if (pathSearchString.length() > 0) {
-      throw new BadRequestException("Unexpected path");
-    }
     if (Booleans.countTrue(nameParam.isPresent(), nsLdhNameParam.isPresent(), nsIpParam.isPresent())
         != 1) {
       throw new BadRequestException(
           "You must specify either name=XXXX, nsLdhName=YYYY or nsIp=ZZZZ");
     }
-    decodeCursorToken();
     DomainSearchResponse results;
     if (nameParam.isPresent()) {
       metricInformationBuilder.setSearchType(SearchType.BY_DOMAIN_NAME);
       // syntax: /rdap/domains?name=exam*.com
-      String asciiName;
-      try {
-        asciiName = Idn.toASCII(nameParam.get());
-      } catch (Exception e) {
-        throw new BadRequestException("Invalid value of nsLdhName parameter");
-      }
-      results = searchByDomainName(recordWildcardType(RdapSearchPattern.create(asciiName, true)));
+      results =
+          searchByDomainName(
+              recordWildcardType(
+                  RdapSearchPattern.createFromLdhOrUnicodeDomainName(nameParam.get())));
     } else if (nsLdhNameParam.isPresent()) {
       metricInformationBuilder.setSearchType(SearchType.BY_NAMESERVER_NAME);
       // syntax: /rdap/domains?nsLdhName=ns1.exam*.com
       // RFC 7482 appears to say that Unicode domains must be specified using punycode when
       // passed to nsLdhName, so IDN.toASCII is not called here.
-      if (!LDH_PATTERN.matcher(nsLdhNameParam.get()).matches()) {
-        throw new BadRequestException("Invalid value of nsLdhName parameter");
-      }
       results =
           searchByNameserverLdhName(
-              recordWildcardType(RdapSearchPattern.create(nsLdhNameParam.get(), true)));
+              recordWildcardType(RdapSearchPattern.createFromLdhDomainName(nsLdhNameParam.get())));
     } else {
       metricInformationBuilder.setSearchType(SearchType.BY_NAMESERVER_ADDRESS);
       metricInformationBuilder.setWildcardType(WildcardType.NO_WILDCARD);
@@ -189,7 +179,9 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     Optional<DomainBase> domainBase =
         loadByForeignKey(DomainBase.class, partialStringQuery.getInitialString(), getRequestTime());
     return makeSearchResults(
-        shouldBeVisible(domainBase) ? ImmutableList.of(domainBase.get()) : ImmutableList.of());
+        shouldBeVisible(domainBase)
+            ? ImmutableList.of(domainBase.get())
+            : ImmutableList.of());
   }
 
   /** Searches for domains by domain name with an initial string, wildcard and possible suffix. */
@@ -294,6 +286,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
             HostResource.class,
             "fullyQualifiedHostName",
             partialStringQuery,
+            Optional.empty(),
             DeletedItemHandling.EXCLUDE,
             maxNameserversInFirstStage);
     Optional<String> desiredRegistrar = getDesiredRegistrar();
