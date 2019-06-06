@@ -14,10 +14,10 @@
 # limitations under the License.
 
 set -e
+apt-get update -y
 apt-get install locales -y
 locale-gen en_US.UTF-8
 apt-get install apt-utils -y
-apt-get update -y
 apt-get upgrade -y
 # Install Java
 apt-get install openjdk-8-jdk-headless -y
