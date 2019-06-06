@@ -31,6 +31,7 @@ import google.registry.model.Buildable;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ExternalMessagingName;
+import google.registry.model.annotations.ReportedOn;
 import google.registry.model.domain.DomainRenewData;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
 import google.registry.model.poll.PendingActionNotificationResponse.ContactPendingActionNotificationResponse;
@@ -65,6 +66,7 @@ import org.joda.time.DateTime;
  *     Command</a>
  */
 @Entity
+@ReportedOn
 @ExternalMessagingName("message")
 public abstract class PollMessage extends ImmutableObject
     implements Buildable, TransferServerApproveEntity {

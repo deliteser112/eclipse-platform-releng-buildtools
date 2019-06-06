@@ -12,6 +12,7 @@ KmsSecret
 KmsSecretRevision
 Modification
 OneTime
+PollMessage
 PremiumList
 PremiumListEntry
 PremiumListRevision
