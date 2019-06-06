@@ -42,7 +42,7 @@ public class EntityClassesTest {
 
   @Test
   public void testEntityClasses_inAlphabeticalOrder() {
-    assertThat(ALL_CLASSES).isStrictlyOrdered(QUALIFIED_CLASS_NAME_ORDERING);
+    assertThat(ALL_CLASSES).isInStrictOrder(QUALIFIED_CLASS_NAME_ORDERING);
   }
 
   @Test

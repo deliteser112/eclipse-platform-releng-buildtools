@@ -30,7 +30,7 @@ import google.registry.xml.ValidationMode;
 import google.registry.xml.XmlException;
 
 /** Utility methods for asserting things about {@link EppException} instances. */
-public class EppExceptionSubject extends Subject<EppExceptionSubject, EppException> {
+public class EppExceptionSubject extends Subject {
 
   private final EppException actual;
 

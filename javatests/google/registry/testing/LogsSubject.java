@@ -31,7 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 /** Utility methods for asserting things about logging {@link Handler} instances. */
-public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
+public class LogsSubject extends Subject {
 
   private final TestLogHandler actual;
 

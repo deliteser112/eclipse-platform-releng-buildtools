@@ -27,7 +27,7 @@ import java.util.Optional;
 import org.joda.time.DateTime;
 
 /** Utility methods for asserting things about {@link HistoryEntry} instances. */
-public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEntry> {
+public class HistoryEntrySubject extends Subject {
 
   private final HistoryEntry actual;
   private String customDisplaySubject;
@@ -106,6 +106,10 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
 
   public static SimpleSubjectBuilder<HistoryEntrySubject, HistoryEntry>
       assertAboutHistoryEntries() {
-    return assertAbout(HistoryEntrySubject::new);
+    return assertAbout(historyEntries());
+  }
+
+  public static Factory<HistoryEntrySubject, HistoryEntry> historyEntries() {
+    return HistoryEntrySubject::new;
   }
 }

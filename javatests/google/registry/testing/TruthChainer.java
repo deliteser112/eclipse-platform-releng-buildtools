@@ -20,7 +20,7 @@ import com.google.common.truth.Subject;
 public final class TruthChainer {
 
   /** Add another assertion. */
-  public static class And<S extends Subject<?, ?>> {
+  public static class And<S extends Subject> {
 
     private final S subject;
 
@@ -34,7 +34,7 @@ public final class TruthChainer {
   }
 
   /** Move the word "which" to after a parameterized assertion. */
-  public static class Which<S extends Subject<?, ?>> {
+  public static class Which<S extends Subject> {
 
     private final S subject;
 

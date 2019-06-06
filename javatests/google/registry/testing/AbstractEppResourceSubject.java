@@ -15,12 +15,11 @@
 package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.lenientFormat;
 import static com.google.common.truth.Fact.fact;
 import static com.google.common.truth.Fact.simpleFact;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.testing.DatastoreHelper.getHistoryEntriesOfType;
-import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
+import static google.registry.testing.HistoryEntrySubject.historyEntries;
 import static google.registry.util.DiffUtils.prettyPrintEntityDeepDiff;
 
 import com.google.common.collect.ImmutableSet;
@@ -37,8 +36,9 @@ import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /** Base Truth subject for asserting things about epp resources. */
-abstract class AbstractEppResourceSubject
-    <T extends EppResource, S extends AbstractEppResourceSubject<T, S>> extends Subject<S, T> {
+abstract class AbstractEppResourceSubject<
+        T extends EppResource, S extends AbstractEppResourceSubject<T, S>>
+    extends Subject {
 
   private final T actual;
 
@@ -111,34 +111,28 @@ abstract class AbstractEppResourceSubject
 
   public HistoryEntrySubject hasOnlyOneHistoryEntryWhich() {
     hasOnlyOneHistoryEntry();
-    return assertAboutHistoryEntries().that(getHistoryEntries().get(0)).withCustomDisplaySubject(
-        "the only history entry for " + actualAsString());
+    return check("onlyHistoryEntry()").about(historyEntries()).that(getHistoryEntries().get(0));
   }
 
+  // Temporarily suppressing style warning for Truth 0.45 upgrade
+  // TODO(weiminyu): Remove after next Truth update
+  @SuppressWarnings("UnnecessaryParentheses")
   public Which<HistoryEntrySubject> hasHistoryEntryAtIndex(int index) {
     List<HistoryEntry> historyEntries = getHistoryEntries();
     check("getHistoryEntries().size()").that(historyEntries.size()).isAtLeast(index + 1);
-    return new Which<>(assertAboutHistoryEntries()
-        .that(getHistoryEntries().get(index)).withCustomDisplaySubject(String.format(
-            "the history entry for %s at index %s", actualAsString(), index)));
+    return new Which<>(
+        check("getHistoryEntries(%s)", index)
+            .about(historyEntries())
+            .that((getHistoryEntries().get(index))));
   }
 
   public And<S> hasStatusValue(StatusValue statusValue) {
-    if (!actual.getStatusValues().contains(statusValue)) {
-      failWithoutActual(
-          simpleFact(
-              lenientFormat("%s should have had status value %s", actualAsString(), statusValue)));
-    }
+    check("getStatusValues()").that(actual.getStatusValues()).contains(statusValue);
     return andChainer();
   }
 
   public And<S> doesNotHaveStatusValue(StatusValue statusValue) {
-    if (actual.getStatusValues().contains(statusValue)) {
-      failWithoutActual(
-          simpleFact(
-              lenientFormat(
-                  "%s should not have had status value %s", actualAsString(), statusValue)));
-    }
+    check("getStatusValues()").that(actual.getStatusValues()).doesNotContain(statusValue);
     return andChainer();
   }
 

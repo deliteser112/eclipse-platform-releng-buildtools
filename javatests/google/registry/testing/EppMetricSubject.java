@@ -27,7 +27,7 @@ import google.registry.testing.TruthChainer.And;
 import java.util.Optional;
 
 /** Utility methods for asserting things about {@link EppMetric} instances. */
-public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
+public class EppMetricSubject extends Subject {
 
   private final EppMetric actual;
 

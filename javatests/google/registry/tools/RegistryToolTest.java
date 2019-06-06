@@ -52,7 +52,7 @@ public class RegistryToolTest {
 
   @Test
   public void test_commandMap_namesAreInAlphabeticalOrder() {
-    assertThat(RegistryTool.COMMAND_MAP.keySet()).isStrictlyOrdered();
+    assertThat(RegistryTool.COMMAND_MAP.keySet()).isInStrictOrder();
   }
 
   @Test

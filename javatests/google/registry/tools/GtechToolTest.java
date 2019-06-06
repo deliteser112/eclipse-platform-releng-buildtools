@@ -38,7 +38,7 @@ public class GtechToolTest {
 
   @Test
   public void test_commandMap_namesAreInAlphabeticalOrder() {
-    assertThat(GtechTool.COMMAND_MAP.keySet()).isStrictlyOrdered();
+    assertThat(GtechTool.COMMAND_MAP.keySet()).isInStrictOrder();
   }
 
   @Test

@@ -1647,10 +1647,10 @@ def com_google_template_soy():
 def com_google_truth():
     java_import_external(
         name = "com_google_truth",
-        jar_sha256 = "a9e6796786c9c77a5fe19b08e72fe0a620d53166df423d8861af9ebef4dc4247",
+        jar_sha256 = "0f7dced2a16e55a77e44fc3ff9c5be98d4bf4bb30abc18d78ffd735df950a69f",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/truth/truth/0.44/truth-0.44.jar",
-            "http://repo1.maven.org/maven2/com/google/truth/truth/0.44/truth-0.44.jar",
+            "http://maven.ibiblio.org/maven2/com/google/truth/truth/0.45/truth-0.45.jar",
+            "http://repo1.maven.org/maven2/com/google/truth/truth/0.45/truth-0.45.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         testonly_ = True,
@@ -1666,10 +1666,10 @@ def com_google_truth():
 def com_google_truth_extensions_truth_java8_extension():
     java_import_external(
         name = "com_google_truth_extensions_truth_java8_extension",
-        jar_sha256 = "da4d94dc952c65914bf9e3c0b4f4a05f5aea536aa5de9a4660b859409dda4bad",
+        jar_sha256 = "dc1fedf6c13b1b1a4c4fa3e810f11df070ea4701765f05176f8bdcb5520c7de4",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/com/google/truth/extensions/truth-java8-extension/0.44/truth-java8-extension-0.44.jar",
-            "http://central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.44/truth-java8-extension-0.44.jar",
+            "http://maven.ibiblio.org/maven2/com/google/truth/extensions/truth-java8-extension/0.45/truth-java8-extension-0.45.jar",
+            "http://central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.45/truth-java8-extension-0.45.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         testonly_ = True,
