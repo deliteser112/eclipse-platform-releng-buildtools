@@ -558,6 +558,15 @@ compileProdJS.dependsOn processTestResources
 compileProdJS.dependsOn soyToJS
 assemble.dependsOn compileProdJS
 
+task karmaTest(type: Exec) {
+  dependsOn ':npmInstall'
+  workingDir rootProject.projectDir
+  executable 'node_modules/karma/bin/karma'
+  args('start')
+}
+
+test.dependsOn karmaTest
+
 // Make testing artifacts available to be depended up on by other projects.
 // TODO: factor out google.registry.testing to be a separate project.
 task testJar(type: Jar) {
