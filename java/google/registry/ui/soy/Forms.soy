@@ -112,11 +112,13 @@
   {@param? namePrefix: string}
   {@param? placeholder: string}
   {@param? clazz: string}
+  {@param? type: string}
   {let $forId: isNonnull($namePrefix) ? $namePrefix + $name : $name /}
   <input name="{$forId}"
          id="{$forId}"
          value="{if isNonnull($value)}{$value['keyValue'] ?: $value}{/if}"
          {if isNonnull($clazz)}class="{$clazz}"{/if}
+         {if isNonnull($type)}type="{$type}"{/if}
          {if isNonnull($placeholder) and not $readonly}
          placeholder="{$placeholder}"
          {/if}
@@ -136,6 +138,7 @@
   {@param? description: string}
   {@param? placeholder: string}
   {@param? clazz: string}
+  {@param? type: string}
   {let $forId: isNonnull($namePrefix) ? $namePrefix + $name : $name /}
   <tr class="{css('kd-settings-pane-section')}">
     <td>
