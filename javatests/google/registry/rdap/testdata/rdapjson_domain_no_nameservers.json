@@ -18,6 +18,18 @@
       "rel": "self",
       "href": "https://example.tld/rdap/domain/fish.xn--q9jyb4c",
       "type": "application/rdap+json"
+    },
+    {
+      "href": "https://rdap.example.com/withSlash/domain/fish.xn--q9jyb4c",
+      "type": "application/rdap+json",
+      "rel": "related",
+      "value": "https://rdap.example.com/withSlash/domain/fish.xn--q9jyb4c"
+    },
+    {
+      "href": "https://rdap.example.com/withoutSlash/domain/fish.xn--q9jyb4c",
+      "type": "application/rdap+json",
+      "rel": "related",
+      "value": "https://rdap.example.com/withoutSlash/domain/fish.xn--q9jyb4c"
     }
   ],
   "events": [

@@ -19,6 +19,18 @@
       "type": "application/rdap+json",
       "rel": "self",
       "value": "https://example.tld/rdap/domain/%DOMAIN_PUNYCODE_NAME_1%"
+    },
+    {
+      "href": "https://rdap.example.com/withSlash/domain/%DOMAIN_PUNYCODE_NAME_1%",
+      "type": "application/rdap+json",
+      "rel": "related",
+      "value": "https://rdap.example.com/withSlash/domain/%DOMAIN_PUNYCODE_NAME_1%"
+    },
+    {
+      "href": "https://rdap.example.com/withoutSlash/domain/%DOMAIN_PUNYCODE_NAME_1%",
+      "type": "application/rdap+json",
+      "rel": "related",
+      "value": "https://rdap.example.com/withoutSlash/domain/%DOMAIN_PUNYCODE_NAME_1%"
     }
   ],
   "events": [

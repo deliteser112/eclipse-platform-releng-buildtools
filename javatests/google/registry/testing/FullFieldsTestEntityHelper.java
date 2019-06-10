@@ -80,6 +80,8 @@ public final class FullFieldsTestEntityHelper {
       .setFaxNumber("+1.2125551213")
       .setEmailAddress("contact-us@example.com")
       .setWhoisServer("whois.example.com")
+      .setRdapBaseUrls(ImmutableSet.of(
+          "https://rdap.example.com/withSlash/", "https://rdap.example.com/withoutSlash"))
       .setUrl("http://my.fake.url")
       .build();
   }

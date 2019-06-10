@@ -17,6 +17,18 @@
       "rel" : "self",
       "href" : "https://example.tld/rdap/domain/cat.xn--q9jyb4c",
       "type" : "application/rdap+json"
+    },
+    {
+      "value" : "https://rdap.example.com/withSlash/domain/cat.xn--q9jyb4c",
+      "rel" : "related",
+      "href" : "https://rdap.example.com/withSlash/domain/cat.xn--q9jyb4c",
+      "type" : "application/rdap+json"
+    },
+    {
+      "value" : "https://rdap.example.com/withoutSlash/domain/cat.xn--q9jyb4c",
+      "rel" : "related",
+      "href" : "https://rdap.example.com/withoutSlash/domain/cat.xn--q9jyb4c",
+      "type" : "application/rdap+json"
     }
   ],
   "events": [

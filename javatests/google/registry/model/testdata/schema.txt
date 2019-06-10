@@ -436,6 +436,7 @@ class google.registry.model.registrar.Registrar {
   java.util.List<google.registry.util.CidrAddressBlock> ipAddressWhitelist;
   java.util.Map<org.joda.money.CurrencyUnit, google.registry.model.registrar.Registrar$BillingAccountEntry> billingAccountMap;
   java.util.Set<java.lang.String> allowedTlds;
+  java.util.Set<java.lang.String> rdapBaseUrls;
   org.joda.time.DateTime lastCertificateUpdateTime;
 }
 class google.registry.model.registrar.Registrar$BillingAccountEntry {

@@ -242,6 +242,9 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   /** Host name of WHOIS server. */
   String whoisServer;
 
+  /** Base URLs for the registrar's RDAP servers. */
+  Set<String> rdapBaseUrls;
+
   /**
    * Whether registration of premium names should be blocked over EPP. If this is set to true, then
    * the only way to register premium names is with the superuser flag.
@@ -526,6 +529,10 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     return firstNonNull(whoisServer, getDefaultRegistrarWhoisServer());
   }
 
+  public ImmutableSet<String> getRdapBaseUrls() {
+    return nullToEmptyImmutableSortedCopy(rdapBaseUrls);
+  }
+
   public boolean getBlockPremiumNames() {
     return blockPremiumNames;
   }
@@ -603,6 +610,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
         .put("faxNumber", faxNumber)
         .put("emailAddress", emailAddress)
         .put("whoisServer", getWhoisServer())
+        .putListOfStrings("rdapBaseUrls", getRdapBaseUrls())
         .put("blockPremiumNames", blockPremiumNames)
         .put("url", url)
         .put("icannReferralEmail", getIcannReferralEmail())
@@ -837,6 +845,11 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
       return this;
     }
 
+    public Builder setRdapBaseUrls(Set<String> rdapBaseUrls) {
+      getInstance().rdapBaseUrls = ImmutableSet.copyOf(rdapBaseUrls);
+      return this;
+    }
+
     public Builder setBlockPremiumNames(boolean blockPremiumNames) {
       getInstance().blockPremiumNames = blockPremiumNames;
       return this;
@@ -908,9 +921,24 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
         ofy().load().type(Registrar.class).parent(getCrossTldKey()).id(clientId).now());
   }
 
-  /** Loads and returns a registrar entity by its client id using an in-memory cache. */
+  /**
+   * Loads and returns a registrar entity by its client id using an in-memory cache.
+   *
+   * <p>Returns empty if the registrar isn't found.
+   */
   public static Optional<Registrar> loadByClientIdCached(String clientId) {
     checkArgument(!Strings.isNullOrEmpty(clientId), "clientId must be specified");
     return Optional.ofNullable(CACHE_BY_CLIENT_ID.get().get(clientId));
+  }
+
+  /**
+   * Loads and returns a registrar entity by its client id using an in-memory cache.
+   *
+   * <p>Throws if the registrar isn't found.
+   */
+  public static Registrar loadRequiredRegistrarCached(String clientId) {
+    Optional<Registrar> registrar = loadByClientIdCached(clientId);
+    checkArgument(registrar.isPresent(), "couldn't find registrar '%s'", clientId);
+    return registrar.get();
   }
 }

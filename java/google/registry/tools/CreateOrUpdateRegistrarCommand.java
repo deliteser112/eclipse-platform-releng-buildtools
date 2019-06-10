@@ -254,6 +254,11 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       description = "Hostname of registrar WHOIS server. (Default: whois.nic.google)")
   String whoisServer;
 
+  @Parameter(
+      names = "--rdap_servers",
+      description = "Comma-delimited list of RDAP servers. An empty argument clears the list")
+  List<String> rdapServers = new ArrayList<>();
+
   /** Returns the existing registrar (for update) or null (for creates). */
   @Nullable
   abstract Registrar getOldRegistrar(String clientId);
@@ -388,6 +393,15 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       Optional.ofNullable(phonePasscode).ifPresent(builder::setPhonePasscode);
       Optional.ofNullable(icannReferralEmail).ifPresent(builder::setIcannReferralEmail);
       Optional.ofNullable(whoisServer).ifPresent(builder::setWhoisServer);
+
+      if (!rdapServers.isEmpty()) {
+        // If we only have empty strings, then remove all the RDAP servers
+        // This is to differentiate between "I didn't set the rdapServers because I don't want to
+        // change them" and "I set the RDAP servers to an empty string because I want no RDAP
+        // servers".
+        builder.setRdapBaseUrls(
+            rdapServers.stream().filter(server -> !server.isEmpty()).collect(toImmutableSet()));
+      }
 
       // If the registrarName is being set, verify that it is either null or it normalizes uniquely.
       String oldRegistrarName = (oldRegistrar == null) ? null : oldRegistrar.getRegistrarName();

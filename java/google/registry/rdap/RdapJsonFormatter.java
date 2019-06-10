@@ -66,7 +66,6 @@ import google.registry.rdap.RdapObjectClasses.SecureDns;
 import google.registry.rdap.RdapObjectClasses.Vcard;
 import google.registry.rdap.RdapObjectClasses.VcardArray;
 import google.registry.request.FullServletPath;
-import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.util.Clock;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -301,11 +300,25 @@ public class RdapJsonFormatter {
     // The domain object in the RDAP response MUST contain an entity with the Registrar role.
     //
     // See {@link createRdapRegistrarEntity} for details of section 2.4 conformance
-    builder
-        .entitiesBuilder()
-        .add(
-            createRdapRegistrarEntity(
-                domainBase.getCurrentSponsorClientId(), OutputDataType.INTERNAL));
+    Registrar registrar =
+        Registrar.loadRequiredRegistrarCached(domainBase.getCurrentSponsorClientId());
+    builder.entitiesBuilder().add(createRdapRegistrarEntity(registrar, OutputDataType.INTERNAL));
+    // RDAP Technical Implementation Guide 3.2: must have link to the registrar's RDAP URL for this
+    // domain, with rel=related.
+    for (String registrarRdapBase : registrar.getRdapBaseUrls()) {
+      String href =
+          makeServerRelativeUrl(
+              registrarRdapBase, "domain", domainBase.getFullyQualifiedDomainName());
+      builder
+          .linksBuilder()
+          .add(
+              Link.builder()
+                  .setHref(href)
+                  .setValue(href)
+                  .setRel("related")
+                  .setType("application/rdap+json")
+                  .build());
+    }
     // RDAP Response Profile 2.6.1: must have at least one status member
     // makeStatusValueList should in theory always contain one of either "active" or "inactive".
     ImmutableSet<RdapStatus> status =
@@ -443,11 +456,9 @@ public class RdapJsonFormatter {
 
     // RDAP Response Profile 4.3 - Registrar member is optional, so we only set it for FULL
     if (outputDataType == OutputDataType.FULL) {
-      builder
-          .entitiesBuilder()
-          .add(
-              createRdapRegistrarEntity(
-                  hostResource.getPersistedCurrentSponsorClientId(), OutputDataType.INTERNAL));
+      Registrar registrar =
+          Registrar.loadRequiredRegistrarCached(hostResource.getPersistedCurrentSponsorClientId());
+      builder.entitiesBuilder().add(createRdapRegistrarEntity(registrar, OutputDataType.INTERNAL));
     }
     if (outputDataType != OutputDataType.INTERNAL) {
       // Rdap Response Profile 4.4, must have "last update of RDAP database" response. But this is
@@ -748,21 +759,6 @@ public class RdapJsonFormatter {
   }
 
   /**
-   * Creates a JSON object for the desired registrar to an existing list of JSON objects.
-   *
-   * @param clientId the registrar client ID
-   * @param outputDataType whether to generate FULL, SUMMARY, or INTERNAL data.
-   */
-  RdapRegistrarEntity createRdapRegistrarEntity(String clientId, OutputDataType outputDataType) {
-    Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
-    if (!registrar.isPresent()) {
-      throw new InternalServerErrorException(
-          String.format("Couldn't find registrar '%s'", clientId));
-    }
-    return createRdapRegistrarEntity(registrar.get(), outputDataType);
-  }
-
-  /**
    * Creates a JSON object for a {@link RegistrarContact}.
    *
    * <p>Returns empty if this contact shouldn't be visible (doesn't have a role).
@@ -1059,11 +1055,18 @@ public class RdapJsonFormatter {
    * Create a link relative to the RDAP server endpoint.
    */
   String makeRdapServletRelativeUrl(String part, String... moreParts) {
+    return makeServerRelativeUrl(fullServletPath, part, moreParts);
+  }
+
+  /**
+   * Create a link relative to some base server
+   */
+  static String makeServerRelativeUrl(String baseServer, String part, String... moreParts) {
     String relativePath = Paths.get(part, moreParts).toString();
-    if (fullServletPath.endsWith("/")) {
-      return fullServletPath + relativePath;
+    if (baseServer.endsWith("/")) {
+      return baseServer + relativePath;
     }
-    return fullServletPath + "/" + relativePath;
+    return baseServer + "/" + relativePath;
   }
 
   /**
