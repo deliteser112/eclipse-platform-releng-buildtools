@@ -24,7 +24,7 @@ then
 fi
 
 environment="$1"
-dest="$2/$1"
+dest="$2"
 gcs_prefix="storage.googleapis.com/domain-registry-maven-repository"
 
 if [ "${environment}" == tool ]
@@ -37,8 +37,9 @@ then
     -PpluginsUrl=https://"${gcs_prefix}"/plugins
   cd -
 
-  mv gradle/core/build/libs/nomulus.jar .
+  mv gradle/core/build/libs/nomulus.jar "${dest}"
 else
+  dest="${dest}/$1"
   mkdir -p "${dest}"
 
   cd gradle
@@ -56,6 +57,7 @@ else
     "${dest}/META-INF"
 
   cd "${dest}"
-  tar cvf ../../"${environment}.tar" .
+  tar cvf ../"${environment}.tar" .
   cd -
+  rm -rf "${dest}"
 fi
