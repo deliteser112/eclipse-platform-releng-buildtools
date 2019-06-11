@@ -38,7 +38,7 @@ public final class SqlTemplate {
       Pattern.compile("(['\"]?)%(" + KEY_PATTERN + ")%(['\"]?)");
 
   private static final CharMatcher LEGAL_SUBSTITUTIONS =
-      CharMatcher.javaLetterOrDigit().or(CharMatcher.anyOf("-_.,: "));
+      JavaCharMatchers.asciiLetterOrDigitMatcher().or(CharMatcher.anyOf("-_.,: "));
 
   /** Returns a new immutable SQL template builder object, for query parameter substitution. */
   public static SqlTemplate create(String template) {

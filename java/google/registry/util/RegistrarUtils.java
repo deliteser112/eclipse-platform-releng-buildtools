@@ -14,15 +14,19 @@
 
 package google.registry.util;
 
-import static com.google.common.base.CharMatcher.javaLetterOrDigit;
 
 import com.google.common.base.Ascii;
+import com.google.common.base.CharMatcher;
 
 /** Utilities for working with {@code Registrar} objects. */
 public class RegistrarUtils {
+
+  private static final CharMatcher ASCII_LETTER_OR_DIGIT_MATCHER =
+      JavaCharMatchers.asciiLetterOrDigitMatcher();
+
   /** Strip out anything that isn't a letter or digit, and lowercase. */
   public static String normalizeRegistrarName(String name) {
-    return Ascii.toLowerCase(javaLetterOrDigit().retainFrom(name));
+    return Ascii.toLowerCase(ASCII_LETTER_OR_DIGIT_MATCHER.retainFrom(name));
   }
 
   /**
