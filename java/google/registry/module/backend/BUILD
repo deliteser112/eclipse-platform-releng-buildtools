@@ -30,6 +30,7 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/module",
         "//java/google/registry/monitoring/whitebox",
+        "//java/google/registry/rdap",
         "//java/google/registry/rde",
         "//java/google/registry/reporting",
         "//java/google/registry/reporting/billing",

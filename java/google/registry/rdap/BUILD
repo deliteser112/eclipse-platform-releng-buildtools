@@ -10,6 +10,7 @@ java_library(
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/flows",
+        "//java/google/registry/keyring/api",
         "//java/google/registry/model",
         "//java/google/registry/request",
         "//java/google/registry/request/auth",
@@ -23,6 +24,7 @@ java_library(
         "@com_google_flogger_system_backend",
         "@com_google_gson",
         "@com_google_guava",
+        "@com_google_http_client",
         "@com_google_http_client_jackson2",
         "@com_google_monitoring_client_metrics",
         "@com_google_re2j",

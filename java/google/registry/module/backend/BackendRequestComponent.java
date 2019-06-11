@@ -53,6 +53,7 @@ import google.registry.export.sheet.SheetModule;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.mapreduce.MapreduceModule;
 import google.registry.monitoring.whitebox.WhiteboxModule;
+import google.registry.rdap.UpdateRegistrarRdapBaseUrlsAction;
 import google.registry.rde.BrdaCopyAction;
 import google.registry.rde.RdeModule;
 import google.registry.rde.RdeReportAction;
@@ -148,6 +149,7 @@ interface BackendRequestComponent {
   TmchDnlAction tmchDnlAction();
   TmchSmdrlAction tmchSmdrlAction();
   UploadDatastoreBackupAction uploadDatastoreBackupAction();
+  UpdateRegistrarRdapBaseUrlsAction updateRegistrarRdapBaseUrlsAction();
   UpdateSnapshotViewAction updateSnapshotViewAction();
   PublishInvoicesAction uploadInvoicesAction();
 

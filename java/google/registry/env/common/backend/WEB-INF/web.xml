@@ -309,6 +309,12 @@
     <url-pattern>/_dr/task/resaveAllEppResources</url-pattern>
   </servlet-mapping>
 
+  <!--  Reread all Registrar RDAP Base Urls from the ICANN endpoint. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/updateRegistrarRdapBaseUrls</url-pattern>
+  </servlet-mapping>
+
   <!--  Action to re-save a given entity. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>
