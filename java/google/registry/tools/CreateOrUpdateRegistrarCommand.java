@@ -256,7 +256,10 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
 
   @Parameter(
       names = "--rdap_servers",
-      description = "Comma-delimited list of RDAP servers. An empty argument clears the list")
+      description =
+          "Comma-delimited list of RDAP servers. An empty argument clears the list."
+              + " Note that for real registrars this could get overridden periodically by"
+              + " ICANN-registered values.")
   List<String> rdapServers = new ArrayList<>();
 
   /** Returns the existing registrar (for update) or null (for creates). */
