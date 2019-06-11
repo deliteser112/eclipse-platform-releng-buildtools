@@ -26,7 +26,7 @@ public final class PollFlowUtils {
   private PollFlowUtils() {}
 
   /** Returns a query for poll messages for the logged in registrar which are not in the future. */
-  static Query<PollMessage> getPollMessagesQuery(String clientId, DateTime now) {
+  public static Query<PollMessage> getPollMessagesQuery(String clientId, DateTime now) {
     return ofy().load()
         .type(PollMessage.class)
         .filter("clientId", clientId)
