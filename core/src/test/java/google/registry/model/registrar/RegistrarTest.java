@@ -470,6 +470,16 @@ public class RegistrarTest extends EntityTestCase {
   }
 
   @Test
+  public void testFailure_emptyEmail() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> registrar.asBuilder().setEmailAddress(""));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Provided email  is not a valid email address");
+  }
+
+  @Test
   public void testFailure_nullIcannReferralEmail() {
     NullPointerException thrown =
         assertThrows(
@@ -478,7 +488,7 @@ public class RegistrarTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_invalidIcannEmail() {
+  public void testFailure_invalidIcannReferralEmail() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -486,6 +496,16 @@ public class RegistrarTest extends EntityTestCase {
     assertThat(thrown)
         .hasMessageThat()
         .isEqualTo("Provided email lolcat is not a valid email address");
+  }
+
+  @Test
+  public void testFailure_emptyIcannReferralEmail() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> registrar.asBuilder().setEmailAddress(""));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Provided email  is not a valid email address");
   }
 
   @Test
