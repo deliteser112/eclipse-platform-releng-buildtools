@@ -27,6 +27,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -43,6 +44,7 @@ import google.registry.config.RegistryConfig.Config;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -98,6 +100,23 @@ public class AuthModule {
       return credential;
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  @Provides
+  @LocalOAuth2Credentials
+  public static GoogleCredentials provideLocalOAuth2Credentials(
+      @LocalCredentialJson String credentialJson,
+      @Config("localCredentialOauthScopes") ImmutableList<String> scopes) {
+    try {
+      GoogleCredentials credentials =
+          GoogleCredentials.fromStream(new ByteArrayInputStream(credentialJson.getBytes(UTF_8)));
+      if (credentials.createScopedRequired()) {
+        credentials = credentials.createScoped(scopes);
+      }
+      return credentials;
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
 
@@ -215,4 +234,10 @@ public class AuthModule {
   @Documented
   @Retention(RetentionPolicy.RUNTIME)
   @interface OAuthClientId {}
+
+  /** Dagger qualifier for the local OAuth2 Credentials. */
+  @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface LocalOAuth2Credentials {}
 }
