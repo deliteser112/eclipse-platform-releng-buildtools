@@ -3,8 +3,8 @@ apply plugin: 'java'
 sourceSets {
   main {
     resources {
-      exclude "${project.ext.javaDir}/terraform/"
-      exclude "${project.ext.javaDir}/kubernetes/"
+      exclude "${javaDir}/terraform/"
+      exclude "${javaDir}/kubernetes/"
     }
   }
 }
