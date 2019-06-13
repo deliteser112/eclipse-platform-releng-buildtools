@@ -1,7 +1,7 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
-com.beust:jcommander:1.48
+com.beust:jcommander:1.60
 com.fasterxml.jackson.core:jackson-core:2.9.6
 com.google.api-client:google-api-client:1.29.2
 com.google.apis:google-api-services-cloudkms:v1-rev12-1.22.0
