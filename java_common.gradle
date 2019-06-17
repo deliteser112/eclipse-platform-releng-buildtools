@@ -21,7 +21,6 @@ tasks.withType(JavaCompile).configureEach {
     if (System.getProperty('no_werror') != 'true') {
         options.compilerArgs << "-Werror"
     }
-    options.compilerArgs << "-Werror"
     options.errorprone.disableWarningsInGeneratedCode = true
     options.errorprone.errorproneArgumentProviders.add([
             asArguments: {
