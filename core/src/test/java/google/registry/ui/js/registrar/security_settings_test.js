@@ -74,7 +74,7 @@ describe('security settings test', function() {
           message: 'OK',
           results: [expectedRegistrar]
         });
-    expect(expectedRegistrar.phonePasscode).toEqual(registry.util.parseForm('item').phonePasscode);
+    expect(registry.util.parseForm('item').phonePasscode).toEqual(expectedRegistrar.phonePasscode);
   }
 
   it("testView", function() {

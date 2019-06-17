@@ -24,7 +24,7 @@ goog.require('registry.registrar.ConsoleTestUtil');
 goog.require('registry.testing');
 goog.require('registry.util');
 
-describe("console tests", function() {
+describe("console test", function() {
   const $ = goog.dom.getRequiredElement;
   const stubs = new goog.testing.PropertyReplacer();
 
@@ -81,9 +81,8 @@ describe("console tests", function() {
     });
     const xhr = goog.testing.net.XhrIo.getSendInstances().pop();
     expect(xhr.isActive()).toBe(true);
-    expect('/registrar-settings').toEqual(xhr.getLastUri());
-    expect(test.testXsrfToken).toEqual(
-                 xhr.getLastRequestHeaders()['X-CSRF-Token']);
+    expect(xhr.getLastUri()).toEqual('/registrar-settings');
+    expect(xhr.getLastRequestHeaders()['X-CSRF-Token']).toEqual(test.testXsrfToken);
     xhr.simulateResponse(200, goog.json.serialize({
       status: 'SUCCESS',
       message: 'OK',
@@ -106,9 +105,8 @@ describe("console tests", function() {
     });
     const xhr = goog.testing.net.XhrIo.getSendInstances().pop();
     expect(xhr.isActive()).toBe(true);
-    expect('/registrar-settings').toEqual(xhr.getLastUri());
-    expect(test.testXsrfToken).toEqual(
-                 xhr.getLastRequestHeaders()['X-CSRF-Token']);
+    expect(xhr.getLastUri()).toEqual('/registrar-settings');
+    expect(xhr.getLastRequestHeaders()['X-CSRF-Token']).toEqual(test.testXsrfToken);
     const passcode = '5-5-5-5-5';
     xhr.simulateResponse(200, goog.json.serialize({
       status: 'SUCCESS',
@@ -117,7 +115,6 @@ describe("console tests", function() {
         phonePasscode: passcode
       }]
     }));
-    expect(passcode).toEqual(
-                 goog.dom.getTextContent($('domain-registrar-phone-passcode')));
+    expect(goog.dom.getTextContent($('domain-registrar-phone-passcode'))).toEqual(passcode);
   });
 });

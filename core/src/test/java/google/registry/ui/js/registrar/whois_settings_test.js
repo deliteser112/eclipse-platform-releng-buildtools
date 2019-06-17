@@ -142,7 +142,7 @@ describe("whois settings test", function() {
     const msgBox = goog.dom.getNextElementSibling($('phoneNumber'));
     expect(goog.dom.classlist.contains(msgBox, 'kd-errormessage')).toBe(true);
     expect(goog.dom.classlist.contains($('phoneNumber'), 'kd-formerror')).toBe(true);
-    expect(errMsg).toEqual(goog.dom.getTextContent(msgBox));
+    expect(goog.dom.getTextContent(msgBox)).toEqual(errMsg);
   });
 
   it("testEditNonFieldError_showsButterBar", function() {
@@ -161,6 +161,6 @@ describe("whois settings test", function() {
           status: 'ERROR',
           message: errMsg
         });
-    expect(errMsg).toEqual(goog.dom.getTextContent($$('kd-butterbar-text')));
+    expect(goog.dom.getTextContent($$('kd-butterbar-text'))).toEqual(errMsg);
   });
 });

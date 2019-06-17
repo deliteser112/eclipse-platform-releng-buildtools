@@ -74,18 +74,18 @@ describe("contact settings test", function() {
           }]
         }
     );
-    expect(1).toEqual($('admin-contacts').childNodes.length);
-    expect(1).toEqual($('other-contacts').childNodes.length);
+    expect($('admin-contacts').childNodes.length).toEqual(1);
+    expect($('other-contacts').childNodes.length).toEqual(1);
     // XXX: Needs more field testing.
   });
 
 
   it("testItemView", function() {
     testItemView();
-    expect(testContact.name).toEqual($('contacts[0].name').value);
-    expect(testContact.emailAddress).toEqual($('contacts[0].emailAddress').value);
-    expect(testContact.phoneNumber).toEqual($('contacts[0].phoneNumber').value);
-    expect(testContact.faxNumber).toEqual($('contacts[0].faxNumber').value);
+    expect($('contacts[0].name').value).toEqual(testContact.name);
+    expect($('contacts[0].emailAddress').value).toEqual(testContact.emailAddress);
+    expect($('contacts[0].phoneNumber').value).toEqual(testContact.phoneNumber);
+    expect($('contacts[0].faxNumber').value).toEqual(testContact.faxNumber);
     // XXX: Types are no longer broken out as individual settings, so relying on
     //      screenshot test.
   });
@@ -361,5 +361,4 @@ describe("contact settings test", function() {
     delete contact['type'];
     return contact;
   }
-
 });
