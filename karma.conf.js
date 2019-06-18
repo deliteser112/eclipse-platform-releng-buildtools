@@ -30,13 +30,11 @@ module.exports = function(config) {
       },
       {
         pattern: 'core/build/resources/main/google/registry/ui/assets/images/*.png',
-        included: false,
-        served: true
+        included: false
       },
       {
         pattern: 'core/build/resources/main/google/registry/ui/assets/images/icons/svg/*.svg',
-        included: false,
-        served: true
+        included: false
       }
     ],
     preprocessors: {
