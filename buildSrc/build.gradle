@@ -82,7 +82,6 @@ dependencies {
   compile deps['com.google.auto.value:auto-value-annotations']
   compile deps['com.google.cloud:google-cloud-storage']
   compile deps['org.apache.commons:commons-text']
-  compile deps['com.google.auth:google-auth-library-credentials']
   compile deps['com.google.template:soy']
   annotationProcessor deps['com.google.auto.value:auto-value']
   testCompile deps['com.google.truth:truth']
