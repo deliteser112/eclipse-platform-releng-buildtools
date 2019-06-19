@@ -18,15 +18,22 @@
 # repo. Actual release artifacts are built from the release repo, ensuring reproducibility.
 steps:
 # Check the out internal repo.
-- name: 'gcr.io/cloud-builders/gcloud'
-  args: ['source', 'repos', 'clone', 'nomulus-internal']
+- name: 'gcr.io/cloud-builders/git'
+  entrypoint: /bin/bash
+  args:
+  - -c
+  - |
+    git clone https://gerrit.googlesource.com/gcompute-tools
+    ./gcompute-tools/git-cookie-authdaemon
+    git clone ${_INTERNAL_REPO_URL}
 # Tag and push the internal repo.
 - name: 'gcr.io/cloud-builders/git'
   entrypoint: /bin/bash
   args:
   - -c
   - |
-    git tag ${TAG_NAME} && git push origin ${TAG_NAME}
+    git tag ${TAG_NAME}
+    git push origin ${TAG_NAME}
   dir: 'nomulus-internal'
 # Merge the repos.
 - name: 'gcr.io/cloud-builders/git'
