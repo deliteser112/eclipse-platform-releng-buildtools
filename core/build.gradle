@@ -677,5 +677,3 @@ createUberJar('nomulus', 'nomulus', 'google.registry.tools.RegistryTool')
 createUberJar('gtechTool', 'gtech_tool', 'google.registry.tools.GtechTool')
 project.nomulus.dependsOn project(':third_party').jar
 project.gtechTool.dependsOn project(':third_party').jar
-
-
