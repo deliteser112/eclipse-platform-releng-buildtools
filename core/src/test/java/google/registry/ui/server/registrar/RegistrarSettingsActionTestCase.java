@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.truth.Truth;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.request.JsonActionRunner;
@@ -116,7 +115,6 @@ public abstract class RegistrarSettingsActionTestCase {
             getGSuiteOutgoingEmailDisplayName(),
             ImmutableList.of("notification@test.example", "notification2@test.example"),
             emailService);
-    action.registryEnvironment = RegistryEnvironment.get();
     action.registrarConsoleMetrics = new RegistrarConsoleMetrics();
     action.authResult =
         AuthResult.create(
