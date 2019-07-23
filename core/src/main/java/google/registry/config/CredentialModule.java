@@ -16,6 +16,7 @@ package google.registry.config;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
@@ -69,6 +70,29 @@ public abstract class CredentialModule {
   }
 
   /**
+   * Provides the default {@link GoogleCredential} from the Google Cloud runtime for G Suite
+   * Drive API.
+   * TODO(b/138195359): Deprecate this credential once we figure out how to use
+   * {@link GoogleCredentials} for G Suite Drive API.
+   */
+  @GSuiteDriveCredential
+  @Provides
+  @Singleton
+  public static GoogleCredential provideGSuiteDriveCredential(
+      @Config("defaultCredentialOauthScopes") ImmutableList<String> requiredScopes) {
+    GoogleCredential credential;
+    try {
+      credential = GoogleCredential.getApplicationDefault();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    if (credential.createScopedRequired()) {
+      credential = credential.createScoped(requiredScopes);
+    }
+    return credential;
+  }
+
+  /**
    * Provides a {@link GoogleCredentialsBundle} from the service account's JSON key file.
    *
    * <p>On App Engine, a thread created using Java's built-in API needs this credential when it
@@ -117,6 +141,13 @@ public abstract class CredentialModule {
   @Documented
   @Retention(RetentionPolicy.RUNTIME)
   public @interface DefaultCredential {}
+
+
+  /** Dagger qualifier for the credential for G Suite Drive API. */
+  @Qualifier
+  @Documented
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface GSuiteDriveCredential {}
 
   /**
    * Dagger qualifier for a credential from a service account's JSON key, to be used in non-request
