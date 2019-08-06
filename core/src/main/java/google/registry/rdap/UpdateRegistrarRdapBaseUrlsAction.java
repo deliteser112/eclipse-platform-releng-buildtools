@@ -130,6 +130,7 @@ public final class UpdateRegistrarRdapBaseUrlsAction implements Runnable {
     try {
       HttpRequest request =
           requestFactory.buildGetRequest(new GenericUrl(String.format(LIST_URL, tld)));
+      request.getHeaders().setAcceptEncoding("identity");
       request.getHeaders().setCookie(String.format("%s=%s", COOKIE_ID, id));
       HttpResponse response = request.execute();
 
@@ -175,7 +176,7 @@ public final class UpdateRegistrarRdapBaseUrlsAction implements Runnable {
       } catch (Throwable e) {
         // Login failures are bad but not unexpected for certain TLDs. We shouldn't store those
         // but rather should only store useful Throwables.
-        logger.atWarning().log("Error logging in to MoSAPI server: " + e.getMessage(), e);
+        logger.atWarning().log("Error logging in to MoSAPI server: " + e.getMessage());
         continue;
       }
       try {
