@@ -12,12 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.monitoring.blackbox.messages;
+package google.registry.monitoring.blackbox.exceptions;
 
 /**
- * Marker Interface that is implemented by all classes that serve as {@code inboundMessages} in
- * channel pipeline
+ * Base exception class for all instances when the action performed fails before we can determine
+ * the state of the result, meaning the status is recorded as ERROR.
  */
-public interface InboundMessageType {
+public class UndeterminedStateException extends Exception {
 
+  public UndeterminedStateException(String msg) {
+    super(msg);
+  }
+
+  public UndeterminedStateException(Throwable e) {
+    super(e);
+  }
 }

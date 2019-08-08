@@ -10,14 +10,32 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.
+// limitations under the License
 
 package google.registry.monitoring.blackbox.messages;
 
-/**
- * Marker Interface that is implemented by all classes that serve as {@code inboundMessages} in
- * channel pipeline
- */
-public interface InboundMessageType {
+import google.registry.monitoring.blackbox.exceptions.UndeterminedStateException;
 
+/**
+ * {@link InboundMessageType} and {@link OutboundMessageType} type for the purpose of containing
+ * String messages to be passed down channel
+ */
+public class TestMessage implements OutboundMessageType, InboundMessageType {
+
+  private String message;
+
+  public TestMessage(String msg) {
+    message = msg;
+  }
+
+  @Override
+  public String toString() {
+    return message;
+  }
+
+  @Override
+  public OutboundMessageType modifyMessage(String... args) throws UndeterminedStateException {
+    message = args[0];
+    return this;
+  }
 }
