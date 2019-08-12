@@ -16,13 +16,9 @@ package google.registry.monitoring.blackbox;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.monitoring.blackbox.ProbingAction.CONNECTION_FUTURE_KEY;
-import static java.nio.charset.StandardCharsets.US_ASCII;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.monitoring.blackbox.exceptions.UndeterminedStateException;
@@ -34,8 +30,7 @@ import google.registry.monitoring.blackbox.messages.OutboundMessageType;
 import google.registry.monitoring.blackbox.messages.TestMessage;
 import google.registry.monitoring.blackbox.tokens.Token;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -43,7 +38,6 @@ import io.netty.channel.local.LocalAddress;
 import io.netty.channel.local.LocalChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.joda.time.Duration;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -62,14 +56,11 @@ public class ProbingStepTest {
   private static final int PROTOCOL_PORT = 0;
   private static final String TEST_MESSAGE = "TEST_MESSAGE";
   private static final String SECONDARY_TEST_MESSAGE = "SECONDARY_TEST_MESSAGE";
-  private static final LocalAddress ADDRESS = new LocalAddress(ADDRESS_NAME);
-
+  private static final LocalAddress address = new LocalAddress(ADDRESS_NAME);
   private final EventLoopGroup eventLoopGroup = new NioEventLoopGroup(1);
   private final Bootstrap bootstrap = new Bootstrap()
       .group(eventLoopGroup)
       .channel(LocalChannel.class);
-
-
   /**
    * Used for testing how well probing step can create connection to blackbox server
    */
@@ -91,13 +82,53 @@ public class ProbingStepTest {
   private Token testToken(String host) throws UndeterminedStateException {
     Token token = Mockito.mock(Token.class);
     doReturn(host).when(token).host();
-    doAnswer(answer -> answer.getArgument(0)).when(token)
+    doAnswer(answer -> ((OutboundMessageType) answer.getArgument(0)).modifyMessage(host))
+        .when(token)
         .modifyMessage(any(OutboundMessageType.class));
+
     return token;
   }
 
   @Test
-  public void testNewChannel() throws Exception {
+  public void testProbingActionGenerate_embeddedChannel() throws UndeterminedStateException {
+    // Sets up Protocol to represent existing channel connection.
+    Protocol testProtocol = Protocol.builder()
+        .setHandlerProviders(ImmutableList.of(() -> conversionHandler, () -> testHandler))
+        .setName(PROTOCOL_NAME)
+        .setPort(PROTOCOL_PORT)
+        .setPersistentConnection(true)
+        .build();
+
+    // Sets up an embedded channel to contain the two handlers we created already.
+    EmbeddedChannel channel = new EmbeddedChannel(conversionHandler, testHandler);
+    channel.attr(CONNECTION_FUTURE_KEY).set(channel.newSucceededFuture());
+
+    // Sets up testToken to return arbitrary value, and the embedded channel. Used for when the
+    // ProbingStep generates an ExistingChannelAction.
+    Token testToken = testToken(SECONDARY_TEST_MESSAGE);
+    doReturn(channel).when(testToken).channel();
+
+    // Sets up generic {@link ProbingStep} that we are testing.
+    ProbingStep testStep = ProbingStep.builder()
+        .setMessageTemplate(new TestMessage(TEST_MESSAGE))
+        .setBootstrap(bootstrap)
+        .setDuration(Duration.ZERO)
+        .setProtocol(testProtocol)
+        .build();
+
+    ProbingAction testAction = testStep.generateAction(testToken);
+
+    assertThat(testAction.channel()).isEqualTo(channel);
+    assertThat(testAction.delay()).isEqualTo(Duration.ZERO);
+    assertThat(testAction.outboundMessage().toString()).isEqualTo(SECONDARY_TEST_MESSAGE);
+    assertThat(testAction.host()).isEqualTo(SECONDARY_TEST_MESSAGE);
+    assertThat(testAction.protocol()).isEqualTo(testProtocol);
+
+
+  }
+
+  @Test
+  public void testProbingActionGenerate_newChannel() throws UndeterminedStateException {
     // Sets up Protocol for when we create a new channel.
     Protocol testProtocol = Protocol.builder()
         .setHandlerProviders(ImmutableList.of(() -> conversionHandler, () -> testHandler))
@@ -106,97 +137,32 @@ public class ProbingStepTest {
         .setPersistentConnection(false)
         .build();
 
-    // Sets up our main step (firstStep) and throwaway step (dummyStep).
-    ProbingStep firstStep = ProbingStep.builder()
+    // Sets up generic ProbingStep that we are testing.
+    ProbingStep testStep = ProbingStep.builder()
+        .setMessageTemplate(new TestMessage(TEST_MESSAGE))
         .setBootstrap(bootstrap)
         .setDuration(Duration.ZERO)
-        .setMessageTemplate(new TestMessage(TEST_MESSAGE))
         .setProtocol(testProtocol)
         .build();
-
-    //Sets up mock dummy step that returns succeeded promise when we successfully reach it.
-    ProbingStep dummyStep = Mockito.mock(ProbingStep.class);
-
-    firstStep.nextStep(dummyStep);
 
     // Sets up testToken to return arbitrary values, and no channel. Used when we create a new
     // channel.
     Token testToken = testToken(ADDRESS_NAME);
 
-    //Set up blackbox server that receives our messages then echoes them back to us
-    nettyRule.setUpServer(ADDRESS);
+    // Sets up server listening at LocalAddress so generated action can have successful connection.
+    nettyRule.setUpServer(address);
 
-    //checks that the ProbingSteps are appropriately pointing to each other
-    assertThat(firstStep.nextStep()).isEqualTo(dummyStep);
+    ProbingAction testAction = testStep.generateAction(testToken);
 
-    //Call accept on the first step, which should send our message to the server, which will then be
-    //echoed back to us, causing us to move to the next step
-    firstStep.accept(testToken);
+    ChannelFuture connectionFuture = testAction.channel().attr(CONNECTION_FUTURE_KEY).get();
+    connectionFuture = connectionFuture.syncUninterruptibly();
 
-    //checks that we have appropriately sent the write message to server
-    nettyRule.assertReceivedMessage(TEST_MESSAGE);
+    assertThat(connectionFuture.isSuccess()).isTrue();
+    assertThat(testAction.delay()).isEqualTo(Duration.ZERO);
+    assertThat(testAction.outboundMessage().toString()).isEqualTo(ADDRESS_NAME);
+    assertThat(testAction.host()).isEqualTo(ADDRESS_NAME);
+    assertThat(testAction.protocol()).isEqualTo(testProtocol);
 
-    //checks that when the future is successful, we pass down the requisite token
-    verify(dummyStep, times(1)).accept(any(Token.class));
-  }
 
-  //TODO - Currently, this test fails to receive outbound messages from the embedded channel, which
-  // we will fix in a later release.
-  @Ignore
-  @Test
-  public void testWithSequence_ExistingChannel() throws Exception {
-    // Sets up Protocol for when a channel already exists.
-    Protocol testProtocol = Protocol.builder()
-        .setHandlerProviders(ImmutableList.of(() -> conversionHandler, () -> testHandler))
-        .setName(PROTOCOL_NAME)
-        .setPort(PROTOCOL_PORT)
-        .setPersistentConnection(true)
-        .build();
-
-    // Sets up our main step (firstStep) and throwaway step (dummyStep).
-    ProbingStep firstStep = ProbingStep.builder()
-        .setBootstrap(bootstrap)
-        .setDuration(Duration.ZERO)
-        .setMessageTemplate(new TestMessage(TEST_MESSAGE))
-        .setProtocol(testProtocol)
-        .build();
-
-    //Sets up mock dummy step that returns succeeded promise when we successfully reach it.
-    ProbingStep dummyStep = Mockito.mock(ProbingStep.class);
-
-    firstStep.nextStep(dummyStep);
-
-    // Sets up an embedded channel to contain the two handlers we created already.
-    EmbeddedChannel channel = new EmbeddedChannel(conversionHandler, testHandler);
-
-    //Assures that the channel has a succeeded connectionFuture.
-    channel.attr(CONNECTION_FUTURE_KEY).set(channel.newSucceededFuture());
-
-    // Sets up testToken to return arbitrary value, and the embedded channel. Used for when the
-    // ProbingStep generates an ExistingChannelAction.
-    Token testToken = testToken("");
-    doReturn(channel).when(testToken).channel();
-
-    //checks that the ProbingSteps are appropriately pointing to each other
-    assertThat(firstStep.nextStep()).isEqualTo(dummyStep);
-
-    //Call accept on the first step, which should send our message through the EmbeddedChannel
-    // pipeline
-    firstStep.accept(testToken);
-
-    Object msg = channel.readOutbound();
-
-    while (msg == null) {
-      msg = channel.readOutbound();
-    }
-    //Ensures the accurate message is sent down the pipeline
-    assertThat(((ByteBuf) channel.readOutbound()).toString(UTF_8)).isEqualTo(TEST_MESSAGE);
-
-    //Write response to our message down EmbeddedChannel pipeline
-    channel.writeInbound(Unpooled.wrappedBuffer(SECONDARY_TEST_MESSAGE.getBytes(US_ASCII)));
-
-    //At this point, we should have received the message, so the future obtained should be marked
-    // as a success
-    verify(dummyStep, times(1)).accept(any(Token.class));
   }
 }

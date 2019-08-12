@@ -16,9 +16,9 @@ package google.registry.monitoring.blackbox.tokens;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.collect.ImmutableList;
 import google.registry.monitoring.blackbox.exceptions.UndeterminedStateException;
 import google.registry.monitoring.blackbox.messages.HttpRequestMessage;
+import google.registry.util.CircularList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -29,15 +29,17 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class WebWhoisTokenTest {
 
-  private static String PREFIX = "whois.nic.";
-  private static String HOST = "starter";
-  private static String FIRST_TLD = "first_test";
-  private static String SECOND_TLD = "second_test";
-  private static String THIRD_TLD = "third_test";
-  private static ImmutableList<String> TEST_DOMAINS = ImmutableList.of(FIRST_TLD, SECOND_TLD,
-      THIRD_TLD);
+  private static final String PREFIX = "whois.nic.";
+  private static final String HOST = "starter";
+  private static final String FIRST_TLD = "first_test";
+  private static final String SECOND_TLD = "second_test";
+  private static final String THIRD_TLD = "third_test";
+  private final CircularList<String> testDomains =
+      new CircularList.Builder<String>()
+          .add(FIRST_TLD, SECOND_TLD, THIRD_TLD)
+          .build();
 
-  public Token webToken = new WebWhoisToken(TEST_DOMAINS);
+  public Token webToken = new WebWhoisToken(testDomains);
 
   @Test
   public void testMessageModification() throws UndeterminedStateException {
@@ -47,7 +49,7 @@ public class WebWhoisTokenTest {
 
     //attempts to use Token's method for modifying the method based on its stored host
     HttpRequestMessage secondMessage = (HttpRequestMessage) webToken.modifyMessage(message);
-    assertThat(secondMessage.headers().get("host")).isEqualTo(PREFIX + TEST_DOMAINS.get(0));
+    assertThat(secondMessage.headers().get("host")).isEqualTo(PREFIX + FIRST_TLD);
   }
 
   /**
@@ -63,6 +65,9 @@ public class WebWhoisTokenTest {
     webToken = webToken.next();
 
     assertThat(webToken.host()).isEqualTo(PREFIX + THIRD_TLD);
+    webToken = webToken.next();
+
+    assertThat(webToken.host()).isEqualTo(PREFIX + FIRST_TLD);
   }
 
 }

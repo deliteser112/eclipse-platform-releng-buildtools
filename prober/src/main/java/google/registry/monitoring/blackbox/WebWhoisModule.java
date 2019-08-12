@@ -23,6 +23,7 @@ import google.registry.monitoring.blackbox.handlers.WebWhoisActionHandler;
 import google.registry.monitoring.blackbox.handlers.WebWhoisMessageHandler;
 import google.registry.monitoring.blackbox.messages.HttpRequestMessage;
 import google.registry.monitoring.blackbox.tokens.WebWhoisToken;
+import google.registry.util.CircularList;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -189,7 +190,7 @@ public class WebWhoisModule {
       WebWhoisToken webWhoisToken) {
 
     return new ProbingSequence.Builder(webWhoisToken)
-        .addStep(probingStep)
+        .add(probingStep)
         .build();
   }
 
@@ -205,8 +206,10 @@ public class WebWhoisModule {
   @Singleton
   @Provides
   @WebWhoisProtocol
-  ImmutableList<String> provideTopLevelDomains() {
-    return ImmutableList.of("how", "soy", "xn--q9jyb4c");
+  CircularList<String> provideTopLevelDomains() {
+    return new CircularList.Builder<String>()
+        .add("how", "soy", "xn--q9jyb4c")
+        .build();
   }
 
   @Provides
@@ -244,6 +247,5 @@ public class WebWhoisModule {
   public @interface WebWhoisProtocol {
 
   }
-
-
 }
+
