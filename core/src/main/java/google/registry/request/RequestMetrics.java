@@ -16,12 +16,17 @@ package google.registry.request;
 
 import static com.google.monitoring.metrics.EventMetric.DEFAULT_FITTER;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import com.google.common.flogger.FluentLogger;
 import com.google.monitoring.metrics.EventMetric;
 import com.google.monitoring.metrics.LabelDescriptor;
 import com.google.monitoring.metrics.MetricRegistryImpl;
 import google.registry.request.auth.AuthLevel;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.joda.time.Duration;
 
 class RequestMetrics {
@@ -50,12 +55,23 @@ class RequestMetrics {
       Duration duration, String path, Action.Method method, AuthLevel authLevel, boolean success) {
     requestDurationMetric.record(
         duration.getMillis(),
-        path,
+        truncatePath(path),
         String.valueOf(method),
         String.valueOf(authLevel),
         String.valueOf(success));
     logger.atInfo().log(
         "Action called for path=%s, method=%s, authLevel=%s, success=%s. Took: %.3fs",
         path, method, authLevel, success, duration.getMillis() / 1000d);
+  }
+
+  private static String truncatePath(String path) {
+    // We want to bucket RDAP requests by type to use less metric space,
+    // e.g. "/rdap/domains" rather than "/rdap/domains/foo.tld"
+    if (path.startsWith("/rdap")) {
+      List<String> splitPath = Splitter.on("/").omitEmptyStrings().splitToList(path);
+      return Streams.stream(Iterables.limit(splitPath, 2))
+          .collect(Collectors.joining("/", "/", "/"));
+    }
+    return path;
   }
 }
