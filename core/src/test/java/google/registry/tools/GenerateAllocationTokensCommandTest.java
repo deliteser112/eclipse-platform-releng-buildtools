@@ -28,9 +28,11 @@ import static org.mockito.Mockito.spy;
 
 import com.beust.jcommander.ParameterException;
 import com.google.appengine.tools.remoteapi.RemoteApiException;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.token.AllocationToken;
@@ -43,6 +45,7 @@ import google.registry.testing.FakeSleeper;
 import google.registry.util.Retrier;
 import google.registry.util.StringGenerator.Alphabets;
 import java.io.File;
+import java.util.Collection;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -173,12 +176,29 @@ public class GenerateAllocationTokensCommandTest
   }
 
   @Test
+  public void testSuccess_specifyTokens() throws Exception {
+    runCommand("--tokens", "foobar,foobaz");
+    assertAllocationTokens(createToken("foobar", null, null), createToken("foobaz", null, null));
+    assertInStdout("foobar", "foobaz");
+  }
+
+  @Test
+  public void testSuccess_specifyManyTokens() throws Exception {
+    command.stringGenerator =
+        new DeterministicStringGenerator(Alphabets.BASE_58, Rule.PREPEND_COUNTER);
+    Collection<String> sampleTokens = command.stringGenerator.createStrings(13, 100);
+    runCommand("--tokens", Joiner.on(",").join(sampleTokens));
+    assertInStdout(Iterables.toArray(sampleTokens, String.class));
+    assertThat(ofy().load().type(AllocationToken.class).count()).isEqualTo(100);
+  }
+
+  @Test
   public void testFailure_mustSpecifyNumberOfTokensOrDomainsFile() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommand("--prefix", "FEET"));
     assertThat(thrown)
         .hasMessageThat()
-        .isEqualTo("Must specify either --number or --domain_names_file, but not both");
+        .isEqualTo("Must specify exactly one of '--number', '--domain_names_file', and '--tokens'");
   }
 
   @Test
@@ -193,7 +213,48 @@ public class GenerateAllocationTokensCommandTest
                     "--domain_names_file", "/path/to/blaaaaah"));
     assertThat(thrown)
         .hasMessageThat()
-        .isEqualTo("Must specify either --number or --domain_names_file, but not both");
+        .isEqualTo("Must specify exactly one of '--number', '--domain_names_file', and '--tokens'");
+  }
+
+  @Test
+  public void testFailure_mustNotSpecifyBothNumberOfTokensAndTokenStrings() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommand(
+                    "--prefix", "FEET",
+                    "--number", "999",
+                    "--tokens", "token1,token2"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Must specify exactly one of '--number', '--domain_names_file', and '--tokens'");
+  }
+
+  @Test
+  public void testFailure_mustNotSpecifyBothTokenStringsAndDomainsFile() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommand(
+                    "--prefix", "FEET",
+                    "--tokens", "token1,token2",
+                    "--domain_names_file", "/path/to/blaaaaah"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Must specify exactly one of '--number', '--domain_names_file', and '--tokens'");
+  }
+
+  @Test
+  public void testFailure_specifiesAlreadyExistingToken() throws Exception {
+    runCommand("--tokens", "foobar");
+    beforeCommandTestCase(); // reset the command variables
+    IllegalArgumentException thrown =
+        assertThrows(IllegalArgumentException.class, () -> runCommand("--tokens", "foobar,foobaz"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Cannot create specified tokens; the following tokens already exist: [foobar]");
   }
 
   @Test
@@ -220,6 +281,18 @@ public class GenerateAllocationTokensCommandTest
                             "--token_status_transitions=\"%s=INVALID_STATUS\"", START_OF_TIME))))
         .hasCauseThat()
         .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void testFailure_lengthOfZero() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> runCommand("--prefix", "somePrefix", "--number", "1", "--length", "0"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            "Token length should not be 0. To generate exact tokens, use the --tokens parameter.");
   }
 
   @Test
