@@ -247,8 +247,10 @@ dependencies {
   testCompile deps['org.hamcrest:hamcrest-all']
   testCompile deps['org.hamcrest:hamcrest-core']
   testCompile deps['org.hamcrest:hamcrest-library']
+  compile deps['org.hibernate:hibernate-core']
   testCompile deps['junit:junit']
   testCompile deps['org.mockito:mockito-core']
+  compile deps['org.postgresql:postgresql']
 
   // Indirect dependency found by undeclared-dependency check. Such
   // dependencies should go after all other compile and testCompile

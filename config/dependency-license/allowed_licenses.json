@@ -40,6 +40,9 @@
       "moduleLicense": "BSD"
     },
     {
+      "moduleLicense": "BSD-2-Clause"
+    },
+    {
       "moduleLicense": "BSD 2-Clause License"
     },
     {
@@ -53,6 +56,9 @@
     },
     {
       "moduleLicense": "BSD 3-Clause License"
+    },
+    {
+      "moduleLicense": "BSD 3-clause New License"
     },
     {
       "moduleLicense": "The 3-Clause BSD License"
@@ -121,6 +127,9 @@
       "moduleLicense": "GNU GENERAL PUBLIC LICENSE, Version 2 + Classpath Exception"
     },
     {
+      "moduleLicense": "GNU Library General Public License v2.1 or later"
+    },
+    {
       "moduleLicense": "GPL2 w/ CPE"
     },
     {
@@ -158,6 +167,9 @@
     },
     {
       "moduleLicense": "The MIT license"
+    },
+    {
+      "moduleLicense": "The PostgreSQL License"
     },
     {
       "moduleLicense": "Mozilla Public License Version 2.0"
