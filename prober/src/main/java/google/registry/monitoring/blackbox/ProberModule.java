@@ -17,6 +17,11 @@ package google.registry.monitoring.blackbox;
 import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.monitoring.blackbox.connection.ProbingAction;
+import google.registry.monitoring.blackbox.modules.CertificateModule;
+import google.registry.monitoring.blackbox.modules.EppModule;
+import google.registry.monitoring.blackbox.modules.WebWhoisModule;
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -35,10 +40,8 @@ import org.joda.time.Duration;
 @Module
 public class ProberModule {
 
-  /**
-   * Default {@link Duration} chosen to be time between each {@link ProbingAction} call.
-   */
-  private static final Duration DEFAULT_DURATION = Duration.standardSeconds(4);
+  /** Default {@link Duration} chosen to be time between each {@link ProbingAction} call. */
+  private static final Duration DEFAULT_PROBER_INTERVAL = Duration.standardSeconds(4);
 
   /**
    * {@link Provides} the {@link SslProvider} used by instances of {@link
@@ -51,9 +54,7 @@ public class ProberModule {
     return OpenSsl.isAvailable() ? SslProvider.OPENSSL : SslProvider.JDK;
   }
 
-  /**
-   * {@link Provides} one global {@link EventLoopGroup} shared by each {@link ProbingSequence}.
-   */
+  /** {@link Provides} one global {@link EventLoopGroup} shared by each {@link ProbingSequence}. */
   @Provides
   @Singleton
   EventLoopGroup provideEventLoopGroup() {
@@ -71,27 +72,36 @@ public class ProberModule {
   }
 
   /**
-   * {@link Provides} above {@code DEFAULT_DURATION} for all provided {@link ProbingStep}s to use.
+   * {@link Provides} above {@code DEFAULT_PROBER_INTERVAL} for all provided {@link ProbingStep}s to
+   * use.
    */
   @Provides
   @Singleton
-  Duration provideDuration() {
-    return DEFAULT_DURATION;
+  Duration provideProbeInterval() {
+    return DEFAULT_PROBER_INTERVAL;
   }
 
   /**
-   * Root level {@link Component} that provides each {@link ProbingSequence}.
+   * {@link Provides} general {@link Bootstrap} for which a new instance is provided in any {@link
+   * ProbingSequence}.
    */
+  @Provides
+  Bootstrap provideBootstrap(EventLoopGroup eventLoopGroup) {
+    return new Bootstrap().group(eventLoopGroup).channel(NioSocketChannel.class);
+  }
+
+  /** Root level {@link Component} that provides each {@link ProbingSequence}. */
   @Singleton
   @Component(
       modules = {
-          ProberModule.class,
-          WebWhoisModule.class,
+        ProberModule.class,
+        WebWhoisModule.class,
+        EppModule.class,
+        CertificateModule.class
       })
   public interface ProberComponent {
 
-    //Standard WebWhois sequence
+    // Standard WebWhois sequence
     Set<ProbingSequence> sequences();
-
   }
 }

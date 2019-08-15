@@ -14,17 +14,22 @@
 
 package google.registry.monitoring.blackbox.testservers;
 
-import static google.registry.monitoring.blackbox.TestUtils.makeHttpResponse;
-import static google.registry.monitoring.blackbox.TestUtils.makeRedirectResponse;
+import static google.registry.monitoring.blackbox.util.WebWhoisUtils.makeHttpResponse;
+import static google.registry.monitoring.blackbox.util.WebWhoisUtils.makeRedirectResponse;
 
 import com.google.common.collect.ImmutableList;
+import google.registry.monitoring.blackbox.exceptions.FailureException;
+import google.registry.monitoring.blackbox.messages.EppMessage;
 import google.registry.monitoring.blackbox.messages.HttpResponseMessage;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.local.LocalAddress;
@@ -34,6 +39,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.w3c.dom.Document;
 
 /**
  * Mock Server Superclass whose subclasses implement specific behaviors we expect blackbox server to
@@ -45,18 +51,21 @@ public class TestServer {
     this(new NioEventLoopGroup(1), localAddress, handlers);
   }
 
-  public TestServer(EventLoopGroup eventLoopGroup, LocalAddress localAddress,
+  public TestServer(
+      EventLoopGroup eventLoopGroup,
+      LocalAddress localAddress,
       ImmutableList<? extends ChannelHandler> handlers) {
-    //Creates ChannelInitializer with handlers specified
-    ChannelInitializer<LocalChannel> serverInitializer = new ChannelInitializer<LocalChannel>() {
-      @Override
-      protected void initChannel(LocalChannel ch) {
-        for (ChannelHandler handler : handlers) {
-          ch.pipeline().addLast(handler);
-        }
-      }
-    };
-    //Sets up serverBootstrap with specified initializer, eventLoopGroup, and using
+    // Creates ChannelInitializer with handlers specified
+    ChannelInitializer<LocalChannel> serverInitializer =
+        new ChannelInitializer<LocalChannel>() {
+          @Override
+          protected void initChannel(LocalChannel ch) {
+            for (ChannelHandler handler : handlers) {
+              ch.pipeline().addLast(handler);
+            }
+          }
+        };
+    // Sets up serverBootstrap with specified initializer, eventLoopGroup, and using
     // LocalServerChannel class
     ServerBootstrap serverBootstrap =
         new ServerBootstrap()
@@ -65,22 +74,27 @@ public class TestServer {
             .childHandler(serverInitializer);
 
     ChannelFuture unusedFuture = serverBootstrap.bind(localAddress).syncUninterruptibly();
-
   }
 
-  public static TestServer webWhoisServer(EventLoopGroup eventLoopGroup,
-      LocalAddress localAddress, String redirectInput, String destinationInput,
+  public static TestServer webWhoisServer(
+      EventLoopGroup eventLoopGroup,
+      LocalAddress localAddress,
+      String redirectInput,
+      String destinationInput,
       String destinationPath) {
     return new TestServer(
         eventLoopGroup,
         localAddress,
-        ImmutableList.of(new RedirectHandler(redirectInput, destinationInput, destinationPath))
-    );
+        ImmutableList.of(new RedirectHandler(redirectInput, destinationInput, destinationPath)));
   }
 
-  /**
-   * Handler that will wither redirect client, give successful response, or give error messge
-   */
+  public static TestServer eppServer(EventLoopGroup eventLoopGroup, LocalAddress localAddress) {
+    // TODO - add LengthFieldBasedFrameDecoder to handlers in pipeline if necessary for future
+    // tests.
+    return new TestServer(eventLoopGroup, localAddress, ImmutableList.of(new EppHandler()));
+  }
+
+  /** Handler that will wither redirect client, give successful response, or give error messge */
   @Sharable
   static class RedirectHandler extends SimpleChannelInboundHandler<HttpRequest> {
 
@@ -90,9 +104,9 @@ public class TestServer {
 
     /**
      * @param redirectInput - Server will send back redirect to {@code destinationInput} when
-     * receiving a request with this host location
+     *     receiving a request with this host location
      * @param destinationInput - Server will send back an {@link HttpResponseStatus} OK response
-     * when receiving a request with this host location
+     *     when receiving a request with this host location
      */
     public RedirectHandler(String redirectInput, String destinationInput, String destinationPath) {
       this.redirectInput = redirectInput;
@@ -108,8 +122,9 @@ public class TestServer {
     public void channelRead0(ChannelHandlerContext ctx, HttpRequest request) {
       HttpResponse response;
       if (request.headers().get("host").equals(redirectInput)) {
-        response = new HttpResponseMessage(
-            makeRedirectResponse(HttpResponseStatus.MOVED_PERMANENTLY, destinationInput, true));
+        response =
+            new HttpResponseMessage(
+                makeRedirectResponse(HttpResponseStatus.MOVED_PERMANENTLY, destinationInput, true));
       } else if (request.headers().get("host").equals(destinationInput)
           && request.uri().equals(destinationPath)) {
         response = new HttpResponseMessage(makeHttpResponse(HttpResponseStatus.OK));
@@ -117,7 +132,36 @@ public class TestServer {
         response = new HttpResponseMessage(makeHttpResponse(HttpResponseStatus.BAD_REQUEST));
       }
       ChannelFuture unusedFuture = ctx.channel().writeAndFlush(response);
+    }
+  }
 
+  private static class EppHandler extends ChannelDuplexHandler {
+
+    Document doc;
+    private ChannelPromise future;
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) {
+      // TODO - pass EppMessage into future to easily read attributes of message.
+      future = ctx.newPromise();
+    }
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+      ByteBuf buf = (ByteBuf) msg;
+
+      byte[] messageBytes = new byte[buf.readableBytes()];
+      buf.readBytes(messageBytes);
+
+      // TODO - Break ByteBuf into multiple pieces to test how well it works with
+      // LengthFieldBasedFrameDecoder.
+
+      try {
+        doc = EppMessage.byteArrayToXmlDoc(messageBytes);
+        ChannelFuture unusedFuture = future.setSuccess();
+      } catch (FailureException e) {
+        ChannelFuture unusedFuture = future.setFailure(e);
+      }
     }
   }
 }

@@ -15,6 +15,7 @@
 package google.registry.monitoring.blackbox;
 
 import com.google.common.flogger.FluentLogger;
+import google.registry.monitoring.blackbox.connection.ProbingAction;
 import google.registry.monitoring.blackbox.exceptions.UnrecoverableStateException;
 import google.registry.monitoring.blackbox.tokens.Token;
 import google.registry.util.CircularList;
@@ -26,29 +27,25 @@ import io.netty.channel.EventLoopGroup;
 /**
  * Represents Sequence of {@link ProbingStep}s that the Prober performs in order.
  *
- * <p>Inherits from {@link CircularList}, with element type of
- * {@link ProbingStep} as the manner in which the sequence is carried out is similar to the {@link
- * CircularList}. However, the {@link Builder} of {@link ProbingSequence} override
- * {@link CircularList.AbstractBuilder} allowing for more customized flows, that are looped, but
- * not necessarily entirely circular.
- * Example: first -> second -> third -> fourth -> second -> third -> fourth -> second -> ...
- * </p>
+ * <p>Inherits from {@link CircularList}, with element type of {@link ProbingStep} as the manner in
+ * which the sequence is carried out is similar to the {@link CircularList}. However, the {@link
+ * Builder} of {@link ProbingSequence} override {@link CircularList.AbstractBuilder} allowing for
+ * more customized flows, that are looped, but not necessarily entirely circular. Example: first ->
+ * second -> third -> fourth -> second -> third -> fourth -> second -> ...
  *
  * <p>Created with {@link Builder} where we specify {@link EventLoopGroup}, {@link AbstractChannel}
  * class type, then sequentially add in the {@link ProbingStep.Builder}s in order and mark which one
- * is the first repeated step.</p>
+ * is the first repeated step.
  *
  * <p>{@link ProbingSequence} implicitly points each {@link ProbingStep} to the next one, so once
  * the first one is activated with the requisite {@link Token}, the {@link ProbingStep}s do the rest
- * of the work.</p>
+ * of the work.
  */
 public class ProbingSequence extends CircularList<ProbingStep> {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  /**
-   * Each {@link ProbingSequence} requires a start token to begin running.
-   */
+  /** Each {@link ProbingSequence} requires a start token to begin running. */
   private Token startToken;
 
   /**
@@ -57,38 +54,27 @@ public class ProbingSequence extends CircularList<ProbingStep> {
    */
   private boolean lastStep = false;
 
-  /**
-   * {@link ProbingSequence} object that represents first step in the sequence.
-   */
+  /** {@link ProbingSequence} object that represents first step in the sequence. */
   private ProbingSequence first;
 
-
-  /**
-   * Standard constructor for {@link ProbingSequence} in the list that assigns value and token.
-   */
+  /** Standard constructor for {@link ProbingSequence} in the list that assigns value and token. */
   private ProbingSequence(ProbingStep value, Token startToken) {
     super(value);
     this.startToken = startToken;
   }
 
-  /**
-   * Method used in {@link Builder} to mark the last step in the sequence.
-   */
+  /** Method used in {@link Builder} to mark the last step in the sequence. */
   private void markLast() {
     lastStep = true;
   }
 
-  /**
-   * Obtains next {@link ProbingSequence} in sequence instead of next {@link CircularList}.
-   */
+  /** Obtains next {@link ProbingSequence} in sequence. */
   @Override
   public ProbingSequence next() {
     return (ProbingSequence) super.next();
   }
 
-  /**
-   * Starts ProbingSequence by calling first {@code runStep} with {@code startToken}.
-   */
+  /** Starts ProbingSequence by calling first {@code runStep} with {@code startToken}. */
   public void start() {
     runStep(startToken);
   }
@@ -97,16 +83,16 @@ public class ProbingSequence extends CircularList<ProbingStep> {
    * Generates new {@link ProbingAction} from {@link ProbingStep}, calls the action, then retrieves
    * the result of the action.
    *
-   * @param token - used to generate the {@link ProbingAction} by calling {@code
-   * get().generateAction}.
-   *
-   * <p>Calls {@code runNextStep} to have next {@link ProbingSequence} call {@code runStep}
-   * with next token depending on if the current step is the last one in the sequence.
+   * <p>Calls {@code runNextStep} to have next {@link ProbingSequence} call {@code runStep} with
+   * next token depending on if the current step is the last one in the sequence.
    *
    * <p>If unable to generate the action, or the calling the action results in an immediate error,
    * we note an error. Otherwise, if the future marked as finished when the action is completed is
    * marked as a success, we note a success. Otherwise, if the cause of failure will either be a
-   * failure or error. </p>
+   * failure or error.
+   *
+   * @param token - used to generate the {@link ProbingAction} by calling {@code
+   *     get().generateAction}.
    */
   private void runStep(Token token) {
     ProbingAction currentAction;
@@ -121,8 +107,7 @@ public class ProbingSequence extends CircularList<ProbingStep> {
 
     } catch (UnrecoverableStateException e) {
       // On an UnrecoverableStateException, terminate the sequence.
-      logger.atSevere().withCause(e).log(
-          "Unrecoverable error in generating or calling action.");
+      logger.atSevere().withCause(e).log("Unrecoverable error in generating or calling action.");
       return;
 
     } catch (Exception e) {
@@ -134,32 +119,32 @@ public class ProbingSequence extends CircularList<ProbingStep> {
       return;
     }
 
-    future.addListener(f -> {
-      if (f.isSuccess()) {
-        // On a successful result, we log as a successful step, and note a success.
-        logger.atInfo().log(String.format("Successfully completed Probing Step: %s", this));
+    future.addListener(
+        f -> {
+          if (f.isSuccess()) {
+            // On a successful result, we log as a successful step, and note a success.
+            logger.atInfo().log(String.format("Successfully completed Probing Step: %s", this));
 
-      } else {
-        // On a failed result, we log the failure and note either a failure or error.
-        logger.atSevere().withCause(f.cause()).log("Did not result in future success");
+          } else {
+            // On a failed result, we log the failure and note either a failure or error.
+            logger.atSevere().withCause(f.cause()).log("Did not result in future success");
 
-        // If not unrecoverable, we restart the sequence.
-        if (!(f.cause() instanceof UnrecoverableStateException)) {
-          restartSequence();
-        }
-        // Otherwise, we just terminate the full sequence.
-        return;
-      }
+            // If not unrecoverable, we restart the sequence.
+            if (!(f.cause() instanceof UnrecoverableStateException)) {
+              restartSequence();
+            }
+            // Otherwise, we just terminate the full sequence.
+            return;
+          }
 
-      if (get().protocol().persistentConnection()) {
-        // If the connection is persistent, we store the channel in the token.
-        token.setChannel(currentAction.channel());
-      }
+          if (get().protocol().persistentConnection()) {
+            // If the connection is persistent, we store the channel in the token.
+            token.setChannel(currentAction.channel());
+          }
 
-      //Calls next runStep
-      runNextStep(token);
-
-    });
+          // Calls next runStep
+          runNextStep(token);
+        });
   }
 
   /**
@@ -204,9 +189,7 @@ public class ProbingSequence extends CircularList<ProbingStep> {
       this.startToken = startToken;
     }
 
-    /**
-     * We take special note of the first repeated step.
-     */
+    /** We take special note of the first repeated step. */
     public Builder markFirstRepeated() {
       firstRepeatedSequenceStep = current;
       return this;

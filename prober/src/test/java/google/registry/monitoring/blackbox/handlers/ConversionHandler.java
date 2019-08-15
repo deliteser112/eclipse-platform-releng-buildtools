@@ -31,24 +31,20 @@ import io.netty.channel.ChannelPromise;
  * {@link ChannelHandler} used in tests to convert {@link OutboundMessageType} to to {@link
  * ByteBuf}s and convert {@link ByteBuf}s to {@link InboundMessageType}
  *
- * <p>Specific type of {@link OutboundMessageType} and {@link InboundMessageType}
- * used for conversion is the {@link TestMessage} type.</p>
+ * <p>Specific type of {@link OutboundMessageType} and {@link InboundMessageType} used for
+ * conversion is the {@link TestMessage} type.
  */
 public class ConversionHandler extends ChannelDuplexHandler {
 
-  /**
-   * Handles inbound conversion
-   */
+  /** Handles inbound conversion */
   @Override
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+  public void channelRead(ChannelHandlerContext ctx, Object msg) {
     ByteBuf buf = (ByteBuf) msg;
     ctx.fireChannelRead(new TestMessage(buf.toString(UTF_8)));
     buf.release();
   }
 
-  /**
-   * Handles outbound conversion
-   */
+  /** Handles outbound conversion */
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise)
       throws Exception {
@@ -57,4 +53,3 @@ public class ConversionHandler extends ChannelDuplexHandler {
     super.write(ctx, buf, promise);
   }
 }
-
