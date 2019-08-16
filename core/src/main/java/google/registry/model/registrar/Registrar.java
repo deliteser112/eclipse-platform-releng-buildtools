@@ -409,6 +409,9 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    */
   boolean contactsRequireSyncing = true;
 
+  /** Whether or not registry lock is allowed for this registrar. */
+  boolean registryLockAllowed = false;
+
   @NonFinalForTesting
   private static Supplier<byte[]> saltSupplier =
       () -> {
@@ -543,6 +546,10 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
   public boolean getContactsRequireSyncing() {
     return contactsRequireSyncing;
+  }
+
+  public boolean isRegistryLockAllowed() {
+    return registryLockAllowed;
   }
 
   public String getUrl() {
@@ -892,6 +899,11 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
           || PHONE_PASSCODE_PATTERN.matcher(phonePasscode).matches(),
           "Not a valid telephone passcode (must be 5 digits long): %s", phonePasscode);
       getInstance().phonePasscode = phonePasscode;
+      return this;
+    }
+
+    public Builder setRegistryLockAllowed(boolean registryLockAllowed) {
+      getInstance().registryLockAllowed = registryLockAllowed;
       return this;
     }
 
