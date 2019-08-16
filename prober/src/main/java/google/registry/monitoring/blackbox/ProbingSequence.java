@@ -16,9 +16,12 @@ package google.registry.monitoring.blackbox;
 
 import com.google.common.flogger.FluentLogger;
 import google.registry.monitoring.blackbox.connection.ProbingAction;
+import google.registry.monitoring.blackbox.exceptions.FailureException;
 import google.registry.monitoring.blackbox.exceptions.UnrecoverableStateException;
+import google.registry.monitoring.blackbox.metrics.MetricsCollector;
 import google.registry.monitoring.blackbox.tokens.Token;
 import google.registry.util.CircularList;
+import google.registry.util.Clock;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.AbstractChannel;
 import io.netty.channel.ChannelFuture;
@@ -45,6 +48,12 @@ public class ProbingSequence extends CircularList<ProbingStep> {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
+  /** Shared {@link MetricsCollector} used to record metrics on any step performed. */
+  private MetricsCollector metrics;
+
+  /** Shared {@link Clock} used to record latency on any step performed. */
+  private Clock clock;
+
   /** Each {@link ProbingSequence} requires a start token to begin running. */
   private Token startToken;
 
@@ -57,9 +66,16 @@ public class ProbingSequence extends CircularList<ProbingStep> {
   /** {@link ProbingSequence} object that represents first step in the sequence. */
   private ProbingSequence first;
 
-  /** Standard constructor for {@link ProbingSequence} in the list that assigns value and token. */
-  private ProbingSequence(ProbingStep value, Token startToken) {
+  /**
+   * Standard constructor for first {@link ProbingSequence} in the list that assigns value and
+   * token.
+   */
+  private ProbingSequence(
+      ProbingStep value, MetricsCollector metrics, Clock clock, Token startToken) {
+
     super(value);
+    this.metrics = metrics;
+    this.clock = clock;
     this.startToken = startToken;
   }
 
@@ -95,6 +111,8 @@ public class ProbingSequence extends CircularList<ProbingStep> {
    *     get().generateAction}.
    */
   private void runStep(Token token) {
+    long start = clock.nowUtc().getMillis();
+
     ProbingAction currentAction;
     ChannelFuture future;
 
@@ -108,11 +126,27 @@ public class ProbingSequence extends CircularList<ProbingStep> {
     } catch (UnrecoverableStateException e) {
       // On an UnrecoverableStateException, terminate the sequence.
       logger.atSevere().withCause(e).log("Unrecoverable error in generating or calling action.");
+
+      // Records gathered metrics.
+      metrics.recordResult(
+          get().protocol().name(),
+          get().messageTemplate().name(),
+          get().messageTemplate().responseName(),
+          MetricsCollector.ResponseType.ERROR,
+          clock.nowUtc().getMillis() - start);
       return;
 
     } catch (Exception e) {
       // On any other type of error, restart the sequence at the very first step.
       logger.atWarning().withCause(e).log("Error in generating or calling action.");
+
+      // Records gathered metrics.
+      metrics.recordResult(
+          get().protocol().name(),
+          get().messageTemplate().name(),
+          get().messageTemplate().responseName(),
+          MetricsCollector.ResponseType.ERROR,
+          clock.nowUtc().getMillis() - start);
 
       // Restart the sequence at the very first step.
       restartSequence();
@@ -125,9 +159,33 @@ public class ProbingSequence extends CircularList<ProbingStep> {
             // On a successful result, we log as a successful step, and note a success.
             logger.atInfo().log(String.format("Successfully completed Probing Step: %s", this));
 
+            // Records gathered metrics.
+            metrics.recordResult(
+                get().protocol().name(),
+                get().messageTemplate().name(),
+                get().messageTemplate().responseName(),
+                MetricsCollector.ResponseType.SUCCESS,
+                clock.nowUtc().getMillis() - start);
           } else {
             // On a failed result, we log the failure and note either a failure or error.
             logger.atSevere().withCause(f.cause()).log("Did not result in future success");
+
+            // Records gathered metrics as either FAILURE or ERROR depending on future's cause.
+            if (f.cause() instanceof FailureException) {
+              metrics.recordResult(
+                  get().protocol().name(),
+                  get().messageTemplate().name(),
+                  get().messageTemplate().responseName(),
+                  MetricsCollector.ResponseType.FAILURE,
+                  clock.nowUtc().getMillis() - start);
+            } else {
+              metrics.recordResult(
+                  get().protocol().name(),
+                  get().messageTemplate().name(),
+                  get().messageTemplate().responseName(),
+                  MetricsCollector.ResponseType.ERROR,
+                  clock.nowUtc().getMillis() - start);
+            }
 
             // If not unrecoverable, we restart the sequence.
             if (!(f.cause() instanceof UnrecoverableStateException)) {
@@ -181,12 +239,18 @@ public class ProbingSequence extends CircularList<ProbingStep> {
 
     private Token startToken;
 
+    private MetricsCollector metrics;
+
+    private Clock clock;
+
     /**
      * This Builder must also be supplied with a {@link Token} to construct a {@link
      * ProbingSequence}.
      */
-    public Builder(Token startToken) {
+    public Builder(Token startToken, MetricsCollector metrics, Clock clock) {
       this.startToken = startToken;
+      this.metrics = metrics;
+      this.clock = clock;
     }
 
     /** We take special note of the first repeated step. */
@@ -205,7 +269,7 @@ public class ProbingSequence extends CircularList<ProbingStep> {
 
     @Override
     protected ProbingSequence create(ProbingStep value) {
-      return new ProbingSequence(value, startToken);
+      return new ProbingSequence(value, metrics, clock, startToken);
     }
 
     /**

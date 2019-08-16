@@ -34,8 +34,10 @@ import google.registry.monitoring.blackbox.handlers.SslClientInitializer;
 import google.registry.monitoring.blackbox.messages.EppMessage;
 import google.registry.monitoring.blackbox.messages.EppRequestMessage;
 import google.registry.monitoring.blackbox.messages.EppResponseMessage;
+import google.registry.monitoring.blackbox.metrics.MetricsCollector;
 import google.registry.monitoring.blackbox.modules.CertificateModule.LocalSecrets;
 import google.registry.monitoring.blackbox.tokens.EppToken;
+import google.registry.util.Clock;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -86,13 +88,15 @@ public class EppModule {
   @IntoSet
   static ProbingSequence provideEppLoginCreateCheckDeleteCheckProbingSequence(
       EppToken.Persistent token,
+      MetricsCollector metrics,
+      Clock clock,
       @Named("hello") ProbingStep helloStep,
       @Named("loginSuccess") ProbingStep loginSuccessStep,
       @Named("createSuccess") ProbingStep createSuccessStep,
       @Named("checkExists") ProbingStep checkStepFirst,
       @Named("deleteSuccess") ProbingStep deleteSuccessStep,
       @Named("checkNotExists") ProbingStep checkStepSecond) {
-    return new ProbingSequence.Builder(token)
+    return new ProbingSequence.Builder(token, metrics, clock)
         .add(helloStep)
         .add(loginSuccessStep)
         .add(createSuccessStep)
@@ -112,6 +116,8 @@ public class EppModule {
   @IntoSet
   static ProbingSequence provideEppLoginCreateCheckDeleteCheckLogoutProbingSequence(
       EppToken.Transient token,
+      MetricsCollector metrics,
+      Clock clock,
       @Named("hello") ProbingStep helloStep,
       @Named("loginSuccess") ProbingStep loginSuccessStep,
       @Named("createSuccess") ProbingStep createSuccessStep,
@@ -119,7 +125,7 @@ public class EppModule {
       @Named("deleteSuccess") ProbingStep deleteSuccessStep,
       @Named("checkNotExists") ProbingStep checkStepSecond,
       @Named("logout") ProbingStep logoutStep) {
-    return new ProbingSequence.Builder(token)
+    return new ProbingSequence.Builder(token, metrics, clock)
         .add(helloStep)
         .add(loginSuccessStep)
         .add(createSuccessStep)
@@ -253,7 +259,7 @@ public class EppModule {
   static EppRequestMessage provideHelloRequestMessage(
       @Named("greeting") EppResponseMessage greetingResponse) {
 
-    return new EppRequestMessage(greetingResponse, null, (a, b) -> ImmutableMap.of());
+    return new EppRequestMessage("hello", greetingResponse, null, (a, b) -> ImmutableMap.of());
   }
 
   /**
@@ -270,6 +276,7 @@ public class EppModule {
       @Named("eppUserId") String userId,
       @Named("eppPassword") String userPassword) {
     return new EppRequestMessage(
+        "login",
         successResponse,
         loginTemplate,
         (clTrid, domain) ->
@@ -288,6 +295,7 @@ public class EppModule {
       @Named("eppUserId") String userId,
       @Named("eppPassword") String userPassword) {
     return new EppRequestMessage(
+        "login",
         failureResponse,
         loginTemplate,
         (clTrid, domain) ->
@@ -304,6 +312,7 @@ public class EppModule {
       @Named("success") EppResponseMessage successResponse,
       @Named("create") String createTemplate) {
     return new EppRequestMessage(
+        "create",
         successResponse,
         createTemplate,
         (clTrid, domain) ->
@@ -319,6 +328,7 @@ public class EppModule {
       @Named("failure") EppResponseMessage failureResponse,
       @Named("create") String createTemplate) {
     return new EppRequestMessage(
+        "create",
         failureResponse,
         createTemplate,
         (clTrid, domain) ->
@@ -334,6 +344,7 @@ public class EppModule {
       @Named("success") EppResponseMessage successResponse,
       @Named("delete") String deleteTemplate) {
     return new EppRequestMessage(
+        "delete",
         successResponse,
         deleteTemplate,
         (clTrid, domain) ->
@@ -349,6 +360,7 @@ public class EppModule {
       @Named("failure") EppResponseMessage failureResponse,
       @Named("delete") String deleteTemplate) {
     return new EppRequestMessage(
+        "delete",
         failureResponse,
         deleteTemplate,
         (clTrid, domain) ->
@@ -364,6 +376,7 @@ public class EppModule {
       @Named("success") EppResponseMessage successResponse,
       @Named("logout") String logoutTemplate) {
     return new EppRequestMessage(
+        "logout",
         successResponse,
         logoutTemplate,
         (clTrid, domain) -> ImmutableMap.of(CLIENT_TRID_KEY, clTrid));
@@ -376,6 +389,7 @@ public class EppModule {
       @Named("domainExists") EppResponseMessage domainExistsResponse,
       @Named("check") String checkTemplate) {
     return new EppRequestMessage(
+        "check",
         domainExistsResponse,
         checkTemplate,
         (clTrid, domain) ->
@@ -391,6 +405,7 @@ public class EppModule {
       @Named("domainNotExists") EppResponseMessage domainNotExistsResponse,
       @Named("check") String checkTemplate) {
     return new EppRequestMessage(
+        "check",
         domainNotExistsResponse,
         checkTemplate,
         (clTrid, domain) ->

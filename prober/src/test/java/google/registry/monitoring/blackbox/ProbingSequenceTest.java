@@ -16,9 +16,9 @@ package google.registry.monitoring.blackbox;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -27,10 +27,16 @@ import google.registry.monitoring.blackbox.connection.Protocol;
 import google.registry.monitoring.blackbox.exceptions.FailureException;
 import google.registry.monitoring.blackbox.exceptions.UndeterminedStateException;
 import google.registry.monitoring.blackbox.exceptions.UnrecoverableStateException;
+import google.registry.monitoring.blackbox.messages.OutboundMessageType;
+import google.registry.monitoring.blackbox.metrics.MetricsCollector;
+import google.registry.monitoring.blackbox.metrics.MetricsCollector.ResponseType;
 import google.registry.monitoring.blackbox.tokens.Token;
+import google.registry.testing.FakeClock;
+import google.registry.util.Clock;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.embedded.EmbeddedChannel;
+import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +59,11 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public class ProbingSequenceTest {
 
+  private static final String PROTOCOL_NAME = "PROTOCOL";
+  private static final String MESSAGE_NAME = "MESSAGE";
+  private static final String RESPONSE_NAME = "RESPONSE";
+  private static final Duration LATENCY = Duration.millis(2L);
+
   /** Default mock {@link ProbingAction} returned when generating an action with a mockStep. */
   private ProbingAction mockAction = Mockito.mock(ProbingAction.class);
 
@@ -72,20 +83,37 @@ public class ProbingSequenceTest {
   private Protocol mockProtocol = Mockito.mock(Protocol.class);
 
   /**
+   * Default mock {@link OutboundMessageType} returned by {@code mockStep} and occasionally other
+   * mock {@link ProbingStep}s.
+   */
+  private OutboundMessageType mockMessage = Mockito.mock(OutboundMessageType.class);
+
+  /**
    * {@link EmbeddedChannel} used to create new {@link ChannelPromise} objects returned by mock
    * {@link ProbingAction}s on their {@code call} methods.
    */
   private EmbeddedChannel channel = new EmbeddedChannel();
+
+  /** Default mock {@link MetricsCollector} passed into each {@link ProbingSequence} tested */
+  private MetricsCollector metrics = Mockito.mock(MetricsCollector.class);
+
+  /** Default mock {@link Clock} passed into each {@link ProbingSequence} tested */
+  private Clock clock = new FakeClock();
 
   @Before
   public void setup() {
     // To avoid a NullPointerException, we must have a protocol return persistent connection as
     // false.
     doReturn(true).when(mockProtocol).persistentConnection();
+    doReturn(PROTOCOL_NAME).when(mockProtocol).name();
 
     // In order to avoid a NullPointerException, we must have the protocol returned that stores
     // persistent connection as false.
     doReturn(mockProtocol).when(mockStep).protocol();
+
+    doReturn(MESSAGE_NAME).when(mockMessage).name();
+    doReturn(RESPONSE_NAME).when(mockMessage).responseName();
+    doReturn(mockMessage).when(mockStep).messageTemplate();
 
     // Allows for test if channel is accurately set.
     doCallRealMethod().when(mockToken).setChannel(any(Channel.class));
@@ -102,7 +130,7 @@ public class ProbingSequenceTest {
     ProbingStep thirdStep = Mockito.mock(ProbingStep.class);
 
     ProbingSequence sequence =
-        new ProbingSequence.Builder(mockToken)
+        new ProbingSequence.Builder(mockToken, metrics, clock)
             .add(firstStep)
             .add(secondStep)
             .add(thirdStep)
@@ -127,7 +155,7 @@ public class ProbingSequenceTest {
     ProbingStep thirdStep = Mockito.mock(ProbingStep.class);
 
     ProbingSequence sequence =
-        new ProbingSequence.Builder(mockToken)
+        new ProbingSequence.Builder(mockToken, metrics, clock)
             .add(thirdStep)
             .add(secondStep)
             .markFirstRepeated()
@@ -148,8 +176,15 @@ public class ProbingSequenceTest {
 
   @Test
   public void testRunStep_Success() throws UndeterminedStateException {
-    // Always returns a succeeded future on call to mockAction.
-    doReturn(channel.newSucceededFuture()).when(mockAction).call();
+    // Always returns a succeeded future on call to mockAction. Also advances the FakeClock by
+    // standard LATENCY to check right latency is recorded.
+    doAnswer(
+            answer -> {
+              ((FakeClock) clock).advanceBy(LATENCY);
+              return channel.newSucceededFuture();
+            })
+        .when(mockAction)
+        .call();
 
     // Has mockStep always return mockAction on call to generateAction.
     doReturn(mockAction).when(mockStep).generateAction(any(Token.class));
@@ -165,7 +200,10 @@ public class ProbingSequenceTest {
 
     // Build testable sequence from mocked components.
     ProbingSequence sequence =
-        new ProbingSequence.Builder(mockToken).add(mockStep).add(secondStep).build();
+        new ProbingSequence.Builder(mockToken, metrics, clock)
+            .add(mockStep)
+            .add(secondStep)
+            .build();
 
     sequence.start();
 
@@ -182,12 +220,25 @@ public class ProbingSequenceTest {
 
     // We should have modified the token's channel after the first, succeeded step.
     assertThat(mockToken.channel()).isEqualTo(channel);
+
+    // Verifies that metrics records the right kind of result (a success with the input protocol
+    // name and message name).
+    verify(metrics)
+        .recordResult(
+            PROTOCOL_NAME, MESSAGE_NAME, RESPONSE_NAME, ResponseType.SUCCESS, LATENCY.getMillis());
   }
 
   @Test
   public void testRunLoop_Success() throws UndeterminedStateException {
-    // Always returns a succeeded future on call to mockAction.
-    doReturn(channel.newSucceededFuture()).when(mockAction).call();
+    // Always returns a succeeded future on call to mockAction. Also advances the FakeClock by
+    // standard LATENCY to check right latency is recorded.
+    doAnswer(
+            answer -> {
+              ((FakeClock) clock).advanceBy(LATENCY);
+              return channel.newSucceededFuture();
+            })
+        .when(mockAction)
+        .call();
 
     // Has mockStep always return mockAction on call to generateAction
     doReturn(mockAction).when(mockStep).generateAction(mockToken);
@@ -199,9 +250,21 @@ public class ProbingSequenceTest {
     // Necessary for success of ProbingSequence runStep method as it calls get().protocol().
     doReturn(mockProtocol).when(secondStep).protocol();
 
+    // Necessary for success of ProbingSequence recording metrics as it calls get()
+    // .messageTemplate.name().
+    doReturn(mockMessage).when(secondStep).messageTemplate();
+
     // We ensure that secondStep has necessary attributes to be successful step to pass on to
-    // mockStep once more.
-    doReturn(channel.newSucceededFuture()).when(secondAction).call();
+    // mockStep once more. Also have clock time pass by standard LATENCY to ensure right latency
+    // is recorded.
+    doAnswer(
+            answer -> {
+              ((FakeClock) clock).advanceBy(LATENCY);
+              return channel.newSucceededFuture();
+            })
+        .when(secondAction)
+        .call();
+
     doReturn(secondAction).when(secondStep).generateAction(mockToken);
 
     // We get a secondToken that is returned when we are on our second loop in the sequence. This
@@ -217,12 +280,15 @@ public class ProbingSequenceTest {
 
     // Build testable sequence from mocked components.
     ProbingSequence sequence =
-        new ProbingSequence.Builder(mockToken).add(mockStep).add(secondStep).build();
+        new ProbingSequence.Builder(mockToken, metrics, clock)
+            .add(mockStep)
+            .add(secondStep)
+            .build();
 
     sequence.start();
 
     // We expect to have generated actions from mockStep twice (once for mockToken and once for
-    // secondToken), and we expectto have called each generated action only once, as when we move
+    // secondToken), and we expect to have called each generated action only once, as when we move
     // on to mockStep the second time, it will terminate the sequence after calling thirdAction.
     verify(mockStep).generateAction(mockToken);
     verify(mockStep).generateAction(secondToken);
@@ -236,6 +302,18 @@ public class ProbingSequenceTest {
 
     // We should have modified the token's channel after the first, succeeded step.
     assertThat(mockToken.channel()).isEqualTo(channel);
+
+    // Verifies that metrics records the right kind of result (a success with the input protocol
+    // name and message name) two times: once for mockStep and once for secondStep.
+    verify(metrics, times(2))
+        .recordResult(
+            PROTOCOL_NAME, MESSAGE_NAME, RESPONSE_NAME, ResponseType.SUCCESS, LATENCY.getMillis());
+
+    // Verify that on second pass, since we purposely throw UnrecoverableStateException, we
+    // record the ERROR. Also, we haven't had any time pass in the fake clock, so recorded
+    // latency should be 0.
+    verify(metrics)
+        .recordResult(PROTOCOL_NAME, MESSAGE_NAME, RESPONSE_NAME, ResponseType.ERROR, 0L);
   }
 
   /**
@@ -250,14 +328,26 @@ public class ProbingSequenceTest {
     ProbingStep secondStep = Mockito.mock(ProbingStep.class);
 
     // We create a second token that when used to generate an action throws an
-    // UnrecoverableStateException to terminate the sequence
+    // UnrecoverableStateException to terminate the sequence.
     Token secondToken = Mockito.mock(Token.class);
     doReturn(secondToken).when(mockToken).next();
-    doThrow(new UnrecoverableStateException("")).when(mockStep).generateAction(secondToken);
+
+    // When we throw the UnrecoverableStateException, we ensure that the right latency is
+    // recorded by advancing the clock by LATENCY.
+    doAnswer(
+            answer -> {
+              ((FakeClock) clock).advanceBy(LATENCY);
+              throw new UnrecoverableStateException("");
+            })
+        .when(mockStep)
+        .generateAction(secondToken);
 
     // Build testable sequence from mocked components.
     ProbingSequence sequence =
-        new ProbingSequence.Builder(mockToken).add(mockStep).add(secondStep).build();
+        new ProbingSequence.Builder(mockToken, metrics, clock)
+            .add(mockStep)
+            .add(secondStep)
+            .build();
 
     sequence.start();
 
@@ -278,8 +368,15 @@ public class ProbingSequenceTest {
 
   @Test
   public void testRunStep_FailureRunning() throws UndeterminedStateException {
-    // Returns a failed future when calling the generated mock action.
-    doReturn(channel.newFailedFuture(new FailureException(""))).when(mockAction).call();
+    // Returns a failed future when calling the generated mock action. Also advances FakeClock by
+    // LATENCY in order to check right latency is recorded.
+    doAnswer(
+            answer -> {
+              ((FakeClock) clock).advanceBy(LATENCY);
+              return channel.newFailedFuture(new FailureException(""));
+            })
+        .when(mockAction)
+        .call();
 
     // Returns mock action on call to generate action for ProbingStep.
     doReturn(mockAction).when(mockStep).generateAction(mockToken);
@@ -290,16 +387,42 @@ public class ProbingSequenceTest {
     // We only expect to have called this action once, as we only get it from one generateAction
     // call.
     verify(mockAction).call();
+
+    // Verifies that metrics records the right kind of result (a failure with the input protocol
+    // name and message name).
+    verify(metrics)
+        .recordResult(
+            PROTOCOL_NAME, MESSAGE_NAME, RESPONSE_NAME, ResponseType.FAILURE, LATENCY.getMillis());
+
+    // Verify that on second pass, since we purposely throw UnrecoverableStateException, we
+    // record the ERROR. We also should make sure LATENCY seconds have passed.
+    verify(metrics)
+        .recordResult(
+            PROTOCOL_NAME, MESSAGE_NAME, RESPONSE_NAME, ResponseType.ERROR, LATENCY.getMillis());
   }
 
   @Test
   public void testRunStep_FailureGenerating() throws UndeterminedStateException {
-    // Create a mock first step that returns the dummy action when called to generate an action.
-    doThrow(UndeterminedStateException.class).when(mockStep).generateAction(mockToken);
+    // Mock first step throws an error when generating the first action, and advances the clock
+    // by LATENCY.
+    doAnswer(
+            answer -> {
+              ((FakeClock) clock).advanceBy(LATENCY);
+              throw new UndeterminedStateException("");
+            })
+        .when(mockStep)
+        .generateAction(mockToken);
 
+    // Tests generic behavior we expect when we fail in generating or calling an action.
     testActionFailure();
 
     // We expect to have never called this action, as we fail each time whenever generating actions.
     verify(mockAction, times(0)).call();
+
+    // Verify that we record two errors, first for being unable to generate the action, second
+    // for terminating the sequence.
+    verify(metrics, times(2))
+        .recordResult(
+            PROTOCOL_NAME, MESSAGE_NAME, RESPONSE_NAME, ResponseType.ERROR, LATENCY.getMillis());
   }
 }
