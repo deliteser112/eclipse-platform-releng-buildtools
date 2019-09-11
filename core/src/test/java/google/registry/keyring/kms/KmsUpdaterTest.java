@@ -92,6 +92,14 @@ public class KmsUpdaterTest {
   }
 
   @Test
+  public void test_setCloudSqlPassword() {
+    updater.setCloudSqlPassword("value1").update();
+
+    verifySecretAndSecretRevisionWritten(
+        "cloud-sql-password-string", "cloud-sql-password-string/foo", getCiphertext("value1"));
+  }
+
+  @Test
   public void test_setIcannReportingPassword() {
     updater.setIcannReportingPassword("value1").update();
 

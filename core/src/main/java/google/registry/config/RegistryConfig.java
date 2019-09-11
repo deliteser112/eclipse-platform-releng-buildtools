@@ -393,6 +393,24 @@ public final class RegistryConfig {
     }
 
     @Provides
+    @Config("cloudSqlJdbcUrl")
+    public static String providesCloudSqlJdbcUrl(RegistryConfigSettings config) {
+      return config.cloudSql.jdbcUrl;
+    }
+
+    @Provides
+    @Config("cloudSqlUsername")
+    public static String providesCloudSqlUsername(RegistryConfigSettings config) {
+      return config.cloudSql.username;
+    }
+
+    @Provides
+    @Config("cloudSqlInstanceConnectionName")
+    public static String providesCloudSqlInstanceConnectionName(RegistryConfigSettings config) {
+      return config.cloudSql.instanceConnectionName;
+    }
+
+    @Provides
     @Config("cloudDnsRootUrl")
     public static Optional<String> getCloudDnsRootUrl(RegistryConfigSettings config) {
       return Optional.ofNullable(config.cloudDns.rootUrl);
@@ -1467,11 +1485,6 @@ public final class RegistryConfig {
   /** Returns true if hibernate.show_sql is enabled. */
   public static String getHibernateLogSqlQueries() {
     return CONFIG_SETTINGS.get().hibernate.logSqlQueries;
-  }
-
-  /** Returns true if schema modification is allowed. */
-  public static String getHibernateHbm2ddlAuto() {
-    return CONFIG_SETTINGS.get().hibernate.hbm2ddlAuto;
   }
 
   /** Returns the connection timeout for HikariCP. */

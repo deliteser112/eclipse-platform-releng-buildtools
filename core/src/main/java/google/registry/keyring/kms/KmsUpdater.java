@@ -24,6 +24,7 @@ import static google.registry.keyring.kms.KmsKeyring.PublicKeyLabel.BRDA_SIGNING
 import static google.registry.keyring.kms.KmsKeyring.PublicKeyLabel.RDE_RECEIVER_PUBLIC;
 import static google.registry.keyring.kms.KmsKeyring.PublicKeyLabel.RDE_SIGNING_PUBLIC;
 import static google.registry.keyring.kms.KmsKeyring.PublicKeyLabel.RDE_STAGING_PUBLIC;
+import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.CLOUD_SQL_PASSWORD_STRING;
 import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.ICANN_REPORTING_PASSWORD_STRING;
 import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.JSON_CREDENTIAL_STRING;
 import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.MARKSDB_DNL_LOGIN_STRING;
@@ -67,6 +68,10 @@ public final class KmsUpdater {
 
     // Use LinkedHashMap to preserve insertion order on update() to simplify testing and debugging
     this.secretValues = new LinkedHashMap<>();
+  }
+
+  public KmsUpdater setCloudSqlPassword(String password) {
+    return setString(password, CLOUD_SQL_PASSWORD_STRING);
   }
 
   public KmsUpdater setRdeSigningKey(PGPKeyPair keyPair) throws IOException, PGPException {

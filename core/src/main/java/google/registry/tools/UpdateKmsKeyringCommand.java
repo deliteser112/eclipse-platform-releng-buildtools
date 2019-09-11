@@ -65,6 +65,9 @@ final class UpdateKmsKeyringCommand implements CommandWithRemoteApi {
         throw new IllegalArgumentException(
             "Can't update BRDA_SIGNING_PUBLIC_KEY directly."
             + " Must update public and private keys together using BRDA_SIGNING_KEY_PAIR.");
+      case CLOUD_SQL_PASSWORD:
+        kmsUpdater.setCloudSqlPassword(deserializeString(input));
+        break;
       case ICANN_REPORTING_PASSWORD:
         kmsUpdater.setIcannReportingPassword(deserializeString(input));
         break;

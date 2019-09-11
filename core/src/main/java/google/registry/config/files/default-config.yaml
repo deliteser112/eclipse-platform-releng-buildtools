@@ -211,6 +211,14 @@ hibernate:
   hikariMaximumPoolSize: 20
   hikariIdleTimeout: 300000
 
+cloudSql:
+  # jdbc url for the Cloud SQL database.
+  jdbcUrl: jdbc:postgresql://localhost
+  # Username for the database user.
+  username: username
+  # This name is used by Cloud SQL when connecting to the database.
+  instanceConnectionName: project-id:region:instance-id
+
 cloudDns:
   # Set both properties to null in Production.
   # The root url for the Cloud DNS API.  Set this to a non-null value to

@@ -28,6 +28,9 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 @ThreadSafe
 public interface Keyring extends AutoCloseable {
 
+  /** Returns the password which is used to connect to the Cloud SQL database. */
+  String getCloudSqlPassword();
+
   /**
    * Returns the key which should be used to sign RDE deposits being uploaded to a third-party.
    *

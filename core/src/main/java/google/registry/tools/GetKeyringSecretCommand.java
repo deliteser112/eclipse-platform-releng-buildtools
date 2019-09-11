@@ -65,6 +65,9 @@ final class GetKeyringSecretCommand implements CommandWithRemoteApi {
       case BRDA_SIGNING_PUBLIC_KEY:
         out.write(KeySerializer.serializePublicKey(keyring.getBrdaSigningKey().getPublicKey()));
         break;
+      case CLOUD_SQL_PASSWORD:
+        out.write(KeySerializer.serializeString(keyring.getCloudSqlPassword()));
+        break;
       case ICANN_REPORTING_PASSWORD:
         out.write(KeySerializer.serializeString(keyring.getIcannReportingPassword()));
         break;
