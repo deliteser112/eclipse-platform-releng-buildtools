@@ -36,8 +36,11 @@ import google.registry.tools.params.ParameterFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -54,8 +57,13 @@ import org.mockito.junit.MockitoRule;
 @RunWith(JUnit4.class)
 public abstract class CommandTestCase<C extends Command> {
 
+  // Lock for stdout/stderr.  Note that this is static: since we're dealing with globals, we need
+  // to lock for the entire JVM.
+  private static final ReentrantLock streamsLock = new ReentrantLock();
+
   private final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
   private final ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+  private PrintStream oldStdout, oldStderr;
 
   protected C command;
 
@@ -75,8 +83,22 @@ public abstract class CommandTestCase<C extends Command> {
     // Ensure the UNITTEST environment has been set before constructing a new command instance.
     RegistryToolEnvironment.UNITTEST.setup(systemPropertyRule);
     command = newCommandInstance();
-    System.setOut(new PrintStream(stdout));
-    System.setErr(new PrintStream(stderr));
+
+    // Capture standard output/error. This is problematic because gradle tests run in parallel in
+    // the same JVM.  So first lock out any other tests in this JVM that are trying to do this
+    // trick.
+    streamsLock.lock();
+    oldStdout = System.out;
+    System.setOut(new PrintStream(new OutputSplitter(System.out, stdout)));
+    oldStderr = System.err;
+    System.setErr(new PrintStream(new OutputSplitter(System.err, stderr)));
+  }
+
+  @After
+  public final void afterCommandTestCase() throws Exception {
+    System.setOut(oldStdout);
+    System.setErr(oldStderr);
+    streamsLock.unlock();
   }
 
   void runCommandInEnvironment(RegistryToolEnvironment env, String... args) throws Exception {
@@ -219,6 +241,52 @@ public abstract class CommandTestCase<C extends Command> {
           new TypeToken<C>(getClass()) {}.getRawType().getDeclaredConstructor().newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Splits an output stream, writing it to two other output streams.
+   *
+   * <p>We use this as a replacement for standard out/error so that we can both capture the output
+   * of the command and display it to the console for debugging.
+   */
+  static class OutputSplitter extends OutputStream {
+
+    OutputStream a, b;
+
+    OutputSplitter(OutputStream a, OutputStream b) {
+      this.a = a;
+      this.b = b;
+    }
+
+    @Override
+    public void write(byte[] data) throws IOException {
+      a.write(data);
+      b.write(data);
+    }
+
+    @Override
+    public void write(byte[] data, int off, int len) throws IOException {
+      a.write(data, off, len);
+      b.write(data, off, len);
+    }
+
+    @Override
+    public void close() throws IOException {
+      a.close();
+      b.close();
+    }
+
+    @Override
+    public void flush() throws IOException {
+      a.flush();
+      b.flush();
+    }
+
+    @Override
+    public void write(int val) throws IOException {
+      a.write(val);
+      b.write(val);
     }
   }
 }
