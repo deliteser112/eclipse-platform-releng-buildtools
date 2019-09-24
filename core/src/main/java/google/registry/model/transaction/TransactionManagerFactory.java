@@ -14,20 +14,28 @@
 
 package google.registry.model.transaction;
 
+import com.google.appengine.api.utils.SystemProperty;
+import com.google.appengine.api.utils.SystemProperty.Environment.Value;
 import com.google.common.annotations.VisibleForTesting;
 import google.registry.model.ofy.DatastoreTransactionManager;
 import google.registry.persistence.DaggerPersistenceComponent;
-import google.registry.persistence.PersistenceComponent;
 
 /** Factory class to create {@link TransactionManager} instance. */
 // TODO: Rename this to PersistenceFactory and move to persistence package.
 public class TransactionManagerFactory {
 
   private static final TransactionManager TM = createTransactionManager();
-
-  @VisibleForTesting static PersistenceComponent component = DaggerPersistenceComponent.create();
+  @VisibleForTesting static JpaTransactionManager jpaTm = createJpaTransactionManager();
 
   private TransactionManagerFactory() {}
+
+  private static JpaTransactionManager createJpaTransactionManager() {
+    if (SystemProperty.environment.value() == Value.Production) {
+      return DaggerPersistenceComponent.create().jpaTransactionManager();
+    } else {
+      return DummyJpaTransactionManager.create();
+    }
+  }
 
   private static TransactionManager createTransactionManager() {
     // TODO: Determine how to provision TransactionManager after the dual-write. During the
@@ -48,6 +56,6 @@ public class TransactionManagerFactory {
     //    1. App Engine
     //    2. Local JVM used by nomulus tool
     //    3. Unit test
-    return component.jpaTransactionManager();
+    return jpaTm;
   }
 }

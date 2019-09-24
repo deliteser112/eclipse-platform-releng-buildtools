@@ -14,7 +14,6 @@
 
 package google.registry.model.ofy;
 
-
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import google.registry.model.transaction.TransactionManager;
