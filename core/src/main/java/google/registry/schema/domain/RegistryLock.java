@@ -15,16 +15,18 @@
 package google.registry.schema.domain;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static google.registry.util.DateTimeUtils.toJodaDateTime;
 import static google.registry.util.DateTimeUtils.toZonedDateTime;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import google.registry.model.Buildable;
+import google.registry.model.CreateAutoTimestamp;
 import google.registry.model.ImmutableObject;
+import google.registry.persistence.CreateAutoTimestampConverter;
 import google.registry.util.DateTimeUtils;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -56,14 +58,17 @@ import org.joda.time.DateTime;
      * Unique constraint to get around Hibernate's failure to handle auto-increment field in
      * composite primary key.
      *
-     * <p>Note: because of this index, physical columns must be declared in the {@link Column}
-     * annotations for {@link RegistryLock#revisionId} and {@link RegistryLock#repoId} fields.
+     * <p>Note: indexes use the camelCase version of the field names because the {@link
+     * google.registry.persistence.NomulusNamingStrategy} does not translate the field name into the
+     * snake_case column name until the write itself.
      */
-    indexes =
-        @Index(
-            name = "idx_registry_lock_repo_id_revision_id",
-            columnList = "repo_id, revision_id",
-            unique = true))
+    indexes = {
+      @Index(
+          name = "idx_registry_lock_repo_id_revision_id",
+          columnList = "repoId, revisionId",
+          unique = true),
+      @Index(name = "idx_registry_lock_verification_code", columnList = "verificationCode")
+    })
 public final class RegistryLock extends ImmutableObject implements Buildable {
 
   /** Describes the action taken by the user. */
@@ -74,11 +79,11 @@ public final class RegistryLock extends ImmutableObject implements Buildable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "revision_id", nullable = false)
+  @Column(nullable = false)
   private Long revisionId;
 
   /** EPP repo ID of the domain in question. */
-  @Column(name = "repo_id", nullable = false)
+  @Column(nullable = false)
   private String repoId;
 
   // TODO (b/140568328): remove this when everything is in Cloud SQL and we can join on "domain"
@@ -104,7 +109,8 @@ public final class RegistryLock extends ImmutableObject implements Buildable {
 
   /** Creation timestamp is when the lock/unlock is first requested. */
   @Column(nullable = false)
-  private ZonedDateTime creationTimestamp;
+  @Convert(converter = CreateAutoTimestampConverter.class)
+  private CreateAutoTimestamp creationTimestamp = CreateAutoTimestamp.create(null);
 
   /**
    * Completion timestamp is when the user has verified the lock/unlock, when this object de facto
@@ -148,7 +154,7 @@ public final class RegistryLock extends ImmutableObject implements Buildable {
   }
 
   public DateTime getCreationTimestamp() {
-    return toJodaDateTime(creationTimestamp);
+    return creationTimestamp.getTimestamp();
   }
 
   /** Returns the completion timestamp, or empty if this lock has not been completed yet. */
@@ -168,9 +174,16 @@ public final class RegistryLock extends ImmutableObject implements Buildable {
     return revisionId;
   }
 
+  public void setCompletionTimestamp(DateTime dateTime) {
+    this.completionTimestamp = toZonedDateTime(dateTime);
+  }
+
   @Override
   public Builder asBuilder() {
-    return new Builder(clone(this));
+    RegistryLock clone = clone(this);
+    // Revision ID should be different for every object
+    clone.revisionId = null;
+    return new Builder(clone);
   }
 
   /** Builder for {@link google.registry.schema.domain.RegistryLock}. */
@@ -187,7 +200,6 @@ public final class RegistryLock extends ImmutableObject implements Buildable {
       checkArgumentNotNull(getInstance().domainName, "Domain name cannot be null");
       checkArgumentNotNull(getInstance().registrarId, "Registrar ID cannot be null");
       checkArgumentNotNull(getInstance().action, "Action cannot be null");
-      checkArgumentNotNull(getInstance().creationTimestamp, "Creation timestamp cannot be null");
       checkArgumentNotNull(getInstance().verificationCode, "Verification codecannot be null");
       checkArgument(
           getInstance().registrarPocId != null || getInstance().isSuperuser,
@@ -220,8 +232,8 @@ public final class RegistryLock extends ImmutableObject implements Buildable {
       return this;
     }
 
-    public Builder setCreationTimestamp(DateTime creationTimestamp) {
-      getInstance().creationTimestamp = toZonedDateTime(creationTimestamp);
+    public Builder setCreationTimestamp(CreateAutoTimestamp creationTimestamp) {
+      getInstance().creationTimestamp = creationTimestamp;
       return this;
     }
 
