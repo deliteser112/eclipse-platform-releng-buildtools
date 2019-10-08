@@ -16,20 +16,24 @@ package google.registry.schema.tld;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import google.registry.model.CreateAutoTimestamp;
+import google.registry.persistence.CreateAutoTimestampConverter;
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
 import java.util.Map;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.Table;
 import org.joda.money.CurrencyUnit;
+import org.joda.time.DateTime;
 
 /**
  * A list of premium prices for domain names.
@@ -40,33 +44,35 @@ import org.joda.money.CurrencyUnit;
  * This is fine though, because we only use the list with the highest revisionId.
  */
 @Entity
-@Table(name = "PremiumList")
+@Table(indexes = {@Index(columnList = "name", name = "premiumlist_name_idx")})
 public class PremiumList {
+
+  @Column(nullable = false)
+  private String name;
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "revision_id")
+  @Column(nullable = false)
   private Long revisionId;
 
-  @Column(name = "creation_timestamp", nullable = false)
-  private ZonedDateTime creationTimestamp;
+  @Column(nullable = false)
+  @Convert(converter = CreateAutoTimestampConverter.class)
+  private CreateAutoTimestamp creationTimestamp = CreateAutoTimestamp.create(null);
 
-  @Column(name = "currency", nullable = false)
+  @Column(nullable = false)
   private CurrencyUnit currency;
 
   @ElementCollection
   @CollectionTable(
       name = "PremiumEntry",
-      joinColumns = @JoinColumn(name = "revision_id", referencedColumnName = "revision_id"))
-  @MapKeyColumn(name = "domain_label")
+      joinColumns = @JoinColumn(name = "revisionId", referencedColumnName = "revisionId"))
+  @MapKeyColumn(name = "domainLabel")
   @Column(name = "price", nullable = false)
   private Map<String, BigDecimal> labelsToPrices;
 
-  private PremiumList(
-      ZonedDateTime creationTimestamp,
-      CurrencyUnit currency,
-      Map<String, BigDecimal> labelsToPrices) {
-    this.creationTimestamp = creationTimestamp;
+  private PremiumList(String name, CurrencyUnit currency, Map<String, BigDecimal> labelsToPrices) {
+    // TODO(mcilwain): Generate the Bloom filter and set it here.
+    this.name = name;
     this.currency = currency;
     this.labelsToPrices = labelsToPrices;
   }
@@ -74,13 +80,15 @@ public class PremiumList {
   // Hibernate requires this default constructor.
   private PremiumList() {}
 
-  // TODO(mcilwain): Change creationTimestamp to Joda DateTime.
   /** Constructs a {@link PremiumList} object. */
   public static PremiumList create(
-      ZonedDateTime creationTimestamp,
-      CurrencyUnit currency,
-      Map<String, BigDecimal> labelsToPrices) {
-    return new PremiumList(creationTimestamp, currency, labelsToPrices);
+      String name, CurrencyUnit currency, Map<String, BigDecimal> labelsToPrices) {
+    return new PremiumList(name, currency, labelsToPrices);
+  }
+
+  /** Returns the name of the premium list, which is usually also a TLD string. */
+  public String getName() {
+    return name;
   }
 
   /** Returns the ID of this revision, or throws if null. */
@@ -91,8 +99,8 @@ public class PremiumList {
   }
 
   /** Returns the creation time of this revision of the premium list. */
-  public ZonedDateTime getCreationTimestamp() {
-    return creationTimestamp;
+  public DateTime getCreationTimestamp() {
+    return creationTimestamp.getTimestamp();
   }
 
   /** Returns a {@link Map} of domain labels to prices. */

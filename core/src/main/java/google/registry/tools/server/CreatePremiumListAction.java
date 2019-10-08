@@ -27,6 +27,7 @@ import google.registry.model.registry.label.PremiumList;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
+import google.registry.schema.tld.PremiumListDao;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -50,7 +51,7 @@ public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
   @Inject CreatePremiumListAction() {}
 
   @Override
-  protected void savePremiumList() {
+  protected void saveToDatastore() {
     checkArgument(
         !doesPremiumListExist(name), "A premium list of this name already exists: %s.", name);
     if (!override) {
@@ -70,5 +71,23 @@ public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
             premiumList.getName(), inputDataPreProcessed.size());
     logger.atInfo().log(message);
     response.setPayload(ImmutableMap.of("status", "success", "message", message));
+  }
+
+  @Override
+  protected void saveToCloudSql() {
+    if (!override) {
+      assertTldExists(name);
+    }
+    logger.atInfo().log("Saving premium list to Cloud SQL for TLD %s", name);
+    // TODO(mcilwain): Call logInputData() here once Datastore persistence is removed.
+
+    google.registry.schema.tld.PremiumList premiumList = parseInputToPremiumList();
+    PremiumListDao.saveNew(premiumList);
+
+    String message =
+        String.format(
+            "Saved premium list %s with %d entries", name, premiumList.getLabelsToPrices().size());
+    logger.atInfo().log(message);
+    // TODO(mcilwain): Call response.setPayload(...) here once Datastore persistence is removed.
   }
 }
