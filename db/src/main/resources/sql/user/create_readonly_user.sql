@@ -12,10 +12,12 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
--- Script to create a user with read-only permission to all tables.
+-- Script to create a user with read-only permission to all tables. The
+-- initialize_roles.sql script creates the readonly role used here.
 
+-- Comment out line below if user already exists:
 CREATE USER :username ENCRYPTED PASSWORD :'password';
-GRANT CONNECT ON DATABASE postgres TO :username;
-GRANT USAGE ON SCHEMA public TO :username;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO :username;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO :username;
+-- Comment out line above and uncomment line below if user has been created
+-- from Cloud Dashboard:
+-- ALTER USER :username NOCREATEDB NOCREATEROLE;
+GRANT readonly TO :username;

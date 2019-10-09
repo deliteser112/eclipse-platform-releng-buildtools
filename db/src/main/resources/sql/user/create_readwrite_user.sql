@@ -13,11 +13,12 @@
 -- limitations under the License.
 --
 -- Script to create a user with read-write permission to all tables (except for
--- WRITE permissions to flyway_schema_history).
+-- WRITE permissions to flyway_schema_history). The initialize_roles.sql script
+-- creates the readwrite role used here.
 
+-- Comment out line below if user already exists:
 CREATE USER :username ENCRYPTED PASSWORD :'password';
-GRANT CONNECT ON DATABASE postgres TO :username;
-GRANT USAGE ON SCHEMA public TO :username;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO :username;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO :username;
-REVOKE INSERT, UPDATE, DELETE ON TABLE public.flyway_schema_history FROM :username;
+-- Comment out line above and uncomment line below if user has been created
+-- from Cloud Dashboard:
+-- ALTER USER :username NOCREATEDB NOCREATEROLE;
+GRANT readwrite TO :username;
