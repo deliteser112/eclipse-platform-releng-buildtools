@@ -17,6 +17,7 @@ package google.registry.model.registry;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.model.transaction.TransactionManagerFactory.jpaTm;
 
+import com.google.common.collect.ImmutableList;
 import google.registry.schema.domain.RegistryLock;
 import javax.persistence.EntityManager;
 
@@ -43,6 +44,21 @@ public final class RegistryLockDao {
               checkNotNull(revisionId, "No registry lock with this code");
               return em.find(RegistryLock.class, revisionId);
             });
+  }
+
+  public static ImmutableList<RegistryLock> getByRegistrarId(String registrarId) {
+    return jpaTm()
+        .transact(
+            () ->
+                ImmutableList.copyOf(
+                    jpaTm()
+                        .getEntityManager()
+                        .createQuery(
+                            "SELECT lock FROM RegistryLock lock WHERE"
+                                + " lock.registrarId = :registrarId",
+                            RegistryLock.class)
+                        .setParameter("registrarId", registrarId)
+                        .getResultList()));
   }
 
   public static RegistryLock save(RegistryLock registryLock) {
