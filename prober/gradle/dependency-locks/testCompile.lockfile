@@ -141,6 +141,7 @@ commons-codec:commons-codec:1.11
 commons-logging:commons-logging:1.2
 dnsjava:dnsjava:2.1.7
 io.dropwizard.metrics:metrics-core:3.1.2
+io.github.classgraph:classgraph:4.8.52
 io.grpc:grpc-all:1.17.1
 io.grpc:grpc-alts:1.17.1
 io.grpc:grpc-auth:1.17.1

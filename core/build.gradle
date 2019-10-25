@@ -192,7 +192,7 @@ dependencies {
   compile deps['com.jcraft:jsch']
   testCompile deps['com.thoughtworks.qdox:qdox']
   compile deps['dnsjava:dnsjava']
-  runtime deps['org.glassfish.jaxb:jaxb-runtime']
+  testCompile deps['io.github.classgraph:classgraph']
   testCompile deps['javax.annotation:jsr250-api']
   compile deps['javax.inject:javax.inject']
   compile deps['javax.mail:mail']
@@ -218,6 +218,7 @@ dependencies {
   compile deps['org.bouncycastle:bcpg-jdk15on']
   testCompile deps['org.bouncycastle:bcpkix-jdk15on']
   compile deps['org.bouncycastle:bcprov-jdk15on']
+  runtime deps['org.glassfish.jaxb:jaxb-runtime']
   compile deps['org.joda:joda-money']
   compile deps['org.json:json']
   testCompile deps['org.mortbay.jetty:jetty']
@@ -604,6 +605,15 @@ task outcastTest(type: FilteringTest) {
 
   // Sets the maximum number of test executors that may exist at the same time.
   maxParallelForks 5
+}
+
+// Dedicated test suite for schema-dependent tests.
+task sqlIntegrationTest(type: Test) {
+  include 'google/registry/schema/integration/SqlIntegrationTestSuite.*'
+  // Copied from FilteringTest. Not inheriting b/c it excludes TestSuites.
+  if (project.testFilter) {
+    testNameIncludePatterns = project.testFilter.split(',')
+  }
 }
 
 task findGoldenImages(type: JavaExec) {
