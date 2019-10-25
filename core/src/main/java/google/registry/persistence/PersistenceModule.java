@@ -51,6 +51,10 @@ public class PersistenceModule {
   public static final String HIKARI_MAXIMUM_POOL_SIZE = "hibernate.hikari.maximumPoolSize";
   public static final String HIKARI_IDLE_TIMEOUT = "hibernate.hikari.idleTimeout";
 
+  public static final String HIKARI_DS_SOCKET_FACTORY = "hibernate.hikari.dataSource.socketFactory";
+  public static final String HIKARI_DS_CLOUD_SQL_INSTANCE =
+      "hibernate.hikari.dataSource.cloudSqlInstance";
+
   @Provides
   @DefaultHibernateConfigs
   public static ImmutableMap<String, String> providesDefaultDatabaseConfigs() {
@@ -81,25 +85,29 @@ public class PersistenceModule {
 
   @Provides
   @Singleton
+  @PartialCloudSqlConfigs
+  public static ImmutableMap<String, String> providesPartialCloudSqlConfigs(
+      @Config("cloudSqlJdbcUrl") String jdbcUrl,
+      @Config("cloudSqlInstanceConnectionName") String instanceConnectionName,
+      @DefaultHibernateConfigs ImmutableMap<String, String> defaultConfigs) {
+    HashMap<String, String> overrides = Maps.newHashMap(defaultConfigs);
+    overrides.put(Environment.URL, jdbcUrl);
+    overrides.put(HIKARI_DS_SOCKET_FACTORY, "com.google.cloud.sql.postgres.SocketFactory");
+    overrides.put(HIKARI_DS_CLOUD_SQL_INSTANCE, instanceConnectionName);
+    return ImmutableMap.copyOf(overrides);
+  }
+
+  @Provides
+  @Singleton
   @AppEngineJpaTm
   public static JpaTransactionManager providesAppEngineJpaTm(
-      @Config("cloudSqlJdbcUrl") String jdbcUrl,
       @Config("cloudSqlUsername") String username,
-      @Config("cloudSqlInstanceConnectionName") String instanceConnectionName,
       KmsKeyring kmsKeyring,
-      @DefaultHibernateConfigs ImmutableMap<String, String> defaultConfigs,
+      @PartialCloudSqlConfigs ImmutableMap<String, String> cloudSqlConfigs,
       Clock clock) {
-    HashMap<String, String> overrides = Maps.newHashMap(defaultConfigs);
-
-    // For Java users, the Cloud SQL JDBC Socket Factory can provide authenticated connections.
-    // See https://github.com/GoogleCloudPlatform/cloud-sql-jdbc-socket-factory for details.
-    overrides.put("socketFactory", "com.google.cloud.sql.postgres.SocketFactory");
-    overrides.put("cloudSqlInstance", instanceConnectionName);
-
-    overrides.put(Environment.URL, jdbcUrl);
+    HashMap<String, String> overrides = Maps.newHashMap(cloudSqlConfigs);
     overrides.put(Environment.USER, username);
     overrides.put(Environment.PASS, kmsKeyring.getCloudSqlPassword());
-
     return new JpaTransactionManagerImpl(create(overrides), clock);
   }
 
@@ -107,27 +115,13 @@ public class PersistenceModule {
   @Singleton
   @NomulusToolJpaTm
   public static JpaTransactionManager providesNomulusToolJpaTm(
-      @Config("toolsCloudSqlJdbcUrl") String jdbcUrl,
       @Config("toolsCloudSqlUsername") String username,
-      @Config("cloudSqlInstanceConnectionName") String instanceConnectionName,
       KmsKeyring kmsKeyring,
-      @DefaultHibernateConfigs ImmutableMap<String, String> defaultConfigs,
+      @PartialCloudSqlConfigs ImmutableMap<String, String> cloudSqlConfigs,
       Clock clock) {
-
-    // Cloud SQL JDBC Socket Factory library requires the jdbc url to include all connection
-    // information, otherwise the connection initialization will fail. See here for more details:
-    // https://github.com/GoogleCloudPlatform/cloud-sql-jdbc-socket-factory
-    String fullJdbcUrl =
-        new StringBuilder(jdbcUrl)
-            .append("?cloudSqlInstance=" + instanceConnectionName)
-            .append("&socketFactory=com.google.cloud.sql.postgres.SocketFactory")
-            .append("&user=" + username)
-            .append("&password=" + kmsKeyring.getCloudSqlPassword())
-            .toString();
-
-    HashMap<String, String> overrides = Maps.newHashMap(defaultConfigs);
-    overrides.put(Environment.URL, fullJdbcUrl);
-
+    HashMap<String, String> overrides = Maps.newHashMap(cloudSqlConfigs);
+    overrides.put(Environment.USER, username);
+    overrides.put(Environment.PASS, kmsKeyring.getToolsCloudSqlPassword());
     return new JpaTransactionManagerImpl(create(overrides), clock);
   }
 
@@ -165,6 +159,11 @@ public class PersistenceModule {
   @Qualifier
   @Documented
   @interface NomulusToolJpaTm {}
+
+  /** Dagger qualifier for the partial Cloud SQL configs. */
+  @Qualifier
+  @Documented
+  @interface PartialCloudSqlConfigs {}
 
   /** Dagger qualifier for the default Hibernate configurations. */
   // TODO(shicong): Change annotations in this class to none public or put them in a top level
