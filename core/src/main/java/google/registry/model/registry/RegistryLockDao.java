@@ -19,6 +19,7 @@ import static google.registry.model.transaction.TransactionManagerFactory.jpaTm;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.schema.domain.RegistryLock;
+import java.util.Optional;
 import javax.persistence.EntityManager;
 
 /** Data access object for {@link google.registry.schema.domain.RegistryLock}. */
@@ -47,6 +48,7 @@ public final class RegistryLockDao {
             });
   }
 
+  /** Returns all lock objects that this registrar has created. */
   public static ImmutableList<RegistryLock> getByRegistrarId(String registrarId) {
     return jpaTm()
         .transact(
@@ -60,6 +62,26 @@ public final class RegistryLockDao {
                             RegistryLock.class)
                         .setParameter("registrarId", registrarId)
                         .getResultList()));
+  }
+
+  /**
+   * Returns the most recent lock object for a given repo ID (i.e. a domain) or empty if this domain
+   * hasn't been locked before.
+   */
+  public static Optional<RegistryLock> getMostRecentByRepoId(String repoId) {
+    return jpaTm()
+        .transact(
+            () ->
+                jpaTm()
+                    .getEntityManager()
+                    .createQuery(
+                        "SELECT lock FROM RegistryLock lock WHERE lock.repoId = :repoId"
+                            + " ORDER BY lock.revisionId DESC",
+                        RegistryLock.class)
+                    .setParameter("repoId", repoId)
+                    .setMaxResults(1)
+                    .getResultStream()
+                    .findFirst());
   }
 
   public static RegistryLock save(RegistryLock registryLock) {
