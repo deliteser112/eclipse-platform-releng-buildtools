@@ -14,16 +14,13 @@
 
 package google.registry.model.transaction;
 
-import static google.registry.config.RegistryEnvironment.ALPHA;
-import static google.registry.config.RegistryEnvironment.CRASH;
-import static google.registry.config.RegistryEnvironment.SANDBOX;
 
 import com.google.appengine.api.utils.SystemProperty;
 import com.google.appengine.api.utils.SystemProperty.Environment.Value;
 import com.google.common.annotations.VisibleForTesting;
-import google.registry.config.RegistryEnvironment;
 import google.registry.model.ofy.DatastoreTransactionManager;
 import google.registry.persistence.DaggerPersistenceComponent;
+import google.registry.tools.RegistryToolEnvironment;
 
 /** Factory class to create {@link TransactionManager} instance. */
 // TODO: Rename this to PersistenceFactory and move to persistence package.
@@ -35,8 +32,11 @@ public class TransactionManagerFactory {
   private TransactionManagerFactory() {}
 
   private static JpaTransactionManager createJpaTransactionManager() {
-    if (shouldEnableJpaTm() && isInAppEngine()) {
+    if (isInAppEngine()) {
       return DaggerPersistenceComponent.create().appEngineJpaTransactionManager();
+    } else if (RegistryToolEnvironment.isInRegistryTool()
+        && RegistryToolEnvironment.isJpaTmEnabled()) {
+      return DaggerPersistenceComponent.create().nomulusToolJpaTransactionManager();
     } else {
       return DummyJpaTransactionManager.create();
     }
@@ -47,23 +47,6 @@ public class TransactionManagerFactory {
     // dual-write transitional phase, we need the TransactionManager for both Datastore and Cloud
     // SQL, and this method returns the one for Datastore.
     return new DatastoreTransactionManager(null);
-  }
-
-  /**
-   * Sets jpaTm to the implementation for Nomulus tool. Note that this method should be only used by
-   * {@link google.registry.tools.RegistryCli} to initialize jpaTm.
-   */
-  public static void initForTool() {
-    if (shouldEnableJpaTm()) {
-      jpaTm = DaggerPersistenceComponent.create().nomulusToolJpaTransactionManager();
-    }
-  }
-
-  // TODO(shicong): Enable JpaTm for all environments and remove this function
-  private static boolean shouldEnableJpaTm() {
-    return RegistryEnvironment.get() == ALPHA
-        || RegistryEnvironment.get() == CRASH
-        || RegistryEnvironment.get() == SANDBOX;
   }
 
   /**
