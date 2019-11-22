@@ -15,34 +15,51 @@
 package google.registry.reporting.icann;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
+import static google.registry.model.common.Cursor.getCursorTimeOrStartOfTime;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.transaction.TransactionManagerFactory.tm;
 import static google.registry.reporting.icann.IcannReportingModule.MANIFEST_FILE_NAME;
 import static google.registry.reporting.icann.IcannReportingModule.PARAM_SUBDIR;
 import static google.registry.request.Action.Method.POST;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
+import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
+import google.registry.model.common.Cursor;
+import google.registry.model.common.Cursor.CursorType;
+import google.registry.model.registry.Registries;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldType;
 import google.registry.request.Action;
+import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
+import google.registry.request.lock.LockHandler;
+import google.registry.util.Clock;
 import google.registry.util.EmailMessage;
 import google.registry.util.Retrier;
 import google.registry.util.SendEmailService;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.mail.internet.InternetAddress;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * Action that uploads the monthly activity/transactions reports from GCS to ICANN via an HTTP PUT.
@@ -81,44 +98,175 @@ public final class IcannReportingUploadAction implements Runnable {
   @Inject @Config("gSuiteOutgoingEmailAddress") InternetAddress sender;
   @Inject @Config("alertRecipientEmailAddress") InternetAddress recipient;
   @Inject SendEmailService emailService;
+  @Inject Clock clock;
+  @Inject LockHandler lockHandler;
+
   @Inject
   IcannReportingUploadAction() {}
 
   @Override
   public void run() {
-    String reportBucketname = String.format("%s/%s", reportingBucket, subdir);
-    ImmutableList<String> manifestedFiles = getManifestedFiles(reportBucketname);
-    ImmutableMap.Builder<String, Boolean> reportSummaryBuilder = new ImmutableMap.Builder<>();
-    // Report on all manifested files
-    for (String reportFilename : manifestedFiles) {
-      logger.atInfo().log(
-          "Reading ICANN report %s from bucket %s", reportFilename, reportBucketname);
-      final GcsFilename gcsFilename = new GcsFilename(reportBucketname, reportFilename);
-      verifyFileExists(gcsFilename);
-      boolean success = false;
-      try {
-        success =
-            retrier.callWithRetry(
-                () -> {
-                  final byte[] payload = readBytesFromGcs(gcsFilename);
-                  return icannReporter.send(payload, reportFilename);
-                },
-                IcannReportingUploadAction::isUploadFailureRetryable);
-      } catch (RuntimeException e) {
-        logger.atWarning().withCause(e).log("Upload to %s failed.", gcsFilename);
-      }
-      reportSummaryBuilder.put(reportFilename, success);
+    Callable<Void> lockRunner =
+        () -> {
+          ImmutableMap.Builder<String, Boolean> reportSummaryBuilder = new ImmutableMap.Builder<>();
+
+          ImmutableMap<Cursor, CursorInfo> cursors = loadCursors();
+
+          // If cursor time is before now, upload the corresponding report
+          cursors.entrySet().stream()
+              .filter(entry -> getCursorTimeOrStartOfTime(entry.getKey()).isBefore(clock.nowUtc()))
+              .forEach(
+                  entry -> {
+                    DateTime cursorTime = getCursorTimeOrStartOfTime(entry.getKey());
+                    uploadReport(
+                        cursorTime,
+                        entry.getValue().getType(),
+                        entry.getValue().getTld(),
+                        reportSummaryBuilder);
+                  });
+          // Send email of which reports were uploaded
+          emailUploadResults(reportSummaryBuilder.build());
+          response.setStatus(SC_OK);
+          response.setContentType(PLAIN_TEXT_UTF_8);
+          return null;
+        };
+
+    String lockname = "IcannReportingUploadAction";
+    if (!lockHandler.executeWithLocks(lockRunner, null, Duration.standardHours(2), lockname)) {
+      throw new ServiceUnavailableException("Lock for IcannReportingUploadAction already in use");
     }
-    emailUploadResults(reportSummaryBuilder.build());
-    response.setStatus(SC_OK);
-    response.setContentType(PLAIN_TEXT_UTF_8);
-    response.setPayload(
-        String.format("OK, attempted uploading %d reports", manifestedFiles.size()));
+  }
+
+  /** Uploads the report and rolls forward the cursor for that report. */
+  private void uploadReport(
+      DateTime cursorTime,
+      CursorType cursorType,
+      String tldStr,
+      ImmutableMap.Builder<String, Boolean> reportSummaryBuilder) {
+    String reportBucketname = String.format("%s/%s", reportingBucket, subdir);
+    String filename = getFileName(cursorType, cursorTime, tldStr);
+    final GcsFilename gcsFilename = new GcsFilename(reportBucketname, filename);
+    logger.atInfo().log("Reading ICANN report %s from bucket %s", filename, reportBucketname);
+    // Check that the report exists
+    try {
+      verifyFileExists(gcsFilename);
+    } catch (IllegalArgumentException e) {
+      String logMessage =
+          String.format(
+              "Could not upload %s report for %s because file %s did not exist.",
+              cursorType, tldStr, filename);
+      if (clock.nowUtc().dayOfMonth().get() == 1) {
+        logger.atInfo().withCause(e).log(logMessage + " This report may not have been staged yet.");
+      } else {
+        logger.atSevere().withCause(e).log(logMessage);
+      }
+      reportSummaryBuilder.put(filename, false);
+      return;
+    }
+
+    // Upload the report
+    boolean success = false;
+    try {
+      success =
+          retrier.callWithRetry(
+              () -> {
+                final byte[] payload = readBytesFromGcs(gcsFilename);
+                return icannReporter.send(payload, filename);
+              },
+              IcannReportingUploadAction::isUploadFailureRetryable);
+    } catch (RuntimeException e) {
+      logger.atWarning().withCause(e).log("Upload to %s failed", gcsFilename);
+    }
+    reportSummaryBuilder.put(filename, success);
+
+    // Set cursor to first day of next month if the upload succeeded
+    if (success) {
+      Cursor newCursor;
+      if (cursorType.equals(CursorType.ICANN_UPLOAD_MANIFEST)) {
+        newCursor =
+            Cursor.createGlobal(
+                cursorType, cursorTime.withTimeAtStartOfDay().withDayOfMonth(1).plusMonths(1));
+      } else {
+        newCursor =
+            Cursor.create(
+                cursorType,
+                cursorTime.withTimeAtStartOfDay().withDayOfMonth(1).plusMonths(1),
+                Registry.get(tldStr));
+      }
+      tm().transact(() -> ofy().save().entity(newCursor));
+    }
+  }
+
+  private String getFileName(CursorType cursorType, DateTime cursorTime, String tld) {
+    if (cursorType.equals(CursorType.ICANN_UPLOAD_MANIFEST)) {
+      return MANIFEST_FILE_NAME;
+    }
+    return String.format(
+        "%s%s%d%02d.csv",
+        tld,
+        (cursorType.equals(CursorType.ICANN_UPLOAD_ACTIVITY) ? "-activity-" : "-transactions-"),
+        cursorTime.year().get(),
+        cursorTime.monthOfYear().get());
+  }
+
+  /** Returns a map of each cursor to the CursorType and tld. */
+  private ImmutableMap<Cursor, CursorInfo> loadCursors() {
+
+    ImmutableSet<Registry> registries = Registries.getTldEntitiesOfType(TldType.REAL);
+
+    Map<Key<Cursor>, Registry> activityKeyMap =
+        loadKeyMap(registries, CursorType.ICANN_UPLOAD_ACTIVITY);
+    Map<Key<Cursor>, Registry> transactionKeyMap =
+        loadKeyMap(registries, CursorType.ICANN_UPLOAD_TX);
+
+    ImmutableSet.Builder<Key<Cursor>> keys = new ImmutableSet.Builder<>();
+    keys.addAll(activityKeyMap.keySet());
+    keys.addAll(transactionKeyMap.keySet());
+    keys.add(Cursor.createGlobalKey(CursorType.ICANN_UPLOAD_MANIFEST));
+
+    Map<Key<Cursor>, Cursor> cursorMap = ofy().load().keys(keys.build());
+    ImmutableMap.Builder<Cursor, CursorInfo> cursors = new ImmutableMap.Builder<>();
+    defaultNullCursorsToNextMonthAndAddToMap(
+        activityKeyMap, CursorType.ICANN_UPLOAD_ACTIVITY, cursorMap, cursors);
+    defaultNullCursorsToNextMonthAndAddToMap(
+        transactionKeyMap, CursorType.ICANN_UPLOAD_TX, cursorMap, cursors);
+    Cursor manifestCursor =
+        cursorMap.getOrDefault(
+            Cursor.createGlobalKey(CursorType.ICANN_UPLOAD_MANIFEST),
+            Cursor.createGlobal(CursorType.ICANN_UPLOAD_MANIFEST, clock.nowUtc().minusDays(1)));
+    cursors.put(manifestCursor, CursorInfo.create(CursorType.ICANN_UPLOAD_MANIFEST, null));
+    return cursors.build();
+  }
+
+  private Map<Key<Cursor>, Registry> loadKeyMap(
+      ImmutableSet<Registry> registries, CursorType type) {
+    return registries.stream().collect(toImmutableMap(r -> Cursor.createKey(type, r), r -> r));
+  }
+
+  /**
+   * Populate the cursors map with the Cursor and CursorInfo for each key in the keyMap. If the key
+   * from the keyMap does not have an existing cursor, create a new cursor with a default cursorTime
+   * of the first of next month.
+   */
+  private void defaultNullCursorsToNextMonthAndAddToMap(
+      Map<Key<Cursor>, Registry> keyMap,
+      CursorType type,
+      Map<Key<Cursor>, Cursor> cursorMap,
+      ImmutableMap.Builder<Cursor, CursorInfo> cursors) {
+    keyMap.forEach(
+        (key, registry) -> {
+          // Cursor time is defaulted to the first of next month since a new tld will not yet have a
+          // report staged for upload.
+          Cursor cursor =
+              cursorMap.getOrDefault(
+                  key, Cursor.create(type, clock.nowUtc().minusDays(1), registry));
+          cursors.put(cursor, CursorInfo.create(type, registry.getTldStr()));
+        });
   }
 
   /** Don't retry when reports are already uploaded or can't be uploaded. */
   private static final String ICANN_UPLOAD_PERMANENT_ERROR_MESSAGE =
-      "A report for that month already exists, the cut-off date already passed.";
+      "A report for that month already exists, the cut-off date already passed";
 
   /** Don't retry when the IP address isn't whitelisted, as retries go through the same IP. */
   private static final Pattern ICANN_UPLOAD_WHITELIST_ERROR =
@@ -146,18 +294,6 @@ public final class IcannReportingUploadAction implements Runnable {
     emailService.sendEmail(EmailMessage.create(subject, body, recipient, sender));
   }
 
-  private ImmutableList<String> getManifestedFiles(String reportBucketname) {
-    GcsFilename manifestFilename = new GcsFilename(reportBucketname, MANIFEST_FILE_NAME);
-    verifyFileExists(manifestFilename);
-    return retrier.callWithRetry(
-        () ->
-            ImmutableList.copyOf(
-                Splitter.on('\n')
-                    .omitEmptyStrings()
-                    .split(new String(readBytesFromGcs(manifestFilename), UTF_8))),
-        IOException.class);
-  }
-
   private byte[] readBytesFromGcs(GcsFilename reportFilename) throws IOException {
     try (InputStream gcsInput = gcsUtils.openInputStream(reportFilename)) {
       return ByteStreams.toByteArray(gcsInput);
@@ -170,5 +306,17 @@ public final class IcannReportingUploadAction implements Runnable {
         "Object %s in bucket %s not found",
         gcsFilename.getObjectName(),
         gcsFilename.getBucketName());
+  }
+
+  @AutoValue
+  abstract static class CursorInfo {
+    static CursorInfo create(CursorType type, @Nullable String tld) {
+      return new AutoValue_IcannReportingUploadAction_CursorInfo(type, tld);
+    }
+
+    public abstract CursorType getType();
+
+    @Nullable
+    abstract String getTld();
   }
 }
