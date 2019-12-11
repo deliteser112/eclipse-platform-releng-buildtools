@@ -12,8 +12,5 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- Note: We're OK with dropping this data since it's not live in production yet.
-alter table "PremiumList" drop column if exists currency;
-
--- Note: This default was removed in V11.
-alter table "PremiumList" add column currency text not null default 'USD';
+-- Remove default set in V9 that we no longer need.
+alter table "PremiumList" alter column currency drop default;

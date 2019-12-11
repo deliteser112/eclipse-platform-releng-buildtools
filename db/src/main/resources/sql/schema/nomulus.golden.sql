@@ -93,7 +93,7 @@ CREATE TABLE public."PremiumList" (
     creation_timestamp timestamp with time zone NOT NULL,
     name text NOT NULL,
     bloom_filter bytea NOT NULL,
-    currency text DEFAULT 'USD'::text NOT NULL
+    currency text NOT NULL
 );
 
 
