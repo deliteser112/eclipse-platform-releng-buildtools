@@ -38,7 +38,6 @@ import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.AuthenticatedRegistrarAccessor;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.schema.domain.RegistryLock;
-import google.registry.schema.domain.RegistryLock.Action;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
 import java.util.Map;
@@ -95,10 +94,9 @@ public final class RegistryLockGetActionTest {
             .setRepoId("repoId")
             .setDomainName("example.test")
             .setRegistrarId("TheRegistrar")
-            .setAction(Action.LOCK)
             .setVerificationCode(UUID.randomUUID().toString())
             .setRegistrarPocId("johndoe@theregistrar.com")
-            .setCompletionTimestamp(jpaRule.getTxnClock().nowUtc())
+            .setLockCompletionTimestamp(jpaRule.getTxnClock().nowUtc())
             .build();
     jpaRule.getTxnClock().advanceOneMilli();
     RegistryLock adminLock =
@@ -106,24 +104,35 @@ public final class RegistryLockGetActionTest {
             .setRepoId("repoId")
             .setDomainName("adminexample.test")
             .setRegistrarId("TheRegistrar")
-            .setAction(Action.LOCK)
             .setVerificationCode(UUID.randomUUID().toString())
             .isSuperuser(true)
-            .setCompletionTimestamp(jpaRule.getTxnClock().nowUtc())
+            .setLockCompletionTimestamp(jpaRule.getTxnClock().nowUtc())
             .build();
     RegistryLock incompleteLock =
         new RegistryLock.Builder()
             .setRepoId("repoId")
             .setDomainName("incomplete.test")
             .setRegistrarId("TheRegistrar")
-            .setAction(Action.LOCK)
             .setVerificationCode(UUID.randomUUID().toString())
             .setRegistrarPocId("johndoe@theregistrar.com")
+            .build();
+
+    RegistryLock unlockedLock =
+        new RegistryLock.Builder()
+            .setRepoId("repoId")
+            .setDomainName("unlocked.test")
+            .setRegistrarId("TheRegistrar")
+            .setRegistrarPocId("johndoe@theregistrar.com")
+            .setVerificationCode(UUID.randomUUID().toString())
+            .setLockCompletionTimestamp(jpaRule.getTxnClock().nowUtc())
+            .setUnlockRequestTimestamp(jpaRule.getTxnClock().nowUtc())
+            .setUnlockCompletionTimestamp(jpaRule.getTxnClock().nowUtc())
             .build();
 
     RegistryLockDao.save(regularLock);
     RegistryLockDao.save(adminLock);
     RegistryLockDao.save(incompleteLock);
+    RegistryLockDao.save(unlockedLock);
 
     action.run();
     assertThat(response.getStatus()).isEqualTo(HttpStatusCodes.STATUS_CODE_OK);
@@ -134,9 +143,12 @@ public final class RegistryLockGetActionTest {
             "results",
                 ImmutableList.of(
                     ImmutableMap.of(
-                        "lockEnabledForContact", true,
-                        "email", "Marla.Singer@crr.com",
-                        "clientId", "TheRegistrar",
+                        "lockEnabledForContact",
+                        true,
+                        "email",
+                        "Marla.Singer@crr.com",
+                        "clientId",
+                        "TheRegistrar",
                         "locks",
                         ImmutableList.of(
                             ImmutableMap.of(
