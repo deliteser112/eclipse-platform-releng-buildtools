@@ -97,7 +97,6 @@ abstract class JpaTransactionManagerRule extends ExternalResource {
         new PostgreSQLContainer(NomulusPostgreSql.getDockerTag())
             .withDatabaseName(MANAGEMENT_DB_NAME);
     container.start();
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> container.close()));
     return container;
   }
 
