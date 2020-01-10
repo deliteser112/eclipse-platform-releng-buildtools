@@ -13,6 +13,7 @@
 // limitations under the License.
 package google.registry.persistence;
 
+import google.registry.persistence.GenericCollectionUserType.ArrayColumnType;
 import java.sql.Types;
 import org.hibernate.dialect.PostgreSQL95Dialect;
 
@@ -23,5 +24,8 @@ public class NomulusPostgreSQLDialect extends PostgreSQL95Dialect {
     registerColumnType(Types.VARCHAR, "text");
     registerColumnType(Types.TIMESTAMP_WITH_TIMEZONE, "timestamptz");
     registerColumnType(Types.TIMESTAMP, "timestamptz");
+    for (ArrayColumnType arrayType : ArrayColumnType.values()) {
+      registerColumnType(arrayType.getTypeCode(), arrayType.getTypeDdlName());
+    }
   }
 }
