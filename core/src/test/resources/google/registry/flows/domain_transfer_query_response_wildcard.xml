@@ -6,12 +6,12 @@
     <resData>
       <domain:trnData xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
         <domain:name>fakesite.example</domain:name>
-        <domain:trStatus>serverApproved</domain:trStatus>
+        <domain:trStatus>%STATUS%</domain:trStatus>
         <domain:reID>TheRegistrar</domain:reID>
-        <domain:reDate>2001-01-01T00:00:00.000Z</domain:reDate>
+        <domain:reDate>%REDATE%</domain:reDate>
         <domain:acID>NewRegistrar</domain:acID>
-        <domain:acDate>2001-01-06T00:00:00.000Z</domain:acDate>
-        <domain:exDate>2003-06-01T00:04:00.000Z</domain:exDate>
+        <domain:acDate>%ACDATE%</domain:acDate>
+        <domain:exDate>%EXDATE%</domain:exDate>
       </domain:trnData>
     </resData>
     <trID>
