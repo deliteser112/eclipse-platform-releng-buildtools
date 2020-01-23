@@ -20,7 +20,9 @@ import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
+import static google.registry.flows.domain.DomainFlowUtils.isAnchorTenant;
 import static google.registry.flows.domain.DomainFlowUtils.isReserved;
+import static google.registry.flows.domain.DomainFlowUtils.isValidReservedCreate;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
@@ -168,17 +170,18 @@ public final class DomainCheckFlow implements Flow {
         tokenDomainCheckResults
             .map(AllocationTokenDomainCheckResults::domainCheckResults)
             .orElse(ImmutableMap.of());
+    Optional<AllocationToken> allocationToken =
+        tokenDomainCheckResults.flatMap(AllocationTokenDomainCheckResults::token);
     for (String targetId : targetIds) {
       Optional<String> message =
           getMessageForCheck(
               domainNames.get(targetId),
               existingIds,
               domainCheckResults,
-              tldStates);
+              tldStates,
+              allocationToken);
       checks.add(DomainCheck.create(!message.isPresent(), targetId, message.orElse(null)));
     }
-    Optional<AllocationToken> allocationToken =
-        tokenDomainCheckResults.flatMap(AllocationTokenDomainCheckResults::token);
     BeforeResponseReturnData responseData =
         flowCustomLogic.beforeResponse(
             BeforeResponseParameters.newBuilder()
@@ -196,15 +199,20 @@ public final class DomainCheckFlow implements Flow {
       InternetDomainName domainName,
       Set<String> existingIds,
       ImmutableMap<InternetDomainName, String> tokenCheckResults,
-      Map<String, TldState> tldStates) {
+      Map<String, TldState> tldStates,
+      Optional<AllocationToken> allocationToken) {
     if (existingIds.contains(domainName.toString())) {
       return Optional.of("In use");
     }
     TldState tldState = tldStates.get(domainName.parent().toString());
     if (isReserved(domainName, START_DATE_SUNRISE.equals(tldState))) {
-      ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
-      if (!reservationTypes.isEmpty()) {
-        return Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
+      if (!isValidReservedCreate(domainName, allocationToken)
+          && !isAnchorTenant(domainName, allocationToken, Optional.empty())) {
+        ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
+        if (!reservationTypes.isEmpty()) {
+          ReservationType highestSeverityType = getTypeOfHighestSeverity(reservationTypes);
+          return Optional.of(highestSeverityType.getMessageForCheck());
+        }
       }
     }
     return Optional.ofNullable(emptyToNull(tokenCheckResults.get(domainName)));
