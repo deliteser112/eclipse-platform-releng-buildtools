@@ -88,6 +88,35 @@ CREATE TABLE public."Cursor" (
 
 
 --
+-- Name: Domain; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."Domain" (
+    repo_id text NOT NULL,
+    creation_client_id text,
+    creation_time timestamp with time zone,
+    current_sponsor_client_id text,
+    deletion_time timestamp with time zone,
+    last_epp_update_client_id text,
+    last_epp_update_time timestamp with time zone,
+    statuses text[],
+    auth_info_repo_id text,
+    auth_info_value text,
+    fully_qualified_domain_name text,
+    idn_table_name text,
+    last_transfer_time timestamp with time zone,
+    launch_notice_accepted_time timestamp with time zone,
+    launch_notice_expiration_time timestamp with time zone,
+    launch_notice_tcn_id text,
+    launch_notice_validator_id text,
+    registration_expiration_time timestamp with time zone,
+    smd_id text,
+    subordinate_hosts text[],
+    tld text
+);
+
+
+--
 -- Name: PremiumEntry; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -265,6 +294,14 @@ ALTER TABLE ONLY public."Cursor"
 
 
 --
+-- Name: Domain Domain_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."Domain"
+    ADD CONSTRAINT "Domain_pkey" PRIMARY KEY (repo_id);
+
+
+--
 -- Name: PremiumEntry PremiumEntry_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -313,6 +350,34 @@ ALTER TABLE ONLY public."RegistryLock"
 
 
 --
+-- Name: idx1rcgkdd777bpvj0r94sltwd5y; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx1rcgkdd777bpvj0r94sltwd5y ON public."Domain" USING btree (fully_qualified_domain_name);
+
+
+--
+-- Name: idx5mnf0wn20tno4b9do88j61klr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx5mnf0wn20tno4b9do88j61klr ON public."Domain" USING btree (deletion_time);
+
+
+--
+-- Name: idx8ffrqm27qtj20jac056j7yq07; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx8ffrqm27qtj20jac056j7yq07 ON public."Domain" USING btree (current_sponsor_client_id);
+
+
+--
+-- Name: idx8nr0ke9mrrx4ewj6pd2ag4rmr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx8nr0ke9mrrx4ewj6pd2ag4rmr ON public."Domain" USING btree (creation_time);
+
+
+--
 -- Name: idx_registry_lock_registrar_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -324,6 +389,13 @@ CREATE INDEX idx_registry_lock_registrar_id ON public."RegistryLock" USING btree
 --
 
 CREATE INDEX idx_registry_lock_verification_code ON public."RegistryLock" USING btree (verification_code);
+
+
+--
+-- Name: idxrwl38wwkli1j7gkvtywi9jokq; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idxrwl38wwkli1j7gkvtywi9jokq ON public."Domain" USING btree (tld);
 
 
 --
