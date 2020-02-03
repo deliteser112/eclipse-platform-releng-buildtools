@@ -63,6 +63,11 @@
 
   <servlet-mapping>
     <servlet-name>frontend-servlet</servlet-name>
+    <url-pattern>/registry-lock-post</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>frontend-servlet</servlet-name>
     <url-pattern>/registry-lock-verify</url-pattern>
   </servlet-mapping>
 
