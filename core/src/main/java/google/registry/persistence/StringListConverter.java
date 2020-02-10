@@ -14,19 +14,21 @@
 
 package google.registry.persistence;
 
-import com.google.common.collect.Lists;
 import java.util.List;
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 
-/** Abstract Hibernate user type for storing/retrieving {@link List<String>}. */
-public class StringListUserType<E> extends GenericCollectionUserType<List<E>, E, String> {
+/** JPA {@link AttributeConverter} for storing/retrieving {@link List<String>}. */
+@Converter(autoApply = true)
+public class StringListConverter extends StringListConverterBase<String> {
 
   @Override
-  List<E> getNewCollection() {
-    return Lists.newArrayList();
+  String toString(String element) {
+    return element;
   }
 
   @Override
-  ArrayColumnType getColumnType() {
-    return ArrayColumnType.STRING;
+  String fromString(String value) {
+    return value;
   }
 }

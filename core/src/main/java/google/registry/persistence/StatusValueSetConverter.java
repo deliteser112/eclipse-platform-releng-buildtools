@@ -14,19 +14,22 @@
 
 package google.registry.persistence;
 
-import com.google.common.collect.Sets;
+import google.registry.model.eppcommon.StatusValue;
 import java.util.Set;
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 
-/** Abstract Hibernate user type for storing/retrieving {@link Set<String>}. */
-public class StringSetUserType<E> extends GenericCollectionUserType<Set<E>, E, String> {
+/** JPA {@link AttributeConverter} for storing/retrieving {@link Set<StatusValue>}. */
+@Converter(autoApply = true)
+public class StatusValueSetConverter extends StringSetConverterBase<StatusValue> {
 
   @Override
-  Set<E> getNewCollection() {
-    return Sets.newHashSet();
+  String toString(StatusValue element) {
+    return element.name();
   }
 
   @Override
-  ArrayColumnType getColumnType() {
-    return ArrayColumnType.STRING;
+  StatusValue fromString(String value) {
+    return StatusValue.valueOf(value);
   }
 }

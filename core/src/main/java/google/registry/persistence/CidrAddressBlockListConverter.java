@@ -16,20 +16,24 @@ package google.registry.persistence;
 
 import google.registry.util.CidrAddressBlock;
 import java.util.List;
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 
 /**
- * Hibernate {@link org.hibernate.usertype.UserType} for storing/retrieving {@link
- * List<CidrAddressBlock>} objects.
+ * JPA {@link AttributeConverter} for storing/retrieving {@link List<CidrAddressBlock>} objects.
+ * TODO(shicong): Investigate if we can have one converter for any List type
  */
-public class CidrAddressBlockListUserType extends StringListUserType<CidrAddressBlock> {
+@Converter(autoApply = true)
+public class CidrAddressBlockListConverter extends StringListConverterBase<CidrAddressBlock> {
 
   @Override
-  protected CidrAddressBlock convertToElem(String columnValue) {
-    return columnValue == null ? null : CidrAddressBlock.create(columnValue);
+  String toString(CidrAddressBlock element) {
+    return element.toString();
   }
 
   @Override
-  protected String convertToColumn(CidrAddressBlock elementValue) {
-    return elementValue == null ? null : elementValue.toString();
+  CidrAddressBlock fromString(String value) {
+    return CidrAddressBlock.create(value);
   }
+
 }
