@@ -77,6 +77,15 @@
         primary key (id)
     );
 
+    create table "Lock" (
+       resource_name text not null,
+        tld text not null,
+        acquired_time timestamptz not null,
+        expiration_time timestamptz not null,
+        request_log_id text not null,
+        primary key (resource_name, tld)
+    );
+
     create table "PremiumEntry" (
        revision_id int8 not null,
         domain_label text not null,
