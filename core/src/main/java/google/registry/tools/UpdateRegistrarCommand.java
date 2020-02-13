@@ -20,6 +20,7 @@ import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import com.beust.jcommander.Parameters;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
+import google.registry.schema.registrar.RegistrarDao;
 import javax.annotation.Nullable;
 
 /** Command to update a Registrar. */
@@ -48,5 +49,10 @@ final class UpdateRegistrarCommand extends CreateOrUpdateRegistrarCommand {
               + " \"nomulus registrar_contact\" command on this registrar to set a WHOIS abuse"
               + " contact.");
     }
+  }
+
+  @Override
+  void saveToCloudSql(Registrar registrar) {
+    RegistrarDao.update(registrar);
   }
 }

@@ -16,20 +16,24 @@ package google.registry.model.eppcommon;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Ignore;
-import com.googlecode.objectify.annotation.OnLoad;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import google.registry.model.JsonMapBuilder;
 import google.registry.model.Jsonifiable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 import javax.persistence.Embeddable;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.PostLoad;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -53,15 +57,17 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 public class Address extends ImmutableObject implements Jsonifiable {
 
   /** The schema validation will enforce that this has 3 lines at most. */
+  // TODO(shicong): Remove this field after migration. We need to figure out how to generate same
+  // XML from streetLine[1,2,3].
   @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
   @Transient
   List<String> street;
 
-  @Ignore String streetLine1;
+  @Ignore @XmlTransient @IgnoredInDiffableMap String streetLine1;
 
-  @Ignore String streetLine2;
+  @Ignore @XmlTransient @IgnoredInDiffableMap String streetLine2;
 
-  @Ignore String streetLine3;
+  @Ignore @XmlTransient @IgnoredInDiffableMap String streetLine3;
 
   @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
   String city;
@@ -84,18 +90,6 @@ public class Address extends ImmutableObject implements Jsonifiable {
     } else {
       return nullToEmptyImmutableCopy(street);
     }
-  }
-
-  public String getStreetLine1() {
-    return streetLine1;
-  }
-
-  public String getStreetLine2() {
-    return streetLine2;
-  }
-
-  public String getStreetLine13() {
-    return streetLine3;
   }
 
   public String getCity() {
@@ -144,6 +138,9 @@ public class Address extends ImmutableObject implements Jsonifiable {
           street == null || (!street.isEmpty() && street.size() <= 3),
           "Street address must have [1-3] lines: %s", street);
       getInstance().street = street;
+      getInstance().streetLine1 = street.get(0);
+      getInstance().streetLine2 = street.size() >= 2 ? street.get(1) : null;
+      getInstance().streetLine3 = street.size() == 3 ? street.get(2) : null;
       return this;
     }
 
@@ -171,13 +168,37 @@ public class Address extends ImmutableObject implements Jsonifiable {
     }
   }
 
-  @OnLoad
-  void setStreetForCloudSql() {
+  /**
+   * Sets {@link #streetLine1}, {@link #streetLine2} and {@link #streetLine3} after loading the
+   * entity from Datastore.
+   *
+   * <p>This callback method is used by Objectify to set streetLine[1,2,3] fields as they are not
+   * persisted in the Datastore. TODO(shicong): Delete this method after database migration.
+   */
+  void onLoad(@AlsoLoad("street") List<String> street) {
     if (street == null || street.size() == 0) {
       return;
     }
     streetLine1 = street.get(0);
     streetLine2 = street.size() >= 2 ? street.get(1) : null;
     streetLine3 = street.size() >= 3 ? street.get(2) : null;
+  }
+
+  /**
+   * Sets {@link #street} after loading the entity from Cloud SQL.
+   *
+   * <p>This callback method is used by Hibernate to set {@link #street} field as it is not
+   * persisted in Cloud SQL. We are doing this because the street list field is exposed by Address
+   * class and is used everywhere in our code base. Also, setting/reading a list of strings is more
+   * convenient.
+   */
+  @PostLoad
+  void postLoad() {
+    street =
+        streetLine1 == null
+            ? null
+            : Stream.of(streetLine1, streetLine2, streetLine3)
+                .filter(Objects::nonNull)
+                .collect(toImmutableList());
   }
 }

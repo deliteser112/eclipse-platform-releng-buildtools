@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
+import google.registry.schema.registrar.RegistrarDao;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -67,6 +68,11 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
     checkArgumentNotNull(street, "Address fields are required when creating a registrar");
     // Default new registrars to active.
     registrarState = Optional.ofNullable(registrarState).orElse(ACTIVE);
+  }
+
+  @Override
+  void saveToCloudSql(Registrar registrar) {
+    RegistrarDao.saveNew(registrar);
   }
 
   @Nullable
