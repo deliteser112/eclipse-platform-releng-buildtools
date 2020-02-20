@@ -32,6 +32,7 @@ import google.registry.tools.LockDomainCommandTest;
 import google.registry.tools.UnlockDomainCommandTest;
 import google.registry.tools.UpdateRegistrarCommandTest;
 import google.registry.tools.UpdateReservedListCommandTest;
+import google.registry.tools.javascrap.BackfillRegistryLocksCommandTest;
 import google.registry.tools.server.CreatePremiumListActionTest;
 import google.registry.tools.server.UpdatePremiumListActionTest;
 import google.registry.ui.server.registrar.RegistryLockGetActionTest;
@@ -56,6 +57,7 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({
+  BackfillRegistryLocksCommandTest.class,
   ClaimsListDaoTest.class,
   CreatePremiumListActionTest.class,
   CreateRegistrarCommandTest.class,
