@@ -127,8 +127,7 @@ public final class RegistryLockDaoTest {
 
   @Test
   public void testLoad_lockedDomains_byRegistrarId() {
-    RegistryLock lock =
-        createLock().asBuilder().setLockCompletionTimestamp(fakeClock.nowUtc()).build();
+    RegistryLock lock = createLock();
     RegistryLock secondLock =
         createLock()
             .asBuilder()
