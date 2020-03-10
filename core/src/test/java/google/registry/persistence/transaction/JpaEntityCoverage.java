@@ -41,7 +41,8 @@ public class JpaEntityCoverage extends ExternalResource {
           "BaseTransferObject",
           "DelegationSignerData",
           "DesignatedContact",
-          "GracePeriod");
+          "GracePeriod",
+          "RegistrarContact");
 
   private static final ImmutableSet<Class> ALL_JPA_ENTITIES =
       PersistenceXmlUtility.getManagedClasses().stream()

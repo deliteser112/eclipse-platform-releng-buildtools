@@ -870,7 +870,8 @@ test {
   // Don't run any tests from this task, all testing gets done in the
   // FilteringTest tasks.
   exclude "**"
-}.dependsOn(fragileTest, outcastTest, standardTest, registryToolIntegrationTest)
+  // TODO(weiminyu): Remove dependency on sqlIntegrationTest
+}.dependsOn(fragileTest, outcastTest, standardTest, registryToolIntegrationTest, sqlIntegrationTest)
 
 createUberJar('nomulus', 'nomulus', 'google.registry.tools.RegistryTool')
 
