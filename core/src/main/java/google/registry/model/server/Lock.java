@@ -41,8 +41,8 @@ import org.joda.time.Duration;
 /**
  * A lock on some shared resource.
  *
- * <p>Locks are either specific to a tld or global to the entire system, in which case a tld of
- * null is used.
+ * <p>Locks are either specific to a tld or global to the entire system, in which case a tld of null
+ * is used.
  *
  * <p>This is the "barebone" lock implementation, that requires manual locking and unlocking. For
  * safe calls that automatically lock and unlock, see LockHandler.
@@ -201,8 +201,12 @@ public class Lock extends ImmutableObject implements Serializable {
                     jpaTm()
                         .transact(
                             () -> {
-                              Optional<google.registry.schema.server.Lock> cloudSqlLockOptional =
-                                  LockDao.load(resourceName, tld);
+                              Optional<google.registry.schema.server.Lock> cloudSqlLockOptional;
+                              if (tld == null) {
+                                cloudSqlLockOptional = LockDao.load(resourceName);
+                              } else {
+                                cloudSqlLockOptional = LockDao.load(resourceName, tld);
+                              }
                               LockDao.compare(Optional.ofNullable(lock), cloudSqlLockOptional);
                             });
                   } catch (Exception e) {
@@ -238,13 +242,23 @@ public class Lock extends ImmutableObject implements Serializable {
                     jpaTm()
                         .transact(
                             () -> {
-                              google.registry.schema.server.Lock cloudSqlLock =
-                                  google.registry.schema.server.Lock.create(
-                                      resourceName,
-                                      Optional.ofNullable(tld).orElse("GLOBAL"),
-                                      requestStatusChecker.getLogId(),
-                                      now,
-                                      leaseLength);
+                              google.registry.schema.server.Lock cloudSqlLock;
+                              if (tld == null) {
+                                cloudSqlLock =
+                                    google.registry.schema.server.Lock.createGlobal(
+                                        resourceName,
+                                        requestStatusChecker.getLogId(),
+                                        now,
+                                        leaseLength);
+                              } else {
+                                cloudSqlLock =
+                                    google.registry.schema.server.Lock.create(
+                                        resourceName,
+                                        tld,
+                                        requestStatusChecker.getLogId(),
+                                        now,
+                                        leaseLength);
+                              }
                               LockDao.save(cloudSqlLock);
                             });
                   } catch (Exception e) {
@@ -274,8 +288,12 @@ public class Lock extends ImmutableObject implements Serializable {
                 jpaTm()
                     .transact(
                         () -> {
-                          Optional<google.registry.schema.server.Lock> cloudSqlLockOptional =
-                              LockDao.load(resourceName, tld);
+                          Optional<google.registry.schema.server.Lock> cloudSqlLockOptional;
+                          if (tld == null) {
+                            cloudSqlLockOptional = LockDao.load(resourceName);
+                          } else {
+                            cloudSqlLockOptional = LockDao.load(resourceName, tld);
+                          }
                           LockDao.compare(Optional.ofNullable(loadedLock), cloudSqlLockOptional);
                         });
               } catch (Exception e) {
@@ -292,9 +310,13 @@ public class Lock extends ImmutableObject implements Serializable {
                 try {
                   jpaTm()
                       .transact(
-                          () ->
-                              LockDao.delete(
-                                  resourceName, Optional.ofNullable(tld).orElse("GLOBAL")));
+                          () -> {
+                            if (tld == null) {
+                              LockDao.delete(resourceName);
+                            } else {
+                              LockDao.delete(resourceName, tld);
+                            }
+                          });
                 } catch (Exception e) {
                   logger.atSevere().withCause(e).log(
                       "Error deleting lock from Cloud SQL: %s", loadedLock);
